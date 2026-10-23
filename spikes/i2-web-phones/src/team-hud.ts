@@ -44,7 +44,7 @@ export class TeamHud {
       head.append(name, sub, stat);
       const judge = el('div', 'hw-overlay hw-judge');
       const lanes = r.bells.map((b) => {
-        const l = el('div', 'hw-overlay hw-lane');
+        const l = el('div', `hw-overlay hw-lane${b.accidental ? ' acc' : ''}`);
         l.style.setProperty('--c', b.color);
         l.innerHTML = `<b>${b.name}</b>`;
         col.appendChild(l);

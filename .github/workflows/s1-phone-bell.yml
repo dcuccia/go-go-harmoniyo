@@ -2,10 +2,10 @@ name: s1-phone-bell
 
 on:
   pull_request:
-    paths: ['spikes/s1-phone-bell/**', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
+    paths: ['spikes/s1-phone-bell/**', 'spikes/shared/**', 'docs/design/pitch-class-palette.json', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
   push:
     branches: [main]
-    paths: ['spikes/s1-phone-bell/**', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
+    paths: ['spikes/s1-phone-bell/**', 'spikes/shared/**', 'docs/design/pitch-class-palette.json', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
 
 permissions:
   contents: read

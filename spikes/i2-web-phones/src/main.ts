@@ -13,6 +13,7 @@ import { defaultHgpUrl, HgpLink, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
 import { buildTeamChart, findPart, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
+import { isAccidental } from '../../shared/pitch-palette';
 
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -122,7 +123,7 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   renderLobby();
 }
 
-/** Each phone in a slot gets its ringer's bells (sounding pitch, lane colour) via the S1 host. */
+/** Each phone in a slot gets its ringer's bells (sounding pitch, pitch-class colour) via the S1 host. */
 function sendAssignments(): void {
   if (!team) return;
   for (const r of team.ringers) {
@@ -167,7 +168,7 @@ function renderLobby(): void {
   $('slots').innerHTML = slots
     .map((s, i) => {
       const r = preview?.ringers[i];
-      const colors = r ? r.bells.map((b) => `<i style="background:${b.color}" title="${b.name}">${b.name}</i>`).join('') : '';
+      const colors = r ? r.bells.map((b) => `<i class="${b.accidental ? 'acc' : ''}" style="background:${b.color}" title="${b.name}">${b.name}</i>`).join('') : '';
       const auto = r?.autoBells.length ? `<small> +${r.autoBells.join(' ')} rung by host</small>` : '';
       return `<div class="slot"><b>Ringer ${i + 1}</b><span class="bells">${colors}${auto}</span><select data-slot="${i}">${opts(s)}</select></div>`;
     })
@@ -200,7 +201,7 @@ function renderLobby(): void {
       const slot = slots.indexOf(p.id);
       const sync = typeof st.rttP50 === 'number' ? `rtt ${st.rttP50.toFixed(0)} ms` : 'syncing…';
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
-      const bells = p.bells?.map((b) => `<i style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
+      const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
       return `<li id="ph-${cssId(p.id)}" class="${p.online ? '' : 'off'}"><b>${esc(p.name)}</b> <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${slot >= 0 ? ` · ringer ${slot + 1}` : ' · not playing'}</small></li>`;
     })
     .join('') || '<li class="dim">No phones yet — scan the QR code.</li>';

@@ -19,6 +19,7 @@ SPDX-License-Identifier = "MIT"
 path = [
   "docs/spikes/media/**",
   "docs/spikes/I1-data/**.png",
+  "docs/design/media/**",
   "spikes/s1-phone-bell/results/**.png",
 ]
 precedence = "override"

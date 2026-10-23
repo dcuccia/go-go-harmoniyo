@@ -14,6 +14,11 @@
 |---|---|
 | ![ultra](media/s4-ultra-4k.png) | ![low](media/s4-low-1080p.png) |
 
+*Media re-captured 2026-10-23 after [#12](https://github.com/dcuccia/handbell-hero/issues/12):
+lanes, bells and hit effects now use the [pitch-class palette](../design/visual-identity.md#pitch-class-palette)
+(colour follows the bell's pitch, not its lane). The measurements below are from the original
+2026-10-22 run.*
+
 ## TL;DR
 
 - **Feel:** a browser easily delivers the *mechanics* of commercial rhythm-game feel — 3D

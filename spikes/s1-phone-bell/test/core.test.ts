@@ -3,6 +3,19 @@ import { test } from 'node:test';
 import { ClockSync, samplePoint } from '../src/core/clock-sync.ts';
 import { matchNearest } from '../src/core/match.ts';
 import { quantile, summarize } from '../src/core/stats.ts';
+import { DEFAULT_BELLS } from '../src/core/hgp.ts';
+import { isAccidental, pitchColor } from '../../shared/pitch-palette.ts';
+
+test('default bells are coloured by pitch class (same letter, same colour, any octave)', () => {
+  for (const b of DEFAULT_BELLS) assert.equal(b.color, pitchColor(b.midi));
+  const byLabel = new Map<string, Set<string>>();
+  for (const b of DEFAULT_BELLS) byLabel.set(b.label, (byLabel.get(b.label) ?? new Set()).add(b.color));
+  assert.equal(byLabel.size, 7);
+  for (const colors of byLabel.values()) assert.equal(colors.size, 1);
+  assert.equal(new Set(DEFAULT_BELLS.map((b) => b.color)).size, 7);
+  assert.equal(isAccidental(61), true);
+  assert.equal(isAccidental(60), false);
+});
 
 test('quantile interpolates', () => {
   assert.equal(quantile([0, 10], 0.5), 5);

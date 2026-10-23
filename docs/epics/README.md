@@ -186,8 +186,9 @@ audience reactions, festive themes (holiday theme for M5).
   - Decided ([ADR-0008](../decisions/0008-assets-ip-and-attribution.md)): original assets CC BY
     4.0, AI-generated CC0 with logged provenance and a human resemblance review; ideas are free,
     other games' expression and trade dress are not. Our principles and the pitch-class palette:
-    [visual identity](../design/visual-identity.md). Lane colours move to that palette in
-    [#12](https://github.com/dcuccia/handbell-hero/issues/12).
+    [visual identity](../design/visual-identity.md). Lane colours moved to that palette in
+    [#12](https://github.com/dcuccia/handbell-hero/issues/12) (colour follows the bell's pitch,
+    not its lane; naturals' lightness was stepped after a colour-vision check).
   - S4: procedural neon highway + bloom/particles reaches "Clone Hero default" level; the gap to
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
 

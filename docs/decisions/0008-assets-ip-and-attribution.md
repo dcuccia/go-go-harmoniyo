@@ -182,9 +182,9 @@ distributed, so it doesn't need an entry. Current candidates: YARG.Core and the 
 - Product builds must also ship full license texts and notices for bundled dependencies. The
   notices file lists them today, but no product bundle exists yet.
 - The 2026-10-23 audit found:
-  - The S4/I1/I2 lane colors are close to Guitar Hero trade dress. Issue
-    [#12](https://github.com/dcuccia/handbell-hero/issues/12) moves them to the pitch-class
-    palette.
+  - The S4/I1/I2 lane colors were close to Guitar Hero trade dress. Issue
+    [#12](https://github.com/dcuccia/handbell-hero/issues/12) moved S4, I2 and the phone's web
+    mode to the pitch-class palette (I1's YARG mode keeps YARG's colors as interop).
   - The "Handbell Hero" name follows the "[instrument] Hero" pattern. Issue
     [#13](https://github.com/dcuccia/handbell-hero/issues/13) tracks choosing a product name
     before any public release. "handbell-hero" can stay as the repository codename.

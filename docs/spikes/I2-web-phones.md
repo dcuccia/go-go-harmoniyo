@@ -9,13 +9,17 @@
 
 ![4 ringers, Jingle Bells medium (simulated phones)](media/i2-4-ringers-play.png)
 
+*Screenshots re-captured 2026-10-23 after [#12](https://github.com/dcuccia/handbell-hero/issues/12):
+each bell's colour follows its pitch class ([palette](../design/visual-identity.md#pitch-class-palette)),
+so C5 has the same colour on every highway and phone; F♯4 shows the sharp/flat ring outline.*
+
 ## TL;DR
 
 - **Built:** the S4 web host now plays S5 carols with **1–4 ringers on one TV**, each ringer on
   their own S4 highway (name, note names under the strike targets, live hits/accuracy), with
   S4's team score/streak/multiplier on top. Phones join by **QR on the TV** (S1 controller, WSS
   on the LAN with S1's self-signed cert), get their **bells from the chart** (≤ 4 per phone, in
-  the highway's lane order and colours), **ring the bell sound locally**, and their **next
+  the highway's lane order, coloured by pitch class), **ring the bell sound locally**, and their **next
   zone glows** from the song's cues. Parts without a player — and bells beyond 4 per ringer —
   are rung by the TV.
 - **Timing:** rings are judged on the phones' **source timestamps** (phone→host clock sync on
