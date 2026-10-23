@@ -8,7 +8,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | ID | Spike | Feeds | Status | Owner action needed |
 |---|---|---|---|---|
 | S1 | Phone-bell input, timing & transport | E01, E02, E11 | Not started | Physical phone tests (Pixel; iPhone if available) |
-| S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Not started | — |
+| S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Done — [report](S2-report.md): works on console + browser-wasm with a 5-line logger patch | Decide on upstreaming the logger fix; review LGPL-in-browser notes |
 | S3 | YARG handbell mode | E03, E10 | Not started | Install Unity Hub + pinned Unity editor, sign in (Unity Personal) for the prototype phase |
 | S4 | Web-native host prototype | E03, E05, E07 | Not started | Look at it on the TV |
 | S5 | Carol chart pipeline | E04, E06 | Not started | — |

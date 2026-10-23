@@ -1,0 +1,19 @@
+S2 patch for YARC-Official/YARG.Core @ 9dafd346aff908b6d5b1db250eaf3a2588810c70.
+This patch modifies LGPL-3.0-or-later code and is itself licensed LGPL-3.0-or-later (not MIT).
+
+diff --git a/YARG.Core/Logging/YargLogger.cs b/YARG.Core/Logging/YargLogger.cs
+index 30439e5..a81c0c9 100644
+--- a/YARG.Core/Logging/YargLogger.cs
++++ b/YARG.Core/Logging/YargLogger.cs
+@@ -28,6 +28,11 @@ namespace YARG.Core.Logging
+         {
+             _logBuilder = ZString.CreateStringBuilder();
+ 
++            if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Create("BROWSER")))
++            {
++                return; // S2 PATCH: no threads on single-threaded browser-wasm; call FlushLogQueue() manually
++            }
++
+             var logOutputterThread = new Thread(LogOutputter)
+             {
+                 Name = "YargLogger Thread",

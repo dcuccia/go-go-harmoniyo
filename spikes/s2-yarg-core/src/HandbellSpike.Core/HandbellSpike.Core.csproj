@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(S2TargetFramework)</TargetFramework>
+    <RootNamespace>HandbellSpike</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(YargCoreProject)" />
+  </ItemGroup>
+
+</Project>

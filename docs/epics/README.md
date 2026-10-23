@@ -52,6 +52,12 @@ drive any host.
   shared core.
 - Open: shared-core language (C# via YARG.Core vs TypeScript); frame pacing on low-end
   classroom hardware; audio clock accuracy in browsers (`AudioContext.outputLatency`).
+  - S2: YARG.Core runs in browser-wasm (bit-identical scoring vs desktop, ~107 KB brotli, ~1.7 MB
+    total with the .NET runtime) after a small `YargLogger` patch; a TS host could call it via
+    `[JSExport]`. Engines must run a fixed latency budget behind the audio clock so networked,
+    source-timestamped strikes arrive in time. Unmeasured: WASM AOT, Safari.
+  - S2: handbell mode can start as per-ringer Pro Keys engines with no YARG.Core changes
+    (≤25 semitones per chart); a first-class instrument touches ~45 YARG.Core files.
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -65,6 +71,8 @@ difficulties.
   handbell notation symbols; arrangement sharing.
 - Open: engine-neutral chart format vs reuse RB/CH MIDI conventions; sources (Mutopia,
   IMSLP, self-authored) and their per-file licenses.
+  - S2: YARG.Core parses RB-style `PART REAL_KEYS_X` MIDI and `.chart` in-memory (browser too);
+    Pro Keys tracks can carry handbell parts within a 25-semitone window (C3–C5 as written).
 - Spikes: S5.
 
 ## E05 Bell audio
@@ -82,6 +90,9 @@ difficulties.
 - Later: "star power" analogue (e.g. team-wide perfect phrase), damp scoring, sight-reading
   mode, achievements, replays.
 - Open: how unforgiving to be with kids vs experienced ringers; scoring missed damps.
+  - S2: YARG's per-player combo multiplier penalizes split parts (same perfect play: 23,160 as
+    one player vs 15,360 over 4 ringers); team play needs a team/band multiplier. With ±70 ms
+    windows, total strike-timing error σ ≲ 20 ms → 100 % hits; σ 35 ms → 91 %; σ 50 ms → 76 %.
 
 ## E07 Visual & aural engagement ("juice")
 
@@ -109,6 +120,8 @@ audience reactions, festive themes (holiday theme for M5).
 **Goal:** build on and give back to existing projects; keep licensing clean.
 - Track forks (e.g. YARG under LGPL-3.0) in separate repos; propose upstream-friendly seams
   (e.g. generic network input devices, custom lane counts) only with owner approval.
+  - S2 drafted (not filed) a YARG.Core issue: `YargLogger` static ctor starts a thread and
+    crashes browser-wasm; see [S2 report](../spikes/S2-report.md#the-blocker-and-the-patch).
 - License register for code, assets, songs, samples.
 
 ## E11 Distribution & cross-platform packaging
