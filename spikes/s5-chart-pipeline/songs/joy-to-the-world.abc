@@ -1,0 +1,17 @@
+X:1
+T:Joy to the World
+C:Tune ANTIOCH, arr. Lowell Mason (1839); words Isaac Watts (1719)
+S:Public-domain melody (1839); encoded from the traditional tune, not copied from any edition
+Z:Encoded for handbell-hero by GitHub Copilot (agent), 2026-10-22. Chord symbols added by the encoder.
+N:One verse. Lead sheet: melody + chord symbols; the pipeline realizes bass and harmony.
+%%hh-id joy-to-the-world
+%%hh-license CC0-1.0
+L:1/8
+M:2/4
+Q:1/4=88
+K:D
+"D"d2 c3/2 B/ | "D"A3 G | "D"F2 "A7"E2 | "D"D3 A |
+"G"B3 B | "A"c3 c | "D"d3 d | "D"d c B A |
+"D"A3/2 G/ F d | "D"d c B A | "D"A3/2 G/ F2 | "D"F F F F/G/ |
+"D"A3 G/F/ | "A7"E E E E/F/ | "A7"G3 F/E/ | "D"D d2 "G"B |
+"D"A3/2 G/ F "A7"G | "D"F2 "A7"E2 | "D"D4 |]

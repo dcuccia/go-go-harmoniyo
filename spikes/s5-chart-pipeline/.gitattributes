@@ -1,0 +1,2 @@
+*.mid binary
+*.ini text eol=crlf
