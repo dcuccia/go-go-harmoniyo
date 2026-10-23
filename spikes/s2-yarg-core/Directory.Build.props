@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <S2TargetFramework>net10.0</S2TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <YargCoreProject>$(MSBuildThisFileDirectory)external\YARG.Core\YARG.Core\YARG.Core.csproj</YargCoreProject>
+  </PropertyGroup>
+</Project>

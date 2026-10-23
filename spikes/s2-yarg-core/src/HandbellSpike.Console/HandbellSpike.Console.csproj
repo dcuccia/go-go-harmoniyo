@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>$(S2TargetFramework)</TargetFramework>
+    <RootNamespace>HandbellSpike.ConsoleApp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HandbellSpike.Core\HandbellSpike.Core.csproj" />
+  </ItemGroup>
+
+</Project>

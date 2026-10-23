@@ -1,0 +1,6 @@
+external/
+bin/
+obj/
+.artifacts/
+out/
+*.user
