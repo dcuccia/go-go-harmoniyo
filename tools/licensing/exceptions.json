@@ -1,0 +1,62 @@
+{
+  "$comment": "Exceptions to the license allowlist (tools/licensing/policy.json). Each must reference an ADR. status: accepted = owner-approved; pending-owner = allowed in CI with a warning until the owner accepts or rejects it in the referenced ADR. Matching is by ecosystem + name + license + scope, so a license change upstream re-opens the question.",
+  "exceptions": [
+    {
+      "id": "EX-001",
+      "ecosystem": "npm",
+      "name": "mediabunny",
+      "license": "MPL-2.0",
+      "scope": ["spikes/s1-phone-bell"],
+      "adr": "0008",
+      "status": "pending-owner",
+      "reason": "Optional transitive dependency of werift (S1's WebRTC DataChannel experiment); used unmodified from npm and not bundled into any web page. MPL-2.0 is file-level copyleft: obligations apply only to modified MPL files, which we don't have.",
+      "revisit": "Before any product build that ships werift; prefer a WebRTC path without it, or accept MPL-2.0 for unmodified npm dependencies in a superseding ADR."
+    },
+    {
+      "id": "EX-002",
+      "ecosystem": "npm",
+      "name": "tweetnacl",
+      "license": "Unlicense",
+      "scope": ["spikes/s1-phone-bell"],
+      "adr": "0008",
+      "status": "pending-owner",
+      "reason": "Optional transitive dependency of werift and @fidm/x509 (S1). The Unlicense is an OSI-approved public-domain dedication with a permissive fallback; no attribution or copyleft obligations.",
+      "revisit": "Recommend adding Unlicense to the allowlist in ADR-0008."
+    },
+    {
+      "id": "EX-003",
+      "ecosystem": "external",
+      "name": "YARC-Official/YARG.Core",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s2-yarg-core", "spikes/s3-yarg-handbell"],
+      "fetchedInto": ["spikes/s2-yarg-core/external", "spikes/s3-yarg-handbell/external"],
+      "adr": "0008",
+      "status": "accepted",
+      "reason": "S2/S3 spike harnesses fetch YARG.Core at a pinned commit (S2) or as the fork's submodule (S3) into gitignored external/ folders and build against it. Nothing is vendored; the harness source stays MIT.",
+      "revisit": "Never vendor. Any product use needs its own ADR (ADR-0004 already rules out a product dependency on YARG)."
+    },
+    {
+      "id": "EX-004",
+      "ecosystem": "external",
+      "name": "dcuccia/YARG (branch handbell-spike)",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s3-yarg-handbell", "tools/setup"],
+      "fetchedInto": ["spikes/s3-yarg-handbell/external"],
+      "adr": "0008",
+      "status": "accepted",
+      "reason": "The YARG fork (community track, ADR-0004) is fetched by S3's harness and by tools/setup/setup-yarg.ps1; it lives in its own LGPL repository.",
+      "revisit": "Author fork code here first (MIT) and contribute it outbound, per ADR-0008."
+    },
+    {
+      "id": "EX-005",
+      "ecosystem": "file",
+      "name": "spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s2-yarg-core/patches"],
+      "adr": "0008",
+      "status": "pending-owner",
+      "reason": "A unified diff against YARG.Core's YargLogger.cs. Its context lines are YARG.Core code, so the file is labeled LGPL-3.0-or-later (REUSE.toml) rather than MIT. fetch-yarg-core.ps1 applies the same change without the diff.",
+      "revisit": "Owner: keep it as a clearly labeled LGPL file, or delete it (the fetch script reproduces the patch) and keep the draft upstream issue in the S2 report."
+    }
+  ]
+}

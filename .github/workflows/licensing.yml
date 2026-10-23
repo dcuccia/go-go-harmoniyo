@@ -1,0 +1,33 @@
+name: licensing
+
+# ADR-0008: REUSE compliance, dependency license gate, asset register and generated attribution files.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  reuse:
+    name: reuse lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: fsfe/reuse-action@v5
+
+  licenses:
+    name: license gate + asset register
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Unit tests
+        run: node --test tools/licensing/test/licensing.test.mjs
+      - name: Dependency license gate (npm + NuGet), THIRD_PARTY_NOTICES.md in sync
+        run: node tools/licensing/license-gate.mjs --check
+      - name: Asset register, ATTRIBUTION.md and credits.json in sync
+        run: node tools/licensing/attribution.mjs --check

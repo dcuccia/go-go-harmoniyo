@@ -1,0 +1,265 @@
+{
+  "$schema": "./register.schema.json",
+  "$comment": "Asset register (ADR-0008). Edit this file, then run `node tools/licensing/attribution.mjs` to regenerate ATTRIBUTION.md and attribution/credits.json. CI fails if they drift, if an asset file is unclaimed, or if a pinned hash changes.",
+  "version": 1,
+  "coverage": {
+    "extensions": [
+      "png", "jpg", "jpeg", "gif", "webp", "avif", "svg", "ico", "bmp", "psd", "kra", "xcf",
+      "wav", "ogg", "opus", "mp3", "flac", "m4a", "aac", "sf2", "sfz",
+      "mid", "midi", "ly", "abc", "musicxml", "mxl", "mscz", "chart", "sng",
+      "glb", "gltf", "fbx", "obj", "blend", "ktx2", "hdr", "exr",
+      "ttf", "otf", "woff", "woff2",
+      "mp4", "webm", "mov"
+    ],
+    "include": ["spikes/*/charts/*.json", "**/song.ini", "**/*.glsl", "**/*.wgsl", "**/*.frag", "**/*.vert"],
+    "exclude": ["**/node_modules/**", "LICENSES/**"]
+  },
+  "assets": [
+    {
+      "id": "project-ui-captures",
+      "title": "Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)",
+      "kind": "image",
+      "origin": "original",
+      "paths": ["docs/spikes/media/*", "docs/spikes/I1-data/*.png", "spikes/s1-phone-bell/results/*.png"],
+      "authors": ["David Cuccia and handbell-hero contributors"],
+      "copyright": "2026 David Cuccia and handbell-hero contributors",
+      "license": "CC-BY-4.0",
+      "modifications": "none",
+      "legacy": true,
+      "credit": false,
+      "review": {
+        "status": "pending",
+        "notes": "IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). Owner to confirm the CC BY 4.0 choice for screenshots."
+      }
+    },
+    {
+      "id": "s5-jingle-bells-abc",
+      "title": "Jingle Bells (lead sheet, ABC)",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/songs/jingle-bells.abc"],
+      "authors": ["James Lord Pierpont (melody, 1857, public domain)", "handbell-hero S5 agent session (encoding and chord symbols)"],
+      "copyright": "Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "attribution": "Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for handbell-hero (CC0).",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "legacy": true,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
+    },
+    {
+      "id": "s5-joy-to-the-world-abc",
+      "title": "Joy to the World (lead sheet, ABC)",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/songs/joy-to-the-world.abc"],
+      "authors": ["Lowell Mason (tune ANTIOCH, 1839, public domain)", "handbell-hero S5 agent session (encoding and chord symbols)"],
+      "copyright": "Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "attribution": "Joy to the World, tune ANTIOCH as arranged by Lowell Mason (1839), public domain. Lead sheet encoded for handbell-hero (CC0).",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "legacy": true,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
+    },
+    {
+      "id": "s5-silent-night-abc",
+      "title": "Silent Night (lead sheet, ABC)",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/songs/silent-night.abc"],
+      "authors": ["Franz Xaver Gruber (melody, 1818, public domain)", "handbell-hero S5 agent session (encoding and chord symbols)"],
+      "copyright": "Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "attribution": "Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for handbell-hero (CC0).",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "legacy": true,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
+    },
+    {
+      "id": "s5-deck-the-halls-abc",
+      "title": "Deck the Halls (lead sheet, ABC)",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/songs/deck-the-halls.abc"],
+      "authors": ["Traditional Welsh (melody 'Nos Galan', public domain)", "handbell-hero S5 agent session (encoding and chord symbols)"],
+      "copyright": "Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "attribution": "Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for handbell-hero (CC0).",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "legacy": true,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
+    },
+    {
+      "id": "s5-we-wish-you-a-merry-christmas-abc",
+      "title": "We Wish You a Merry Christmas (lead sheet, ABC)",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/songs/we-wish-you-a-merry-christmas.abc"],
+      "authors": ["Traditional English, West Country (melody, public domain)", "handbell-hero S5 agent session (encoding and chord symbols)"],
+      "copyright": "Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "attribution": "We Wish You a Merry Christmas, traditional English melody, public domain. Lead sheet encoded for handbell-hero (CC0).",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "legacy": true,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
+    },
+    {
+      "id": "s5-musicxml-test-fixture",
+      "title": "S5 MusicXML importer test fixture",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": ["spikes/s5-chart-pipeline/test/fixtures/*"],
+      "authors": ["handbell-hero S5 agent session"],
+      "copyright": "2026 handbell-hero contributors, dedicated to the public domain",
+      "license": "CC0-1.0",
+      "modifications": "none",
+      "legacy": true,
+      "credit": false,
+      "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
+      "review": { "status": "pending", "notes": "A few hand-written test measures, not a song." }
+    },
+    {
+      "id": "mutopia-carol",
+      "title": "Carol (hymn tune for 'It Came Upon the Midnight Clear'), Mutopia edition",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/carol.*"],
+      "authors": ["Richard Storrs Willis (composer, 1850)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1231",
+        "id": "Mutopia-2008/01/13-1231",
+        "retrieved": "2026-10-23",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-23) and the LilyPond source's copyright field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/carol.ly", "sha256": "721e2c5bf7efe5cd0038c5ad6e62bcf591be2af910c74d5aa2b2e672c7f256ed", "url": "https://www.mutopiaproject.org/ftp/WillisRS/carol/carol.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/carol.mid", "sha256": "0e1f08dd5e6840949cfa700c026643d6d748402d1b83336a9a723e94db1e8104", "url": "https://www.mutopiaproject.org/ftp/WillisRS/carol/carol.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    },
+    {
+      "id": "mutopia-good-king-wenceslas",
+      "title": "Good King Wenceslas, Mutopia edition",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/GoodKingWenceslas.*"],
+      "authors": ["Piae Cantiones (melody, 1582)", "J. M. Neale (words, 1853)", "James Kilfiger (typesetter)"],
+      "copyright": "Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=905",
+        "id": "Mutopia-2007/01/10-905",
+        "retrieved": "2026-10-23",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-23) and the LilyPond source's copyright field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/GoodKingWenceslas.ly", "sha256": "d5967412ef47cc91add5eb361c25392273aaa7557028bfd76b1becb3af0e35e7", "url": "https://www.mutopiaproject.org/ftp/Anonymous/GoodKingWenceslas/GoodKingWenceslas.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/GoodKingWenceslas.mid", "sha256": "f854da74a0790af27192f9b0002348649852dbcfcaa26e490e789517b2dde97a", "url": "https://www.mutopiaproject.org/ftp/Anonymous/GoodKingWenceslas/GoodKingWenceslas.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy.",
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    },
+    {
+      "id": "mutopia-the-holly-and-the-ivy",
+      "title": "The Holly and the Ivy, Mutopia edition",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/thehollyandtheivy.*"],
+      "authors": ["Traditional English (melody)", "Geoffrey Lehr (typesetter)"],
+      "copyright": "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644",
+        "id": "Mutopia-2005/12/23-644",
+        "retrieved": "2026-10-23",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-23) and the LilyPond source's copyright field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/thehollyandtheivy.ly", "sha256": "b5de0ee05f7d516cd7515b32acd24ed3e9e2a0e0cac7b87f540cb60abd8e8c08", "url": "https://www.mutopiaproject.org/ftp/Traditional/thehollyandtheivy/thehollyandtheivy.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/thehollyandtheivy.mid", "sha256": "103692f749b39bf85c0bef8fba057f74c06d1de130aec01fd38f2eede2b22c4b", "url": "https://www.mutopiaproject.org/ftp/Traditional/thehollyandtheivy/thehollyandtheivy.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy.",
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    },
+    {
+      "id": "s5-charts-from-cc0-lead-sheets",
+      "title": "S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets",
+      "kind": "chart",
+      "origin": "derived",
+      "paths": [
+        "spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json",
+        "spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*"
+      ],
+      "authors": ["handbell-hero S5 chart pipeline"],
+      "copyright": "2026 handbell-hero contributors (generated), dedicated to the public domain",
+      "license": "CC0-1.0",
+      "derivedFrom": ["s5-jingle-bells-abc", "s5-joy-to-the-world-abc", "s5-silent-night-abc", "s5-deck-the-halls-abc", "s5-we-wish-you-a-merry-christmas-abc"],
+      "generator": "node spikes/s5-chart-pipeline/build.mjs",
+      "modifications": "Algorithmic arrangement: role detection, difficulty tiers, bell-to-ringer assignment, MIDI export.",
+      "legacy": true,
+      "credit": false,
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23", "notes": "Each chart carries its source and license in song.license / song.source." }
+    },
+    {
+      "id": "s5-charts-carol",
+      "title": "S5 charts and exports for 'It Came Upon the Midnight Clear'",
+      "kind": "chart",
+      "origin": "derived",
+      "paths": ["spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json", "spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*"],
+      "authors": ["handbell-hero S5 chart pipeline"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "derivedFrom": ["mutopia-carol"],
+      "generator": "node spikes/s5-chart-pipeline/build.mjs",
+      "modifications": "Algorithmic arrangement from the Mutopia MIDI (melody/bass voices, difficulty tiers, bell assignment); tempo 60 → 90 qpm.",
+      "legacy": true,
+      "credit": false,
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    },
+    {
+      "id": "s5-charts-good-king-wenceslas",
+      "title": "S5 charts and exports for 'Good King Wenceslas'",
+      "kind": "chart",
+      "origin": "derived",
+      "paths": ["spikes/s5-chart-pipeline/charts/good-king-wenceslas.json", "spikes/s5-chart-pipeline/exports/good-king-wenceslas/*"],
+      "authors": ["handbell-hero S5 chart pipeline"],
+      "copyright": "Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "derivedFrom": ["mutopia-good-king-wenceslas"],
+      "generator": "node spikes/s5-chart-pipeline/build.mjs",
+      "modifications": "Algorithmic arrangement from the Mutopia MIDI (melody/bass voices, difficulty tiers, bell assignment).",
+      "legacy": true,
+      "credit": false,
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    },
+    {
+      "id": "s5-charts-the-holly-and-the-ivy",
+      "title": "S5 charts and exports for 'The Holly and the Ivy'",
+      "kind": "chart",
+      "origin": "derived",
+      "paths": ["spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json", "spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/*"],
+      "authors": ["handbell-hero S5 chart pipeline"],
+      "copyright": "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "derivedFrom": ["mutopia-the-holly-and-the-ivy"],
+      "generator": "node spikes/s5-chart-pipeline/build.mjs",
+      "modifications": "Algorithmic arrangement from the Mutopia MIDI (melody only; difficulty tiers, bell assignment).",
+      "legacy": true,
+      "credit": false,
+      "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
+    }
+  ]
+}

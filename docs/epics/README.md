@@ -183,6 +183,11 @@ difficulties.
 **Goal:** commercial-game feel: 3D highway, hit flashes, particles, streak fire, crowd/
 audience reactions, festive themes (holiday theme for M5).
 - Open: art pipeline and asset licenses (CC0/CC-BY, commissioned, procedural).
+  - Decided ([ADR-0008](../decisions/0008-assets-ip-and-attribution.md)): original assets CC BY
+    4.0, AI-generated CC0 with logged provenance and a human resemblance review; ideas are free,
+    other games' expression and trade dress are not. Our principles and the pitch-class palette:
+    [visual identity](../design/visual-identity.md). Lane colours move to that palette in
+    [#12](https://github.com/dcuccia/handbell-hero/issues/12).
   - S4: procedural neon highway + bloom/particles reaches "Clone Hero default" level; the gap to
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
 
@@ -214,6 +219,15 @@ audience reactions, festive themes (holiday theme for M5).
   - S2 drafted (not filed) a YARG.Core issue: `YargLogger` static ctor starts a thread and
     crashes browser-wasm; see [S2 report](../spikes/S2-report.md#the-blocker-and-the-patch).
 - License register for code, assets, songs, samples.
+  - Done ([ADR-0008](../decisions/0008-assets-ip-and-attribution.md)): REUSE (`REUSE.toml`,
+    `LICENSES/`), [asset register](../../attribution/register.json) → generated
+    [ATTRIBUTION.md](../../ATTRIBUTION.md) and in-game `credits.json`, dependency license gate →
+    [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md), all checked in CI. Audit:
+    [IP audit 2026-10-23](../research/ip-audit-2026-10-23.md).
+  - Open: owner sign-off on exceptions EX-001 (MPL-2.0 `mediabunny`), EX-002 (Unlicense
+    `tweetnacl`), EX-005 (LGPL S2 patch file); product name
+    ([#13](https://github.com/dcuccia/handbell-hero/issues/13)); proofread the S5 AI-encoded
+    lead sheets.
 - Decided ([ADR-0004](../decisions/0004-host-strategy.md)):
   [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike) is a
   community/experimental track (snapshot tag `handbell-spike-2026-10-23`).

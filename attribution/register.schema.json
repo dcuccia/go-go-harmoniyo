@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dcuccia/handbell-hero/attribution/register.schema.json",
+  "title": "handbell-hero asset register",
+  "description": "Machine-readable provenance and license register for every non-code asset (ADR-0008). tools/licensing/attribution.mjs validates it, checks coverage and pinned hashes, and generates ATTRIBUTION.md and attribution/credits.json.",
+  "type": "object",
+  "required": ["version", "coverage", "assets"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "$comment": { "type": "string" },
+    "version": { "const": 1 },
+    "coverage": {
+      "description": "Which repository files count as assets. Every matching file must be claimed by exactly one register entry.",
+      "type": "object",
+      "required": ["extensions", "include", "exclude"],
+      "additionalProperties": false,
+      "properties": {
+        "extensions": { "type": "array", "items": { "type": "string", "pattern": "^[a-z0-9]+$" }, "uniqueItems": true },
+        "include": { "description": "Extra globs for assets without a telling extension (e.g. chart JSON).", "type": "array", "items": { "type": "string" } },
+        "exclude": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "assets": { "type": "array", "items": { "$ref": "#/$defs/asset" } }
+  },
+  "$defs": {
+    "date": { "type": "string", "format": "date" },
+    "spdxExpression": {
+      "description": "SPDX license expression; every id must have a file in LICENSES/ and be allowed by tools/licensing/policy.json (or an ADR exception).",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9.+()\\- ]+$"
+    },
+    "ai": {
+      "description": "Provenance for AI-generated or AI-assisted content (ADR-0008). Legacy (pre-ADR-0008) entries may use \"unrecorded\" / \"pending\"; new entries may not.",
+      "type": "object",
+      "required": ["tool", "model", "version", "termsUrl", "termsDate", "prompt", "reviewer", "reviewDate"],
+      "additionalProperties": false,
+      "properties": {
+        "tool": { "type": "string", "minLength": 1, "description": "Product or service, e.g. an image generator or coding agent." },
+        "model": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "termsUrl": { "type": "string", "minLength": 1, "description": "Terms of service that grant output rights and permit redistribution." },
+        "termsDate": { "type": "string", "pattern": "^(\\d{4}-\\d{2}-\\d{2}|unrecorded)$", "description": "Version/date of the terms that applied." },
+        "prompt": { "type": "string", "minLength": 1, "description": "Full prompt (or a repo path to a prompt log). Never franchise or artist names." },
+        "reviewer": { "type": "string", "minLength": 1, "description": "Human who did the resemblance review." },
+        "reviewDate": { "type": "string", "pattern": "^(\\d{4}-\\d{2}-\\d{2}|pending)$" }
+      }
+    },
+    "pinnedFile": {
+      "type": "object",
+      "required": ["path", "sha256", "url"],
+      "additionalProperties": false,
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "SHA-256 of the upstream file (text files compared with LF line endings)." },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "required": ["id", "title", "kind", "origin", "paths", "authors", "copyright", "license", "modifications", "review"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["image", "animation", "audio", "music-score", "midi", "chart", "font", "model", "shader", "video", "other"] },
+        "origin": {
+          "description": "original = human-made for this project; ai-generated = made with a gen-AI tool; third-party = someone else's work; derived = produced by project code from other register entries.",
+          "enum": ["original", "ai-generated", "third-party", "derived"]
+        },
+        "paths": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "authors": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "copyright": { "type": "string", "minLength": 1, "description": "Copyright/credit statement, matching REUSE.toml." },
+        "license": { "$ref": "#/$defs/spdxExpression" },
+        "attribution": { "type": "string", "minLength": 1, "description": "Exact credit text to display (in ATTRIBUTION.md and in-game credits)." },
+        "source": {
+          "type": "object",
+          "required": ["url", "retrieved"],
+          "additionalProperties": false,
+          "properties": {
+            "url": { "type": "string", "format": "uri" },
+            "id": { "type": "string" },
+            "retrieved": { "$ref": "#/$defs/date" },
+            "licenseEvidence": { "type": "string", "minLength": 1, "description": "Where the license was verified (page, in-file notice)." },
+            "files": { "type": "array", "items": { "$ref": "#/$defs/pinnedFile" } }
+          }
+        },
+        "derivedFrom": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "generator": { "type": "string", "description": "Script/command that produces derived files." },
+        "modifications": { "type": "string", "minLength": 1, "description": "What we changed, or \"none\"." },
+        "reuseLimits": { "type": "string", "description": "Conditions downstream users must keep (notices, ShareAlike, NC, trademarks)." },
+        "ai": { "$ref": "#/$defs/ai" },
+        "legacy": { "type": "boolean", "description": "Added before ADR-0008; incomplete AI provenance is allowed but must be listed as a gap." },
+        "credit": { "type": "boolean", "description": "Include in in-game credits (default true)." },
+        "review": {
+          "type": "object",
+          "required": ["status"],
+          "additionalProperties": false,
+          "properties": {
+            "status": { "enum": ["approved", "pending"] },
+            "reviewer": { "type": "string" },
+            "date": { "$ref": "#/$defs/date" },
+            "notes": { "type": "string" }
+          }
+        },
+        "notes": { "type": "string" }
+      },
+      "allOf": [
+        { "if": { "properties": { "origin": { "const": "third-party" } } }, "then": { "required": ["source", "attribution"] } },
+        { "if": { "properties": { "origin": { "const": "ai-generated" } } }, "then": { "required": ["ai"] } },
+        { "if": { "properties": { "origin": { "const": "derived" } } }, "then": { "required": ["derivedFrom", "generator"] } }
+      ]
+    }
+  }
+}

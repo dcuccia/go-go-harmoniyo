@@ -1,0 +1,30 @@
+LicenseRef-Mutopia-PublicDomain
+
+Mutopia Project "Public Domain" license
+Source: https://www.mutopiaproject.org/legal.html#publicdomain (retrieved 2026-10-23)
+Referenced dedication: https://creativecommons.org/licenses/publicdomain/
+(the retired Creative Commons "Public Domain Dedication/Certification")
+
+Text from the Mutopia Project legal page:
+
+    Public Domain
+    The contributor of this music has dedicated their contribution into the public
+    domain. You can do what you like with this music - print it out, sell it, change
+    it, distribute it, record it, and perform it, etc. For more information, see the
+    Creative Commons website at: http://creativecommons.org/licenses/publicdomain/
+
+    Disclaimer: the Mutopia Project is run by volunteers, and the material within it
+    is provided "as-is". No warranty of any kind is made, including fitness for any
+    particular purpose. No claim is made as to the accuracy or the factual, editorial
+    or musical correctness of any of the material provided here.
+
+Each Mutopia LilyPond source also carries this notice in its tagline, which handbell-hero
+keeps unmodified:
+
+    Sheet music from www.MutopiaProject.org - Free to download, with the freedom to
+    distribute, modify and perform. Typeset using www.LilyPond.org by <maintainer>.
+    Reference: <Mutopia ID>. This sheet music has been placed in the public domain by
+    the typesetter, for details see: http://creativecommons.org/licenses/publicdomain
+
+handbell-hero credits the typesetter and the Mutopia Project for every such file even
+though the dedication does not require it. See ATTRIBUTION.md.

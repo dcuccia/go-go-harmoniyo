@@ -1,0 +1,100 @@
+{
+  "$comment": "Generated from attribution/register.json by tools/licensing/attribution.mjs. Do not edit; the game renders this file in its credits screen.",
+  "project": {
+    "name": "handbell-hero",
+    "url": "https://github.com/dcuccia/handbell-hero",
+    "codeLicense": "MIT",
+    "attributionUrl": "https://github.com/dcuccia/handbell-hero/blob/main/ATTRIBUTION.md"
+  },
+  "disclaimer": "handbell-hero is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any game or product it mentions. All trademarks belong to their owners.",
+  "sections": [
+    {
+      "title": "Music",
+      "entries": [
+        {
+          "id": "s5-jingle-bells-abc",
+          "title": "Jingle Bells (lead sheet, ABC)",
+          "credit": "Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for handbell-hero (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-joy-to-the-world-abc",
+          "title": "Joy to the World (lead sheet, ABC)",
+          "credit": "Joy to the World, tune ANTIOCH as arranged by Lowell Mason (1839), public domain. Lead sheet encoded for handbell-hero (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-silent-night-abc",
+          "title": "Silent Night (lead sheet, ABC)",
+          "credit": "Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for handbell-hero (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-deck-the-halls-abc",
+          "title": "Deck the Halls (lead sheet, ABC)",
+          "credit": "Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for handbell-hero (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-we-wish-you-a-merry-christmas-abc",
+          "title": "We Wish You a Merry Christmas (lead sheet, ABC)",
+          "credit": "We Wish You a Merry Christmas, traditional English melody, public domain. Lead sheet encoded for handbell-hero (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "mutopia-carol",
+          "title": "Carol (hymn tune for 'It Came Upon the Midnight Clear'), Mutopia edition",
+          "credit": "It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1231"
+        },
+        {
+          "id": "mutopia-good-king-wenceslas",
+          "title": "Good King Wenceslas, Mutopia edition",
+          "credit": "Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=905"
+        },
+        {
+          "id": "mutopia-the-holly-and-the-ivy",
+          "title": "The Holly and the Ivy, Mutopia edition",
+          "credit": "The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644"
+        }
+      ]
+    }
+  ]
+}

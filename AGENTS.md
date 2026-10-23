@@ -19,10 +19,22 @@ without your conversation history.
   choices are recorded as ADRs with status `Proposed` until the owner (@dcuccia) accepts.
 - **Evidence over opinion.** Record measurements (latency, frame times, detection rates),
   devices/browsers/versions used, and how to reproduce.
-- **Licenses.** Check and record the license of anything you vendor, fork, or copy. No
-  commercial game assets, ripped audio, or copyrighted songs/arrangements. Public-domain
-  melodies are fine only when the specific *arrangement/file* is also free to use — record
-  the source and license per file.
+- **Licenses and assets ([ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md)).** Code
+  is MIT; original art/audio/models/charts CC BY 4.0; AI-generated assets CC0. No YARG, Clone
+  Hero or commercial game code/assets/shaders in this repo (fetch YARG, never vendor it); no
+  ripped audio or copyrighted songs/arrangements. Public-domain melodies are fine only when the
+  specific *arrangement/file* is also free to use. Every asset goes in
+  [`attribution/register.json`](attribution/register.json) in the same PR (source, license,
+  author, pinned hash, AI provenance) and you regenerate `ATTRIBUTION.md`; dependencies must be
+  allowlisted or have an ADR exception. Run `node tools/licensing/attribution.mjs`,
+  `node tools/licensing/license-gate.mjs` and `reuse lint` before opening the PR.
+- **Inspired, never copied.** Use game ideas freely; never copy other games' expression, names
+  or distinctive looks (e.g. fret-colour order — use the
+  [pitch-class palette](docs/design/visual-identity.md)). Gen-AI prompts describe the feeling, not
+  the asset: no franchise/artist names, no img2img from copyrighted art; log tool, model,
+  version, terms and prompt; a human resemblance review is required before merge. See
+  [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Sign off commits** (`git commit -s`, DCO).
 - **Cross-platform.** Note platform limits (iOS Safari, Android Chrome, Windows/macOS/
   Linux/ChromeOS hosts) for anything you build or evaluate.
 - **Spike code** goes in `spikes/<spike-id>-<slug>/` and is allowed to be throwaway. Product
