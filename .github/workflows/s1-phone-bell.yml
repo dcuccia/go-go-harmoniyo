@@ -2,10 +2,10 @@ name: s1-phone-bell
 
 on:
   pull_request:
-    paths: ['spikes/s1-phone-bell/**', '.github/workflows/s1-phone-bell.yml']
+    paths: ['spikes/s1-phone-bell/**', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
   push:
     branches: [main]
-    paths: ['spikes/s1-phone-bell/**', '.github/workflows/s1-phone-bell.yml']
+    paths: ['spikes/s1-phone-bell/**', 'spikes/s5-chart-pipeline/charts/**', '.github/workflows/s1-phone-bell.yml']
 
 permissions:
   contents: read
@@ -35,3 +35,8 @@ jobs:
           npx tsx src/host/server.ts --no-open --no-https --http-port 8080 &
           sleep 8
           npx tsx tools/sim-phones.ts --url ws://127.0.0.1:8080/hgp --count 24 --bpm 150
+      - name: End-to-end YARG sidecar (I1; no YARG on CI, so the bridge side is not checked)
+        run: |
+          npx tsx src/host/server.ts --yarg --song jingle-bells --no-open --no-https --http-port 8081 &
+          sleep 8
+          npx tsx tools/sim-yarg-phones.ts --url ws://127.0.0.1:8081/hgp --phones 4 --seconds 12 --churn --extra

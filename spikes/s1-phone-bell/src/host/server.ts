@@ -30,6 +30,7 @@ import {
   type DeviceLabel,
   type LoggedGesture,
 } from './analysis.ts';
+import { ChartLibrary, percentile, YARG_DEFAULT_PORT, YargLink, YargRoom, type Seat } from './yarg.ts';
 
 const ROOT = fileURLToPath(new URL('../..', import.meta.url));
 const WEB = join(ROOT, 'src', 'web');
@@ -47,6 +48,14 @@ const { values: args } = parseArgs({
     tunnel: { type: 'boolean', default: false },
     'no-open': { type: 'boolean', default: false },
     'no-https': { type: 'boolean', default: false },
+    // I1: forward rings to the YARG fork's HgpBridge (see docs/spikes/I1-yarg-phones.md)
+    yarg: { type: 'boolean', default: false },
+    'yarg-port': { type: 'string', default: String(YARG_DEFAULT_PORT) },
+    'yarg-phones': { type: 'string', default: '4' },
+    'yarg-ringers': { type: 'string', default: '4' },
+    song: { type: 'string' },
+    difficulty: { type: 'string', default: 'expert' },
+    charts: { type: 'string' },
   },
 });
 
@@ -236,6 +245,56 @@ interface RunningTest {
 let running: RunningTest | null = null;
 let testTimer: NodeJS.Timeout | null = null;
 
+// ── YARG sidecar (I1) ───────────────────────────────────────────────────────
+
+const charts = ChartLibrary.load(args.charts ?? join(ROOT, '..', 's5-chart-pipeline', 'charts'));
+let yarg: { room: YargRoom; link: YargLink } | null = null;
+if (args.yarg) {
+  const link = new YargLink(Number(args['yarg-port']), now, (text) => onYargMessage(text));
+  const room = new YargRoom({
+    maxPhones: Number(args['yarg-phones']),
+    ringerCount: Number(args['yarg-ringers']),
+    charts,
+    song: args.song,
+    difficulty: args.difficulty,
+    send: (text) => link.send(text),
+    now,
+    schedule: (fn, ms) => void setTimeout(fn, ms),
+    log: (s) => {
+      console.log(s);
+      logEvent({ type: 'yarg', at: now(), msg: s });
+    },
+  });
+  yarg = { room, link };
+  if (args.song && !room.chart) console.warn(`  --song "${args.song}" not found in charts (${charts.charts.map((c) => c.song.id).join(', ')})`);
+}
+
+function onYargMessage(text: string): void {
+  if (!yarg) return;
+  logEvent({ type: 'yarg-in', at: now(), text });
+  const changed = yarg.room.onSongReport(text);
+  if (changed === null) return;
+  console.log(`YARG: ${text.trim()}`);
+  applySeats(changed);
+}
+
+/** Push re-assigned seat bells to their phones. */
+function applySeats(seats: Seat[]): void {
+  for (const s of seats) {
+    const d = s.phoneId ? devices.get(s.phoneId) : undefined;
+    if (!d) continue;
+    d.bells = s.bells;
+    sendAssign(d);
+  }
+  broadcastDevices();
+}
+
+function yargSummary() {
+  if (!yarg) return null;
+  const { room, link } = yarg;
+  return { ...room.summary(), connected: link.connected, port: link.port, bridgeRtt: link.rtt, ageP50: percentile(room.ages, 50), ageP95: percentile(room.ages, 95), songs: charts.charts.map((c) => ({ id: c.song.id, title: c.song.title })) };
+}
+
 function info() {
   return {
     session: SESSION,
@@ -247,6 +306,7 @@ function info() {
     soundMode,
     rtcAvailable: werift !== null,
     test: running,
+    yarg: yargSummary(),
   };
 }
 
@@ -288,7 +348,7 @@ function deviceSummary(d: Device) {
 }
 
 function broadcastDevices(): void {
-  toDashboards({ type: 'devices', hostTime: now(), devices: [...devices.values()].map(deviceSummary), soundMode, bellsPerPhone, test: running });
+  toDashboards({ type: 'devices', hostTime: now(), devices: [...devices.values()].map(deviceSummary), soundMode, bellsPerPhone, test: running, yarg: yargSummary() });
 }
 
 let bellsPerPhone = 1;
@@ -304,7 +364,9 @@ function nextBells(): Bell[] {
 }
 
 function sendAssign(d: Device): void {
-  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single' };
+  const seat = yarg?.room.seatOf(d.id);
+  const ringer = !yarg ? undefined : seat ? { slot: seat.slot, title: yarg.room.seatTitle(seat), song: yarg.room.chart?.song.title } : { slot: -1, title: 'All ringer seats are taken: free play (not sent to YARG)' };
+  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single', ringer };
   send(d.ws, msg);
 }
 
@@ -323,7 +385,11 @@ function handleDeviceMessage(d: Device, m: Record<string, unknown> & { type: str
       const g: LoggedGesture = { deviceId: d.id, g: String(m.g), seq: Number(m.seq), th, rx, det: typeof m.det === 'number' ? m.det : undefined, via, bell: bellId, lead };
       gestures.push(g);
       logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      const bell = DEFAULT_BELLS.find((b) => b.id === bellId) ?? d.bells[0];
+      if (yarg && (g.g === 'ring' || g.g === 'tap')) {
+        const lane = yarg.room.ring(d.id, bellId, Number.isFinite(th) ? th : rx - (g.det ?? 0), rx);
+        if (lane !== null) logEvent({ type: 'yarg-ring', at: now(), deviceId: d.id, bell: bellId, lane, th });
+      }
+      const bell = d.bells.find((b) => b.id === bellId) ?? DEFAULT_BELLS.find((b) => b.id === bellId) ?? d.bells[0];
       toDashboards({ type: 'event', deviceId: d.id, name: d.name, bell, msg: m, rx, via, soundMode });
       return;
     }
@@ -437,6 +503,7 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
       for (const d of devices.values()) sendAssign(d);
       break;
     case 'assign': {
+      if (yarg) break; // YARG mode: bells come from the chart part
       // Give this phone the block of bells starting at `bellId`.
       const d = devices.get(String(m.deviceId));
       const start = DEFAULT_BELLS.findIndex((x) => x.id === m.bellId);
@@ -447,6 +514,7 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
       break;
     }
     case 'bells': {
+      if (yarg) break;
       // Re-deal consecutive blocks of n bells to every phone.
       bellsPerPhone = Math.max(1, Math.min(4, Number(m.n) || 1));
       [...devices.values()]
@@ -462,6 +530,21 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
       for (const d of targets) send(d.ws, { type: 'config', ...(m.config as object) });
       break;
     }
+    case 'yarg-song':
+      if (yarg) applySeats(yarg.room.setSong(m.song ? String(m.song) : null, m.difficulty ? String(m.difficulty) : undefined));
+      break;
+    case 'yarg-remove':
+      // Free a ringer seat (removes its YARG bell device); an online phone there becomes free play.
+      if (yarg) {
+        const seat = yarg.room.seats[Number(m.slot)];
+        yarg.room.remove(Number(m.slot));
+        const d = seat?.phoneId ? devices.get(seat.phoneId) : undefined;
+        if (d) {
+          d.bells = nextBells();
+          sendAssign(d);
+        }
+      }
+      break;
   }
   logEvent({ type: 'cmd', at: now(), m });
   broadcastDevices();
@@ -549,6 +632,10 @@ wss.on('connection', (ws) => {
       dev.name = String(m.name ?? dev.name);
       dev.ua = String(m.ua ?? dev.ua);
       devices.set(id, dev);
+      if (yarg && (kind === 'phone' || kind === 'sim')) {
+        const seat = yarg.room.join(id, dev.name);
+        if (seat) dev.bells = seat.bells;
+      }
       logEvent({ dir: 'in', via: 'ws', rx, deviceId: id, msg: m });
       send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: id, session: SESSION, hostTime: now() });
       sendAssign(dev);
@@ -572,6 +659,8 @@ wss.on('connection', (ws) => {
     if (dev && dev.ws === ws) {
       dev.ws = null;
       logEvent({ type: 'disconnect', at: now(), deviceId: dev.id });
+      const seat = yarg?.room.leave(dev.id);
+      if (seat) console.log(`YARG: ${dev.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
     }
     broadcastDevices();
   });
@@ -636,6 +725,27 @@ async function main(): Promise<void> {
   console.log(`  Data:      ${DATA}`);
   console.log(`  LAN IPs:   ${candidates.map((c) => `${c.address} (${c.name})`).join(', ') || 'none'}  → using ${LAN_IP} (override with --ip)`);
   console.log(`  RTC:       ${werift ? 'werift available (experimental)' : 'werift not installed — WebRTC disabled'}`);
+  if (yarg) {
+    const { room, link } = yarg;
+    await link.start(() => room.announce());
+    console.log(`  YARG:      forwarding rings to 127.0.0.1:${link.port} (start YARG with -hgp); ${room.maxPhones} ringer seats, ` +
+      `${charts.charts.length} charts, song ${room.chart?.song.title ?? '(from YARG when a song loads)'}, tier ${room.defaultTier}`);
+    let lastConnected = false;
+    let lastRings = 0;
+    setInterval(() => {
+      if (link.connected !== lastConnected) {
+        lastConnected = link.connected;
+        console.log(lastConnected ? `YARG: bridge connected (localhost round trip ${link.rtt.toFixed(2)} ms)` : 'YARG: bridge not answering — is YARG running with -hgp?');
+        if (lastConnected) room.announce();
+        broadcastDevices();
+      }
+      if (room.ringsSent !== lastRings) {
+        lastRings = room.ringsSent;
+        const seats = room.seats.filter((s): s is Seat => !!s).map((s) => `R${s.slot + 1} ${s.name}${s.online ? '' : ' (offline)'}: ${s.rings}`);
+        console.log(`YARG: rings sent ${room.ringsSent} [${seats.join(', ')}], source→host age p50 ${percentile(room.ages, 50).toFixed(0)} ms, p95 ${percentile(room.ages, 95).toFixed(0)} ms`);
+      }
+    }, 5000);
+  }
 
   if (args.tunnel) {
     tlsMode = 'cloud tunnel (trycloudflare.com)';
@@ -662,6 +772,12 @@ async function main(): Promise<void> {
 process.on('SIGINT', () => {
   stopTest(true);
   console.log(`\nLogs and results: ${DATA}`);
+  if (yarg) {
+    // Remove the virtual bell devices from YARG, then give the datagrams a moment to leave.
+    yarg.room.removeAll();
+    setTimeout(() => process.exit(0), 200);
+    return;
+  }
   process.exit(0);
 });
 

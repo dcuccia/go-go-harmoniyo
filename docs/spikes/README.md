@@ -13,6 +13,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | S4 | Web-native host prototype | E03, E05, E07 | Not started | Look at it on the TV |
 | S5 | Carol chart pipeline | E04, E06 | Done — [report](S5-report.md) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
 | S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Optional | — |
+| I1 | Integration: phones → YARG fork | E01, E03 | Sidecar + fork bridge done; simulated phones verified against the built YARG ([report](I1-yarg-phones.md)) | Play one carol with real phones — [owner runbook](I1-yarg-phones.md#owner-runbook-phones--yarg) |
 
 Common time box: **one focused session (~1–2 days of agent work)**. Stop at the time box
 and report what you have.

@@ -17,6 +17,24 @@
         <p class="small" id="audio-info"></p>
       </aside>
       <main>
+        <fieldset id="yarg-panel" hidden>
+          <legend>YARG ringers (I1)</legend>
+          <p id="yarg-status" class="small"></p>
+          <div class="row" style="justify-content: flex-start">
+            <label>Song <select id="yarg-song"></select></label>
+            <label>Difficulty <select id="yarg-difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard / Expert</option>
+            </select></label>
+            <button id="yarg-apply">Give phones these bells</button>
+          </div>
+          <p class="small">YARG also reports the song and each ringer's part/difficulty when a song loads, and the phones follow automatically.</p>
+          <table>
+            <thead><tr><th>Seat (YARG device)</th><th>Phone</th><th>Part</th><th>Lanes (green → orange)</th><th>Rings</th><th></th></tr></thead>
+            <tbody id="yarg-seats"></tbody>
+          </table>
+        </fieldset>
         <fieldset>
           <legend>Phones</legend>
           <table>
