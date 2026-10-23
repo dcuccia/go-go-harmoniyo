@@ -1,0 +1,35 @@
+{
+  "song": "silent-night",
+  "diff": "easy",
+  "zones": [
+    "E4",
+    "G4",
+    "A4",
+    "C5"
+  ],
+  "notes": 32,
+  "hit": 32,
+  "perfect": 32,
+  "miss": 0,
+  "strays": 0,
+  "offsetMs": {
+    "n": 32,
+    "mean": 6.8,
+    "p50": 6.4,
+    "p95abs": 14.5
+  },
+  "glow": "11/11",
+  "input": {
+    "rings": 32,
+    "unsynced": 0,
+    "unmapped": 0,
+    "nonRing": 0,
+    "latencyMs": {
+      "n": 32,
+      "mean": 13,
+      "p50": 13,
+      "p95abs": 16.1
+    }
+  },
+  "errors": []
+}

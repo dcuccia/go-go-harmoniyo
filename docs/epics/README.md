@@ -56,6 +56,10 @@ drive any host.
     3–5 ringers and 2 bells per phone overflows on most songs; ~4 bells per phone (zones) fits
     6/8 carols on easy and medium with 4 ringers. Needs measured bell-switch and re-strike
     times from S1 to calibrate the pipeline's controller profiles.
+  - I2 ([report](../spikes/I2-web-phones.md)): with S5's `phone-4zone` profile, 4 ringers fit
+    ≤ 4 bells per phone on easy/medium for most carols, but 1–2 ringers and hard tiers still
+    overflow; I2 lets the host ring the least-used overflow bells. Host `cues` make the
+    next zone glow; zones laid out as a lane row (I1's `assign.ringer`) match the TV highway.
 - Spikes: S1.
 
 ## E03 Game host & engine
@@ -70,6 +74,10 @@ drive any host.
   - S4: Chrome/Windows holds 60 fps+ at 1080p and 4K on an integrated GPU with bloom (4× MSAA is
     the expensive part); `getOutputTimestamp()` mapping jitter < 0.12 ms; real Chromebook and
     Safari/Firefox still untested; render-scale/auto-quality needed for low-end hosts.
+  - I2: 1–4 side-by-side S4 highways (one WebGL context each, reused) hold the 165 Hz panel
+    headless on the owner's laptop; one shared-lane-group highway was not tried. Phone rings
+    reach the game page through the S1 Node host (dashboard WebSocket relay, ~35 ms p50 in
+    simulation); a production host would embed the HGP server or run it as a sidecar.
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -111,6 +119,9 @@ difficulties.
 - Later: "star power" analogue (e.g. team-wide perfect phrase), damp scoring, sight-reading
   mode, achievements, replays.
 - Open: how unforgiving to be with kids vs experienced ringers; scoring missed damps.
+  - I2: team score/streak/multiplier is S4's single `Judge` over all ringers' lanes (one miss
+    breaks the team streak); per-ringer hits/accuracy/timing on each highway and in results.
+    Parts nobody holds are rung by the host. Open: per-ringer streaks/multipliers vs team-only.
 
 ## E07 Visual & aural engagement ("juice")
 

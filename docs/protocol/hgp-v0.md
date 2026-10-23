@@ -123,9 +123,10 @@ immediately and take `t1` as early as possible on receipt.
 |---|---|---|
 | `welcome` | `v`, `deviceId`, `session`, `hostTime` | |
 | `sync` | `id`, `t0`, `t1`, `t2` | Echo of the request. |
-| `assign` | `bells` (1–4 × `{id, label, midi, color}`, low→high), `sound` (`device`·`host`·`both`·`none`), `select` (`single`·`zones`) | Who plays sound, which bells, how the device selects among them. |
+| `assign` | `bells` (1–4 × `{id, label, midi, color}`, low→high; up to 5 in YARG mode, one per lane), `sound` (`device`·`host`·`both`·`none`), `select` (`single`·`zones`), optional `ringer` (`{slot, title, song?}`, I1 YARG mode; `slot` −1 = no free seat) | Who plays sound, which bells, how the device selects among them, and (YARG mode) which ringer seat/highway the device drives. A merged lane has `id` `"F4+G4"`; the device sends either bell id. |
 | `config` | `mode?` (`ring`·`impact`), `record?` (stream `raw`), `detector?` (threshold overrides), `calibrate?` | |
 | `test` | `action` (`start`·`stop`), `id`, `test` (`metronome`·`idle`·`clink`·`latency`), `start?` (host time of beat 0), `period?`, `count?`, `durationMs?`, `expect?` (bell id per beat) | Spike test orchestration; a game host would send chart cues instead. |
+| `cues` | `at` (host times, ms), `bells` (bell id per note) | I2 web host: this device's notes for the song, sent at song start (empty arrays clear). The device glows the zone of the next note not more than ~120 ms in the past. Purely a display hint; judging stays on the host. |
 | `rtc` | `kind` (`answer`·`error`), `sdp?`, `error?` | |
 
 ## 9. Multi-bell devices
@@ -137,7 +138,9 @@ hold up to **4 bells**. v0 behaviour (`select: "zones"`):
   zone **selects** that bell and it stays selected (sticky); the swing provides the timing.
 - Each `gesture` carries the selected `bell` and `sel`. The host judges a ring against the
   next note **for that bell**; a ring with the wrong bell is a miss for the expected note.
-- Hosts may cue the next bell (S1's test makes the next zone glow). Other selection schemes
+- Hosts may cue the next bell (S1's test makes the next zone glow; the I2 web host sends
+  `cues`). With `assign.ringer` set the zones are laid out as one column per bell, in the
+  same left→right order and colours as that ringer's highway lanes. Other selection schemes
   (tilt, swing direction, two phones per player) can be added as new `select` values without
   changing `gesture`.
 

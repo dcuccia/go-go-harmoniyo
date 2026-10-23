@@ -11,7 +11,7 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } fr
 import http from 'node:http';
 import https from 'node:https';
 import { networkInterfaces } from 'node:os';
-import { join } from 'node:path';
+import { join, normalize, resolve, sep } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
@@ -47,8 +47,11 @@ const { values: args } = parseArgs({
     tunnel: { type: 'boolean', default: false },
     'no-open': { type: 'boolean', default: false },
     'no-https': { type: 'boolean', default: false },
+    /** Serve a static game build (e.g. spikes/i2-web-phones/dist) at /game/ and open it instead of the dashboard. */
+    game: { type: 'string' },
   },
 });
+const GAME_DIR = args.game ? resolve(args.game) : null;
 
 const now = () => performance.now();
 const SESSION = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -145,6 +148,9 @@ const MIME: Record<string, string> = {
   '.map': 'application/json',
   '.css': 'text/css; charset=utf-8',
   '.svg': 'image/svg+xml',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.mid': 'audio/midi',
 };
 
 let joinUrl = '';
@@ -172,6 +178,19 @@ async function handleHttp(req: http.IncomingMessage, res: http.ServerResponse): 
     return;
   }
   if (p.startsWith('/dist/') && /^[\w./-]+$/.test(p) && !p.includes('..')) return sendFile(res, join(DIST, p.slice('/dist/'.length)));
+  if (GAME_DIR && (p === '/game' || p.startsWith('/game/'))) {
+    if (p === '/game') {
+      res.writeHead(302, { location: '/game/' + url.search }).end();
+      return;
+    }
+    const rel = decodeURIComponent(p.slice('/game/'.length)) || 'index.html';
+    const file = normalize(join(GAME_DIR, rel));
+    if (!file.startsWith(GAME_DIR + sep)) {
+      res.writeHead(403).end('forbidden');
+      return;
+    }
+    return sendFile(res, file);
+  }
   if (p === '/qr.svg') {
     const svg = await QRCode.toString(url.searchParams.get('u') ?? joinUrl, { type: 'svg', margin: 1 });
     res.writeHead(200, { 'content-type': MIME['.svg'] }).end(svg);
@@ -213,6 +232,8 @@ interface Device {
   ws: WebSocket | null;
   rtc: { send: (s: string) => void; close: () => void } | null;
   bells: Bell[];
+  /** Ringer seat shown on the phone (HGP `assign.ringer`, shared with I1's YARG mode). */
+  ringer?: { slot: number; title: string; song?: string };
   connectedAt: number;
   lastSeen: number;
   events: number;
@@ -304,7 +325,7 @@ function nextBells(): Bell[] {
 }
 
 function sendAssign(d: Device): void {
-  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single' };
+  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single', ringer: d.ringer };
   send(d.ws, msg);
 }
 
@@ -323,7 +344,7 @@ function handleDeviceMessage(d: Device, m: Record<string, unknown> & { type: str
       const g: LoggedGesture = { deviceId: d.id, g: String(m.g), seq: Number(m.seq), th, rx, det: typeof m.det === 'number' ? m.det : undefined, via, bell: bellId, lead };
       gestures.push(g);
       logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      const bell = DEFAULT_BELLS.find((b) => b.id === bellId) ?? d.bells[0];
+      const bell = d.bells.find((b) => b.id === bellId) ?? DEFAULT_BELLS.find((b) => b.id === bellId) ?? d.bells[0];
       toDashboards({ type: 'event', deviceId: d.id, name: d.name, bell, msg: m, rx, via, soundMode });
       return;
     }
@@ -456,6 +477,25 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
           sendAssign(d);
         });
       break;
+    }
+    case 'assign-bells': {
+      // Explicit bell list for one phone (e.g. a ringer's part from a chart, I2), 1–5 bells, plus
+      // an optional ringer seat label (same `assign.ringer` shape as I1's YARG mode).
+      const d = devices.get(String(m.deviceId));
+      const bells = Array.isArray(m.bells) ? (m.bells as Bell[]).filter((b) => b && typeof b.id === 'string' && typeof b.midi === 'number').slice(0, 5) : [];
+      if (d && bells.length) {
+        d.bells = bells.map((b) => ({ id: b.id, label: String(b.label ?? b.id), midi: b.midi, color: String(b.color ?? '#888') }));
+        const r = m.ringer as { slot?: unknown; title?: unknown; song?: unknown } | undefined;
+        d.ringer = r && typeof r.title === 'string' ? { slot: Number(r.slot ?? 0), title: r.title, song: typeof r.song === 'string' ? r.song : undefined } : undefined;
+        sendAssign(d);
+      }
+      break;
+    }
+    case 'cues': {
+      // Upcoming notes for one phone (host time + bell id) so it can glow the next zone.
+      const d = devices.get(String(m.deviceId));
+      if (d) send(d.ws, { type: 'cues', at: Array.isArray(m.at) ? m.at : [], bells: Array.isArray(m.bells) ? m.bells : [] });
+      return; // high volume: skip event log + device broadcast
     }
     case 'config': {
       const targets = m.deviceId === 'all' ? phones() : [devices.get(String(m.deviceId))].filter((d): d is Device => !!d);
@@ -656,7 +696,11 @@ async function main(): Promise<void> {
     await printJoin(args['public-url'] ?? `http://${LAN_IP}:${HTTP_PORT}/`);
   }
   console.log(`  Dashboard: ${dashboardUrl}\n`);
-  openBrowser(dashboardUrl);
+  if (GAME_DIR) {
+    const gameUrl = `http://127.0.0.1:${HTTP_PORT}/game/`;
+    console.log(`  Game (TV): ${gameUrl}   (serving ${GAME_DIR})\n`);
+    openBrowser(gameUrl);
+  } else openBrowser(dashboardUrl);
 }
 
 process.on('SIGINT', () => {

@@ -151,6 +151,11 @@ export interface Assign {
    * the swing gives the timing (sticky: the last touched zone stays selected).
    */
   select?: 'single' | 'zones';
+  /**
+   * I1 YARG mode: the device's ringer seat (slot -1 = no free seat, free play). Bell i is lane i
+   * of that ringer's YARG highway.
+   */
+  ringer?: { slot: number; title: string; song?: string };
 }
 
 export interface Config {

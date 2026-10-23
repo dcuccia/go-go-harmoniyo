@@ -17,6 +17,8 @@ let selIdx = 0;
 let selAt = 0;
 const myBell = (): Bell => myBells[Math.min(selIdx, myBells.length - 1)];
 let soundMode: SoundMode = 'device';
+/** YARG mode (I1): this phone's ringer seat, shown above the bell. */
+let ringer: { slot: number; title: string; song?: string } | null = null;
 let mode: DetectMode = 'ring';
 let recording = false;
 let raw: number[][] = [];
@@ -183,14 +185,23 @@ window.setInterval(() => {
 }, 50);
 
 // ── multi-bell thumb zones ──────────────────────────────────────────────────
-/** Next expected bell during a multi-bell metronome test (the "note highway" stand-in). */
+/** Next expected bell: from game cues if present, else during a multi-bell metronome test. */
 function expectedBell(): string | null {
-  if (!test?.expect || test.start === undefined || !test.period) return null;
   const clk = client.clock;
   if (!clk.ready) return null;
-  const i = Math.ceil((clk.toHost(performance.now()) - test.start - test.period * 0.35) / test.period);
+  const hostNow = clk.toHost(performance.now());
+  if (cues && cues.at.length) {
+    // Glow the bell of the next note not yet ~120 ms in the past.
+    while (cueIdx < cues.at.length && cues.at[cueIdx] < hostNow - 120) cueIdx++;
+    return cueIdx < cues.at.length ? cues.bells[cueIdx] ?? null : null;
+  }
+  if (!test?.expect || test.start === undefined || !test.period) return null;
+  const i = Math.ceil((hostNow - test.start - test.period * 0.35) / test.period);
   return test.expect[Math.max(0, Math.min(test.expect.length - 1, i))] ?? null;
 }
+/** Game cues (host time + bell id of each upcoming note for this phone), sent by a game host. */
+let cues: { at: number[]; bells: string[] } | null = null;
+let cueIdx = 0;
 
 function select(i: number, t: number): void {
   if (i === selIdx) return;
@@ -204,6 +215,8 @@ function buildZones(): void {
   const z = $('zones');
   z.innerHTML = '';
   document.body.classList.toggle('multi', myBells.length > 1);
+  // One column per bell, like the YARG highway lanes (low → high, left → right); else 2×2.
+  z.style.gridTemplateColumns = ringer || myBells.length > 4 ? `repeat(${myBells.length}, 1fr)` : '';
   if (myBells.length < 2) return;
   myBells.forEach((b, i) => {
     const el = document.createElement('div');
@@ -274,7 +287,7 @@ client.onMessage = (m) => {
       const bells = m.bells as Bell[] | undefined;
       if (bells && bells.length > 0) {
         const changed = bells.map((b) => b.id).join() !== myBells.map((b) => b.id).join();
-        myBells = bells.slice(0, 4);
+        myBells = bells.slice(0, 5);
         if (changed) {
           selIdx = 0;
           selAt = performance.now();
@@ -282,6 +295,10 @@ client.onMessage = (m) => {
         }
       }
       soundMode = (m.sound as SoundMode) ?? soundMode;
+      ringer = (m.ringer as typeof ringer) ?? null;
+      $('ringer').hidden = !ringer;
+      $('ringer').textContent = ringer ? `🎮 ${ringer.title}${ringer.song ? ` — ${ringer.song}` : ''}` : '';
+      if (bells && bells.length > 0) buildZones();
       break;
     }
     case 'config':
@@ -292,6 +309,11 @@ client.onMessage = (m) => {
       break;
     case 'test':
       onTest(m);
+      break;
+    case 'cues':
+      cues = Array.isArray(m.at) && m.at.length ? { at: m.at as number[], bells: (m.bells as string[]) ?? [] } : null;
+      cueIdx = 0;
+      renderZones();
       break;
   }
   render();
