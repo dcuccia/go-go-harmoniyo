@@ -41,6 +41,10 @@ drive any host.
 - Open: one phone covering 2+ bells (tilt/orientation, on-screen thumb zones, gesture
   direction, or difficulty-based single-bell parts?); local vs host sound; iOS silent switch
   and Web Audio; phone-holder ergonomics (see handbellSTLs).
+  - S5 data: carol melodies need 8–11 distinct bells, so 1 bell per phone is infeasible for
+    3–5 ringers and 2 bells per phone overflows on most songs; ~4 bells per phone (zones) fits
+    6/8 carols on easy and medium with 4 ringers. Needs measured bell-switch and re-strike
+    times from S1 to calibrate the pipeline's controller profiles.
 - Spikes: S1.
 
 ## E03 Game host & engine
@@ -65,6 +69,13 @@ difficulties.
   handbell notation symbols; arrangement sharing.
 - Open: engine-neutral chart format vs reuse RB/CH MIDI conventions; sources (Mutopia,
   IMSLP, self-authored) and their per-file licenses.
+  - S5 (see [report](../spikes/S5-report.md)): engine-neutral JSON proposed as source of truth
+    ([ADR-0007](../decisions/0007-chart-format.md), Proposed), RB/CH `.mid` as export; corpus of 8
+    carols (5 self-encoded CC0 lead sheets + 3 Mutopia public-domain MIDI). 4 ringers is the
+    sweet spot. Still open: easy-tier load fairness (melody pitch histograms are peaked — allow
+    non-contiguous bells on easy?), hard-tier melody concentrating on one ringer, pitch-set
+    reduction when a phone covers ≤ 2 bells, bell-synth audio render for exports, proofreading
+    workflow for self-encoded songs.
 - Spikes: S5.
 
 ## E05 Bell audio

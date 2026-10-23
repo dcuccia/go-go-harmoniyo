@@ -11,4 +11,4 @@ Status: `Proposed` → `Accepted` (owner only) → optionally `Superseded by NNN
 | 0004 | Host engine | Pending M2 |
 | 0005 | Shared-core language | Pending M2 |
 | 0006 | Phone ↔ host transport | Pending M2 |
-| 0007 | Chart format | Pending M2 |
+| [0007](0007-chart-format.md) | Chart format | Proposed (S5) |

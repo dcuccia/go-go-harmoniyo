@@ -11,7 +11,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Not started | — |
 | S3 | YARG handbell mode | E03, E10 | Not started | Install Unity Hub + pinned Unity editor, sign in (Unity Personal) for the prototype phase |
 | S4 | Web-native host prototype | E03, E05, E07 | Not started | Look at it on the TV |
-| S5 | Carol chart pipeline | E04, E06 | Not started | — |
+| S5 | Carol chart pipeline | E04, E06 | Done — [report](S5-report.md) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
 | S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Optional | — |
 
 Common time box: **one focused session (~1–2 days of agent work)**. Stop at the time box
