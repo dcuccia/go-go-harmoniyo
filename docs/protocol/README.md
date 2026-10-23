@@ -4,7 +4,7 @@ Hardware-agnostic contract between bells (phones, ESP32-S3 digital handbells, MI
 keyboards, microphone listener) and game hosts. See
 [ADR-0002](../decisions/0002-decouple-app-from-hardware.md).
 
-Status: **not yet drafted.** Spike S1 produces `hgp-v0.md`.
+Status: **v0 draft** — [hgp-v0.md](hgp-v0.md) (from spike S1).
 
 ## Requirements (initial)
 

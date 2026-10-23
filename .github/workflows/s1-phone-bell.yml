@@ -1,0 +1,37 @@
+name: s1-phone-bell
+
+on:
+  pull_request:
+    paths: ['spikes/s1-phone-bell/**', '.github/workflows/s1-phone-bell.yml']
+  push:
+    branches: [main]
+    paths: ['spikes/s1-phone-bell/**', '.github/workflows/s1-phone-bell.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: spikes/s1-phone-bell
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: spikes/s1-phone-bell/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Emulated measurements
+        run: |
+          npm run sim > /dev/null
+          cat results/sim-results.md >> "$GITHUB_STEP_SUMMARY"
+      - name: End-to-end (host + simulated phones over WebSocket)
+        run: |
+          npx tsx src/host/server.ts --no-open --no-https --http-port 8080 &
+          sleep 8
+          npx tsx tools/sim-phones.ts --url ws://127.0.0.1:8080/hgp --count 24 --bpm 150

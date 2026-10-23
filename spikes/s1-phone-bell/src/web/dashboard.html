@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Handbell Hero — S1 host dashboard</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="dashboard">
+    <h1>🔔 S1 host dashboard</h1>
+    <div class="dash-grid">
+      <aside>
+        <div id="qr"></div>
+        <p class="mono small" id="join"></p>
+        <p class="small" id="tls"></p>
+        <p class="small">Phones: scan, accept the certificate warning if shown, tap <b>Start</b>, then ring 6× to calibrate.</p>
+        <button id="host-audio">Enable host sound</button>
+        <p class="small" id="audio-info"></p>
+      </aside>
+      <main>
+        <fieldset>
+          <legend>Phones</legend>
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Bell</th><th>Sensor</th><th>Clock sync</th><th>Link</th><th>Events</th><th>Device</th></tr>
+            </thead>
+            <tbody id="devices"></tbody>
+          </table>
+        </fieldset>
+        <fieldset>
+          <legend>Bells per phone</legend>
+          <select id="bells-per-phone">
+            <option value="1">1 bell (swing only)</option>
+            <option value="2">2 bells (thumb zones)</option>
+            <option value="3">3 bells (thumb zones)</option>
+            <option value="4">4 bells (thumb zones)</option>
+          </select>
+          <span class="small">Zones: touch a bell on screen (it stays selected), the swing rings it. The dropdown in each row picks the lowest bell of that phone's block.</span>
+        </fieldset>
+        <fieldset>
+          <legend>Sound placement</legend>
+          <label><input type="radio" name="sound" value="device" checked /> phone</label>
+          <label><input type="radio" name="sound" value="host" /> host (this PC)</label>
+          <label><input type="radio" name="sound" value="both" /> both</label>
+          <label><input type="radio" name="sound" value="none" /> none</label>
+        </fieldset>
+        <fieldset>
+          <legend>Scripted tests</legend>
+          <div class="row" style="justify-content: flex-start">
+            <span>Metronome: <input id="bpm" type="number" value="80" style="width: 4em" /> bpm × <input id="count" type="number" value="100" style="width: 4em" /> beats</span>
+            <label><input id="multi" type="checkbox" /> multi-bell melody (needs ≥2 bells per phone)</label>
+            <button data-test="metronome">Start metronome test</button>
+          </div>
+          <div class="row" style="justify-content: flex-start; margin-top: 0.5em">
+            <span>Duration <input id="dur" type="number" value="120" style="width: 4em" /> s</span>
+            <button data-test="idle">False-ring test (don't ring)</button>
+            <button data-test="clink">Clink test (2 phones)</button>
+            <button data-test="latency">Sound-latency test</button>
+            <button id="stop">Stop &amp; analyse</button>
+            <button id="calibrate-all">Ask all phones to calibrate</button>
+          </div>
+          <p id="test-state" class="small"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Results (also saved to data/&lt;session&gt;/summary.md)</legend>
+          <div id="results"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Live events (arrival − source = network + processing delay)</legend>
+          <div id="log"></div>
+        </fieldset>
+      </main>
+    </div>
+    <script type="module" src="/dist/dashboard.js"></script>
+  </body>
+</html>

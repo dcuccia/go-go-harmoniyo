@@ -1,0 +1,35 @@
+{
+  "name": "s1-phone-bell",
+  "version": "0.0.0",
+  "description": "Spike S1: phones as handbells - strike detection, clock sync, transport (throwaway spike code).",
+  "scripts": {
+    "start": "tsx src/host/server.ts",
+    "tunnel": "tsx src/host/server.ts --tunnel",
+    "test": "tsx --test test/core.test.ts test/detectors.test.ts test/host.test.ts",
+    "sim": "tsx sim/run-sim.ts",
+    "analyze": "tsx tools/analyze.ts",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "license": "MIT",
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "qrcode": "^1.5.4",
+    "selfsigned": "^5.5.0",
+    "tsx": "^4.23.15",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/ws": "^8.18.2",
+    "typescript": "^7.0.2"
+  },
+  "optionalDependencies": {
+    "werift": "^0.25.1"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  }
+}

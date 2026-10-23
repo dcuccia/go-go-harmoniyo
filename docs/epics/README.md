@@ -31,6 +31,11 @@ drive any host.
   intensity/velocity, battery/health, BLE and serial bindings, firmware reference impl.
 - Open: transport (WebSocket/TLS on LAN vs WebRTC data channel vs relay); target timestamp
   accuracy (p95 ≤ 15 ms?); how to calibrate per-device sensor latency.
+  - S1 (emulated, physical pending): LAN sync error ≈ 1 ms p95; the ~60 Hz sensor rate dominates
+    (≈ 8 ms per-device p95; two-phone p95 ≈ 15 ms), so the 15 ms target should apply per device.
+    Per-device latency → input-offset calibration (median strike − beat in a metronome run).
+    Transport: ADR-0006 (Proposed). Draft spec: [hgp-v0.md](../protocol/hgp-v0.md).
+  - Hosts must hold a note's verdict for an arrival lookahead (Wi-Fi power-save spikes ~200 ms).
 - Spikes: S1. Spec lives in [docs/protocol/](../protocol/README.md).
 
 ## E02 Phone-as-bell controller
@@ -41,6 +46,12 @@ drive any host.
 - Open: one phone covering 2+ bells (tilt/orientation, on-screen thumb zones, gesture
   direction, or difficulty-based single-bell parts?); local vs host sound; iOS silent switch
   and Web Audio; phone-holder ergonomics (see handbellSTLs).
+  - S1: 4 sticky thumb zones (touch selects, swing rings; next bell glows) are implemented and
+    scored (right-bell %, touch→ring lead). Physical usability is pending (runbook test D).
+    Fallbacks: two phones per player, or 1–2 bells per phone. A six-ring axis calibration is
+    essential (false rings 4–27 % → 0 % in emulation). Sound on the phone is recommended.
+  - iOS (unverified): permission must be requested from the Start tap; behaviour after a
+    self-signed-certificate bypass; `navigator.audioSession` for the silent switch; no haptics.
 - Spikes: S1.
 
 ## E03 Game host & engine
@@ -73,6 +84,8 @@ difficulties.
 - MVP: modal/additive synthesis (handbells are tuned with a strong 12th partial) or CC0 /
   self-recorded samples; backing track optional.
 - Open: sound on host vs phone vs both; owner-recorded handbell samples?; latency budget.
+  - S1: recommends sound on the phone (TV/HDMI/Bluetooth audio adds 50–150+ ms on the host).
+    `/meter` in the S1 harness measures knock→sound latency; results are pending.
 
 ## E06 Gameplay, scoring & team play
 
@@ -115,4 +128,7 @@ audience reactions, festive themes (holiday theme for M5).
 
 **Goal:** easy setup at home and in classrooms.
 - MVP: Windows host install/run; phones join via QR code over home Wi-Fi with valid HTTPS.
+  - S1: alpha uses a self-signed cert (one warning tap per phone) or a Cloudflare quick tunnel;
+    guest and school networks isolate clients (use the relay). On Windows, allow Node through the
+    firewall for Private networks and use `127.0.0.1` rather than `localhost`. See ADR-0006.
 - Later: macOS/Linux/ChromeOS hosts; hosted web version; offline classroom kit.

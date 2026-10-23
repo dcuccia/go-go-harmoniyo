@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Handbell Hero — bell</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="controller">
+    <section id="start-screen">
+      <h1>🔔 Handbell Hero</h1>
+      <p>Spike S1 controller. Hold the phone like a handbell, screen facing you.</p>
+      <label>Your name <input id="name" autocomplete="nickname" maxlength="20" placeholder="e.g. Dad" /></label>
+      <button id="start" class="big">Tap to start</button>
+      <p class="small">iPhone: allow “Motion &amp; Orientation” when asked. Keep this page open and the screen on.</p>
+      <p id="secure" class="warn"></p>
+    </section>
+    <section id="main" hidden>
+      <div id="banner" hidden></div>
+      <div id="bell"><span id="bell-label">C</span><small id="bell-id">C5</small></div>
+      <div id="zones"></div>
+      <div class="row">
+        <button id="calibrate">Calibrate (ring 6×)</button>
+        <button id="tap-toggle">Touch: off</button>
+      </div>
+      <p id="status" class="small"></p>
+      <p id="debug" class="small mono"></p>
+    </section>
+    <script type="module" src="/dist/controller.js"></script>
+  </body>
+</html>
