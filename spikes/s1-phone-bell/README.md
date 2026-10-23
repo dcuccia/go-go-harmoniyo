@@ -8,10 +8,10 @@ copied from GACJ/handbellmanager (GPL-3.0); only its approach was studied.
 | Path | What |
 |---|---|
 | `src/core/` | Engine-independent, DOM-free TypeScript: HGP v0 types, clock sync, ring + impact detectors, onset analysis, stats |
-| `src/host/` | Node host: HTTPS/WSS (+ optional WebRTC via `werift`), QR code, test orchestration, logging, analysis |
+| `src/host/` | Node host: HTTPS/WSS (+ optional WebRTC via `werift`), QR code, test orchestration, logging, analysis; `yarg.ts` = I1 YARG sidecar (`--yarg`) |
 | `src/web/` | Phone controller, PC dashboard, microphone latency meter (bundled by esbuild at start-up) |
 | `sim/` | Synthetic motion traces + Wi-Fi/clock model → `results/sim-results.md` (`npm run sim`) |
-| `tools/` | `sim-phones.ts` (fake phones over real WebSockets), `analyze.ts` (replay recorded traces) |
+| `tools/` | `sim-phones.ts` (fake phones over real WebSockets), `analyze.ts` (replay recorded traces), `sim-yarg-phones.ts` (fake phones in YARG mode) |
 | `test/` | `node:test` unit tests (`npm test`) |
 
 ## Owner runbook (Pixel first, ~20 minutes)
@@ -65,6 +65,22 @@ re-tune offline with `npm run analyze -- data/<session> --minDecel 4500`.
 Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw traces),
 `?minDecel=4500&minPeakOmega=200…` (detector overrides).
 
+### YARG mode (I1: phones as ringers in the YARG fork)
+
+`npm run yarg` runs the same host plus a sidecar that forwards rings to the YARG fork's
+`HgpBridge` (UDP 127.0.0.1:47800). Each phone takes a ringer seat (Ringer 1–4 = YARG profile
+"Ringer N"), and its thumb zones are that ringer's chart bells, one per YARG lane. Owner runbook
+and results: [docs/spikes/I1-yarg-phones.md](../../docs/spikes/I1-yarg-phones.md).
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--song <id or title>` | — (YARG reports it on chart load) | Pre-select the chart whose bells the phones get |
+| `--difficulty easy\|medium\|hard\|expert` | `expert` | Tier for `--song` (Expert = Hard) |
+| `--charts <dir>` | `../s5-chart-pipeline/charts` | S5 chart JSON folder |
+| `--yarg-phones N` | 4 | Ringer seats (max 5) |
+| `--yarg-ringers N` | 4 | Ringer count of the exported chart part |
+| `--yarg-port N` | 47800 | Bridge port (YARG `-hgp-port`) |
+
 ## Developer commands
 
 ```powershell
@@ -72,6 +88,7 @@ npm run typecheck   # tsc --noEmit
 npm test            # unit tests (clock sync, detectors, onsets, analysis)
 npm run sim         # emulated measurements → results/sim-results.md
 npx tsx tools/sim-phones.ts   # with `npm start -- --no-open` running: fake phones end-to-end
+npx tsx tools/sim-yarg-phones.ts --churn --extra   # with `npm run yarg -- --no-https --no-open` (+ YARG -hgp) running
 ```
 
 CI (`.github/workflows/s1-phone-bell.yml`) runs typecheck, tests, the simulator (posted to the

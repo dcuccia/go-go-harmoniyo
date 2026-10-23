@@ -17,6 +17,8 @@ let selIdx = 0;
 let selAt = 0;
 const myBell = (): Bell => myBells[Math.min(selIdx, myBells.length - 1)];
 let soundMode: SoundMode = 'device';
+/** YARG mode (I1): this phone's ringer seat, shown above the bell. */
+let ringer: { slot: number; title: string; song?: string } | null = null;
 let mode: DetectMode = 'ring';
 let recording = false;
 let raw: number[][] = [];
@@ -204,6 +206,8 @@ function buildZones(): void {
   const z = $('zones');
   z.innerHTML = '';
   document.body.classList.toggle('multi', myBells.length > 1);
+  // One column per bell, like the YARG highway lanes (low → high, left → right); else 2×2.
+  z.style.gridTemplateColumns = ringer || myBells.length > 4 ? `repeat(${myBells.length}, 1fr)` : '';
   if (myBells.length < 2) return;
   myBells.forEach((b, i) => {
     const el = document.createElement('div');
@@ -274,7 +278,7 @@ client.onMessage = (m) => {
       const bells = m.bells as Bell[] | undefined;
       if (bells && bells.length > 0) {
         const changed = bells.map((b) => b.id).join() !== myBells.map((b) => b.id).join();
-        myBells = bells.slice(0, 4);
+        myBells = bells.slice(0, 5);
         if (changed) {
           selIdx = 0;
           selAt = performance.now();
@@ -282,6 +286,10 @@ client.onMessage = (m) => {
         }
       }
       soundMode = (m.sound as SoundMode) ?? soundMode;
+      ringer = (m.ringer as typeof ringer) ?? null;
+      $('ringer').hidden = !ringer;
+      $('ringer').textContent = ringer ? `🎮 ${ringer.title}${ringer.song ? ` — ${ringer.song}` : ''}` : '';
+      if (bells && bells.length > 0) buildZones();
       break;
     }
     case 'config':

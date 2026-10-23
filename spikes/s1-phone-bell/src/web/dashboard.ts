@@ -56,6 +56,52 @@ function addLog(line: string): void {
   $('log').textContent = logLines.join('\n');
 }
 
+interface YargInfo {
+  connected: boolean;
+  port: number;
+  bridgeRtt: number;
+  song: { id: string; title: string } | null;
+  tier: string;
+  lastSong: { title: string } | null;
+  ringsSent: number;
+  ageP50: number;
+  ageP95: number;
+  songs: { id: string; title: string }[];
+  seats: ({ slot: number; device: string; name: string; online: boolean; partName?: string; tier: string; bells: Bell[]; rings: number } | null)[];
+}
+
+let yargSongsShown = '';
+function renderYarg(y: YargInfo): void {
+  $('yarg-panel').hidden = false;
+  $('yarg-status').textContent =
+    `${y.connected ? `🟢 YARG bridge answering on 127.0.0.1:${y.port} (round trip ${num(y.bridgeRtt, 2)} ms)` : `🔴 YARG not answering on 127.0.0.1:${y.port} — start YARG with -hgp`}` +
+    ` · bells for: ${y.song?.title ?? 'no song yet (free lanes)'}${y.lastSong ? ` · YARG last loaded “${y.lastSong.title}”` : ''}` +
+    ` · rings sent ${y.ringsSent} (source→host age p50 ${num(y.ageP50, 0)} / p95 ${num(y.ageP95, 0)} ms)`;
+  const songSel = $<HTMLSelectElement>('yarg-song');
+  const key = y.songs.map((s) => s.id).join();
+  if (key !== yargSongsShown) {
+    yargSongsShown = key;
+    songSel.innerHTML = `<option value="">(free lanes)</option>` + y.songs.map((s) => `<option value="${esc(s.id)}">${esc(s.title)}</option>`).join('');
+  }
+  if (document.activeElement !== songSel) songSel.value = y.song?.id ?? '';
+  const diffSel = $<HTMLSelectElement>('yarg-difficulty');
+  if (document.activeElement !== diffSel) diffSel.value = y.tier;
+  $('yarg-seats').innerHTML = y.seats
+    .map((s, i) =>
+      s
+        ? `<tr><td>Ringer ${s.slot + 1} (${esc(s.device)})</td><td>${s.online ? '🟢' : '🔴'} ${esc(s.name)}</td><td>${esc(s.partName ?? '?')} · ${esc(s.tier)}</td>
+           <td>${s.bells.map((b) => `<span class="swatch" style="background:${b.color}"></span>${esc(b.id)}`).join(' ')}</td><td>${s.rings}</td>
+           <td><button data-yarg-remove="${s.slot}">Free seat</button></td></tr>`
+        : `<tr><td>Ringer ${i + 1}</td><td colspan="5" class="small">free — the next phone to join sits here</td></tr>`,
+    )
+    .join('');
+}
+$('yarg-apply').addEventListener('click', () => cmd({ cmd: 'yarg-song', song: $<HTMLSelectElement>('yarg-song').value, difficulty: $<HTMLSelectElement>('yarg-difficulty').value }));
+$('yarg-seats').addEventListener('click', (e) => {
+  const slot = (e.target as HTMLElement).dataset.yargRemove;
+  if (slot !== undefined) cmd({ cmd: 'yarg-remove', slot: Number(slot) });
+});
+
 client.onMessage = (m) => {
   switch (m.type) {
     case 'welcome':
@@ -72,6 +118,7 @@ client.onMessage = (m) => {
       soundMode = (m.soundMode as SoundMode) ?? soundMode;
       if (typeof m.bellsPerPhone === 'number' && document.activeElement !== $('bells-per-phone')) ($('bells-per-phone') as HTMLSelectElement).value = String(m.bellsPerPhone);
       renderDevices(m.devices as DeviceRow[]);
+      if (m.yarg) renderYarg(m.yarg as YargInfo);
       break;
     case 'event': {
       const g = m.msg as Record<string, unknown>;

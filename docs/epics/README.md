@@ -91,6 +91,15 @@ drive any host.
   - S4: Chrome/Windows holds 60 fps+ at 1080p and 4K on an integrated GPU with bloom (4× MSAA is
     the expensive part); `getOutputTimestamp()` mapping jitter < 0.12 ms; real Chromebook and
     Safari/Firefox still untested; render-scale/auto-quality needed for low-end hosts.
+- Learned (I1, phones → YARG fork; [report](../spikes/I1-yarg-phones.md)):
+  - The S1 host doubles as the YARG sidecar (`npm run yarg`). One phone = one ringer seat = one
+    stable YARG bell device (`ringerN`), so a dropped or swapped phone keeps the same YARG profile.
+  - YARG reports the loaded song and each ringer's part/difficulty back to the sidecar, so phones
+    get that ringer's chart bells (lane k = k-th bell, YARG lane colours on the phone).
+  - Simulated phones → real built YARG: 182/182 rings registered on 4 ringer devices, 0 drops.
+    In-song judging with real phones is still unverified (owner run).
+  - Open: lookbehind budget for real phones (S1 predicts arrival ≈ 40–65 ms, above the 40 ms
+    default; start at 60 ms); whether phone-local bell sound plus YARG's bell stems sounds doubled.
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline

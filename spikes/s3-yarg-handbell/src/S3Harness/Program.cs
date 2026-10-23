@@ -66,6 +66,12 @@ int SelfTest()
     Check(hello.Kind == HgpPacketKind.Hello && hello.Slot == 2 && hello.Name == "Dad's Pixel", "hello with name");
     Check(HgpPacket.Parse("hgp0 ring x y 1 2 3").Kind == HgpPacketKind.Invalid, "malformed ring rejected");
     Check(HgpPacket.Parse("nope sync 1").Kind == HgpPacketKind.Invalid, "bad magic rejected");
+    // I1: YARG → sidecar replies (the sidecar's parser is spikes/s1-phone-bell/src/host/yarg.ts)
+    var pong = HgpPacket.Parse(HgpPacket.Pong(98.25).ToString());
+    Check(pong.Kind == HgpPacketKind.Pong && pong.Time == 98.25, "pong round-trip");
+    Check(HgpPacket.FormatSong("Deck the Halls", new[] { ("ringer1", 0, "Expert"), ("ringer2", 3, "Easy") })
+        == "hgp0 song ringer1:0:expert,ringer2:3:easy Deck the Halls", "song report format");
+    Check(HgpPacket.FormatSong(null, Array.Empty<(string, int, string)>()) == "hgp0 song - ?", "song report, no bell players");
 
     var clock = new HgpClockMap(8);
     clock.AddSample(100.000, 5.0030);

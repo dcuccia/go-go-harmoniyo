@@ -208,3 +208,11 @@ fieldset {
   border-radius: 50%;
   vertical-align: middle;
 }
+
+/* YARG mode (I1): ringer seat label */
+#ringer {
+  text-align: center;
+  font-weight: 600;
+  margin: 0.4em 0;
+}
+
