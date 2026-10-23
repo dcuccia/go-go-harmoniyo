@@ -52,6 +52,9 @@ drive any host.
   shared core.
 - Open: shared-core language (C# via YARG.Core vs TypeScript); frame pacing on low-end
   classroom hardware; audio clock accuracy in browsers (`AudioContext.outputLatency`).
+  - S4: Chrome/Windows holds 60 fps+ at 1080p and 4K on an integrated GPU with bloom (4× MSAA is
+    the expensive part); `getOutputTimestamp()` mapping jitter < 0.12 ms; real Chromebook and
+    Safari/Firefox still untested; render-scale/auto-quality needed for low-end hosts.
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -73,6 +76,8 @@ difficulties.
 - MVP: modal/additive synthesis (handbells are tuned with a strong 12th partial) or CC0 /
   self-recorded samples; backing track optional.
 - Open: sound on host vs phone vs both; owner-recorded handbell samples?; latency budget.
+  - S4: an additive synth (fundamental + tuned 12th + inharmonic partials) is pleasant but not
+    "beautiful"; Windows shared-mode output adds ~50 ms between a host-side ring and its sound.
 
 ## E06 Gameplay, scoring & team play
 
@@ -88,6 +93,8 @@ difficulties.
 **Goal:** commercial-game feel: 3D highway, hit flashes, particles, streak fire, crowd/
 audience reactions, festive themes (holiday theme for M5).
 - Open: art pipeline and asset licenses (CC0/CC-BY, commissioned, procedural).
+  - S4: procedural neon highway + bloom/particles reaches "Clone Hero default" level; the gap to
+    GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
 
 ## E08 Classroom & coaching
 
