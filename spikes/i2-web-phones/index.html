@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handbell Hero — I2 phones + web host</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <div id="highways"></div>
+
+    <!-- Team HUD: S4's Hud drives these ids. -->
+    <div id="hud" class="hidden">
+      <div id="score-box">
+        <div id="score">0</div>
+        <div id="mult" class="m1">×1</div>
+        <div id="streak"></div>
+        <div id="acc"></div>
+      </div>
+      <div id="title-box">
+        <div id="song-title"></div>
+        <div id="progress"><div id="progress-fill"></div></div>
+        <div id="host-note"></div>
+      </div>
+      <div id="judge-box"><div id="judgement"></div><div id="judgement-ms"></div></div>
+      <div id="banner" class="banner"></div>
+      <div id="lane-labels"></div>
+      <div id="offsets"></div>
+    </div>
+
+    <pre id="stats" class="hidden"></pre>
+
+    <div id="lobby" class="overlay">
+      <div class="lobby">
+        <section class="join">
+          <h1>Handbell <span>Hero</span></h1>
+          <p class="sub">Scan to join with your phone</p>
+          <img id="qr" alt="QR code for the phone join URL" />
+          <div id="join-url">waiting for host…</div>
+          <ol class="steps">
+            <li>Same Wi-Fi as this PC. Scan, then accept the certificate warning once (Advanced → Proceed).</li>
+            <li>Type your name, tap <b>Start</b>, allow motion. Hold the phone like a bell.</li>
+            <li>Ring it — your lanes light up here. Touch a coloured zone to pick a bell, swing to ring.</li>
+          </ol>
+          <div id="host-state" class="dim"></div>
+        </section>
+        <section class="setup">
+          <div class="row">
+            <label>Song <select id="sel-song"></select></label>
+          </div>
+          <div class="row">
+            <label>Difficulty
+              <select id="sel-diff">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </label>
+            <label>Ringers
+              <select id="sel-ringers">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </label>
+            <label>Bell sound
+              <select id="sel-sound">
+                <option value="device">Phones (recommended)</option>
+                <option value="both">Phones + TV</option>
+                <option value="none">TV only</option>
+              </select>
+            </label>
+          </div>
+          <div id="slots"></div>
+          <div id="part-info" class="dim"></div>
+          <div class="buttons">
+            <button id="btn-play" class="primary">▶ Play</button>
+            <button id="btn-auto">Autoplay demo</button>
+          </div>
+          <p id="lobby-msg" class="error"></p>
+          <p class="help">
+            <kbd>Enter</kbd> play · <kbd>Esc</kbd> back to lobby · <kbd>←</kbd>/<kbd>→</kbd> A/V offset · <kbd>`</kbd> stats.
+            A ringer set to <b>Keyboard</b> rings with <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd>.
+            Quality: <a href="?bloom=0">no bloom</a> · <a href="?bloom=0&amp;particles=0&amp;dpr=1">low</a> · <a href="?">high</a>
+          </p>
+        </section>
+        <section class="phones">
+          <h3>Phones <span id="phone-count"></span></h3>
+          <ul id="phones"></ul>
+        </section>
+      </div>
+    </div>
+
+    <div id="results" class="overlay hidden">
+      <div class="panel wide">
+        <h2 id="res-title">Results</h2>
+        <div id="res-body"></div>
+        <table id="res-players"></table>
+        <details><summary>Measurements (JSON)</summary><pre id="res-json"></pre></details>
+        <div class="buttons">
+          <button id="btn-again" class="primary">Again</button>
+          <button id="btn-lobby">Lobby</button>
+          <button id="btn-copy">Copy JSON</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

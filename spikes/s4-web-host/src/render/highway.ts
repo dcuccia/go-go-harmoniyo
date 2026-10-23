@@ -8,7 +8,8 @@ import type { Chart, ChartNote } from '../core/chart';
 import type { Grade } from '../core/judge';
 import { makeGlowTexture, Particles, Snow } from './fx';
 
-export const LANE_COLORS = ['#ff3b4e', '#2ee86b', '#ffd23f', '#3fa9ff', '#ff8a2b', '#c46bff', '#3fffe0', '#ff6bd6'];
+import { LANE_COLORS } from './lane-colors';
+export { LANE_COLORS };
 const MAX_LANES = 8;
 
 export interface RenderOptions {
@@ -19,6 +20,10 @@ export interface RenderOptions {
   maxPixelRatio: number;
   msaa: number;
   particles: boolean;
+  /** Size the drawing buffer from the canvas' CSS box instead of the window (several highways per page). */
+  fitCanvas?: boolean;
+  /** With fitCanvas: frame the view for at least this many lanes, so highways with fewer lanes match. */
+  fitLanes?: number;
 }
 
 const HIGHWAY_VS = /* glsl */ `
@@ -195,6 +200,7 @@ export class HighwayRenderer {
     this.first = 0;
     this.highwayMat.uniforms.uLanes.value = this.laneCount;
     this.highwayMat.uniforms.uBeatLen.value = 60 / chart.bpm;
+    this.updateFov();
 
     this.laneGroup.clear();
     this.gems?.dispose();
@@ -379,6 +385,10 @@ export class HighwayRenderer {
       w = fixedWidth;
       h = fixedHeight;
       pr = 1;
+    } else if (this.opts.fitCanvas) {
+      w = Math.max(1, this.canvas.clientWidth);
+      h = Math.max(1, this.canvas.clientHeight);
+      pr = Math.min(window.devicePixelRatio || 1, this.opts.maxPixelRatio);
     } else {
       w = window.innerWidth;
       h = window.innerHeight;
@@ -389,10 +399,22 @@ export class HighwayRenderer {
     this.composer.setPixelRatio(pr);
     this.composer.setSize(w, h);
     this.camera.aspect = w / h;
-    // Keep all lanes visible on narrow screens.
-    this.camera.fov = w / h < 1.2 ? 62 : 48;
-    this.camera.updateProjectionMatrix();
+    this.updateFov();
     this.particles.setPixelScale(h * pr);
+  }
+
+  private updateFov(): void {
+    const aspect = this.camera.aspect;
+    if (this.opts.fitCanvas) {
+      // Widen the view until every lane (plus a margin) fits at the strike line, ~10.15 units away.
+      const halfW = (Math.max(1, this.laneCount, this.opts.fitLanes ?? 0) * this.laneWidth) / 2 + 0.6;
+      const vHalf = Math.atan(halfW / 10.15 / aspect);
+      this.camera.fov = Math.max(48, (2 * vHalf * 180) / Math.PI);
+    } else {
+      // Keep all lanes visible on narrow screens.
+      this.camera.fov = aspect < 1.2 ? 62 : 48;
+    }
+    this.camera.updateProjectionMatrix();
   }
 
   get bufferSize(): { width: number; height: number } {

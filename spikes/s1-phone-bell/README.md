@@ -61,6 +61,13 @@ re-tune offline with `npm run analyze -- data/<session> --minDecel 4500`.
 | `npm run tunnel` | Cloud relay (Cloudflare quick tunnel) | Needs `cloudflared` (`winget install --id Cloudflare.cloudflared`); no cert warning, adds internet RTT |
 | `npm start -- --no-https` | Plain HTTP on LAN | Motion sensors **won't** work on phones; for CI/sim only |
 | `npm start -- --ip 192.168.1.23` | — | Override the auto-detected LAN IP (VPN/virtual adapters) |
+| `npm start -- --game ../i2-web-phones/dist` | — | I2: also serve a static game at `http://127.0.0.1:8080/game/` and open it instead of the dashboard (use `npm start` in `spikes/i2-web-phones`) |
+
+Game hosts connect as `kind: "dashboard"` and use two extra commands (I2): `{type:"cmd",
+cmd:"assign-bells", deviceId, bells:[{id,label,midi,color}], ringer?:{slot,title,song?}}` and
+`{type:"cmd", cmd:"cues", deviceId, at:[hostMs], bells:[id]}` (relayed to the phone as HGP
+`cues`, which makes the next zone glow). `npx tsx tools/sim-phones.ts --game --names A,B,C`
+runs fake phones that ring whatever notes they are cued.
 
 Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw traces),
 `?minDecel=4500&minPeakOmega=200…` (detector overrides).

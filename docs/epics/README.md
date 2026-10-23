@@ -56,6 +56,10 @@ drive any host.
     essential (false rings 4–27 % → 0 % in emulation). Sound on the phone is recommended.
   - iOS (unverified): permission must be requested from the Start tap; behaviour after a
     self-signed-certificate bypass; `navigator.audioSession` for the silent switch; no haptics.
+  - I2 ([report](../spikes/I2-web-phones.md)): with S5's `phone-4zone` profile, 4 ringers fit
+    ≤ 4 bells per phone on easy/medium for most carols, but 1–2 ringers and hard tiers still
+    overflow; I2 lets the host ring the least-used overflow bells. Host `cues` make the
+    next zone glow; zones laid out as a lane row (I1's `assign.ringer`) match the TV highway.
 - Spikes: S1.
 
 ## E03 Game host & engine
@@ -100,6 +104,11 @@ drive any host.
     In-song judging with real phones is still unverified (owner run).
   - Open: lookbehind budget for real phones (S1 predicts arrival ≈ 40–65 ms, above the 40 ms
     default; start at 60 ms); whether phone-local bell sound plus YARG's bell stems sounds doubled.
+- Learned (I2, phones → web host; [report](../spikes/I2-web-phones.md)):
+  - I2: 1–4 side-by-side S4 highways (one WebGL context each, reused) hold the 165 Hz panel
+    headless on the owner's laptop; one shared-lane-group highway was not tried. Phone rings
+    reach the game page through the S1 Node host (dashboard WebSocket relay, ~35 ms p50 in
+    simulation); a production host would embed the HGP server or run it as a sidecar.
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -150,6 +159,9 @@ difficulties.
   - S2: YARG's per-player combo multiplier penalizes split parts (same perfect play: 23,160 as
     one player vs 15,360 over 4 ringers); team play needs a team/band multiplier. With ±70 ms
     windows, total strike-timing error σ ≲ 20 ms → 100 % hits; σ 35 ms → 91 %; σ 50 ms → 76 %.
+  - I2: team score/streak/multiplier is S4's single `Judge` over all ringers' lanes (one miss
+    breaks the team streak); per-ringer hits/accuracy/timing on each highway and in results.
+    Parts nobody holds are rung by the host. Open: per-ringer streaks/multipliers vs team-only.
 
 ## E07 Visual & aural engagement ("juice")
 

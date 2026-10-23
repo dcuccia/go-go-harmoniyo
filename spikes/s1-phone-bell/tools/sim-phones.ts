@@ -21,6 +21,14 @@ const { values: a } = parseArgs({
     bpm: { type: 'string', default: '150' },
     count: { type: 'string', default: '40' },
     clink: { type: 'string', default: '8' },
+    /** Game mode: no scripted tests; ring the notes a game host cues (HGP `cues`), until --seconds. */
+    game: { type: 'boolean', default: false },
+    names: { type: 'string' },
+    seconds: { type: 'string', default: '600' },
+    miss: { type: 'string', default: '0.03' },
+    jitter: { type: 'string', default: '20' },
+    /** Systematic lateness of every ring, ms (to check that judging sees it). */
+    late: { type: 'string', default: '0' },
   },
 });
 
@@ -78,6 +86,8 @@ class FakePhone {
       this.sync.add({ t0: m.t0 as number, t1: m.t1 as number, t2: m.t2 as number, t3: this.now() });
     } else if (m.type === 'assign') {
       this.bells = (m.bells as { id: string }[]).map((b) => b.id);
+    } else if (m.type === 'cues' && a.game) {
+      this.ringCues(m.at as number[], m.bells as string[]);
     } else if (m.type === 'test' && m.action === 'start') {
       if (m.test === 'metronome') {
         const expect = m.expect as string[] | undefined;
@@ -98,6 +108,21 @@ class FakePhone {
       }
     }
   }
+  /** Game mode: ring each cued note (host time) on its bell, with human jitter, misses and wrong zones. */
+  ringCues(at: number[], bells: string[]): void {
+    this.timers.forEach((t) => clearTimeout(t));
+    this.timers = [setInterval(() => this.ping(), 250), setInterval(() => this.status(), 1000)];
+    if (!at?.length) return;
+    let rang = 0;
+    for (let i = 0; i < at.length; i++) {
+      if (r() < Number(a.miss)) continue;
+      const wrong = this.bells.length > 1 && r() < 0.03;
+      const bell = wrong ? this.bells.find((b) => b !== bells[i]) : bells[i];
+      this.gesture('ring', at[i] + Number(a.late), Number(a.jitter), 25, { bell }, this.bells.length > 1 ? 300 + gauss(r) * 120 : undefined);
+      rang++;
+    }
+    console.log(`${this.name}: ${at.length} cues on [${[...new Set(bells)].join(' ')}], will ring ${rang}`);
+  }
   close(): void {
     this.timers.forEach((t) => clearTimeout(t));
     this.ws.close();
@@ -105,7 +130,19 @@ class FakePhone {
 }
 
 let clinkTimes: number[] = [];
-const phones = Array.from({ length: Number(a.phones) }, (_, i) => new FakePhone(`sim${i + 1}`));
+const names = a.names ? a.names.split(',') : null;
+const phones = Array.from({ length: names?.length ?? Number(a.phones) }, (_, i) => new FakePhone(names?.[i] ?? `sim${i + 1}`));
+if (a.game) {
+  console.log(`Game mode: ${phones.length} simulated phones (${phones.map((p) => p.name).join(', ')}) waiting for cues for ${a.seconds} s`);
+  const end = () => {
+    phones.forEach((p) => p.close());
+    process.exit(0);
+  };
+  process.on('SIGINT', end);
+  process.on('SIGTERM', end);
+  setTimeout(end, Number(a.seconds) * 1000);
+  await new Promise(() => {});
+}
 const dash = new WebSocket(a.url!);
 const results: Record<string, string> = {};
 let hostTime = 0;

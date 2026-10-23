@@ -1,5 +1,5 @@
 import type { Chart } from '../core/chart';
-import { Judge, isJudgement, type Grade } from '../core/judge';
+import { Judge, isJudgement, type Grade, type Judgement, type StrayRing } from '../core/judge';
 import { Samples, roundSummary, round } from '../core/stats';
 import type { AudioEngine } from '../audio/engine';
 import type { HighwayRenderer } from '../render/highway';
@@ -7,6 +7,15 @@ import type { GestureEvent, InputSource } from '../input/types';
 import type { Hud } from '../ui/hud';
 
 export type Mode = 'play' | 'autoplay' | 'calibrate';
+
+/** What a session needs from a renderer (a single highway, or a composite of several). */
+export type SessionRenderer = Pick<HighwayRenderer, 'setChart' | 'press' | 'hit' | 'miss' | 'setFire' | 'frame' | 'bufferSize' | 'gpu'>;
+export type SessionHud = Pick<Hud, 'reset' | 'judgement' | 'update'>;
+
+export interface SessionOptions {
+  /** Play the bell on the host when a player rings (default true). Off when phones sound locally. */
+  hostRingSound?: boolean;
+}
 
 export interface Offsets {
   /** Shift visuals later (+) / earlier (−) relative to audio, ms. */
@@ -60,15 +69,18 @@ export class Session {
     hitOffsetMs: new Samples(1024),
   };
   onFinish: ((r: SessionResult) => void) | null = null;
+  /** Every judged ring, stray ring and miss (e is null for misses). */
+  onJudgement: ((r: Judgement | StrayRing, e: GestureEvent | null) => void) | null = null;
 
   constructor(
     readonly mode: Mode,
     readonly chart: Chart,
     private readonly audio: AudioEngine,
-    private readonly renderer: HighwayRenderer,
-    private readonly hud: Hud,
+    private readonly renderer: SessionRenderer,
+    private readonly hud: SessionHud,
     private readonly sources: InputSource[],
     readonly offsets: Offsets,
+    private readonly opts: SessionOptions = {},
   ) {
     this.judge = new Judge(chart.notes, chart.lanes.length);
     const pans = chart.lanes.map((_, i) => (chart.lanes.length > 1 ? (i / (chart.lanes.length - 1)) * 1.2 - 0.6 : 0));
@@ -122,8 +134,9 @@ export class Session {
         this.hud.judgement('tap', best * 1000);
       }
     } else {
-      this.audio.bell(this.chart.lanes[lane].pitch, 0, 0.95, pan);
+      if (this.opts.hostRingSound !== false) this.audio.bell(this.chart.lanes[lane].pitch, 0, 0.95, pan);
       const r = this.judge.ring(lane, t);
+      this.onJudgement?.(r, e);
       if (isJudgement(r)) {
         this.renderer.hit(r.noteId, lane, r.grade);
         this.hud.judgement(r.grade, r.offset * 1000);
@@ -181,6 +194,7 @@ export class Session {
       for (const miss of this.judge.sweep(songNow - this.offsets.inputMs / 1000)) {
         this.renderer.miss(miss.noteId, miss.lane);
         this.hud.judgement('miss');
+        this.onJudgement?.(miss, null);
       }
     }
 

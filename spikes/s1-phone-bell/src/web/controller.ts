@@ -185,14 +185,23 @@ window.setInterval(() => {
 }, 50);
 
 // ── multi-bell thumb zones ──────────────────────────────────────────────────
-/** Next expected bell during a multi-bell metronome test (the "note highway" stand-in). */
+/** Next expected bell: from game cues if present, else during a multi-bell metronome test. */
 function expectedBell(): string | null {
-  if (!test?.expect || test.start === undefined || !test.period) return null;
   const clk = client.clock;
   if (!clk.ready) return null;
-  const i = Math.ceil((clk.toHost(performance.now()) - test.start - test.period * 0.35) / test.period);
+  const hostNow = clk.toHost(performance.now());
+  if (cues && cues.at.length) {
+    // Glow the bell of the next note not yet ~120 ms in the past.
+    while (cueIdx < cues.at.length && cues.at[cueIdx] < hostNow - 120) cueIdx++;
+    return cueIdx < cues.at.length ? cues.bells[cueIdx] ?? null : null;
+  }
+  if (!test?.expect || test.start === undefined || !test.period) return null;
+  const i = Math.ceil((hostNow - test.start - test.period * 0.35) / test.period);
   return test.expect[Math.max(0, Math.min(test.expect.length - 1, i))] ?? null;
 }
+/** Game cues (host time + bell id of each upcoming note for this phone), sent by a game host. */
+let cues: { at: number[]; bells: string[] } | null = null;
+let cueIdx = 0;
 
 function select(i: number, t: number): void {
   if (i === selIdx) return;
@@ -300,6 +309,11 @@ client.onMessage = (m) => {
       break;
     case 'test':
       onTest(m);
+      break;
+    case 'cues':
+      cues = Array.isArray(m.at) && m.at.length ? { at: m.at as number[], bells: (m.bells as string[]) ?? [] } : null;
+      cueIdx = 0;
+      renderZones();
       break;
   }
   render();

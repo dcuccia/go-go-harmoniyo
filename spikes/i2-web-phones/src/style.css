@@ -1,0 +1,69 @@
+/* I2 additions on top of S4's style.css */
+#highways { position: fixed; inset: 0; display: flex; }
+.hw-col { position: relative; flex: 1 1 0; min-width: 0; overflow: hidden; }
+.hw-col + .hw-col { box-shadow: inset 2px 0 0 rgba(140, 160, 255, 0.18); }
+.hw-canvas { position: absolute; left: 0; top: 0; width: 100%; height: calc(100% - var(--footer)); display: block; }
+#highways { --footer: 15vh; }
+
+.hw-head {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--footer); padding-top: 1.2vh; text-align: center; pointer-events: none;
+  background: linear-gradient(180deg, rgba(5, 4, 13, 0.6), #05040d);
+  text-shadow: 0 0 10px #000, 0 0 18px #000;
+}
+.hw-name { font-size: clamp(22px, 2.6vw, 48px); font-weight: 900; letter-spacing: 0.02em; }
+.hw-sub { font-size: clamp(11px, 0.9vw, 16px); opacity: 0.6; }
+.hw-stat { font-size: clamp(14px, 1.3vw, 24px); font-weight: 700; color: var(--gold); min-height: 1.2em; font-variant-numeric: tabular-nums; }
+
+.hw-lane { position: absolute; transform: translate(-50%, 0); text-align: center; pointer-events: none; color: var(--c); text-shadow: 0 0 8px var(--c), 0 0 3px #000; }
+.hw-lane b { font-size: clamp(16px, 1.7vw, 32px); font-weight: 900; }
+
+.hw-judge {
+  position: absolute; left: 50%; top: 34%; transform: translate(-50%, -50%); pointer-events: none;
+  font-size: clamp(22px, 2.8vw, 56px); font-weight: 900; font-style: italic; opacity: 0; white-space: nowrap;
+}
+.hw-judge.go { animation: pop 0.55s ease-out forwards; }
+.hw-judge.perfect { color: #fff6c0; text-shadow: 0 0 18px var(--gold), 0 0 40px #ff9a00; }
+.hw-judge.great { color: #c8ffdc; text-shadow: 0 0 16px #2ee86b; }
+.hw-judge.good { color: #cfe6ff; text-shadow: 0 0 14px #3fa9ff; }
+.hw-judge.miss { color: #ff8a8a; text-shadow: 0 0 10px #a00; }
+
+/* Team HUD centred on top so it does not cover one player's highway. */
+#score-box { left: 50%; transform: translateX(-50%); text-align: center; top: 1.5vh; }
+#score { font-size: clamp(26px, 3.6vw, 64px); }
+#title-box { top: 1.5vh; right: 1.5vw; width: 30vw; }
+#host-note { margin-top: 0.4em; font-size: clamp(12px, 1vw, 18px); opacity: 0.7; text-shadow: 0 0 8px #000; }
+#judge-box { display: none; }
+
+/* Lobby */
+#lobby { overflow: auto; }
+.lobby {
+  display: grid; grid-template-columns: minmax(260px, 1fr) minmax(380px, 1.5fr) minmax(240px, 1fr); gap: 22px;
+  width: min(1500px, 96vw); padding: 24px 28px; border-radius: 16px; background: rgba(16, 14, 40, 0.9); border: 1px solid #3a3a70;
+  box-shadow: 0 0 60px rgba(80, 100, 255, 0.25);
+}
+.lobby h1 { font-size: clamp(32px, 3.6vw, 56px); }
+.lobby h3 { margin: 0 0 8px; }
+.join { text-align: center; }
+#qr { width: min(280px, 100%); aspect-ratio: 1; background: #fff; border-radius: 10px; padding: 6px; image-rendering: pixelated; }
+#join-url { font: 700 clamp(14px, 1.3vw, 22px) ui-monospace, Consolas, monospace; margin: 8px 0; word-break: break-all; color: var(--gold); }
+.steps { text-align: left; font-size: 14px; line-height: 1.45; padding-left: 1.2em; opacity: 0.85; }
+.setup .row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+.setup label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; opacity: 0.9; }
+select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; background: #1a1a3a; color: #fff; border: 1px solid #556; max-width: 100%; }
+#sel-song { min-width: min(420px, 80vw); }
+#slots { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
+.slot { display: grid; grid-template-columns: 82px 1fr minmax(160px, 220px); align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); }
+.bells i { display: inline-block; font-style: normal; font-weight: 800; font-size: 13px; padding: 2px 6px; margin: 1px 3px 1px 0; border-radius: 5px; color: #000; }
+.bells small { opacity: 0.7; }
+.phones ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.phones li { padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); font-size: 15px; }
+.phones li small { opacity: 0.65; }
+.phones li.off { opacity: 0.45; }
+.phones li.rang { animation: rang 0.6s ease-out; }
+@keyframes rang { from { background: rgba(255, 210, 63, 0.55); } to { background: rgba(255, 255, 255, 0.05); } }
+.dim { opacity: 0.6; font-size: 13px; }
+.panel.wide { width: min(1100px, 94vw); }
+#res-players { border-collapse: collapse; margin: 12px 0; width: 100%; font-variant-numeric: tabular-nums; }
+#res-players th, #res-players td { padding: 4px 8px; border-bottom: 1px solid #333366; text-align: right; }
+#res-players th:first-child, #res-players td:first-child { text-align: left; }
+@media (max-width: 1100px) { .lobby { grid-template-columns: 1fr; } }
