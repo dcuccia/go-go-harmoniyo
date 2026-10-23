@@ -17,7 +17,9 @@ copied from GACJ/handbellmanager (GPL-3.0); only its approach was studied.
 ## Owner runbook (Pixel first, ~20 minutes)
 
 **Once:** install Node 22+ (`winget install OpenJS.NodeJS.LTS`). PC and phones on the same
-Wi-Fi (not a guest network: guest networks usually block phone→PC traffic).
+Wi-Fi (not a guest network: guest networks usually block phone→PC traffic). On guest,
+corporate or school networks, or when the PC and phone are on different networks, use the
+tunnel instead (`npm run tunnel`, or `npm start -- --tunnel` from `spikes/i2-web-phones`).
 
 ```powershell
 cd spikes\s1-phone-bell
@@ -58,7 +60,7 @@ re-tune offline with `npm run analyze -- data/<session> --minDecel 4500`.
 |---|---|---|
 | `npm start` | WSS on LAN, self-signed cert | One-time certificate warning per phone |
 | `npm start -- --cert fullchain.pem --key privkey.pem --hostname bells.example.com` | WSS on LAN, publicly trusted cert | DNS A record → PC's LAN IP; cert via DNS-01 (see report) |
-| `npm run tunnel` | Cloud relay (Cloudflare quick tunnel) | Needs `cloudflared` (`winget install --id Cloudflare.cloudflared`); no cert warning, adds internet RTT |
+| `npm run tunnel` | Cloud relay (Cloudflare quick tunnel) | Needs `cloudflared` on `PATH` (`winget install --id Cloudflare.cloudflared`, or without admin: download the signed `cloudflared-windows-amd64.exe` from its GitHub releases into `%LOCALAPPDATA%\Programs\cloudflared`). No cert warning; works across guest/isolated networks; adds internet RTT (judging is unaffected: source timestamps) |
 | `npm start -- --no-https` | Plain HTTP on LAN | Motion sensors **won't** work on phones; for CI/sim only |
 | `npm start -- --ip 192.168.1.23` | — | Override the auto-detected LAN IP (VPN/virtual adapters) |
 | `npm start -- --game ../i2-web-phones/dist` | — | I2: also serve a static game at `http://127.0.0.1:8080/game/` and open it instead of the dashboard (use `npm start` in `spikes/i2-web-phones`) |

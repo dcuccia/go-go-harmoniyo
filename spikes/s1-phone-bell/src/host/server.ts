@@ -201,7 +201,13 @@ async function handleHttp(req: http.IncomingMessage, res: http.ServerResponse): 
     return sendFile(res, file);
   }
   if (p === '/qr.svg') {
-    const svg = await QRCode.toString(url.searchParams.get('u') ?? joinUrl, { type: 'svg', margin: 1 });
+    // The join URL is empty until a --tunnel URL arrives; QRCode throws on empty input.
+    const u = url.searchParams.get('u') || joinUrl;
+    if (!u) {
+      res.writeHead(503, { 'retry-after': '1' }).end('join URL not ready');
+      return;
+    }
+    const svg = await QRCode.toString(u, { type: 'svg', margin: 1 });
     res.writeHead(200, { 'content-type': MIME['.svg'] }).end(svg);
     return;
   }
@@ -752,9 +758,18 @@ function startTunnel(): void {
   process.on('exit', () => child.kill());
 }
 
+/** A failing request must never take down the host (players would all drop). */
+function serveHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
+  handleHttp(req, res).catch((err: unknown) => {
+    console.error(`HTTP ${req.method} ${req.url} failed:`, err);
+    if (!res.headersSent) res.writeHead(500).end('internal error');
+    else res.end();
+  });
+}
+
 async function main(): Promise<void> {
   await buildWeb();
-  const local = http.createServer((req, res) => void handleHttp(req, res));
+  const local = http.createServer((req, res) => serveHttp(req, res));
   attach(local);
   // Loopback only (dashboard + cloudflared) unless --no-https, where it is the phones' listener too.
   local.listen(HTTP_PORT, args['no-https'] ? '0.0.0.0' : '127.0.0.1');
@@ -793,7 +808,7 @@ async function main(): Promise<void> {
   } else if (!args['no-https']) {
     const tls = await tlsOptions();
     tlsMode = tls.mode;
-    const secure = https.createServer({ key: tls.key, cert: tls.cert }, (req, res) => void handleHttp(req, res));
+    const secure = https.createServer({ key: tls.key, cert: tls.cert }, (req, res) => serveHttp(req, res));
     attach(secure);
     secure.listen(HTTPS_PORT, '0.0.0.0');
     const host = args.hostname ?? LAN_IP;
