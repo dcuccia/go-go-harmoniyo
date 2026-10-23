@@ -1,0 +1,15 @@
+X:1
+T:Silent Night
+C:Franz Xaver Gruber (1818); words Joseph Mohr
+S:Public-domain melody (1818); encoded from the traditional tune, not copied from any edition
+Z:Encoded for handbell-hero by GitHub Copilot (agent), 2026-10-22. Chord symbols added by the encoder.
+N:One verse. Lead sheet: melody + chord symbols; the pipeline realizes bass and harmony.
+%%hh-id silent-night
+%%hh-license CC0-1.0
+L:1/8
+M:6/8
+Q:3/8=56
+K:C
+"C"G3/2 A/ G E3 | "C"G3/2 A/ G E3 | "G7"d2 d B3 | "C"c2 c G3 |
+"F"A2 A c3/2 B/ A | "C"G3/2 A/ G E3 | "F"A2 A c3/2 B/ A | "C"G3/2 A/ G E3 |
+"G7"d2 d f3/2 d/ B | "C"c3 e3 | "C"c G E "G7"G3/2 F/ D | "C"C6 |]

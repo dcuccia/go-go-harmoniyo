@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/dcuccia/handbell-hero/spikes/s5-chart-pipeline/schema/chart.schema.json",
+  "title": "Handbell Hero chart v0.1 (S5 proposal)",
+  "description": "Engine-neutral handbell chart: one file per song, containing parts for several ringer counts and difficulty tiers. Times are given both in ticks (exact, for editing/export) and seconds (pre-computed from the tempo map, for playback). Unknown properties must be ignored by readers.",
+  "type": "object",
+  "required": ["format", "formatVersion", "song", "timing", "bells", "parts"],
+  "properties": {
+    "format": { "const": "handbell-hero.chart" },
+    "formatVersion": { "type": "string", "pattern": "^0\\.\\d+\\.\\d+$" },
+    "generator": {
+      "type": "object",
+      "properties": { "name": { "type": "string" }, "version": { "type": "string" } }
+    },
+    "song": {
+      "type": "object",
+      "required": ["id", "title", "license", "source"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "title": { "type": "string", "minLength": 1 },
+        "composer": { "type": "string" },
+        "year": { "type": ["integer", "null"] },
+        "key": { "type": ["string", "null"] },
+        "license": {
+          "type": "object",
+          "required": ["id"],
+          "description": "License of the source file this chart was derived from (SPDX id or LicenseRef-*).",
+          "properties": { "id": { "type": "string" }, "url": { "type": "string" }, "text": { "type": "string" } }
+        },
+        "source": {
+          "type": "object",
+          "required": ["kind"],
+          "properties": {
+            "kind": { "enum": ["self-encoded", "mutopia", "cpdl", "imslp", "other"] },
+            "file": { "type": "string" },
+            "url": { "type": "string" },
+            "fileUrl": { "type": "string" },
+            "attribution": { "type": "string" },
+            "notes": { "type": "string" }
+          }
+        }
+      }
+    },
+    "timing": {
+      "type": "object",
+      "required": ["resolution", "tempos", "timeSignatures", "measures", "endTick", "durationSec"],
+      "properties": {
+        "resolution": { "type": "integer", "minimum": 1, "description": "Ticks per quarter note." },
+        "tempos": {
+          "type": "array", "minItems": 1,
+          "items": { "type": "object", "required": ["tick", "time", "bpm"], "properties": { "tick": { "$ref": "#/$defs/tick" }, "time": { "$ref": "#/$defs/seconds" }, "bpm": { "type": "number", "exclusiveMinimum": 0, "description": "Quarter notes per minute." } } }
+        },
+        "timeSignatures": {
+          "type": "array", "minItems": 1,
+          "items": { "type": "object", "required": ["tick", "numerator", "denominator"], "properties": { "tick": { "$ref": "#/$defs/tick" }, "numerator": { "type": "integer", "minimum": 1 }, "denominator": { "enum": [1, 2, 4, 8, 16, 32] } } }
+        },
+        "measures": {
+          "type": "array",
+          "description": "Bar lines for the highway; the first may be a pickup (anacrusis).",
+          "items": { "type": "object", "required": ["number", "tick", "time"], "properties": { "number": { "type": "integer", "minimum": 1 }, "tick": { "$ref": "#/$defs/tick" }, "time": { "$ref": "#/$defs/seconds" }, "pickup": { "type": "boolean" } } }
+        },
+        "endTick": { "$ref": "#/$defs/tick" },
+        "durationSec": { "$ref": "#/$defs/seconds" }
+      }
+    },
+    "bells": {
+      "type": "array",
+      "description": "Every bell used by any part, low to high. Written pitch, scientific notation with sharps (handbells sound an octave higher than written).",
+      "items": { "type": "object", "required": ["id", "midi"], "properties": { "id": { "$ref": "#/$defs/bellId" }, "midi": { "type": "integer", "minimum": 0, "maximum": 127 }, "natural": { "type": "boolean" } } }
+    },
+    "handbellSet": {
+      "type": "object",
+      "description": "Smallest standard handbell set the bells fit, and the transposition needed (informational).",
+      "properties": { "set": { "type": ["string", "null"] }, "label": { "type": "string" }, "transposeSemitones": { "type": "integer" }, "span": { "type": "integer" } }
+    },
+    "parts": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/part" }
+    }
+  },
+  "$defs": {
+    "tick": { "type": "integer", "minimum": 0 },
+    "seconds": { "type": "number", "minimum": 0 },
+    "bellId": { "type": "string", "pattern": "^[A-G]#?-?\\d$" },
+    "part": {
+      "type": "object",
+      "required": ["difficulty", "ringerCount", "ringers", "notes"],
+      "properties": {
+        "difficulty": { "enum": ["easy", "medium", "hard", "expert"] },
+        "ringerCount": { "type": "integer", "minimum": 1 },
+        "profile": { "type": "string", "description": "Controller/technique profile the assignment was optimized for (e.g. handbell, phone-4zone)." },
+        "ringers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["index", "bells"],
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "label": { "type": "string" },
+              "bells": { "type": "array", "items": { "$ref": "#/$defs/bellId" }, "description": "Low to high; lane order on this ringer's highway." },
+              "stats": { "type": "object" }
+            }
+          }
+        },
+        "notes": {
+          "type": "array",
+          "description": "Strikes sorted by tick. A note is one ring of one bell.",
+          "items": {
+            "type": "object",
+            "required": ["tick", "time", "bell", "ringer"],
+            "properties": {
+              "tick": { "$ref": "#/$defs/tick" },
+              "time": { "$ref": "#/$defs/seconds" },
+              "dur": { "type": "integer", "minimum": 0, "description": "Written duration in ticks (let-vibrate length / damp point)." },
+              "durSec": { "$ref": "#/$defs/seconds" },
+              "bell": { "$ref": "#/$defs/bellId" },
+              "ringer": { "type": "integer", "minimum": 0 },
+              "role": { "enum": ["melody", "bass", "inner"] },
+              "technique": { "type": "string", "description": "Reserved: ring (default), damp, LV, shake, martellato, ... (HGP gesture vocabulary)." }
+            }
+          }
+        },
+        "metrics": { "type": "object" }
+      }
+    }
+  }
+}

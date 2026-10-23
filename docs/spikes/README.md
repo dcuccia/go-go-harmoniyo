@@ -11,7 +11,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Not started | — |
 | S3 | YARG handbell mode | E03, E10 | Phase A + B done ([report](S3-report.md#phase-b-results), fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike)); in-game TV check open | Play-test on the TV with `-hgp -hgp-keyboard` — see [next steps](S3-report.md#phase-b-next-steps-owner-at-the-pc) |
 | S4 | Web-native host prototype | E03, E05, E07 | Not started | Look at it on the TV |
-| S5 | Carol chart pipeline | E04, E06 | Not started | — |
+| S5 | Carol chart pipeline | E04, E06 | Done — [report](S5-report.md) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
 | S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Optional | — |
 
 Common time box: **one focused session (~1–2 days of agent work)**. Stop at the time box
