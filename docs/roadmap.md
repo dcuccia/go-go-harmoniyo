@@ -1,6 +1,28 @@
 # Roadmap
 
-Dates are targets, not promises. Plan written 2026-10-22.
+Dates are targets, not promises. Plan written 2026-10-22; status updated 2026-10-23.
+
+## Status (2026-10-23)
+
+| # | Milestone | Status |
+|---|---|---|
+| M0 | Planning | **Done** |
+| M1 | Spikes | **Done.** S1–S5 plus integrations I1 (phones → YARG fork) and I2 (phones → web host) are merged; S6 not run. Code is preserved at tags `spike/*` and `integration/*` ([spikes index](spikes/README.md)) |
+| M2 | Decision gate | **In progress.** Accepted: [ADR-0004](decisions/0004-host-strategy.md) (web-first host on an engine we own; YARG fork as a community/experimental track) and [ADR-0005](decisions/0005-shared-core-language.md) (TypeScript core; HGP + chart JSON as language-neutral contracts with golden test vectors). Pending owner: [ADR-0006](decisions/0006-phone-host-transport.md) (transport) and [ADR-0007](decisions/0007-chart-format.md) (chart format), both Proposed |
+| M3 | Alpha (Nov 15) | Next. Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)); machine setup via [tools/setup](../tools/setup/README.md) |
+
+**Top alpha bug:** [#10](https://github.com/dcuccia/handbell-hero/issues/10). Real-phone taps
+and rings don't register with the Node host, although QR pairing works. Simulated phones
+pass end-to-end, so this is the first real-device finding. Fix it before any other M3 work,
+because every alpha exit criterion depends on real phones.
+
+Direction agreed by the owner for M3 onward (ADR-0004):
+- Jackbox-style zero friction: phones join by QR code, no install.
+- Feel before fidelity, with a stylized art direction.
+- Co-op play where the song only sounds right together.
+- Real recorded bell samples.
+- Content from public-domain carols plus MIDI import.
+- Digital handbells as a premium peripheral (ESP-NOW USB dongle).
 
 ## North star
 
@@ -50,12 +72,12 @@ Out: online play, accounts, custom hardware, microphone scoring, licensed music.
 
 ## Decision gate inputs (M2)
 
-| Decision | Evidence from |
-|---|---|
-| Host engine: YARG fork vs web-native vs other | S2, S3, S4 (S6 if run) |
-| Shared-core language (C# vs TypeScript) | S2, S4 |
-| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 |
-| Chart / arrangement format | S5, S2 |
+| Decision | Evidence from | Outcome |
+|---|---|---|
+| Host engine: YARG fork vs web-native vs other | S2, S3, S4, I1, I2 (S6 not run) | [ADR-0004](decisions/0004-host-strategy.md) **Accepted**: web-first; YARG fork as a community track |
+| Shared-core language (C# vs TypeScript) | S2, S4 | [ADR-0005](decisions/0005-shared-core-language.md) **Accepted**: TypeScript + language-neutral contracts |
+| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) Proposed |
+| Chart / arrangement format | S5, S2 | [ADR-0007](decisions/0007-chart-format.md) Proposed |
 
 Evaluation criteria for the host engine, in priority order:
 1. Engagement / visual + audio quality
@@ -69,4 +91,6 @@ Evaluation criteria for the host engine, in priority order:
 
 Multiple host engines are acceptable long-term (e.g. a YARG-based "deluxe" host and a
 web host) **only if** they share the engine-agnostic core: chart format, scoring/judging,
-timing model, and HGP input.
+timing model, and HGP input. Per ADR-0004/0005, the product host is the web host. The YARG
+fork stays a community/experimental track that talks to the core through the HGP and
+chart-JSON contracts.

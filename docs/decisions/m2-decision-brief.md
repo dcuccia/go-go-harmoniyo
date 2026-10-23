@@ -3,6 +3,12 @@
 Prepared 2026-10-22 for @dcuccia, after spikes S1–S5 and S3 Phase B. It feeds ADR-0004
 (host engine), 0005 (shared-core language), 0006 (transport), and 0007 (chart format).
 
+> **Outcome (2026-10-23):** the owner chose **host strategy (c)**, web-first, with the YARG
+> fork as a community/experimental track ([ADR-0004](0004-host-strategy.md)). The shared core
+> is **TypeScript**, with HGP + chart JSON as language-neutral contracts
+> ([ADR-0005](0005-shared-core-language.md)). Both ADRs are Accepted. ADR-0006 and 0007
+> remain Proposed. I1 and I2 have since wired phones into both hosts.
+
 ## TL;DR
 
 - **All five spikes passed their success criteria.** No path was killed.
