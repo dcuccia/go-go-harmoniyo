@@ -1,0 +1,56 @@
+{
+  "$comment": "exceptions[]: components whose license is NOT on the allowlist (tools/licensing/policy.json); each references an ADR. copyleftGate[]: allowlisted but copyleft components (e.g. MPL-2.0) that must stay tracked. Every copyleft entry carries a gate status; 'spike-only, gate pending' means a compliance ADR is required before it ships (ADR-0008, Copyleft adoption gate). Matching is by ecosystem + name + license + scope, so a license change upstream re-opens the question.",
+  "exceptions": [
+    {
+      "id": "EX-003",
+      "ecosystem": "external",
+      "name": "YARC-Official/YARG.Core",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s2-yarg-core", "spikes/s3-yarg-handbell"],
+      "fetchedInto": ["spikes/s2-yarg-core/external", "spikes/s3-yarg-handbell/external"],
+      "adr": "0008",
+      "status": "accepted",
+      "gate": "spike-only, gate pending",
+      "reason": "S2/S3 spike harnesses fetch YARG.Core at a pinned commit (S2) or as the fork's submodule (S3) into gitignored external/ folders and build against it. Nothing is vendored; the harness source stays MIT.",
+      "revisit": "Never vendor. Any shipped use needs a compliance ADR (ADR-0008 Copyleft adoption gate); ADR-0004 already rules out a product dependency on YARG."
+    },
+    {
+      "id": "EX-004",
+      "ecosystem": "external",
+      "name": "dcuccia/YARG (branch handbell-spike)",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s3-yarg-handbell", "tools/setup"],
+      "fetchedInto": ["spikes/s3-yarg-handbell/external"],
+      "adr": "0008",
+      "status": "accepted",
+      "gate": "spike-only, gate pending",
+      "reason": "The YARG fork (community track, ADR-0004) is fetched by S3's harness and by tools/setup/setup-yarg.ps1; it lives in its own LGPL repository.",
+      "revisit": "Author fork code here first (MIT) and contribute it outbound, per ADR-0008."
+    },
+    {
+      "id": "EX-005",
+      "ecosystem": "file",
+      "name": "spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff",
+      "license": "LGPL-3.0-or-later",
+      "scope": ["spikes/s2-yarg-core/patches"],
+      "adr": "0008",
+      "status": "accepted",
+      "gate": "spike-only, gate pending",
+      "reason": "Owner decision 2026-10-23: keep. A unified diff against YARG.Core's YargLogger.cs; its context lines are YARG.Core code, so the file is LGPL-3.0-or-later (notice header + REUSE.toml), not MIT.",
+      "revisit": "Upstream the fix (draft issue in the S2 report) and then delete the patch."
+    }
+  ],
+  "copyleftGate": [
+    {
+      "id": "CG-001",
+      "ecosystem": "npm",
+      "name": "mediabunny",
+      "license": "MPL-2.0",
+      "scope": ["spikes/s1-phone-bell"],
+      "adr": "0008",
+      "gate": "spike-only, gate pending",
+      "reason": "Optional transitive dependency of werift (S1's WebRTC DataChannel experiment), used unmodified from npm and not bundled into any web page.",
+      "revisit": "Before shipping WebRTC via werift: compliance ADR (notices; publish any modified MPL files), or choose a WebRTC path without it."
+    }
+  ]
+}

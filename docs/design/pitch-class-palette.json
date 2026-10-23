@@ -1,0 +1,19 @@
+{
+  "$comment": "handbell-hero pitch-class palette (docs/design/visual-identity.md). Colors follow the bell's pitch, never its lane index. Hue walks the circle of fifths in OKLCH (30 degrees per fifth, C at 20 degrees); naturals are lighter (L 0.72), sharps/flats deeper (L 0.62), like white and black keys. Every color has at least 4.5:1 contrast against the #0b0d17 stage background and with #10121c text on top.",
+  "background": "#0b0d17",
+  "textOnFill": "#10121c",
+  "pitchClasses": [
+    { "pc": 0, "name": "C", "token": "berry", "hex": "#f8767a", "oklch": [0.72, 0.16, 20] },
+    { "pc": 1, "name": "C#/Db", "token": "winter-sky", "hex": "#1292c0", "oklch": [0.62, 0.12, 230] },
+    { "pc": 2, "name": "D", "token": "candlelight", "hex": "#d49807", "oklch": [0.72, 0.148, 80] },
+    { "pc": 3, "name": "D#/Eb", "token": "plum", "hex": "#8678c9", "oklch": [0.62, 0.12, 290] },
+    { "pc": 4, "name": "E", "token": "holly", "hex": "#69bc57", "oklch": [0.72, 0.16, 140] },
+    { "pc": 5, "name": "F", "token": "rosehip", "hex": "#ed76b3", "oklch": [0.72, 0.16, 350] },
+    { "pc": 6, "name": "F#/Gb", "token": "frost", "hex": "#0a999f", "oklch": [0.62, 0.104, 200] },
+    { "pc": 7, "name": "G", "token": "ember", "hex": "#f2823b", "oklch": [0.72, 0.16, 50] },
+    { "pc": 8, "name": "G#/Ab", "token": "twilight", "hex": "#5a86ce", "oklch": [0.62, 0.12, 260] },
+    { "pc": 9, "name": "A", "token": "pear", "hex": "#abac07", "oklch": [0.72, 0.156, 110] },
+    { "pc": 10, "name": "A#/Bb", "token": "mulberry", "hex": "#a66db3", "oklch": [0.62, 0.12, 320] },
+    { "pc": 11, "name": "B", "token": "spruce", "hex": "#04c097", "oklch": [0.72, 0.142, 170] }
+  ]
+}

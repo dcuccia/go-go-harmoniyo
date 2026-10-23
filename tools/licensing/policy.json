@@ -1,0 +1,41 @@
+{
+  "$comment": "License policy (ADR-0008). Dependencies and assets must use an allowed license; anything else needs an entry in exceptions.json that references an ADR.",
+  "allow": [
+    "MIT",
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "0BSD",
+    "CC0-1.0",
+    "CC-BY-4.0",
+    "OFL-1.1",
+    "Zlib",
+    "Python-2.0",
+    "BlueOak-1.0.0",
+    "MPL-2.0",
+    "Unlicense"
+  ],
+  "copyleft": {
+    "$comment": "Copyleft (weak or strong) license id prefixes. Allowed in spikes when labeled; every non-dev dependency or file under one of these must be tracked in exceptions.json (exceptions[] or copyleftGate[]) and needs a compliance ADR before it ships (ADR-0008, Copyleft adoption gate).",
+    "prefixes": ["MPL-", "LGPL-", "GPL-", "AGPL-", "EPL-", "CDDL-", "EUPL-", "CC-BY-SA-", "OSL-"]
+  },
+  "publicDomain": [
+    "LicenseRef-Mutopia-PublicDomain"
+  ],
+  "projectLicenses": {
+    "$comment": "Licenses for work created for this project, by register origin. Enforced by attribution.mjs.",
+    "code": "MIT",
+    "original": "CC-BY-4.0",
+    "ai-generated": "CC0-1.0"
+  },
+  "promptBlocklist": {
+    "$comment": "Case-insensitive terms that may not appear in a recorded AI prompt (ADR-0008: describe the feeling, not the asset; never franchise or artist names). Not exhaustive; reviewers still check prompts.",
+    "terms": [
+      "guitar hero", "rock band", "dance dance revolution", "ddr", "clone hero", "yarg", "rocksmith",
+      "beat saber", "osu!", "taiko", "guitarfreaks", "drummania", "beatmania", "pump it up", "just dance",
+      "harmonix", "activision", "konami", "neversoft", "red octane", "redoctane", "ubisoft",
+      "in the style of", "screenshot of"
+    ]
+  }
+}

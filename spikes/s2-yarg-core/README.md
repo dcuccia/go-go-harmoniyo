@@ -9,7 +9,9 @@ YARG.Core (LGPL-3.0-or-later) is **not vendored**. `fetch-yarg-core.ps1` clones
 git-ignored `external/` folder and applies one small browser patch
 ([patches/0001-yarglogger-no-thread-on-browser.diff](patches/0001-yarglogger-no-thread-on-browser.diff)).
 The `patches/` folder modifies LGPL code and is **LGPL-3.0-or-later**, not MIT; everything else
-here is MIT.
+here is MIT. The diff carries an SPDX/notice header and is mapped in `REUSE.toml`. It is kept as
+spike-only reference ([ADR-0008](../../docs/decisions/0008-assets-ip-and-attribution.md)
+exception EX-005; copyleft adoption gate pending), so `git apply` still works on it.
 
 ## Layout
 
