@@ -9,7 +9,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 |---|---|---|---|---|
 | S1 | Phone-bell input, timing & transport | E01, E02, E11 | Not started | Physical phone tests (Pixel; iPhone if available) |
 | S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Not started | — |
-| S3 | YARG handbell mode | E03, E10 | Not started | Install Unity Hub + pinned Unity editor, sign in (Unity Personal) for the prototype phase |
+| S3 | YARG handbell mode | E03, E10 | Phase A done ([report](S3-report.md)); Phase B pending | Install Unity Hub + Unity **6000.3.5f2** (`3fa8bc678cb0`), Blender, .NET SDK, Git LFS; sign in (Unity Personal); approve fork `dcuccia/YARG` — see [B0](S3-report.md#b0--owner-actions-12-h-one-time) |
 | S4 | Web-native host prototype | E03, E05, E07 | Not started | Look at it on the TV |
 | S5 | Carol chart pipeline | E04, E06 | Not started | — |
 | S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Optional | — |
