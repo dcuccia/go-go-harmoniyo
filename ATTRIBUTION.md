@@ -44,7 +44,7 @@ repository "MIT" in a way that hides them.
 
 | Asset | Origin | License | Files | Review |
 |---|---|---|---|---|
-| [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 9 | pending (legacy) |
+| [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 9 | approved (legacy) |
 | [Jingle Bells (lead sheet, ABC)](#s5-jingle-bells-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [Joy to the World (lead sheet, ABC)](#s5-joy-to-the-world-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [Silent Night (lead sheet, ABC)](#s5-silent-night-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
@@ -69,7 +69,7 @@ repository "MIT" in a way that hides them.
 - Copyright: 2026 David Cuccia and handbell-hero contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
-- Review: pending. IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). Owner to confirm the CC BY 4.0 choice for screenshots.
+- Review: approved by @dcuccia (owner confirmed CC BY 4.0 for screenshots of our own UI) on 2026-10-23. IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12); re-capture after #12.
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
 
 ### s5-jingle-bells-abc
@@ -267,7 +267,6 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-we-wish-you-a-merry-christmas-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-musicxml-test-fixture: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
-- project-ui-captures: review pending (IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). Owner to confirm the CC BY 4.0 choice for screenshots.)
 - s5-jingle-bells-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-joy-to-the-world-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-silent-night-abc: review pending (Proofread against a public-domain edition (S5 report).)

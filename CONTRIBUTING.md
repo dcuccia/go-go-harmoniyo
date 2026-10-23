@@ -97,11 +97,16 @@ audio.
 ## Adding dependencies
 
 Allowed licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, CC-BY-4.0,
-OFL-1.1, Zlib, Python-2.0, BlueOak-1.0.0. Anything else, including LGPL/GPL/AGPL, MPL, CC BY-SA,
-NC/ND or unknown, needs an entry in
+OFL-1.1, Zlib, Python-2.0, BlueOak-1.0.0, Unlicense, MPL-2.0. MPL-2.0 is file-level copyleft: use
+MPL files unmodified, or publish your modified MPL files under MPL-2.0. Anything else, including
+LGPL/GPL/AGPL, CC BY-SA, NC/ND or unknown, needs an entry in
 [`tools/licensing/exceptions.json`](tools/licensing/exceptions.json) that points at an ADR. The
 owner decides. Commit the lockfile; CI runs the license gate on every `package-lock.json` and
 NuGet `PackageReference`.
+
+Copyleft components (MPL, LGPL and so on) are fine in spikes, but each non-dev one must be tracked
+with a `gate` status in `exceptions.json`. Shipping one needs a compliance ADR first (see the
+[copyleft adoption gate](docs/decisions/0008-assets-ip-and-attribution.md#copyleft-adoption-gate)).
 
 ## Pull requests
 

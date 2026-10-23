@@ -224,8 +224,10 @@ audience reactions, festive themes (holiday theme for M5).
     [ATTRIBUTION.md](../../ATTRIBUTION.md) and in-game `credits.json`, dependency license gate →
     [THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md), all checked in CI. Audit:
     [IP audit 2026-10-23](../research/ip-audit-2026-10-23.md).
-  - Open: owner sign-off on exceptions EX-001 (MPL-2.0 `mediabunny`), EX-002 (Unlicense
-    `tweetnacl`), EX-005 (LGPL S2 patch file); product name
+  - Decided by owner (2026-10-23): MPL-2.0 and Unlicense allowlisted; S2 LGPL patch kept
+    (EX-005); copyleft adoption gate added (YARG.Core, the fork and `mediabunny` are
+    spike-only, gate pending).
+  - Open: product name
     ([#13](https://github.com/dcuccia/handbell-hero/issues/13)); proofread the S5 AI-encoded
     lead sheets.
 - Decided ([ADR-0004](../decisions/0004-host-strategy.md)):

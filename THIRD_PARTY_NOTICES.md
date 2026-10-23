@@ -195,7 +195,7 @@ Projects: `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4
 | locate-path | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
 | loupe | 3.2.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | magic-string | 0.30.21 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| mediabunny | 1.62.1 | MPL-2.0 (EX-001) | optional | `spikes/s1-phone-bell` |
+| mediabunny | 1.62.1 | MPL-2.0 (CG-001) | optional | `spikes/s1-phone-bell` |
 | meshoptimizer | 0.18.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | ms | 2.1.3 | MIT | dev, optional | `spikes/i2-web-phones`, `spikes/s1-phone-bell`, `spikes/s4-web-host` |
 | multicast-dns | 7.2.5 | MIT | optional | `spikes/s1-phone-bell` |
@@ -237,7 +237,7 @@ Projects: `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4
 | tslib | 2.8.1 | 0BSD | runtime | `spikes/s1-phone-bell` |
 | tsx | 4.23.15 | MIT | runtime | `spikes/s1-phone-bell` |
 | tsyringe | 4.10.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| tweetnacl | 1.0.3 | Unlicense (EX-002) | optional | `spikes/s1-phone-bell` |
+| tweetnacl | 1.0.3 | Unlicense | optional | `spikes/s1-phone-bell` |
 | typescript | 5.9.3 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | typescript | 7.0.2 | Apache-2.0 | dev | `spikes/s1-phone-bell` |
 | undici-types | 6.21.0 | MIT | dev | `spikes/s1-phone-bell` |
@@ -261,11 +261,21 @@ No direct `PackageReference`s. The S2/S3 harnesses get their NuGet packages tran
 
 | Id | Component | License | Status | Reason |
 |---|---|---|---|---|
-| EX-001 | mediabunny (npm) | MPL-2.0 | pending-owner | Optional transitive dependency of werift (S1's WebRTC DataChannel experiment); used unmodified from npm and not bundled into any web page. MPL-2.0 is file-level copyleft: obligations apply only to modified MPL files, which we don't have. |
-| EX-002 | tweetnacl (npm) | Unlicense | pending-owner | Optional transitive dependency of werift and @fidm/x509 (S1). The Unlicense is an OSI-approved public-domain dedication with a permissive fallback; no attribution or copyleft obligations. |
 | EX-003 | YARC-Official/YARG.Core (external) | LGPL-3.0-or-later | accepted | S2/S3 spike harnesses fetch YARG.Core at a pinned commit (S2) or as the fork's submodule (S3) into gitignored external/ folders and build against it. Nothing is vendored; the harness source stays MIT. |
 | EX-004 | dcuccia/YARG (branch handbell-spike) (external) | LGPL-3.0-or-later | accepted | The YARG fork (community track, ADR-0004) is fetched by S3's harness and by tools/setup/setup-yarg.ps1; it lives in its own LGPL repository. |
-| EX-005 | spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff (file) | LGPL-3.0-or-later | pending-owner | A unified diff against YARG.Core's YargLogger.cs. Its context lines are YARG.Core code, so the file is labeled LGPL-3.0-or-later (REUSE.toml) rather than MIT. fetch-yarg-core.ps1 applies the same change without the diff. |
+| EX-005 | spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff (file) | LGPL-3.0-or-later | accepted | Owner decision 2026-10-23: keep. A unified diff against YARG.Core's YargLogger.cs; its context lines are YARG.Core code, so the file is LGPL-3.0-or-later (notice header + REUSE.toml), not MIT. |
+
+## Copyleft adoption gate
+
+Copyleft components are fine in spikes when labeled. Before one moves into a shipped product or
+distribution, a compliance ADR is required ([ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md#copyleft-adoption-gate)).
+
+| Id | Component | License | Scope | Gate |
+|---|---|---|---|---|
+| EX-003 | YARC-Official/YARG.Core (external) | LGPL-3.0-or-later | `spikes/s2-yarg-core`, `spikes/s3-yarg-handbell` | spike-only, gate pending |
+| EX-004 | dcuccia/YARG (branch handbell-spike) (external) | LGPL-3.0-or-later | `spikes/s3-yarg-handbell`, `tools/setup` | spike-only, gate pending |
+| EX-005 | spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff (file) | LGPL-3.0-or-later | `spikes/s2-yarg-core/patches` | spike-only, gate pending |
+| CG-001 | mediabunny (npm) | MPL-2.0 | `spikes/s1-phone-bell` | spike-only, gate pending |
 
 ## License texts
 

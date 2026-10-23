@@ -18,36 +18,49 @@ const CHECK = args.has('--check');
 const OFFLINE = args.has('--offline');
 
 const policy = readJson('tools/licensing/policy.json');
-const { exceptions } = readJson('tools/licensing/exceptions.json');
+const { exceptions, copyleftGate = [] } = readJson('tools/licensing/exceptions.json');
 const allowed = new Set(policy.allow);
+const isCopyleft = (id) => policy.copyleft.prefixes.some((p) => id.startsWith(p));
+const allowedPermissive = new Set(policy.allow.filter((id) => !isCopyleft(id)));
 const errors = [];
 const warnings = [];
 const usedExceptions = new Set();
 
-// --- exceptions must reference an existing ADR -------------------------------------------------
+// --- exceptions must reference an existing ADR; copyleft entries carry a gate status ----------
 const adrFiles = readdirSync(join(repoRoot, 'docs/decisions'));
-for (const ex of exceptions) {
+for (const ex of [...exceptions, ...copyleftGate]) {
   if (!adrFiles.some((f) => f.startsWith(`${ex.adr}-`))) errors.push(`${ex.id}: ADR ${ex.adr} not found in docs/decisions/`);
-  if (!['accepted', 'pending-owner'].includes(ex.status)) errors.push(`${ex.id}: unknown status "${ex.status}"`);
+  if (ex.status && !['accepted', 'pending-owner'].includes(ex.status)) errors.push(`${ex.id}: unknown status "${ex.status}"`);
+  if (idsOf(ex.license).some(isCopyleft) && !ex.gate) errors.push(`${ex.id}: copyleft entries need a "gate" status (ADR-0008 Copyleft adoption gate)`);
 }
 
 const inScope = (ex, dir) => ex.scope.some((s) => dir === s || dir.startsWith(s + '/'));
-function exceptionFor(ecosystem, name, license, dir) {
-  return exceptions.find((ex) => ex.ecosystem === ecosystem && ex.name === name && ex.license === license && inScope(ex, dir));
-}
+const find = (list, ecosystem, name, license, dir) =>
+  list.find((ex) => ex.ecosystem === ecosystem && ex.name === name && ex.license === license && inScope(ex, dir));
 
-function judge(ecosystem, name, version, license, dir) {
+function judge(ecosystem, name, version, license, dir, scope = 'runtime') {
   if (!license) {
     errors.push(`${ecosystem} ${name}@${version} (${dir}): no license declared`);
     return 'missing';
   }
   try {
-    if (isAllowed(license, allowed)) return 'allowed';
+    if (isAllowed(license, allowedPermissive)) return 'allowed';
+    if (isAllowed(license, allowed)) {
+      // Allowlisted copyleft (e.g. MPL-2.0): fine for dev tooling; anything that could ship stays tracked.
+      if (scope.startsWith('dev')) return 'allowed';
+      const cg = find(copyleftGate, ecosystem, name, license, dir);
+      if (cg) {
+        usedExceptions.add(cg.id);
+        return cg.id;
+      }
+      errors.push(`${ecosystem} ${name}@${version} (${dir}): copyleft license "${license}" must be tracked in copyleftGate[] of tools/licensing/exceptions.json (ADR-0008 Copyleft adoption gate)`);
+      return 'untracked';
+    }
   } catch (e) {
     errors.push(`${ecosystem} ${name}@${version} (${dir}): ${e.message}`);
     return 'invalid';
   }
-  const ex = exceptionFor(ecosystem, name, license, dir);
+  const ex = find(exceptions, ecosystem, name, license, dir);
   if (ex) {
     usedExceptions.add(ex.id);
     return ex.id;
@@ -85,7 +98,7 @@ for (const pj of files.filter((f) => posix.basename(f) === 'package.json' && !f.
     const license = normalizeNpmLicense(meta.license);
     const scope = meta.dev ? 'dev' : meta.devOptional ? 'dev (optional)' : meta.optional ? 'optional' : 'runtime';
     const id = `${name}@${meta.version}`;
-    const status = judge('npm', name, meta.version, license, dir);
+    const status = judge('npm', name, meta.version, license, dir, scope);
     const entry = npm.get(id) ?? { name, version: meta.version, license, scopes: new Set(), dirs: new Set(), status };
     entry.scopes.add(scope);
     entry.dirs.add(dir);
@@ -149,7 +162,8 @@ for (const ex of exceptions.filter((e) => e.ecosystem === 'file')) {
   if (files.some((f) => f === ex.name)) usedExceptions.add(ex.id);
   else warnings.push(`${ex.id}: ${ex.name} no longer exists; remove the exception`);
 }
-for (const ex of exceptions) {
+const gated = [...exceptions, ...copyleftGate].filter((e) => e.gate);
+for (const ex of [...exceptions, ...copyleftGate]) {
   if (!usedExceptions.has(ex.id)) warnings.push(`${ex.id} (${ex.name}) matched nothing; remove it from exceptions.json`);
   else if (ex.status === 'pending-owner') warnings.push(`${ex.id} (${ex.name}, ${ex.license}) is pending owner sign-off in ADR-${ex.adr}`);
 }
@@ -194,7 +208,7 @@ const lines = [
   '',
   '| Package | Version | License | Scope | Used by |',
   '|---|---|---|---|---|',
-  ...npmRows.map((p) => `| ${esc(p.name)} | ${p.version} | ${esc(p.license)}${/^EX-/.test(p.status) ? ` (${p.status})` : ''} | ${[...p.scopes].sort().join(', ')} | ${[...p.dirs].sort().map((d) => `\`${d}\``).join(', ')} |`),
+  ...npmRows.map((p) => `| ${esc(p.name)} | ${p.version} | ${esc(p.license)}${/^(EX|CG)-/.test(p.status) ? ` (${p.status})` : ''} | ${[...p.scopes].sort().join(', ')} | ${[...p.dirs].sort().map((d) => `\`${d}\``).join(', ')} |`),
   '',
   `## NuGet packages (${nuget.length})`,
   '',
@@ -207,6 +221,15 @@ const lines = [
   '| Id | Component | License | Status | Reason |',
   '|---|---|---|---|---|',
   ...exceptions.map((e) => `| ${e.id} | ${esc(e.name)} (${e.ecosystem}) | ${e.license} | ${e.status} | ${esc(e.reason)} |`),
+  '',
+  '## Copyleft adoption gate',
+  '',
+  'Copyleft components are fine in spikes when labeled. Before one moves into a shipped product or',
+  'distribution, a compliance ADR is required ([ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md#copyleft-adoption-gate)).',
+  '',
+  '| Id | Component | License | Scope | Gate |',
+  '|---|---|---|---|---|',
+  ...gated.map((e) => `| ${e.id} | ${esc(e.name)} (${e.ecosystem}) | ${e.license} | ${e.scope.map((s) => `\`${s}\``).join(', ')} | ${e.gate} |`),
   '',
   '## License texts',
   '',
@@ -223,6 +246,7 @@ for (const p of npm.values()) counts[p.license ?? '(none)'] = (counts[p.license 
 console.log(`npm: ${npm.size} package versions in ${npmProjects.length} projects ${JSON.stringify(counts)}`);
 console.log(`nuget: ${nuget.length} direct package reference(s)`);
 for (const w of warnings) console.log(`⚠ ${w}`);
+for (const g of gated) console.log(`ℹ ${g.id} ${g.name} (${g.license}): ${g.gate}`);
 for (const e of errors) console.error(`✗ ${e}`);
 if (errors.length) {
   console.error(`License gate FAILED with ${errors.length} error(s). See ADR-0008 and tools/licensing/README.md.`);

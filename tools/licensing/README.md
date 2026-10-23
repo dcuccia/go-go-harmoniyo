@@ -14,10 +14,12 @@ Zero-dependency Node.js (≥ 20) scripts that enforce
 
 Files:
 
-- [`policy.json`](policy.json): the license allowlist, accepted public-domain marks, the license
-  for each asset origin, and the AI prompt blocklist.
-- [`exceptions.json`](exceptions.json): ADR-referenced exceptions. `pending-owner` entries pass CI
-  with a warning.
+- [`policy.json`](policy.json): the license allowlist, the copyleft license prefixes, accepted
+  public-domain marks, the license for each asset origin, and the AI prompt blocklist.
+- [`exceptions.json`](exceptions.json): `exceptions[]` for off-allowlist components (each points
+  at an ADR) and `copyleftGate[]` for allowlisted copyleft ones such as MPL-2.0. Copyleft entries
+  carry a `gate` status (ADR-0008 copyleft adoption gate). A non-dev copyleft dependency without
+  an entry fails CI. `pending-owner` entries pass CI with a warning.
 - `lib/`: helpers (git file listing, globs with REUSE semantics, SPDX expressions, a small JSON
   Schema validator).
 

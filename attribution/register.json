@@ -28,8 +28,10 @@
       "legacy": true,
       "credit": false,
       "review": {
-        "status": "pending",
-        "notes": "IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). Owner to confirm the CC BY 4.0 choice for screenshots."
+        "status": "approved",
+        "reviewer": "@dcuccia (owner confirmed CC BY 4.0 for screenshots of our own UI)",
+        "date": "2026-10-23",
+        "notes": "IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures show green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12); re-capture after #12."
       }
     },
     {

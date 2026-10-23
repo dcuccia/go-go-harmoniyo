@@ -1,7 +1,8 @@
 # 0008 — Assets, IP and attribution
 
-- Status: Accepted (2026-10-23). Exceptions EX-001, EX-002 and EX-005 are pending owner sign-off
-  (see [Exceptions](#exceptions)).
+- Status: Accepted (2026-10-23). Owner sign-offs on 2026-10-23: MPL-2.0 and Unlicense are
+  allowlisted, the S2 LGPL patch is kept (EX-005), screenshots of our own UI are CC BY 4.0, and
+  the [copyleft adoption gate](#copyleft-adoption-gate) was added.
 - Date: 2026-10-23
 - Deciders: @dcuccia (owner); drafted by the asset/IP policy session
 
@@ -98,9 +99,13 @@ plus full texts in `LICENSES/`. CI runs `reuse lint`.
 ### 6. Dependencies and third-party assets
 
 - **Allowlist:** MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, CC-BY-4.0,
-  OFL-1.1, Zlib, Python-2.0, BlueOak-1.0.0. Public-domain dedications without an SPDX id (such as
-  the Mutopia Project's) are allowed for assets when the register records the evidence.
-- **Anything else** (LGPL/GPL/AGPL, MPL, CC BY-SA, any NC or ND, proprietary, or unknown) needs an
+  OFL-1.1, Zlib, Python-2.0, BlueOak-1.0.0, Unlicense, MPL-2.0. Public-domain dedications without
+  an SPDX id (such as the Mutopia Project's) are allowed for assets when the register records the
+  evidence.
+- **MPL-2.0 is file-level copyleft.** Using MPL files unmodified is fine. If we modify an MPL file,
+  we must publish that modified file under MPL-2.0. Our own files stay MIT. Shipping MPL
+  components still goes through the [copyleft adoption gate](#copyleft-adoption-gate).
+- **Anything else** (LGPL/GPL/AGPL, CC BY-SA, any NC or ND, proprietary, or unknown) needs an
   explicit exception that names this or a later ADR. Exceptions live in
   [`tools/licensing/exceptions.json`](../../tools/licensing/exceptions.json).
 - CI checks every `package-lock.json` and every direct NuGet `PackageReference`. It regenerates
@@ -133,15 +138,42 @@ template includes an asset/IP checklist. See [CONTRIBUTING.md](../../CONTRIBUTIN
 
 ## Exceptions
 
-| Id | Component | License | Scope | Status |
-|---|---|---|---|---|
-| EX-001 | `mediabunny` (npm, optional transitive via `werift`) | MPL-2.0 | `spikes/s1-phone-bell` | **Pending owner.** Spike-only and unmodified. Revisit before shipping WebRTC |
-| EX-002 | `tweetnacl` (npm, optional transitive via `werift`, `@fidm/x509`) | Unlicense | `spikes/s1-phone-bell` | **Pending owner.** Recommend adding Unlicense (a public-domain dedication) to the allowlist |
-| EX-003 | YARC-Official/YARG.Core, fetched at a pinned commit (S2) or as a submodule (S3) | LGPL-3.0-or-later | S2, S3 | Accepted: fetched into gitignored `external/` and never vendored (§3) |
-| EX-004 | dcuccia/YARG `handbell-spike`, fetched by S3 and `tools/setup` | LGPL-3.0-or-later | S3, setup | Accepted: separate repository (§3) |
-| EX-005 | `spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff` | LGPL-3.0-or-later | S2 | **Pending owner.** The diff's context lines are YARG.Core code, so it's labeled LGPL in `REUSE.toml`. Keep it, or delete it (the fetch script applies the same change) |
+Off-allowlist components, each recorded in
+[`tools/licensing/exceptions.json`](../../tools/licensing/exceptions.json):
 
-Until the owner decides, CI allows the pending exceptions and prints a warning for each one.
+| Id | Component | License | Scope | Status | Gate |
+|---|---|---|---|---|---|
+| EX-003 | YARC-Official/YARG.Core, fetched at a pinned commit (S2) or as a submodule (S3) | LGPL-3.0-or-later | S2, S3 | Accepted: fetched into gitignored `external/` and never vendored (§3) | spike-only, gate pending |
+| EX-004 | dcuccia/YARG `handbell-spike`, fetched by S3 and `tools/setup` | LGPL-3.0-or-later | S3, setup | Accepted: separate repository (§3) | spike-only, gate pending |
+| EX-005 | `spikes/s2-yarg-core/patches/0001-yarglogger-no-thread-on-browser.diff` | LGPL-3.0-or-later | S2 | Accepted (owner: keep). The diff's context lines are YARG.Core code, so the file has an SPDX/notice header and is labeled LGPL in `REUSE.toml` | spike-only, gate pending |
+
+Allowlisted copyleft components still under the gate (`copyleftGate[]`):
+
+| Id | Component | License | Scope | Gate |
+|---|---|---|---|---|
+| CG-001 | `mediabunny` (npm, optional transitive via `werift`) | MPL-2.0 | `spikes/s1-phone-bell` | spike-only, gate pending |
+
+## Copyleft adoption gate
+
+Spike use of copyleft components (weak copyleft such as LGPL or MPL, and strong copyleft such as
+GPL, AGPL or CC BY-SA) is fine when they're labeled and tracked. **Before any such component moves
+into a shipped product or distribution, a compliance ADR is required.** That ADR must cover:
+
+1. **Notices:** which license texts, copyright notices and NOTICE files we preserve, and where.
+2. **Modified files:** where we publish source for any modified copyleft files, under their
+   original license.
+3. **LGPL relink/replaceability:** an LGPL component stays a separate, dynamically loaded module
+   that users can replace. No static linking, trimming into our binaries, or merged bundles.
+4. **Shims and wrappers:** any shim, wrapper or adapter library around the component is published
+   in a separate repository under the matching license.
+5. **Attribution:** how the component appears in the in-game credits and in
+   `THIRD_PARTY_NOTICES.md`.
+
+Tracking: every copyleft entry in `exceptions.json` carries a `gate` status. CI fails if a
+non-dev npm/NuGet dependency under a copyleft license isn't tracked there. Dev-only tooling isn't
+distributed, so it doesn't need an entry. Current candidates: YARG.Core and the fork for S2/S3
+(EX-003, EX-004, EX-005) and `werift`/`mediabunny` for S1 (CG-001), all
+**spike-only, gate pending**.
 
 ## Consequences
 
@@ -170,4 +202,4 @@ Until the owner decides, CI allows the pending exceptions and prints a warning f
 - YARG and YARG.Core READMEs: "LGPL-3.0 (or later)". YARG also ships BASS (non-commercial) and
   CC BY-NC crowd sounds ([S3 report](../spikes/S3-report.md)).
 - `reuse lint` (reuse 6.2.0): compliant with REUSE 3.3. License gate: 225 npm package
-  versions in 4 projects, no direct NuGet references, all allowed or excepted.
+  versions in 4 projects, no direct NuGet references, all allowed, excepted or gate-tracked.

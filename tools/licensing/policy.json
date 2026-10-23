@@ -12,8 +12,14 @@
     "OFL-1.1",
     "Zlib",
     "Python-2.0",
-    "BlueOak-1.0.0"
+    "BlueOak-1.0.0",
+    "MPL-2.0",
+    "Unlicense"
   ],
+  "copyleft": {
+    "$comment": "Copyleft (weak or strong) license id prefixes. Allowed in spikes when labeled; every non-dev dependency or file under one of these must be tracked in exceptions.json (exceptions[] or copyleftGate[]) and needs a compliance ADR before it ships (ADR-0008, Copyleft adoption gate).",
+    "prefixes": ["MPL-", "LGPL-", "GPL-", "AGPL-", "EPL-", "CDDL-", "EUPL-", "CC-BY-SA-", "OSL-"]
+  },
   "publicDomain": [
     "LicenseRef-Mutopia-PublicDomain"
   ],
