@@ -1,6 +1,6 @@
 # Spikes
 
-Time-boxed experiments for milestone M1 (Oct 26 – Nov 6, 2026). Each spike answers specific
+Time-boxed experiments for milestone M1 (Oct 22 – Oct 30, 2026; alpha Nov 15). Each spike answers specific
 questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Code goes in
 `spikes/<id>-<slug>/`; the report goes in `docs/spikes/<id>-report.md`. Follow
 [AGENTS.md](../../AGENTS.md).

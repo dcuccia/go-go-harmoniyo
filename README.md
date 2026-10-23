@@ -7,7 +7,7 @@ Notes scroll down per-ringer lanes; players *ring* real (or virtual) bells in ti
 judges timing, keeps team streaks, and makes learning ensemble music feel like a concert.
 
 > **Status: planning + spikes (October 2026).** No playable build yet.
-> First target: **holiday 2026** — 3–5 people playing Christmas carols in a living room,
+> Alpha: **Nov 15, 2026**. First real target: **holiday 2026** — 3–5 people playing Christmas carols in a living room,
 > using their **phones as handbells** and a PC driving the TV.
 
 ## Guiding principles

@@ -13,15 +13,32 @@ lane; the room rings it together and the game celebrates streaks and team accura
 | # | Milestone | Target | Exit criteria |
 |---|---|---|---|
 | M0 | Planning | Oct 22–25 | Repo, epics, spike briefs, ADR-0001..0003 merged |
-| M1 | Spikes | Oct 26 – Nov 6 | S1–S5 reports merged (S6 optional) |
-| M2 | **Decision gate** | Nov 7–9 | Owner accepts ADRs for: host engine, shared-core language, controller transport, chart format |
-| M3 | Holiday MVP build | Nov 9 – Dec 6 | Playable end-to-end with ≥5 carols, 3–5 phones, team scoring |
-| M4 | Family playtest + polish | Dec 7 – Dec 13 | Tested on iPhone (Safari) and Pixel (Chrome) on home Wi-Fi; bugs triaged |
-| M5 | **Holiday release** | Dec 18 | Tagged release; one-page "how to play" with QR join |
-| M6 | Classroom edition | Q1 2027 | 8–12 ringers, teacher/coach mode, low-budget host (ChromeOS/browser if feasible) |
-| M7 | Digital-handbell integration | follows hardware | ESP32-S3 bells speak HGP over Wi-Fi |
-| M8 | Listener + RP2040 coaching | 2027 | Mic pitch/onset scoring of real bells/chimes; non-interactive coaching mode |
-| M9 | Community charts | 2027 | Import/map Clone Hero/YARG charts; arrangement tools |
+| M1 | Spikes | Oct 22 – Oct 30 | S1–S5 reports merged (S6 optional) |
+| M2 | **Decision gate** | Oct 31 – Nov 1 | Owner accepts ADRs for: host engine, shared-core language, controller transport, chart format |
+| M3 | **Alpha release** | Nov 15 | Playable end-to-end on the owner's PC + Pixel phones: ≥2 carols, 2+ phones as bells, per-ringer lanes, timing judgement, team score. Tagged `v0.1.0-alpha` |
+| M4 | Holiday MVP build + beta | Nov 16 – Dec 6 | ≥5 carols, 3–5 phones incl. iPhone, difficulty levels, polish/juice, holiday theme |
+| M5 | Family playtest + polish | Dec 7 – Dec 13 | Tested on iPhone (Safari) and Pixel (Chrome) on home Wi-Fi; bugs triaged |
+| M6 | **Holiday release** | Dec 18 | Tagged release under the chosen public name; one-page "how to play" with QR join |
+| M7 | Classroom edition | Q1 2027 | 8–12 ringers, teacher/coach mode, low-budget host (ChromeOS/browser if feasible) |
+| M8 | Digital-handbell integration | follows hardware | ESP32-S3 bells speak HGP over Wi-Fi |
+| M9 | Listener + RP2040 coaching | 2027 | Mic pitch/onset scoring of real bells/chimes; non-interactive coaching mode |
+| M10 | Community charts | 2027 | Import/map Clone Hero/YARG charts; arrangement tools |
+
+## Naming
+
+"Handbell Hero" is the **code name** (repo, docs). Before the public holiday release we
+choose a distinct public name, because Activision holds a family of "[instrument] Hero"
+marks for music games (GUITAR HERO, BAND HERO, and filings for DRUM HERO, SING HERO,
+KEYBOARD HERO), which raises likelihood-of-confusion risk even for a free MIT project.
+
+- Shortlist by Nov 15 (alpha); decision by Dec 1; rename public surfaces by Dec 18.
+- Checks per candidate: USPTO (classes 9, 28, 41), app stores, GitHub/npm/NuGet, domain,
+  general web; no "Hero"-style evocation of Activision marks. Not legal advice — consult
+  counsel if commercial use is ever planned.
+- Starting ideas: Peal, Chime In, Ring Along, Bell Rush.
+
+The Nov 15 alpha is deliberately ambitious; if a spike shows it is not achievable, cut
+scope (fewer carols, Android-only, keyboard fallback) rather than move the date.
 
 ## Holiday MVP scope (see [ADR-0003](decisions/0003-holiday-v1-scope.md))
 
