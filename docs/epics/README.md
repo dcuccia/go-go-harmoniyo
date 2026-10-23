@@ -43,7 +43,7 @@ drive any host.
 **Goal:** any phone becomes a bell by scanning a QR code — no install.
 - MVP: web page on iOS Safari + Android Chrome; motion permission flow; strike detection;
   shows assigned bell(s)/note name and color; wake lock; reconnect.
-- **Top alpha bug: [#10](https://github.com/dcuccia/handbell-hero/issues/10).** On a real
+- **Top alpha bug: [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10).** On a real
   Pixel, QR pairing works but taps and rings don't register with the Node host. Simulated
   phones pass (S1, I1, I2), so this is the first real-device finding. To investigate:
   - Which runbook was used (I1 `npm run yarg` vs I2 `npm start`).
@@ -187,7 +187,7 @@ audience reactions, festive themes (holiday theme for M5).
     4.0, AI-generated CC0 with logged provenance and a human resemblance review; ideas are free,
     other games' expression and trade dress are not. Our principles and the pitch-class palette:
     [visual identity](../design/visual-identity.md). Lane colours moved to that palette in
-    [#12](https://github.com/dcuccia/handbell-hero/issues/12) (colour follows the bell's pitch,
+    [#12](https://github.com/dcuccia/go-go-harmoniyo/issues/12) (colour follows the bell's pitch,
     not its lane; naturals' lightness was stepped after a colour-vision check).
   - S4: procedural neon highway + bloom/particles reaches "Clone Hero default" level; the gap to
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
@@ -229,7 +229,7 @@ audience reactions, festive themes (holiday theme for M5).
     (EX-005); copyleft adoption gate added (YARG.Core, the fork and `mediabunny` are
     spike-only, gate pending).
   - Open: product name
-    ([#13](https://github.com/dcuccia/handbell-hero/issues/13)); proofread the S5 AI-encoded
+    ([#13](https://github.com/dcuccia/go-go-harmoniyo/issues/13)); proofread the S5 AI-encoded
     lead sheets.
 - Decided ([ADR-0004](../decisions/0004-host-strategy.md)):
   [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike) is a

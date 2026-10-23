@@ -3,7 +3,7 @@
 
 # Attribution and licensing
 
-Go Go HarmoniYo (code name: handbell-hero) is an independent open-source project. It gratefully
+Go Go HarmoniYo is an independent open-source project. It gratefully
 builds on public-domain music, the volunteers of the [Mutopia Project](https://www.mutopiaproject.org),
 and the open-source libraries listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crediting a
 person, project or game does **not** imply their endorsement, and Go Go HarmoniYo is not affiliated with, endorsed
@@ -31,11 +31,11 @@ repository "MIT" in a way that hides them.
 
 ## Credits
 
-- Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for handbell-hero (CC0). License: CC0 1.0 Universal (public domain dedication).
-- Joy to the World, tune ANTIOCH as arranged by Lowell Mason (1839), public domain. Lead sheet encoded for handbell-hero (CC0). License: CC0 1.0 Universal (public domain dedication).
-- Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for handbell-hero (CC0). License: CC0 1.0 Universal (public domain dedication).
-- Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for handbell-hero (CC0). License: CC0 1.0 Universal (public domain dedication).
-- We Wish You a Merry Christmas, traditional English melody, public domain. Lead sheet encoded for handbell-hero (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Joy to the World, tune ANTIOCH as arranged by Lowell Mason (1839), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- We Wish You a Merry Christmas, traditional English melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain. License: Public domain (Mutopia Project dedication).
 - Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain. License: Public domain (Mutopia Project dedication).
 - The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain. License: Public domain (Mutopia Project dedication).
@@ -66,8 +66,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `docs/spikes/media/*`, `docs/spikes/I1-data/*.png`, `spikes/s1-phone-bell/results/*.png` (9 file(s))
 - Origin: original
-- Authors: David Cuccia and handbell-hero contributors
-- Copyright: 2026 David Cuccia and handbell-hero contributors
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
 - Review: approved by @dcuccia (owner confirmed CC BY 4.0 for screenshots of our own UI) on 2026-10-23. IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures showed green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). 2026-10-23, #12: s4-autoplay.gif, s4-ultra-4k.png, s4-low-1080p.png, i2-4-ringers-play.png, i2-4-ringers-lobby.png, i2-2-phones-plus-host-play.png and i2-phone-controller.png re-captured with the pitch-class palette (same scripts: s4-web-host/scripts/bench.mjs + capture-gif.mjs, i2-web-phones/scripts/e2e.mjs --shots + controller-check.mjs --shots). I1-data/controller-yarg-lanes.png keeps YARG's lane colours (ADR-0008 interop exception); spikes/s1-phone-bell/results/zones-pixel-viewport.png predates #12 (S1 hue-wheel colours, not a fret order; hand capture on a phone).
@@ -79,8 +79,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `docs/design/media/pitch-class-palette-cvd.png` (1 file(s))
 - Origin: original
-- Authors: David Cuccia and handbell-hero contributors
-- Copyright: 2026 David Cuccia and handbell-hero contributors
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
 - Review: pending. Rendered by tools/design/palette-check.mjs --sheet (headless Chrome) from docs/design/pitch-class-palette.json: coloured circles with note names, system UI font, no third-party content. Owner to confirm CC BY 4.0 like the UI captures (#12).
@@ -91,8 +91,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/songs/jingle-bells.abc` (1 file(s))
 - Origin: ai-generated
-- Authors: James Lord Pierpont (melody, 1857, public domain); handbell-hero S5 agent session (encoding and chord symbols)
-- Copyright: Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: James Lord Pierpont (melody, 1857, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -105,8 +105,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/songs/joy-to-the-world.abc` (1 file(s))
 - Origin: ai-generated
-- Authors: Lowell Mason (tune ANTIOCH, 1839, public domain); handbell-hero S5 agent session (encoding and chord symbols)
-- Copyright: Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: Lowell Mason (tune ANTIOCH, 1839, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -119,8 +119,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/songs/silent-night.abc` (1 file(s))
 - Origin: ai-generated
-- Authors: Franz Xaver Gruber (melody, 1818, public domain); handbell-hero S5 agent session (encoding and chord symbols)
-- Copyright: Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: Franz Xaver Gruber (melody, 1818, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -133,8 +133,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/songs/deck-the-halls.abc` (1 file(s))
 - Origin: ai-generated
-- Authors: Traditional Welsh (melody 'Nos Galan', public domain); handbell-hero S5 agent session (encoding and chord symbols)
-- Copyright: Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: Traditional Welsh (melody 'Nos Galan', public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -147,8 +147,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/songs/we-wish-you-a-merry-christmas.abc` (1 file(s))
 - Origin: ai-generated
-- Authors: Traditional English, West Country (melody, public domain); handbell-hero S5 agent session (encoding and chord symbols)
-- Copyright: Melody public domain; encoding 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: Traditional English, West Country (melody, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -161,8 +161,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/test/fixtures/*` (1 file(s))
 - Origin: ai-generated
-- Authors: handbell-hero S5 agent session
-- Copyright: 2026 handbell-hero contributors, dedicated to the public domain
+- Authors: Go Go HarmoniYo S5 agent session
+- Copyright: 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: none
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
@@ -226,8 +226,8 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json`, `spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*` (30 file(s))
 - Origin: derived — from [s5-jingle-bells-abc](#s5-jingle-bells-abc), [s5-joy-to-the-world-abc](#s5-joy-to-the-world-abc), [s5-silent-night-abc](#s5-silent-night-abc), [s5-deck-the-halls-abc](#s5-deck-the-halls-abc), [s5-we-wish-you-a-merry-christmas-abc](#s5-we-wish-you-a-merry-christmas-abc) via `node spikes/s5-chart-pipeline/build.mjs`
-- Authors: handbell-hero S5 chart pipeline
-- Copyright: 2026 handbell-hero contributors (generated), dedicated to the public domain
+- Authors: Go Go HarmoniYo S5 chart pipeline
+- Copyright: 2026 Go Go HarmoniYo contributors (generated), dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Algorithmic arrangement: role detection, difficulty tiers, bell-to-ringer assignment, MIDI export.
 - Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23. Each chart carries its source and license in song.license / song.source.
@@ -239,7 +239,7 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json`, `spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*` (6 file(s))
 - Origin: derived — from [mutopia-carol](#mutopia-carol) via `node spikes/s5-chart-pipeline/build.mjs`
-- Authors: handbell-hero S5 chart pipeline
+- Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), placed in the public domain
 - License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
 - Modifications: Algorithmic arrangement from the Mutopia MIDI (melody/bass voices, difficulty tiers, bell assignment); tempo 60 → 90 qpm.
@@ -252,7 +252,7 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/charts/good-king-wenceslas.json`, `spikes/s5-chart-pipeline/exports/good-king-wenceslas/*` (6 file(s))
 - Origin: derived — from [mutopia-good-king-wenceslas](#mutopia-good-king-wenceslas) via `node spikes/s5-chart-pipeline/build.mjs`
-- Authors: handbell-hero S5 chart pipeline
+- Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), placed in the public domain
 - License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
 - Modifications: Algorithmic arrangement from the Mutopia MIDI (melody/bass voices, difficulty tiers, bell assignment).
@@ -265,7 +265,7 @@ repository "MIT" in a way that hides them.
 
 - Files: `spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json`, `spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/*` (6 file(s))
 - Origin: derived — from [mutopia-the-holly-and-the-ivy](#mutopia-the-holly-and-the-ivy) via `node spikes/s5-chart-pipeline/build.mjs`
-- Authors: handbell-hero S5 chart pipeline
+- Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain
 - License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
 - Modifications: Algorithmic arrangement from the Mutopia MIDI (melody only; difficulty tiers, bell assignment).

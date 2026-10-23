@@ -16,6 +16,9 @@ vision, roadmap, epics, spike briefs/reports, ADRs, the gesture-protocol spec, a
 M2) product code. Forks of third-party projects (e.g. YARG) live in separate repositories
 under their own licenses and are linked from here.
 
+> Note (2026-10-23): the repository was renamed `dcuccia/go-go-harmoniyo`; old URLs redirect. See
+> the [ADR-0009 amendment](0009-product-name.md#amendment-2026-10-23-repository-renamed).
+
 ## Consequences
 
 - Agents start from [AGENTS.md](../../AGENTS.md) and the roadmap.

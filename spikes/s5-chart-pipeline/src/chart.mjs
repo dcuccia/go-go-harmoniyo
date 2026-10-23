@@ -3,9 +3,13 @@ import { pitchName, makeTimeMap, measureStarts, timeSigAt, isNatural } from './s
 import { TIERS, tierNotes } from './arrange.mjs';
 import { PROFILES, assignBells, evaluateRinger, repair, ringerLabel } from './assign.mjs';
 
-export const FORMAT = 'handbell-hero.chart';
+export const FORMAT = 'go-go-harmoniyo.chart';
+// Format ids written before the rename to Go Go HarmoniYo (ADR-0009); readers still accept them.
+export const LEGACY_FORMATS = ['handbell-hero.chart'];
 export const FORMAT_VERSION = '0.1.0';
-export const GENERATOR = { name: 'handbell-hero/spikes/s5-chart-pipeline', version: '0.1.0' };
+export const GENERATOR = { name: 'go-go-harmoniyo/spikes/s5-chart-pipeline', version: '0.1.0' };
+
+export const isChartFormat = (format) => format === FORMAT || LEGACY_FORMATS.includes(format);
 
 // Standard handbell set ranges (written pitch; handbells sound an octave higher than written).
 export const HANDBELL_SETS = [

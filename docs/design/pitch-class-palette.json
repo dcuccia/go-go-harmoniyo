@@ -1,5 +1,5 @@
 {
-  "$comment": "handbell-hero pitch-class palette (docs/design/visual-identity.md). Colors follow the bell's pitch, never its lane index. Hue walks the circle of fifths in OKLCH (30 degrees per fifth, C at 20 degrees); naturals are lighter (L 0.72-0.88, stepped so scale neighbours also differ in lightness: C/G/B 0.72, D/F 0.80, E/A 0.88), sharps/flats deeper (L 0.62), like white and black keys. Checked for colour-vision deficiencies with tools/design/palette-check.mjs. Every color has at least 4.5:1 contrast against the #0b0d17 stage background and with #10121c text on top.",
+  "$comment": "Go Go HarmoniYo pitch-class palette (docs/design/visual-identity.md). Colors follow the bell's pitch, never its lane index. Hue walks the circle of fifths in OKLCH (30 degrees per fifth, C at 20 degrees); naturals are lighter (L 0.72-0.88, stepped so scale neighbours also differ in lightness: C/G/B 0.72, D/F 0.80, E/A 0.88), sharps/flats deeper (L 0.62), like white and black keys. Checked for colour-vision deficiencies with tools/design/palette-check.mjs. Every color has at least 4.5:1 contrast against the #0b0d17 stage background and with #10121c text on top.",
   "background": "#0b0d17",
   "textOnFill": "#10121c",
   "pitchClasses": [

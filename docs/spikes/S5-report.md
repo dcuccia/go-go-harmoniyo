@@ -169,6 +169,9 @@ bar  | R1:  G2  A2  C3  D3 | R2:  G3  A3  B3  C4 C#4 | R3:  D4  E4 F#4  G4 | R4:
 (JSON Schema 2020-12; every committed chart is validated in the test suite). Drafted as
 [ADR-0007 (Proposed)](../decisions/0007-chart-format.md).
 
+> Note (2026-10-23): after the rename to Go Go HarmoniYo the format id is `go-go-harmoniyo.chart`.
+> Readers still accept `handbell-hero.chart`, the id shown below as it was at the time of this spike.
+
 ```jsonc
 {
   "format": "handbell-hero.chart", "formatVersion": "0.1.0",

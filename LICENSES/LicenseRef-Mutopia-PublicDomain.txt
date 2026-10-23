@@ -18,7 +18,7 @@ Text from the Mutopia Project legal page:
     particular purpose. No claim is made as to the accuracy or the factual, editorial
     or musical correctness of any of the material provided here.
 
-Each Mutopia LilyPond source also carries this notice in its tagline, which handbell-hero
+Each Mutopia LilyPond source also carries this notice in its tagline, which Go Go HarmoniYo
 keeps unmodified:
 
     Sheet music from www.MutopiaProject.org - Free to download, with the freedom to
@@ -26,5 +26,5 @@ keeps unmodified:
     Reference: <Mutopia ID>. This sheet music has been placed in the public domain by
     the typesetter, for details see: http://creativecommons.org/licenses/publicdomain
 
-handbell-hero credits the typesetter and the Mutopia Project for every such file even
+Go Go HarmoniYo credits the typesetter and the Mutopia Project for every such file even
 though the dedication does not require it. See ATTRIBUTION.md.

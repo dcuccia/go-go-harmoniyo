@@ -9,7 +9,7 @@
 
 ![4 ringers, Jingle Bells medium (simulated phones)](media/i2-4-ringers-play.png)
 
-*Screenshots re-captured 2026-10-23 after [#12](https://github.com/dcuccia/handbell-hero/issues/12):
+*Screenshots re-captured 2026-10-23 after [#12](https://github.com/dcuccia/go-go-harmoniyo/issues/12):
 each bell's colour follows its pitch class ([palette](../design/visual-identity.md#pitch-class-palette)),
 so C5 has the same colour on every highway and phone; F♯4 shows the sharp/flat ring outline.*
 

@@ -131,7 +131,7 @@ immediately and take `t1` as early as possible on receipt.
 
 ## 9. Multi-bell devices
 
-Carol charts need 8–11 bells for 3–5 ringers ([S5, PR #3](https://github.com/dcuccia/handbell-hero/pull/3)), so a phone may
+Carol charts need 8–11 bells for 3–5 ringers ([S5, PR #3](https://github.com/dcuccia/go-go-harmoniyo/pull/3)), so a phone may
 hold up to **4 bells**. v0 behaviour (`select: "zones"`):
 
 - The device shows one on-screen zone per bell (2×2 grid in the thumb's reach). Touching a

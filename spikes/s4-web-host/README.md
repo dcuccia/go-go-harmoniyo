@@ -1,6 +1,6 @@
 # S4 — Web-native host prototype (throwaway spike code)
 
-TypeScript + Vite + Three.js note highway for Handbell Hero. Report:
+TypeScript + Vite + Three.js note highway for Go Go HarmoniYo. Report:
 [docs/spikes/S4-report.md](../../docs/spikes/S4-report.md).
 
 ## Run

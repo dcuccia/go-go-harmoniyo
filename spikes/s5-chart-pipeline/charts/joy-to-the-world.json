@@ -1,7 +1,7 @@
 {
-  "format": "handbell-hero.chart",
+  "format": "go-go-harmoniyo.chart",
   "formatVersion": "0.1.0",
-  "generator": {"name":"handbell-hero/spikes/s5-chart-pipeline","version":"0.1.0"},
+  "generator": {"name":"go-go-harmoniyo/spikes/s5-chart-pipeline","version":"0.1.0"},
   "song": {
     "id": "joy-to-the-world",
     "title": "Joy to the World",

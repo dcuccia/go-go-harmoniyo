@@ -8,7 +8,7 @@ public readonly record struct SongNote(uint Tick, int Pitch);
 
 /// <summary>
 /// Self-authored sample chart: the refrain of "Jingle Bells" (James Lord Pierpont, 1857 — public
-/// domain melody), transcribed and simplified by the handbell-hero project, with a self-authored
+/// domain melody), transcribed and simplified by the Go Go HarmoniYo project, with a self-authored
 /// root-note bass line. This file (and every chart generated from it) is original work under the
 /// repository's MIT license. No third-party chart/MIDI file is used.
 /// </summary>
@@ -79,7 +79,7 @@ public static class SampleSong
     public static string ToDotChart()
     {
         var sb = new StringBuilder();
-        sb.Append("[Song]\n{\n  Name = \"Jingle Bells (refrain, handbell-hero S2 sample)\"\n");
+        sb.Append("[Song]\n{\n  Name = \"Jingle Bells (refrain, Go Go HarmoniYo S2 sample)\"\n");
         sb.Append($"  Resolution = {Resolution}\n}}\n");
         sb.Append($"[SyncTrack]\n{{\n  0 = TS 4\n  0 = B {Bpm * 1000}\n}}\n");
         sb.Append("[Events]\n{\n}\n");
@@ -103,7 +103,7 @@ public static class SampleSong
         var file = new MidiFile { TimeDivision = new TicksPerQuarterNoteTimeDivision((short) Resolution) };
 
         var tempo = new TrackChunk(
-            new SequenceTrackNameEvent("Jingle Bells (handbell-hero S2 sample)"),
+            new SequenceTrackNameEvent("Jingle Bells (Go Go HarmoniYo S2 sample)"),
             new TimeSignatureEvent(4, 4),
             new SetTempoEvent(60_000_000 / Bpm));
         file.Chunks.Add(tempo);

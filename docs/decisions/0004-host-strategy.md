@@ -106,5 +106,5 @@ Phones join by QR code with no install.
   bridge and LGPL-in-WASM questions. See ADR-0005.
 - [Connectivity and deployment research](../research/connectivity-and-deployment.md): browser
   API ceilings; ESP-NOW gateway for classrooms; "YARG on the web" is a multi-month port.
-- Open real-device issue: [#10](https://github.com/dcuccia/handbell-hero/issues/10) (real-phone
+- Open real-device issue: [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10) (real-phone
   rings not registering). It is the top alpha bug and does not change this decision.

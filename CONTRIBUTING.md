@@ -1,4 +1,4 @@
-# Contributing to handbell-hero
+# Contributing to Go Go HarmoniYo
 
 Thanks for helping! Issues, ideas, songs, art, sounds and code are all welcome. Please read
 [AGENTS.md](AGENTS.md) for how work is organized (spikes, ADRs, reports). This guide covers

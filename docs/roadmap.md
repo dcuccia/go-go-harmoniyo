@@ -11,7 +11,7 @@ Dates are targets, not promises. Plan written 2026-10-22; status updated 2026-10
 | M2 | Decision gate | **In progress.** Accepted: [ADR-0004](decisions/0004-host-strategy.md) (web-first host on an engine we own; YARG fork as a community/experimental track) and [ADR-0005](decisions/0005-shared-core-language.md) (TypeScript core; HGP + chart JSON as language-neutral contracts with golden test vectors). Pending owner: [ADR-0006](decisions/0006-phone-host-transport.md) (transport) and [ADR-0007](decisions/0007-chart-format.md) (chart format), both Proposed |
 | M3 | Alpha (Nov 15) | Next. Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)); machine setup via [tools/setup](../tools/setup/README.md) |
 
-**Top alpha bug:** [#10](https://github.com/dcuccia/handbell-hero/issues/10). Real-phone taps
+**Top alpha bug:** [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10). Real-phone taps
 and rings don't register with the Node host, although QR pairing works. Simulated phones
 pass end-to-end, so this is the first real-device finding. Fix it before any other M3 work,
 because every alpha exit criterion depends on real phones.
@@ -61,8 +61,10 @@ The evidence is in the [name check](research/naming-go-go-harmonio.md). We moved
 "Handbell Hero" because Activision holds a family of "[instrument] Hero" marks for music games
 (GUITAR HERO, BAND HERO, and filings for DRUM HERO, SING HERO, KEYBOARD HERO).
 
-- **The code name `handbell-hero` stays** for the repository (and older docs) until the public
-  release. Renaming the repository then is optional; GitHub redirects.
+- **The repository is `dcuccia/go-go-harmoniyo`** (renamed from the code name on 2026-10-23;
+  GitHub redirects old URLs). The code name is retired from current use
+  ([ADR-0009 amendment](decisions/0009-product-name.md#amendment-2026-10-23-repository-renamed)).
+  A GitHub org and a domain are still undecided.
 - **Owner reservations** for the domain and handles are pending (see the
   [rollout checklist](design/brand.md#6-rollout-checklist)). Visible spike titles are renamed in
   #12.

@@ -10,7 +10,8 @@
 | Product name | **Go Go HarmoniYo** |
 | Mascot / character | **HarmoniYo**, called **Yo** for short |
 | Say it | "go go har-MOH-nee-yo" |
-| Code name | `handbell-hero`: repository and older docs only, until the public release |
+| Repository | `dcuccia/go-go-harmoniyo` (renamed 2026-10-23; GitHub org undecided) |
+| Former code name | `handbell-hero`: retired 2026-10-23. Appears only in history (older decisions and reports, git tags, the legacy chart id) |
 | Code identifiers | `gogoharmoniyo`, `go-go-harmoniyo` (where a separator is required) |
 | Packages | npm `@gogoharmoniyo/*`; NuGet `GoGoHarmoniYo.*` (once reserved) |
 
@@ -21,8 +22,8 @@
 - **Never abbreviate.** No "GGH", "GGHY", "GoGo" or "Go Go". Don't use "HarmoniYo" or "Yo" as the
   product. "GGH" echoes the "GH" abbreviation of a well-known rhythm-game franchise.
 - **Never pair the name** with "Hero", "Band", "Rock", "Guitar", "Legends", "Revolution", "-ix",
-  or any other game's naming pattern. The code name "Handbell Hero" is internal only. Never show it
-  next to the public name in product, store or marketing copy.
+  or any other game's naming pattern. The retired code name "Handbell Hero" must not be used for
+  anything new. Never show it next to the public name in product, store or marketing copy.
 - **The mascot name is only for the character:** "Yo cheers when your team hits a streak." Don't
   use it as the product name in store titles, URLs or headlines.
 - **No implied endorsement:** never suggest a connection to Yo-Yo Ma or any other real person
@@ -203,8 +204,10 @@ girls to see themselves in the lead. Pick one:
    - [ ] Twitch `gogoharmoniyo`
 2. **Done in this change:** README title, `ATTRIBUTION.md`, and `attribution/credits.json` (`project.name`).
 3. **Done in #12:** visible titles in the spike UIs.
-4. **Before the public release:** optionally rename the `handbell-hero` repository (GitHub
-   redirects).
+4. **Done 2026-10-23:** renamed the repository to `dcuccia/go-go-harmoniyo` (GitHub redirects the
+   old `handbell-hero` URLs) and retired the code name from current use
+   ([ADR-0009 amendment](../decisions/0009-product-name.md#amendment-2026-10-23-repository-renamed)).
+   Moving it to a GitHub org is still open.
 5. **Commission** the mascot and logo with the brief above.
 
 ## Appendix: considered alternative, Go Go Harmonio

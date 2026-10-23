@@ -1,13 +1,12 @@
 # Go Go HarmoniYo
 
-*Code name: handbell-hero*
-
 A rhythm game for **handbell ringers**, inspired by games like Guitar Hero and Rock Band. Play
 solo, as a family, or as a whole classroom ringing together in front of one shared screen.
 
 > **Go Go HarmoniYo** is the product name
 > ([ADR-0009](docs/decisions/0009-product-name.md), [brand guide](docs/design/brand.md)). Always
-> write the full name. The repository keeps the code name `handbell-hero` until the public release.
+> write the full name. The repository is `dcuccia/go-go-harmoniyo`; links to its earlier name
+> redirect.
 > Go Go HarmoniYo is an independent open-source project. It is not affiliated with, endorsed by,
 > or sponsored by the makers of any game it mentions. All trademarks belong to their owners.
 
@@ -23,7 +22,7 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 > - **Prototype:** phones (simulated so far) drive 1–4 ringers on one TV
 >   ([I2](docs/spikes/I2-web-phones.md)).
 > - **Top alpha bug:** real-phone rings don't register yet
->   ([#10](https://github.com/dcuccia/handbell-hero/issues/10)).
+>   ([#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10)).
 >
 > Alpha: **Nov 15, 2026**. First real target: **holiday 2026** — 3–5 people playing
 > Christmas carols in a living room, using their **phones as handbells** and a PC driving the

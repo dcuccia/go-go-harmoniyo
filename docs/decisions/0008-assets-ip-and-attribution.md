@@ -183,11 +183,13 @@ distributed, so it doesn't need an entry. Current candidates: YARG.Core and the 
   notices file lists them today, but no product bundle exists yet.
 - The 2026-10-23 audit found:
   - The S4/I1/I2 lane colors were close to Guitar Hero trade dress. Issue
-    [#12](https://github.com/dcuccia/handbell-hero/issues/12) moved S4, I2 and the phone's web
+    [#12](https://github.com/dcuccia/go-go-harmoniyo/issues/12) moved S4, I2 and the phone's web
     mode to the pitch-class palette (I1's YARG mode keeps YARG's colors as interop).
   - The "Handbell Hero" name follows the "[instrument] Hero" pattern. Issue
-    [#13](https://github.com/dcuccia/handbell-hero/issues/13) tracks choosing a product name
-    before any public release. "handbell-hero" can stay as the repository codename.
+    [#13](https://github.com/dcuccia/go-go-harmoniyo/issues/13) tracks choosing a product name
+    before any public release. "handbell-hero" can stay as the repository codename. (Resolved
+    by [ADR-0009](0009-product-name.md); the repository was renamed `go-go-harmoniyo` on
+    2026-10-23.)
   - Full findings are in the [IP audit](../research/ip-audit-2026-10-23.md).
 - S5's agent-encoded lead sheets predate this ADR. They're registered as legacy AI assets with
   recorded provenance gaps, and each still needs a proofread against a public-domain edition.

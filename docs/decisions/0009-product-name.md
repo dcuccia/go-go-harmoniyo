@@ -10,7 +10,7 @@
 those marks for music games (GUITAR HERO, BAND HERO, and filings for DRUM HERO, SING HERO and
 KEYBOARD HERO). [ADR-0008](0008-assets-ip-and-attribution.md) §2 asks us to avoid other games'
 naming patterns, so we need a distinct public name before any public release
-([#13](https://github.com/dcuccia/handbell-hero/issues/13)).
+([#13](https://github.com/dcuccia/go-go-harmoniyo/issues/13)).
 
 The owner wants a general umbrella name, not a handbell-only one, so instrument editions can follow
 later.
@@ -53,12 +53,14 @@ The rules are in the [brand guide](../design/brand.md). In short:
 6. **Code identifiers:** `gogoharmoniyo` / `go-go-harmoniyo`, `@gogoharmoniyo/*` on npm and
    `GoGoHarmoniYo.*` on NuGet, once those are reserved.
 7. **The repository keeps the code name `handbell-hero` until the public release.** Renaming it
-   later is optional; GitHub redirects.
+   later is optional; GitHub redirects. *(Amended 2026-10-23: the repository was renamed early;
+   see [the amendment](#amendment-2026-10-23-repository-renamed).)*
 
 ## Consequences
 
 - README, ATTRIBUTION.md and `attribution/credits.json` (`project.name`, with `codeName:
-  handbell-hero`) use the new name.
+  handbell-hero`) use the new name. *(The `codeName` field was dropped by the 2026-10-23
+  amendment.)*
 - Visible titles in the spike UIs are renamed in the #12 palette work, not here.
 - **Owner actions:** reserve these before any public mention (nothing has been registered yet):
   - `gogoharmoniyo.com` (and optionally `harmoniyo.com`, `.game`, `.app`);
@@ -72,6 +74,26 @@ The rules are in the [brand guide](../design/brand.md). In short:
   - consider class 28 or 15 only if we sell hardware.
 - **Mascot art** follows the brand guide's brief and ADR-0008 provenance rules. The public wording
   of the YoYo origin story is pending owner approval.
+
+## Amendment 2026-10-23: repository renamed
+
+Decided by @dcuccia on 2026-10-23, ahead of the mid-November alpha ("let's keep on dcuccia
+account for now, but make internal naming consistent"). This replaces decision 7 above.
+
+- **The repository is now `dcuccia/go-go-harmoniyo`** (renamed from `dcuccia/handbell-hero`).
+  GitHub redirects the old web and git URLs; links in this repository now use the new URL.
+- **The code name `handbell-hero` is retired from current use.** Package names, app ids, titles,
+  copyright lines (`Go Go HarmoniYo contributors`), the asset register and the credits use
+  `go-go-harmoniyo` or "Go Go HarmoniYo". `attribution/credits.json` no longer has a `codeName`.
+- **Data formats:** the S5 chart format id is now `go-go-harmoniyo.chart`. Readers keep accepting
+  `handbell-hero.chart` so older chart files still load.
+- **History is kept.** Past decisions, spike reports, dated source notes and git tags (`spike/*`,
+  `integration/*`) still say "Handbell Hero" or `handbell-hero` where they describe what happened at
+  the time.
+- **Not renamed:** the Handbell Gesture Protocol (HGP) and its wire ids (`hgp0`), the spike and
+  integration folder names (S1–S5, I1, I2), and the YARG fork.
+- **Still undecided:** a GitHub org and a domain. The repository stays on the `dcuccia` account for
+  now; moving it to an org later is another redirecting rename.
 
 ## Evidence
 

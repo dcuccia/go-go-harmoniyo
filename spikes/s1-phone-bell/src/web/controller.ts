@@ -44,7 +44,7 @@ const client = new HgpClient({
   kind: 'phone',
   deviceId: deviceId(),
   name: localStorage.getItem(NAME_KEY) ?? 'phone',
-  hello: { app: 'handbell-hero/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true },
+  hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true },
 });
 
 // ── UI ──────────────────────────────────────────────────────────────────────

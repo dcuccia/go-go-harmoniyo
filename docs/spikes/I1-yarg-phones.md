@@ -5,9 +5,9 @@
   [runbook](#owner-runbook-phones--yarg)).
 - Request: connect the S1 phone controller to the S3 YARG fork so the next playthrough uses real
   phones as bells.
-- Depends on unmerged PRs: [#4](https://github.com/dcuccia/handbell-hero/pull/4) (S1 harness),
-  [#6](https://github.com/dcuccia/handbell-hero/pull/6) (S3 Phase B, stacked on #1), and
-  [#3](https://github.com/dcuccia/handbell-hero/pull/3) (S5 charts, for the per-ringer bells). This
+- Depends on unmerged PRs: [#4](https://github.com/dcuccia/go-go-harmoniyo/pull/4) (S1 harness),
+  [#6](https://github.com/dcuccia/go-go-harmoniyo/pull/6) (S3 Phase B, stacked on #1), and
+  [#3](https://github.com/dcuccia/go-go-harmoniyo/pull/3) (S5 charts, for the per-ringer bells). This
   branch merges all three.
 - Fork: [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike) at
   **`130cbd82`** (adds pong and song report to the bridge, plus per-ringer ring logging). The built

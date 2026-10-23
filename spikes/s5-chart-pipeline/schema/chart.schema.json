@@ -1,12 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/dcuccia/handbell-hero/spikes/s5-chart-pipeline/schema/chart.schema.json",
-  "title": "Handbell Hero chart v0.1 (S5 proposal)",
+  "$id": "https://github.com/dcuccia/go-go-harmoniyo/spikes/s5-chart-pipeline/schema/chart.schema.json",
+  "title": "Go Go HarmoniYo chart v0.1 (S5 proposal)",
   "description": "Engine-neutral handbell chart: one file per song, containing parts for several ringer counts and difficulty tiers. Times are given both in ticks (exact, for editing/export) and seconds (pre-computed from the tempo map, for playback). Unknown properties must be ignored by readers.",
   "type": "object",
   "required": ["format", "formatVersion", "song", "timing", "bells", "parts"],
   "properties": {
-    "format": { "const": "handbell-hero.chart" },
+    "format": {
+      "enum": ["go-go-harmoniyo.chart", "handbell-hero.chart"],
+      "description": "Writers emit \"go-go-harmoniyo.chart\". Readers also accept \"handbell-hero.chart\", the id used before the rename (ADR-0009)."
+    },
     "formatVersion": { "type": "string", "pattern": "^0\\.\\d+\\.\\d+$" },
     "generator": {
       "type": "object",

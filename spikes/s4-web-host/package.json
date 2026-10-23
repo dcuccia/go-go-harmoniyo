@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Spike S4: web-native host prototype for Handbell Hero (throwaway).",
+  "description": "Spike S4: web-native host prototype for Go Go HarmoniYo (throwaway).",
   "license": "MIT",
   "scripts": {
     "song": "node scripts/make-song.mjs",

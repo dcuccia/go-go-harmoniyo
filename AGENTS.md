@@ -1,4 +1,4 @@
-# Working in handbell-hero
+# Working in go-go-harmoniyo
 
 This repo is the **durable plan and memory** for a multi-session, multi-agent project. No
 single session is expected to finish it. Leave the repo so the next session can continue
@@ -34,6 +34,10 @@ without your conversation history.
   the asset: no franchise/artist names, no img2img from copyrighted art; log tool, model,
   version, terms and prompt; a human resemblance review is required before merge. See
   [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Naming ([ADR-0009](docs/decisions/0009-product-name.md), [brand guide](docs/design/brand.md)).**
+  Write the full product name "Go Go HarmoniYo" (never "GGH"); use `go-go-harmoniyo` /
+  `gogoharmoniyo` in identifiers. The old code name `handbell-hero` is retired: don't use it in new
+  work, but don't rewrite history that mentions it.
 - **Sign off commits** (`git commit -s`, DCO).
 - **Cross-platform.** Note platform limits (iOS Safari, Android Chrome, Windows/macOS/
   Linux/ChromeOS hosts) for anything you build or evaluate.

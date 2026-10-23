@@ -3,7 +3,7 @@
 
 # Third-party notices
 
-handbell-hero's own code is [MIT](LICENSE). This file lists the third-party software the repository
+Go Go HarmoniYo's own code is [MIT](LICENSE). This file lists the third-party software the repository
 depends on, with each component's declared license, so the obligations are visible in one place.
 Assets (art, audio, songs, charts) are credited separately in [ATTRIBUTION.md](ATTRIBUTION.md).
 
