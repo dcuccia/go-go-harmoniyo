@@ -1,0 +1,1494 @@
+{
+  "base": "http://localhost:5174/",
+  "channel": "chrome",
+  "headless": false,
+  "gpuHigh": false,
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "results": {
+    "auto-1080p-ultra": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 3375,
+          "mean": 10.86,
+          "std": 6.66,
+          "min": 5.5,
+          "p50": 12.1,
+          "p95": 18.2,
+          "p99": 24.3,
+          "max": 297
+        },
+        "fps": 92.1,
+        "longFramePct": 6.1,
+        "cpuMs": {
+          "n": 3480,
+          "mean": 1.19,
+          "std": 0.37,
+          "min": 0.4,
+          "p50": 1.2,
+          "p95": 1.7,
+          "p99": 2.3,
+          "max": 7.4
+        },
+        "smoothnessErrMs": {
+          "n": 3375,
+          "mean": 0.15,
+          "std": 0.11,
+          "min": 0,
+          "p50": 0.12,
+          "p95": 0.27,
+          "p99": 0.5,
+          "max": 3.73
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 5.99,
+          "std": 4.18,
+          "min": 0.04,
+          "p50": 5.22,
+          "p95": 12.53,
+          "p99": 19.77,
+          "max": 19.77
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.057,
+          "min": -0.257,
+          "p50": 0.001,
+          "p95": 0.088,
+          "p99": 0.119,
+          "max": 0.141
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -3.22,
+          "std": 2.6,
+          "min": -9.57,
+          "p50": -3.25,
+          "p95": 0.9,
+          "p99": 1.81,
+          "max": 2.4
+        },
+        "audioDriftPpm": -1.6,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 9.7
+      }
+    },
+    "auto-1080p": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 5877,
+          "mean": 6.23,
+          "std": 3.41,
+          "min": 4.3,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 12,
+          "max": 206
+        },
+        "fps": 160.4,
+        "longFramePct": 1.04,
+        "cpuMs": {
+          "n": 6332,
+          "mean": 1.31,
+          "std": 0.42,
+          "min": 0.5,
+          "p50": 1.2,
+          "p95": 2,
+          "p99": 2.6,
+          "max": 10.2
+        },
+        "smoothnessErrMs": {
+          "n": 5877,
+          "mean": 0.02,
+          "std": 0.11,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.04,
+          "p99": 0.28,
+          "max": 3.99
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 4.05,
+          "std": 6.83,
+          "min": 0.02,
+          "p50": 3.2,
+          "p95": 5.77,
+          "p99": 50.72,
+          "max": 50.72
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": -0.001,
+          "std": 0.072,
+          "min": -0.484,
+          "p50": 0.001,
+          "p95": 0.113,
+          "p99": 0.155,
+          "max": 0.21
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.66,
+          "std": 2.47,
+          "min": -7.08,
+          "p50": -1.68,
+          "p95": 2.27,
+          "p99": 3.19,
+          "max": 4.57
+        },
+        "audioDriftPpm": -1.4,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      }
+    },
+    "auto-1080p-low": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 5972,
+          "mean": 6.13,
+          "std": 1.96,
+          "min": 4,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 6.3,
+          "max": 115.1
+        },
+        "fps": 163,
+        "longFramePct": 0.39,
+        "cpuMs": {
+          "n": 6429,
+          "mean": 0.82,
+          "std": 0.28,
+          "min": 0.2,
+          "p50": 0.8,
+          "p95": 1.3,
+          "p99": 1.7,
+          "max": 7
+        },
+        "smoothnessErrMs": {
+          "n": 5972,
+          "mean": 0.01,
+          "std": 0.07,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.02,
+          "p99": 0.1,
+          "max": 3.79
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 3.11,
+          "std": 1.74,
+          "min": 0,
+          "p50": 3.09,
+          "p95": 5.68,
+          "p99": 6.08,
+          "max": 6.08
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.079,
+          "min": -0.352,
+          "p50": 0.007,
+          "p95": 0.122,
+          "p99": 0.16,
+          "max": 0.195
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -2.91,
+          "std": 2.46,
+          "min": -9.45,
+          "p50": -2.94,
+          "p95": 0.97,
+          "p99": 2.07,
+          "max": 2.88
+        },
+        "audioDriftPpm": 1,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.05
+      }
+    },
+    "auto-720p": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 5870,
+          "mean": 6.24,
+          "std": 4,
+          "min": 3.5,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 6.7,
+          "max": 254.3
+        },
+        "fps": 160.2,
+        "longFramePct": 0.85,
+        "cpuMs": {
+          "n": 6325,
+          "mean": 1.27,
+          "std": 0.37,
+          "min": 0.5,
+          "p50": 1.2,
+          "p95": 1.8,
+          "p99": 2.5,
+          "max": 8.7
+        },
+        "smoothnessErrMs": {
+          "n": 5870,
+          "mean": 0.02,
+          "std": 0.11,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.03,
+          "p99": 0.27,
+          "max": 3.94
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 5.4,
+          "std": 17.63,
+          "min": 0.02,
+          "p50": 3,
+          "p95": 5.89,
+          "p99": 129.47,
+          "max": 129.47
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": -0.001,
+          "std": 0.064,
+          "min": -0.332,
+          "p50": 0.002,
+          "p95": 0.098,
+          "p99": 0.138,
+          "max": 0.191
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -3.77,
+          "std": 2.48,
+          "min": -9.05,
+          "p50": -3.82,
+          "p95": 0.16,
+          "p99": 1.1,
+          "max": 2.01
+        },
+        "audioDriftPpm": 0.5,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1280,
+          "height": 720,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      }
+    },
+    "auto-4k-ultra": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 956,
+          "mean": 38.39,
+          "std": 9.87,
+          "min": 5.6,
+          "p50": 36.4,
+          "p95": 42.9,
+          "p99": 60.4,
+          "max": 266.8
+        },
+        "fps": 26,
+        "longFramePct": 1.15,
+        "cpuMs": {
+          "n": 1004,
+          "mean": 1.82,
+          "std": 1.38,
+          "min": 0.4,
+          "p50": 1.6,
+          "p95": 2.8,
+          "p99": 6.3,
+          "max": 30.6
+        },
+        "smoothnessErrMs": {
+          "n": 956,
+          "mean": 0.17,
+          "std": 0.24,
+          "min": 0,
+          "p50": 0.12,
+          "p95": 0.41,
+          "p99": 1.6,
+          "max": 2.41
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 21.71,
+          "std": 13.67,
+          "min": 0.93,
+          "p50": 18.12,
+          "p95": 41.55,
+          "p99": 75.44,
+          "max": 75.44
+        },
+        "clockJitterMs": {
+          "n": 1034,
+          "mean": 0.002,
+          "std": 0.067,
+          "min": -0.286,
+          "p50": 0.004,
+          "p95": 0.102,
+          "p99": 0.149,
+          "max": 0.198
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 1035,
+          "mean": -3.56,
+          "std": 2.63,
+          "min": -9.12,
+          "p50": -3.68,
+          "p95": 0.7,
+          "p99": 1.8,
+          "max": 3.37
+        },
+        "audioDriftPpm": 1.2,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 3840,
+          "height": 2160,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 37.78
+      }
+    },
+    "auto-4k": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 3571,
+          "mean": 10.26,
+          "std": 7.82,
+          "min": 2.6,
+          "p50": 12.1,
+          "p95": 12.3,
+          "p99": 20.4,
+          "max": 363.6
+        },
+        "fps": 97.5,
+        "longFramePct": 2.46,
+        "cpuMs": {
+          "n": 3858,
+          "mean": 1.19,
+          "std": 0.61,
+          "min": 0.2,
+          "p50": 1.1,
+          "p95": 1.8,
+          "p99": 2.7,
+          "max": 20.8
+        },
+        "smoothnessErrMs": {
+          "n": 3571,
+          "mean": 0.16,
+          "std": 0.12,
+          "min": 0,
+          "p50": 0.14,
+          "p95": 0.27,
+          "p99": 0.44,
+          "max": 3.06
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 5.94,
+          "std": 3.74,
+          "min": 0.41,
+          "p50": 5.73,
+          "p95": 12.09,
+          "p99": 17.46,
+          "max": 17.46
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.052,
+          "min": -0.353,
+          "p50": 0.002,
+          "p95": 0.081,
+          "p99": 0.11,
+          "max": 0.13
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -3.35,
+          "std": 2.71,
+          "min": -9.47,
+          "p50": -3.36,
+          "p95": 0.9,
+          "p99": 1.84,
+          "max": 5.01
+        },
+        "audioDriftPpm": -1.8,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 3840,
+          "height": 2160,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 8.95
+      }
+    },
+    "auto-4k-nobloom": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 5587,
+          "mean": 6.56,
+          "std": 3.54,
+          "min": 2.8,
+          "p50": 6.1,
+          "p95": 7.1,
+          "p99": 18.2,
+          "max": 103
+        },
+        "fps": 152.5,
+        "longFramePct": 4.26,
+        "cpuMs": {
+          "n": 6049,
+          "mean": 1.04,
+          "std": 0.89,
+          "min": 0.2,
+          "p50": 0.9,
+          "p95": 2,
+          "p99": 5,
+          "max": 28.7
+        },
+        "smoothnessErrMs": {
+          "n": 5587,
+          "mean": 0.04,
+          "std": 0.15,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.2,
+          "p99": 0.51,
+          "max": 3.56
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 3.21,
+          "std": 2.02,
+          "min": 0.04,
+          "p50": 3.19,
+          "p95": 6.07,
+          "p99": 9.69,
+          "max": 9.69
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.057,
+          "min": -0.424,
+          "p50": 0.003,
+          "p95": 0.085,
+          "p99": 0.109,
+          "max": 0.143
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -2.86,
+          "std": 2.74,
+          "min": -8.78,
+          "p50": -2.82,
+          "p95": 1.37,
+          "p99": 2.15,
+          "max": 3.85
+        },
+        "audioDriftPpm": -1.7,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 3840,
+          "height": 2160,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 8.39
+      }
+    },
+    "auto-1080p-cpu4x": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 3612,
+          "mean": 10.16,
+          "std": 8.04,
+          "min": 3.5,
+          "p50": 6.2,
+          "p95": 18.2,
+          "p99": 30.5,
+          "max": 163.4
+        },
+        "fps": 98.4,
+        "longFramePct": 45.87,
+        "cpuMs": {
+          "n": 3892,
+          "mean": 3.98,
+          "std": 3.4,
+          "min": 0.2,
+          "p50": 3.4,
+          "p95": 8.8,
+          "p99": 13.7,
+          "max": 96.1
+        },
+        "smoothnessErrMs": {
+          "n": 3612,
+          "mean": 0.18,
+          "std": 0.23,
+          "min": 0,
+          "p50": 0.13,
+          "p95": 0.43,
+          "p99": 1,
+          "max": 4.31
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 5.78,
+          "std": 7.39,
+          "min": 0.02,
+          "p50": 3.52,
+          "p95": 12.85,
+          "p99": 42.62,
+          "max": 42.62
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.056,
+          "min": -0.496,
+          "p50": 0.004,
+          "p95": 0.086,
+          "p99": 0.109,
+          "max": 0.149
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.99,
+          "std": 2.75,
+          "min": -7.94,
+          "p50": -2.03,
+          "p95": 2.5,
+          "p99": 3.3,
+          "max": 4.01
+        },
+        "audioDriftPpm": -0.2,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 10.45
+      }
+    },
+    "auto-1080p-cpu6x": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 2217,
+          "mean": 16.52,
+          "std": 17.9,
+          "min": 4.1,
+          "p50": 12.1,
+          "p95": 42.3,
+          "p99": 78.7,
+          "max": 337.4
+        },
+        "fps": 60.5,
+        "longFramePct": 30.54,
+        "cpuMs": {
+          "n": 2457,
+          "mean": 6.68,
+          "std": 8.37,
+          "min": 0.2,
+          "p50": 4.3,
+          "p95": 19.7,
+          "p99": 34.5,
+          "max": 106.3
+        },
+        "smoothnessErrMs": {
+          "n": 2217,
+          "mean": 0.38,
+          "std": 0.41,
+          "min": 0,
+          "p50": 0.26,
+          "p95": 1.06,
+          "p99": 2.2,
+          "max": 3.83
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 22.33,
+          "std": 39.57,
+          "min": 0.24,
+          "p50": 10.29,
+          "p95": 77.47,
+          "p99": 266.97,
+          "max": 266.97
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.058,
+          "min": -0.33,
+          "p50": 0.004,
+          "p95": 0.089,
+          "p99": 0.116,
+          "max": 0.152
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.72,
+          "std": 2.7,
+          "min": -7.71,
+          "p50": -1.64,
+          "p95": 2.51,
+          "p99": 3.45,
+          "max": 5.55
+        },
+        "audioDriftPpm": 0.7,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 14.99
+      }
+    },
+    "auto-1080p-cpu6x-low": {
+      "mode": "autoplay",
+      "title": "Jingle Bells (chorus)",
+      "score": 15900,
+      "accuracy": 1,
+      "counts": {
+        "perfect": 51,
+        "great": 0,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 2269,
+          "mean": 16.15,
+          "std": 16,
+          "min": 3.1,
+          "p50": 12.1,
+          "p95": 42.3,
+          "p99": 78.8,
+          "max": 231.3
+        },
+        "fps": 61.9,
+        "longFramePct": 31.73,
+        "cpuMs": {
+          "n": 2495,
+          "mean": 5.17,
+          "std": 7.23,
+          "min": 0.1,
+          "p50": 2.7,
+          "p95": 16.2,
+          "p99": 34.5,
+          "max": 123.6
+        },
+        "smoothnessErrMs": {
+          "n": 2269,
+          "mean": 0.38,
+          "std": 0.43,
+          "min": 0,
+          "p50": 0.27,
+          "p95": 1.05,
+          "p99": 2.31,
+          "max": 3.98
+        },
+        "avQuantizationMs": {
+          "n": 51,
+          "mean": 15.22,
+          "std": 18.66,
+          "min": 0.2,
+          "p50": 11.81,
+          "p95": 50.75,
+          "p99": 115.95,
+          "max": 115.95
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.053,
+          "min": -0.451,
+          "p50": 0.003,
+          "p95": 0.08,
+          "p99": 0.105,
+          "max": 0.137
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -2.78,
+          "std": 2.77,
+          "min": -8.49,
+          "p50": -2.77,
+          "p95": 1.39,
+          "p99": 2.45,
+          "max": 14.86
+        },
+        "audioDriftPpm": -0.4,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToJudgeMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "eventToNextFrameMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          },
+          "hitOffsetMs": {
+            "n": 0,
+            "mean": null,
+            "std": null,
+            "min": null,
+            "p50": null,
+            "p95": null,
+            "p99": null,
+            "max": null
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 18.01
+      }
+    },
+    "keys-1080p": {
+      "mode": "play",
+      "title": "Jingle Bells (chorus)",
+      "score": 15810,
+      "accuracy": 0.9941176470588236,
+      "counts": {
+        "perfect": 50,
+        "great": 1,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 51,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 5499,
+          "mean": 6.66,
+          "std": 6.1,
+          "min": 2.6,
+          "p50": 6.1,
+          "p95": 7,
+          "p99": 18.9,
+          "max": 327.5
+        },
+        "fps": 150.1,
+        "longFramePct": 4.09,
+        "cpuMs": {
+          "n": 5963,
+          "mean": 1.27,
+          "std": 1.39,
+          "min": 0.3,
+          "p50": 1,
+          "p95": 2.5,
+          "p99": 6,
+          "max": 39.6
+        },
+        "smoothnessErrMs": {
+          "n": 5499,
+          "mean": 0.04,
+          "std": 0.16,
+          "min": 0,
+          "p50": 0.01,
+          "p95": 0.21,
+          "p99": 0.54,
+          "max": 4.12
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0.001,
+          "std": 0.054,
+          "min": -0.175,
+          "p50": 0.004,
+          "p95": 0.086,
+          "p99": 0.116,
+          "max": 0.166
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -2.92,
+          "std": 2.72,
+          "min": -8.84,
+          "p50": -2.92,
+          "p95": 1.32,
+          "p99": 2.19,
+          "max": 3.14
+        },
+        "audioDriftPpm": -0.1,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 51,
+            "mean": 3.49,
+            "std": 10.02,
+            "min": 0.2,
+            "p50": 0.6,
+            "p95": 10.8,
+            "p99": 55.6,
+            "max": 55.6
+          },
+          "eventToJudgeMs": {
+            "n": 51,
+            "mean": 4.36,
+            "std": 10.03,
+            "min": 0.7,
+            "p50": 1.4,
+            "p95": 11.3,
+            "p99": 56.2,
+            "max": 56.2
+          },
+          "eventToNextFrameMs": {
+            "n": 51,
+            "mean": 6.43,
+            "std": 10.09,
+            "min": 0.9,
+            "p50": 4,
+            "p95": 13.2,
+            "p99": 57.3,
+            "max": 57.3
+          },
+          "hitOffsetMs": {
+            "n": 51,
+            "mean": 9.32,
+            "std": 13.73,
+            "min": -17.4,
+            "p50": 8.21,
+            "p95": 30.5,
+            "p99": 57.94,
+            "max": 57.94
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 1080,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1.0000000298023224
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 10.91
+      }
+    }
+  }
+}

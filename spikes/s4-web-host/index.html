@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handbell Hero — S4 web host spike</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <canvas id="gl"></canvas>
+
+    <div id="hud" class="hidden">
+      <div id="score-box">
+        <div id="score">0</div>
+        <div id="mult" class="m1">×1</div>
+        <div id="streak"></div>
+        <div id="acc"></div>
+      </div>
+      <div id="title-box">
+        <div id="song-title"></div>
+        <div id="progress"><div id="progress-fill"></div></div>
+      </div>
+      <div id="judge-box"><div id="judgement"></div><div id="judgement-ms"></div></div>
+      <div id="banner" class="banner"></div>
+      <div id="lane-labels"></div>
+      <div id="offsets"></div>
+    </div>
+
+    <pre id="stats" class="hidden"></pre>
+
+    <div id="menu" class="overlay">
+      <div class="panel">
+        <h1>Handbell <span>Hero</span></h1>
+        <p class="sub">Spike S4 · web-native host prototype (TypeScript + Three.js)</p>
+        <div class="song">
+          <label>Song</label>
+          <div id="song-name">Jingle Bells (chorus)</div>
+          <label class="file">Load MIDI…<input id="file" type="file" accept=".mid,.midi,audio/midi" /></label>
+        </div>
+        <div class="buttons">
+          <button id="btn-play" class="primary">▶ Play (keyboard)</button>
+          <button id="btn-auto">Autoplay demo</button>
+          <button id="btn-cal">Calibrate</button>
+        </div>
+        <p class="help">
+          Ring bells with <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> <kbd>J</kbd> … (or <kbd>1</kbd>–<kbd>8</kbd>).
+          <kbd>←</kbd>/<kbd>→</kbd> nudge A/V offset · <kbd>`</kbd> stats · <kbd>Esc</kbd> menu. Drop a .mid file anywhere.
+        </p>
+        <p class="quality">
+          Quality:
+          <a href="?msaa=4">Ultra (MSAA 4×)</a> · <a href="?">High</a> · <a href="?bloom=0">No bloom</a> · <a href="?bloom=0&amp;particles=0&amp;dpr=1">Low</a> ·
+          <a href="?w=3840&amp;h=2160&amp;stats=1">Force 4K</a> · <a href="?w=1920&amp;h=1080&amp;stats=1">Force 1080p</a>
+        </p>
+        <p id="menu-error" class="error"></p>
+      </div>
+    </div>
+
+    <div id="results" class="overlay hidden">
+      <div class="panel">
+        <h2 id="res-title">Results</h2>
+        <div id="res-body"></div>
+        <details><summary>Measurements (JSON)</summary><pre id="res-json"></pre></details>
+        <div class="buttons">
+          <button id="btn-again" class="primary">Again</button>
+          <button id="btn-copy">Copy JSON</button>
+          <button id="btn-menu">Menu</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
