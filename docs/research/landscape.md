@@ -6,7 +6,7 @@ Licenses checked via the GitHub API on 2026-10-22 unless noted. Spikes should de
 
 | Project | Tech | License | Notes for us |
 |---|---|---|---|
-| [YARG](https://github.com/YARC-Official/YARG) | Unity 6, C# | LGPL-3.0 | Most active, closest to commercial GH/RB feel. Guitar, drums, keys, vocals. Audio via **BASS** (proprietary, un4seen; free for non-commercial). No browser build. Desktop (Win/macOS/Linux). |
+| [YARG](https://github.com/YARC-Official/YARG) | Unity 6, C# | LGPL-3.0 | Most active, closest to commercial GH/RB feel. Guitar, drums, keys, vocals. Audio via **BASS** (proprietary, un4seen; free for non-commercial). No browser build. Desktop (Win/macOS/Linux). S3: Unity `6000.3.5f2`; Win x64, macOS, Linux x86_64 only ([report](../spikes/S3-report.md)). |
 | [YARG.Core](https://github.com/YARC-Official/YARG.Core) | .NET library | LGPL-3.0 | Engine-agnostic chart parsing, scoring engines, replays. Candidate shared core; browser-WASM feasibility is spike S2. |
 | [osu!](https://github.com/ppy/osu) / [osu-framework](https://github.com/ppy/osu-framework) | C#/.NET | MIT code (assets/resources separately licensed) | Very polished; official **custom ruleset** extension point (osu!mania is a lane game). Desktop + iOS/Android; no browser; also uses BASS. Visual identity is osu!, not GH. |
 | Clone Hero | Unity | Closed freeware | Not forkable. Its community chart formats (`.chart`, RB-style `.mid`, `.sng`) are de-facto standards that YARG also reads. |

@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <!-- Checkout of dcuccia/YARG (branch handbell-spike) with the YARG.Core submodule.
+         Default: external/YARG (see fetch-yarg-fork.ps1). Override: -p:YargForkDir=C:\Projects\YARG-handbell -->
+    <YargForkDir Condition="'$(YargForkDir)' == ''">$(MSBuildThisFileDirectory)external\YARG</YargForkDir>
+    <YargCoreProject>$(YargForkDir)\YARG.Core\YARG.Core\YARG.Core.csproj</YargCoreProject>
+    <HgpCoreDir>$(YargForkDir)\Assets\Script\Integration\Hgp\Core</HgpCoreDir>
+  </PropertyGroup>
+</Project>

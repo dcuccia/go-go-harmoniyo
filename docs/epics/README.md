@@ -63,6 +63,19 @@ drive any host.
   shared core.
 - Open: shared-core language (C# via YARG.Core vs TypeScript); frame pacing on low-end
   classroom hardware; audio clock accuracy in browsers (`AudioContext.outputLatency`).
+- Learned (S3 Phase A): a YARG "thin fork" reuses Five-Lane Keys for up to 5 ringers × 5 bells,
+  with band score and practice mode for free; ~13–20 agent-days to holiday MVP. Host is desktop
+  only (Win x64/macOS/Linux x86_64; no browser/ChromeOS/ARM). YARG's engine clamps late-arriving
+  inputs to "now", so network input needs a lookbehind seam. If the web host judges in TypeScript
+  and YARG in C#, the two hosts would not share a core.
+  See [S3 report](../spikes/S3-report.md).
+- Learned (S3 Phase B):
+  - The thin fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike)
+    builds headlessly (Unity 6000.3.5f2; 13 min full player build, 1.3 min incremental).
+  - Phones join as virtual bell devices and get auto-profiles.
+  - A 40 ms input lookbehind makes modeled typical Wi-Fi judging exact (stock: p95 32 ms error).
+  - ≈3–5.5 agent-days remain to the Nov 15 alpha on this path.
+  - See [Phase B results](../spikes/S3-report.md#phase-b-results).
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -76,6 +89,9 @@ difficulties.
   handbell notation symbols; arrangement sharing.
 - Open: engine-neutral chart format vs reuse RB/CH MIDI conventions; sources (Mutopia,
   IMSLP, self-authored) and their per-file licenses.
+- Learned (S3 Phase B): YARG drops a chart from its library entirely if the folder has no audio
+  stem. Exports must include at least one stem; per-ringer stems also give per-ringer
+  mute-on-miss. Prefer opus/ogg over WAV.
 - Spikes: S5.
 
 ## E05 Bell audio
@@ -123,6 +139,11 @@ audience reactions, festive themes (holiday theme for M5).
 - Track forks (e.g. YARG under LGPL-3.0) in separate repos; propose upstream-friendly seams
   (e.g. generic network input devices, custom lane counts) only with owner approval.
 - License register for code, assets, songs, samples.
+- Open (S3 Phase A): a YARG-based host is **non-commercial only** (BASS is free for non-commercial
+  use only; YARG also ships CC BY-NC crowd SFX). Draft upstream issues (latency budget for network
+  input devices; software device registration) are in the [S3 report](../spikes/S3-report.md).
+  Owner to raise them in YARG's Discord first. Git LFS pushes to and pulls from a fork count
+  against YARC-Official's quota, so keep fork LFS traffic minimal.
 
 ## E11 Distribution & cross-platform packaging
 
