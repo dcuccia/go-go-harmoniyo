@@ -1,0 +1,30 @@
+{
+  "name": "s4-web-host",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Spike S4: web-native host prototype for Handbell Hero (throwaway).",
+  "license": "MIT",
+  "scripts": {
+    "song": "node scripts/make-song.mjs",
+    "predev": "npm run song",
+    "dev": "vite --host",
+    "prebuild": "npm run song",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "test": "vitest run",
+    "bench": "node scripts/bench.mjs"
+  },
+  "dependencies": {
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.170.0",
+    "gifenc": "^1.0.3",
+    "jpeg-js": "^0.4.4",
+    "playwright-core": "^1.64.1",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  }
+}
