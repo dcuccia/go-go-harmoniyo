@@ -1,7 +1,7 @@
 import type { Chart } from '../core/chart';
 import type { Grade, ScoreState } from '../core/judge';
 import { keyLabel, laneKeys } from '../input/keyboard';
-import { LANE_COLORS } from '../render/highway';
+import { isAccidental, pitchColor } from '../../../shared/pitch-palette';
 import type { Mode, Offsets } from '../game/session';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -48,8 +48,8 @@ export class Hud {
     this.lanes.innerHTML = '';
     chart.lanes.forEach((l, i) => {
       const d = document.createElement('div');
-      d.className = 'lane-label';
-      d.style.setProperty('--c', LANE_COLORS[i % LANE_COLORS.length]);
+      d.className = `lane-label${isAccidental(l.pitch) ? ' acc' : ''}`;
+      d.style.setProperty('--c', pitchColor(l.pitch));
       d.innerHTML = `<b>${mode === 'calibrate' ? 'any key' : keyLabel(keys[i])}</b><span>${mode === 'calibrate' ? '' : l.name}</span>`;
       this.lanes.appendChild(d);
     });

@@ -2,7 +2,7 @@
 // plus the per-ringer layout used by the multi-highway renderer, the phones and the HUD.
 // Pure logic: no DOM, audio or network.
 import type { BackingNote, Chart, ChartNote, Lane } from '../../s4-web-host/src/core/chart';
-import { LANE_COLORS } from '../../s4-web-host/src/render/lane-colors';
+import { isAccidental, pitchColor } from '../../shared/pitch-palette';
 
 // ── S5 chart format (subset we read; see spikes/s5-chart-pipeline/schema/chart.schema.json) ──
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
@@ -46,7 +46,10 @@ export interface TeamBell {
   midi: number;
   /** Sounding MIDI pitch (handbells sound an octave above written by default). */
   pitch: number;
+  /** Pitch-class palette colour (follows the pitch, never the lane). */
   color: string;
+  /** Sharp/flat: drawn with a ring outline as well as the deeper colour. */
+  accidental: boolean;
   /** Global lane index in the team chart. */
   lane: number;
   strikes: number;
@@ -114,13 +117,13 @@ export function buildTeamChart(src: S5Chart, part: S5Part, opts: TeamOptions = {
     const keep = new Set(ranked.slice(0, maxBells));
     const kept = r.bells.filter((b) => keep.has(b)).sort((a, b) => (midiOf.get(a) ?? 0) - (midiOf.get(b) ?? 0));
     const ringer: TeamRinger = { index: r.index, bells: [], autoBells: r.bells.filter((b) => !keep.has(b)), laneStart: lanes.length, noteIds: [] };
-    kept.forEach((id, k) => {
+    kept.forEach((id) => {
       const midi = midiOf.get(id) ?? 60;
       const lane = lanes.length;
       lanes.push({ index: lane, pitch: midi + transpose, name: bellName(id) });
       laneRinger.push(ringers.length);
       laneOfBell.set(id, lane);
-      ringer.bells.push({ id, name: bellName(id), letter: bellLetter(id), midi, pitch: midi + transpose, color: LANE_COLORS[k % LANE_COLORS.length], lane, strikes: strikes.get(id) ?? 0 });
+      ringer.bells.push({ id, name: bellName(id), letter: bellLetter(id), midi, pitch: midi + transpose, color: pitchColor(midi), accidental: isAccidental(midi), lane, strikes: strikes.get(id) ?? 0 });
     });
     ringers.push(ringer);
   }

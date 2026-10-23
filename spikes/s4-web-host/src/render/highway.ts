@@ -7,10 +7,11 @@ import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment
 import type { Chart, ChartNote } from '../core/chart';
 import type { Grade } from '../core/judge';
 import { makeGlowTexture, Particles, Snow } from './fx';
+import { isAccidental, pitchColor, STAGE_BACKGROUND } from '../../../shared/pitch-palette';
 
-import { LANE_COLORS } from './lane-colors';
-export { LANE_COLORS };
 const MAX_LANES = 8;
+/** Ring outline on sharps/flats (strike target and gems), so colour is never the only cue. */
+const ACCIDENTAL_RING = '#f4f4ff';
 
 export interface RenderOptions {
   bloom: boolean;
@@ -116,12 +117,14 @@ export class HighwayRenderer {
   private highway: THREE.Mesh | null = null;
   private gems: THREE.InstancedMesh | null = null;
   private halos: THREE.InstancedMesh | null = null;
+  private rims: THREE.InstancedMesh | null = null;
   private laneGroup = new THREE.Group();
   private notes: ChartNote[] = [];
   private hidden = new Uint8Array(0);
   private first = 0;
   private laneCount = 0;
   private laneColors: THREE.Color[] = [];
+  private laneAccidental: boolean[] = [];
   private targetMats: THREE.MeshBasicMaterial[] = [];
   private targets: THREE.Mesh[] = [];
   private waves: THREE.Mesh[] = [];
@@ -171,7 +174,7 @@ export class HighwayRenderer {
         uLanes: { value: 1 },
         uFire: { value: 0 },
         uGlow: { value: new Array<number>(MAX_LANES).fill(0) },
-        uColors: { value: LANE_COLORS.map((c) => new THREE.Color(c)) },
+        uColors: { value: Array.from({ length: MAX_LANES }, () => new THREE.Color(STAGE_BACKGROUND)) },
       },
     });
 
@@ -194,7 +197,11 @@ export class HighwayRenderer {
 
   setChart(chart: Chart): void {
     this.laneCount = chart.lanes.length;
-    this.laneColors = chart.lanes.map((_, i) => new THREE.Color(LANE_COLORS[i % LANE_COLORS.length]));
+    // Colour follows the bell's pitch class, never its lane index.
+    this.laneColors = chart.lanes.map((l) => new THREE.Color(pitchColor(l.pitch)));
+    this.laneAccidental = chart.lanes.map((l) => isAccidental(l.pitch));
+    const uColors = this.highwayMat.uniforms.uColors.value as THREE.Color[];
+    uColors.forEach((c, i) => c.copy(this.laneColors[i] ?? new THREE.Color(STAGE_BACKGROUND)));
     this.notes = chart.notes;
     this.hidden = new Uint8Array(chart.notes.length);
     this.first = 0;
@@ -205,6 +212,7 @@ export class HighwayRenderer {
     this.laneGroup.clear();
     this.gems?.dispose();
     this.halos?.dispose();
+    this.rims?.dispose();
     this.targets = [];
     this.targetMats = [];
     this.waves = [];
@@ -218,6 +226,8 @@ export class HighwayRenderer {
     const ringGeo = new THREE.TorusGeometry(0.52, 0.055, 12, 48).rotateX(-Math.PI / 2);
     const discGeo = new THREE.CircleGeometry(0.48, 40).rotateX(-Math.PI / 2);
     const waveGeo = new THREE.RingGeometry(0.5, 0.62, 48).rotateX(-Math.PI / 2);
+    const outerGeo = new THREE.TorusGeometry(0.66, 0.03, 8, 48).rotateX(-Math.PI / 2);
+    const outerMat = new THREE.MeshBasicMaterial({ color: ACCIDENTAL_RING });
     for (let i = 0; i < this.laneCount; i++) {
       const x = this.laneX(i);
       const color = this.laneColors[i];
@@ -225,6 +235,11 @@ export class HighwayRenderer {
       const ring = new THREE.Mesh(ringGeo, mat);
       ring.position.set(x, 0.03, 0);
       this.laneGroup.add(ring);
+      if (this.laneAccidental[i]) {
+        const outer = new THREE.Mesh(outerGeo, outerMat);
+        outer.position.set(x, 0.03, 0);
+        this.laneGroup.add(outer);
+      }
       this.targets.push(ring);
       this.targetMats.push(mat);
       const disc = new THREE.Mesh(discGeo, new THREE.MeshBasicMaterial({ color: color.clone().multiplyScalar(0.12) }));
@@ -260,7 +275,12 @@ export class HighwayRenderer {
     }
     this.gems.count = 0;
     this.halos.count = 0;
-    this.laneGroup.add(this.halos, this.gems);
+    // Ring outline around sharp/flat gems (flat on the highway, around the bell's mouth).
+    const rimCount = Math.max(1, chart.notes.filter((n) => this.laneAccidental[n.lane]).length);
+    this.rims = new THREE.InstancedMesh(new THREE.TorusGeometry(0.7, 0.05, 8, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: ACCIDENTAL_RING }), rimCount);
+    this.rims.frustumCulled = false;
+    this.rims.count = 0;
+    this.laneGroup.add(this.halos, this.gems, this.rims);
   }
 
   laneX(i: number): number {
@@ -341,11 +361,13 @@ export class HighwayRenderer {
   private updateNotes(songTime: number, wall: number): void {
     const gems = this.gems;
     const halos = this.halos;
-    if (!gems || !halos) return;
+    const rims = this.rims;
+    if (!gems || !halos || !rims) return;
     const notes = this.notes;
     while (this.first < notes.length && notes[this.first].time < songTime - 0.5) this.first++;
     const camQ = this.camera.quaternion;
     let n = 0;
+    let nr = 0;
     for (let i = this.first; i < notes.length; i++) {
       const note = notes[i];
       const dtNote = note.time - songTime;
@@ -361,6 +383,13 @@ export class HighwayRenderer {
       this.dummy.updateMatrix();
       gems.setMatrixAt(n, this.dummy.matrix);
       gems.setColorAt(n, this.laneColors[note.lane]);
+      if (this.laneAccidental[note.lane] && nr < rims.instanceMatrix.count) {
+        this.dummy.position.set(x, 0.04, z);
+        this.dummy.rotation.set(0, 0, 0);
+        this.dummy.scale.set(s, s, s);
+        this.dummy.updateMatrix();
+        rims.setMatrixAt(nr++, this.dummy.matrix);
+      }
       this.dummy.position.set(x, 0.45, z);
       this.dummy.quaternion.copy(camQ);
       const hs = s * (dtNote < 0 ? 0.6 : 1);
@@ -372,8 +401,10 @@ export class HighwayRenderer {
     }
     gems.count = n;
     halos.count = n;
+    rims.count = nr;
     gems.instanceMatrix.needsUpdate = true;
     halos.instanceMatrix.needsUpdate = true;
+    rims.instanceMatrix.needsUpdate = true;
     if (gems.instanceColor) gems.instanceColor.needsUpdate = true;
     if (halos.instanceColor) halos.instanceColor.needsUpdate = true;
   }

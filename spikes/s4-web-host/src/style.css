@@ -55,10 +55,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05040d; col
 
 #lane-labels .lane-label {
   position: absolute; transform: translate(-50%, 0); text-align: center; line-height: 1.1;
-  color: var(--c); text-shadow: 0 0 8px var(--c);
+  color: var(--c); text-shadow: 0 0 2px #000, 0 0 5px #000, 0 0 12px var(--c);
 }
 .lane-label b { display: block; font-size: clamp(14px, 1.6vw, 28px); color: #fff; }
 .lane-label span { font-size: clamp(12px, 1.1vw, 20px); font-weight: 700; }
+/* Sharps/flats: ring outline around the note name (colour is never the only cue). */
+.lane-label.acc span { display: inline-block; padding: 0 0.35em; border: 2px solid #f4f4ff; border-radius: 999px; }
 #offsets { position: absolute; left: 50%; bottom: 1.2vh; transform: translateX(-50%); font-size: 12px; opacity: 0.45; }
 
 #stats {

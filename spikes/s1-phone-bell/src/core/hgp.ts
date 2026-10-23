@@ -7,6 +7,7 @@
  *  - "host time" (th, t1, t2, start, at): host monotonic ms. The host maps host time to its
  *    audio clock internally; devices never see the audio clock.
  */
+import { pitchColor } from '../../../shared/pitch-palette.ts';
 
 export const HGP_VERSION = 0;
 
@@ -201,14 +202,14 @@ const STEPS = [0, 2, 4, 5, 7, 9, 11];
 
 /**
  * Default bell palette: the diatonic naturals G4–A6 (16 bells), the range most carol charts
- * need (S5). Colours walk the hue wheel so neighbours on one phone are distinct.
+ * need (S5). Colours follow the pitch class (docs/design/visual-identity.md), never the slot.
  */
 export const DEFAULT_BELLS: Bell[] = Array.from({ length: 16 }, (_, i) => {
   const k = i + 4; // start at G4
   const octave = 4 + Math.floor(k / 7);
   const step = k % 7;
   const midi = 12 * (octave + 1) + STEPS[step];
-  return { id: `${NAMES[step]}${octave}`, label: NAMES[step], midi, color: `hsl(${(i * 67) % 360} 75% 52%)` };
+  return { id: `${NAMES[step]}${octave}`, label: NAMES[step], midi, color: pitchColor(midi) };
 });
 
 /** `n` consecutive bells starting at palette index `start` (wraps). */

@@ -1,5 +1,5 @@
 :root {
-  --bell: #e53935;
+  --bell: #888;
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
@@ -87,7 +87,13 @@ body.controller {
   justify-content: center;
   font-size: min(25vw, 18vh);
   font-weight: 800;
-  text-shadow: 0 2px 8px #0008;
+  /* Dark label on the palette fill (docs/design/visual-identity.md). */
+  color: #10121c;
+  text-shadow: 0 1px 6px #fff6;
+}
+/* Sharps/flats: ring outline, so colour is never the only cue. */
+#bell.acc {
+  box-shadow: 0 0 0 6px #111, 0 0 0 11px #f4f4ff;
 }
 #bell small {
   font-size: 0.2em;
@@ -143,6 +149,11 @@ body.multi #bell {
 .zone.selected {
   background: var(--zone);
   border-color: #fff;
+  color: #10121c;
+}
+.zone.acc {
+  outline: 3px solid #f4f4ff;
+  outline-offset: -10px;
 }
 .zone.next {
   box-shadow: 0 0 0 4px #fff, 0 0 24px 6px var(--zone);

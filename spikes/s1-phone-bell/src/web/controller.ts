@@ -1,4 +1,5 @@
 import { DEFAULT_BELLS, midiToHz, type Bell, type DetectMode, type SoundMode } from '../core/hgp.ts';
+import { isAccidental } from '../../../shared/pitch-palette.ts';
 import { ImpactDetector } from '../core/impact-detector.ts';
 import { learnAxis, RingDetector, type MotionSample, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
 import { bell as playBell, click, perfToCtx, testBeep, unlockAudio } from './audio.ts';
@@ -48,9 +49,7 @@ const client = new HgpClient({
 
 // ── UI ──────────────────────────────────────────────────────────────────────
 function render(): void {
-  document.body.style.setProperty('--bell', myBell().color);
-  $('bell-label').textContent = myBell().label;
-  $('bell-id').textContent = myBell().id;
+  showBell();
   const e = client.clock.estimate;
   const st = motion.stats();
   $('status').textContent = [
@@ -220,7 +219,8 @@ function buildZones(): void {
   if (myBells.length < 2) return;
   myBells.forEach((b, i) => {
     const el = document.createElement('div');
-    el.className = 'zone';
+    // Sharps/flats get a ring outline as well as the deeper colour (colour is never the only cue).
+    el.className = isAccidental(b.midi) ? 'zone acc' : 'zone';
     el.style.setProperty('--zone', b.color);
     el.innerHTML = `<b>${b.label}</b><small>${b.id}</small>`;
     // pointerdown (not click): fires on first contact, ~100 ms earlier than click on mobile.
@@ -241,9 +241,16 @@ function renderZones(): void {
     el.classList.toggle('selected', i === selIdx);
     el.classList.toggle('next', myBells[i]?.id === exp);
   });
-  document.body.style.setProperty('--bell', myBell().color);
-  $('bell-label').textContent = myBell().label;
-  $('bell-id').textContent = myBell().id;
+  showBell();
+}
+
+/** Big bell: the selected bell's colour, name and (for sharps/flats) a ring outline. */
+function showBell(): void {
+  const b = myBell();
+  document.body.style.setProperty('--bell', b.color);
+  $('bell').classList.toggle('acc', isAccidental(b.midi));
+  $('bell-label').textContent = b.label;
+  $('bell-id').textContent = b.id;
 }
 window.setInterval(() => {
   if (myBells.length > 1 && expectedBell() !== lastExpected) renderZones();

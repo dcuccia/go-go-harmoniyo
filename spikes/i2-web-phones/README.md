@@ -72,8 +72,9 @@ URL parameters on the game page: `song`, `diff`, `ringers`, `sound` (`device`·`
   `assign.ringer` label and lane-row zones verbatim. `tools/sim-phones.ts --game` rings cued
   notes (with jitter, misses, wrong zones, `--late`).
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
-  `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options; `LANE_COLORS` moved to
-  `render/lane-colors.ts` (re-exported). S4's own app behaves as before.
+  `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
+  come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
+  keeps its colour on every highway and phone. S4's own app behaves as before.
 
 ## Licenses
 

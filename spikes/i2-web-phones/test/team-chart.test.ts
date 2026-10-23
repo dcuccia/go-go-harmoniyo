@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildTeamChart, findPart, type S5Chart, type S5Part } from '../src/team-chart';
+import { pitchColor } from '../../shared/pitch-palette';
 
 function fixture(): S5Chart {
   const bells = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5'].map((id, i) => ({ id, midi: [60, 62, 64, 65, 67, 69, 71, 72][i] }));
@@ -46,6 +47,19 @@ describe('buildTeamChart', () => {
       });
     });
     expect(t.laneRinger).toEqual([0, 0, 0, 0, 1, 1, 1]);
+  });
+
+  it('colours each bell by its pitch class, never its lane', () => {
+    const c = fixture();
+    const t = buildTeamChart(c, findPart(c, 'easy', 2)!);
+    const bells = t.ringers.flatMap((r) => r.bells);
+    const byId = new Map(bells.map((b) => [b.id, b]));
+    // C4 (ringer 1, lane 0) and C5 (ringer 2, lane 2) share a colour; lane 0 of each ringer does not.
+    expect(byId.get('C4')!.color).toBe(pitchColor(60));
+    expect(byId.get('C5')!.color).toBe(byId.get('C4')!.color);
+    expect(t.ringers[1].bells[0].color).not.toBe(t.ringers[0].bells[0].color);
+    expect(new Set(bells.filter((b) => b.id[0] !== 'C').map((b) => b.color)).size).toBe(bells.length - 2);
+    expect(bells.every((b) => !b.accidental)).toBe(true);
   });
 
   it('plays inactive ringers on the host and gives them no highway', () => {
