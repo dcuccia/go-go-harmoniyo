@@ -13,6 +13,7 @@ Status: `Proposed` → `Accepted` (owner only) → optionally `Superseded by NNN
 | [0006](0006-phone-host-transport.md) | Phone ↔ host transport | Proposed (S1); pending owner |
 | [0007](0007-chart-format.md) | Chart format | Proposed (S5); pending owner |
 | [0008](0008-assets-ip-and-attribution.md) | Assets, IP and attribution: MIT code, CC BY 4.0 original assets, CC0 AI assets; REUSE, license gate, asset register | Accepted (2026-10-23), incl. copyleft adoption gate |
+| [0009](0009-product-name.md) | Product name: Go Go HarmoniYo (mascot HarmoniYo, "Yo"); code name handbell-hero | Accepted (2026-10-23) |
 
 Background for 0004–0007: [M2 decision brief](m2-decision-brief.md) and
 [connectivity and deployment research](../research/connectivity-and-deployment.md).

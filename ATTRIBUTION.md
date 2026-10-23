@@ -3,10 +3,10 @@
 
 # Attribution and licensing
 
-handbell-hero is an independent open-source project. It gratefully builds on public-domain music,
-the volunteers of the [Mutopia Project](https://www.mutopiaproject.org), and the open-source
-libraries listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crediting a person, project
-or game does **not** imply their endorsement, and handbell-hero is not affiliated with, endorsed
+Go Go HarmoniYo (code name: handbell-hero) is an independent open-source project. It gratefully
+builds on public-domain music, the volunteers of the [Mutopia Project](https://www.mutopiaproject.org),
+and the open-source libraries listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crediting a
+person, project or game does **not** imply their endorsement, and Go Go HarmoniYo is not affiliated with, endorsed
 by, or sponsored by the makers of any game it mentions as inspiration. All trademarks belong to
 their owners.
 

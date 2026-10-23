@@ -1,12 +1,13 @@
 {
   "$comment": "Generated from attribution/register.json by tools/licensing/attribution.mjs. Do not edit; the game renders this file in its credits screen.",
   "project": {
-    "name": "handbell-hero",
+    "name": "Go Go HarmoniYo",
+    "codeName": "handbell-hero",
     "url": "https://github.com/dcuccia/handbell-hero",
     "codeLicense": "MIT",
     "attributionUrl": "https://github.com/dcuccia/handbell-hero/blob/main/ATTRIBUTION.md"
   },
-  "disclaimer": "handbell-hero is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any game or product it mentions. All trademarks belong to their owners.",
+  "disclaimer": "Go Go HarmoniYo is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any game or product it mentions. All trademarks belong to their owners.",
   "sections": [
     {
       "title": "Music",
