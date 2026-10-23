@@ -1,7 +1,7 @@
 # Name check: "Go Go Harmonio" and "Go Go HarmoniYo"
 
 - Date: 2026-10-23
-- Issue: [#13](https://github.com/dcuccia/handbell-hero/issues/13)
+- Issue: [#13](https://github.com/dcuccia/go-go-harmoniyo/issues/13)
 - Candidates: **Go Go Harmonio** (primary, mascot "Harmonio") and **Go Go HarmoniYo** (owner's
   fallback, mascot "HarmoniYo" or "Yo"; "YoYo" is a family nickname)
 - Brand guide: [docs/design/brand.md](../design/brand.md)
@@ -299,7 +299,7 @@ reservation isn't publicly queryable. Apply at publish time.
    filing in classes 9 and 41.
 4. **After choosing:** move the brand guide from Proposed to Accepted (with an ADR if you like),
    then update the README title, `attribution/credits.json` (`project.name`) and user-facing
-   strings. Close [#13](https://github.com/dcuccia/handbell-hero/issues/13).
+   strings. Close [#13](https://github.com/dcuccia/go-go-harmoniyo/issues/13).
 
 ## Reproduction notes
 

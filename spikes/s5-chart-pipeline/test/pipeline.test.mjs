@@ -9,7 +9,7 @@ import { parseMusicXml } from '../src/musicxml.mjs';
 import { pitchName, naturalSlot, beatGrid, measureStarts, PPQ } from '../src/score.mjs';
 import { assignRoles } from '../src/arrange.mjs';
 import { assignBells, evaluateRinger, PROFILES } from '../src/assign.mjs';
-import { buildChart, fitHandbellSet } from '../src/chart.mjs';
+import { buildChart, fitHandbellSet, FORMAT, isChartFormat } from '../src/chart.mjs';
 import { exportCloneHero, laneOf, CH_TRACKS } from '../src/export.mjs';
 import { loadSong } from '../src/pipeline.mjs';
 import { validate } from '../src/validate.mjs';
@@ -137,6 +137,17 @@ test('every committed chart validates against the schema and matches a fresh bui
   const fresh = buildChart({ score, roleNotes, song });
   const committed = JSON.parse(readFileSync(join(root, 'charts', `${entry.id}.json`), 'utf8'));
   assert.deepEqual(fresh, committed, 'deterministic and up to date (run node build.mjs)');
+});
+
+test('chart format id: writes go-go-harmoniyo.chart, still reads the legacy handbell-hero.chart', () => {
+  const schema = JSON.parse(readFileSync(join(root, 'schema', 'chart.schema.json'), 'utf8'));
+  const chart = JSON.parse(readFileSync(join(root, 'charts', `${manifest.songs[0].id}.json`), 'utf8'));
+  assert.equal(chart.format, FORMAT);
+  assert.equal(FORMAT, 'go-go-harmoniyo.chart');
+  assert.deepEqual(validate(schema, { ...chart, format: 'handbell-hero.chart' }), []);
+  assert.equal(validate(schema, { ...chart, format: 'other.chart' }).length, 1);
+  assert.ok(isChartFormat('go-go-harmoniyo.chart') && isChartFormat('handbell-hero.chart'));
+  assert.ok(!isChartFormat('other.chart'));
 });
 
 test('Clone Hero / YARG export: track names and GH note ranges', () => {

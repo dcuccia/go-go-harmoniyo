@@ -65,7 +65,7 @@ Machine-readable tokens: [`pitch-class-palette.json`](pitch-class-palette.json).
 only through [`spikes/shared/pitch-palette.ts`](../../spikes/shared/pitch-palette.ts)
 (`pitchColor(midi)`, `isAccidental(midi)`), which the S4 web host, the I2 multi-ringer host and
 the S1 phone controller all import, so there is one copy of the hex values
-([#12](https://github.com/dcuccia/handbell-hero/issues/12)).
+([#12](https://github.com/dcuccia/go-go-harmoniyo/issues/12)).
 
 **Interop exception:** when a phone drives the YARG fork (I1), the phone may mirror YARG's own
 lane colors, so players can match what YARG shows on screen. That code only describes another

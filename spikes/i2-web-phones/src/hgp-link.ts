@@ -72,7 +72,7 @@ export class HgpLink {
     ws.onopen = () => {
       this.retryMs = 500;
       this.sync.reset();
-      ws.send(JSON.stringify({ type: 'hello', v: HGP_VERSION, kind: 'dashboard', deviceId: 'i2-game', name: 'I2 game', app: 'handbell-hero/i2-web-phones' }));
+      ws.send(JSON.stringify({ type: 'hello', v: HGP_VERSION, kind: 'dashboard', deviceId: 'i2-game', name: 'I2 game', app: 'go-go-harmoniyo/i2-web-phones' }));
       this.setState('open');
       let burst = 0;
       const ping = () => ws.readyState === WebSocket.OPEN && ws.send(JSON.stringify({ type: 'sync', id: ++this.syncId, t0: performance.now() }));

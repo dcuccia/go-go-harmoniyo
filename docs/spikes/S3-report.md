@@ -332,8 +332,8 @@ No other open-source option we know of matches this. Handbell-specific gaps:
   `dev` @ `696e149f` with YARG.Core @ `9dafd346` (unchanged).
 - Harness: [`spikes/s3-yarg-handbell/`](../../spikes/s3-yarg-handbell/README.md). It runs YARG.Core
   plus the fork's Unity-free HGP code headlessly and reproduces every number below.
-- Inputs used: S2 ([#2](https://github.com/dcuccia/handbell-hero/pull/2): YARG.Core runs per-ringer
-  engines unmodified) and S5 ([#3](https://github.com/dcuccia/handbell-hero/pull/3) @ `54675ba`: 8
+- Inputs used: S2 ([#2](https://github.com/dcuccia/go-go-harmoniyo/pull/2): YARG.Core runs per-ringer
+  engines unmodified) and S5 ([#3](https://github.com/dcuccia/go-go-harmoniyo/pull/3) @ `54675ba`: 8
   carols, 4 ringers, one ringer per 5-lane track).
 
 ### Headline

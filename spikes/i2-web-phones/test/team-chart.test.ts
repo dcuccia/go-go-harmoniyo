@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTeamChart, findPart, type S5Chart, type S5Part } from '../src/team-chart';
+import { buildTeamChart, CHART_FORMAT, findPart, isChartFormat, type S5Chart, type S5Part } from '../src/team-chart';
 import { pitchColor } from '../../shared/pitch-palette';
 
 function fixture(): S5Chart {
@@ -11,7 +11,7 @@ function fixture(): S5Chart {
   const notes = seq.map((bell, i) => ({ tick: i * 480, time: i * 0.5, durSec: 0.5, bell, ringer: r0.includes(bell) ? 0 : 1, role: 'melody' as const }));
   const part: S5Part = { difficulty: 'easy', ringerCount: 2, ringers: [{ index: 0, bells: r0 }, { index: 1, bells: r1 }], notes };
   return {
-    format: 'handbell-hero.chart',
+    format: 'go-go-harmoniyo.chart',
     formatVersion: '0.1.0',
     song: { id: 'fixture', title: 'Fixture', license: { id: 'CC0-1.0' } },
     timing: { tempos: [{ tick: 0, time: 0, bpm: 120 }], timeSignatures: [{ tick: 0, numerator: 4, denominator: 4 }], durationSec: 7 },
@@ -70,6 +70,13 @@ describe('buildTeamChart', () => {
     expect(t.ringers[0].laneStart).toBe(0);
     expect(t.chart.notes.length).toBe(4);
     expect(t.chart.backing.length).toBe(9);
+  });
+
+  it('accepts the current chart format id and the pre-rename one', () => {
+    expect(isChartFormat(CHART_FORMAT)).toBe(true);
+    expect(isChartFormat('go-go-harmoniyo.chart')).toBe(true);
+    expect(isChartFormat('handbell-hero.chart')).toBe(true);
+    expect(isChartFormat('other.chart')).toBe(false);
   });
 
   const charts = import.meta.glob('../public/charts/*.json', { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;

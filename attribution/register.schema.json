@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/dcuccia/handbell-hero/attribution/register.schema.json",
-  "title": "handbell-hero asset register",
+  "$id": "https://github.com/dcuccia/go-go-harmoniyo/attribution/register.schema.json",
+  "title": "Go Go HarmoniYo asset register",
   "description": "Machine-readable provenance and license register for every non-code asset (ADR-0008). tools/licensing/attribution.mjs validates it, checks coverage and pinned hashes, and generates ATTRIBUTION.md and attribution/credits.json.",
   "type": "object",
   "required": ["version", "coverage", "assets"],

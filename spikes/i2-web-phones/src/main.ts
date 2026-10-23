@@ -11,7 +11,7 @@ import type { SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { buildTeamChart, findPart, isChartFormat, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
 import { isAccidental } from '../../shared/pitch-palette';
 
@@ -81,6 +81,7 @@ async function loadChart(id: string): Promise<S5Chart> {
     const res = await fetch(`charts/${id}.json`);
     if (!res.ok) throw new Error(`charts/${id}.json: ${res.status} — run "npm run charts"`);
     c = (await res.json()) as S5Chart;
+    if (!isChartFormat(c.format)) throw new Error(`charts/${id}.json: unknown chart format "${c.format}"`);
     chartCache.set(id, c);
   }
   return c;

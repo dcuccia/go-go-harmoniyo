@@ -14,7 +14,7 @@
 |---|---|
 | ![ultra](media/s4-ultra-4k.png) | ![low](media/s4-low-1080p.png) |
 
-*Media re-captured 2026-10-23 after [#12](https://github.com/dcuccia/handbell-hero/issues/12):
+*Media re-captured 2026-10-23 after [#12](https://github.com/dcuccia/go-go-harmoniyo/issues/12):
 lanes, bells and hit effects now use the [pitch-class palette](../design/visual-identity.md#pitch-class-palette)
 (colour follows the bell's pitch, not its lane). The measurements below are from the original
 2026-10-22 run.*
@@ -212,7 +212,7 @@ workflow is added but **manual-only**:
 2. After this PR merges: *Actions → "S4 web host → GitHub Pages" → Run workflow* (on `main`).
    The default `github-pages` environment only allows `main`; to deploy from a branch, add it under
    *Settings → Environments → github-pages → Deployment branches*.
-3. The site appears at `https://dcuccia.github.io/handbell-hero/` (Vite `base: './'` makes the
+3. The site appears at `https://dcuccia.github.io/go-go-harmoniyo/` (Vite `base: './'` makes the
    build path-agnostic).
 
 ## Platform limits and caveats found

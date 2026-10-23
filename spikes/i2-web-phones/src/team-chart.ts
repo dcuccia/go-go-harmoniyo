@@ -21,8 +21,16 @@ export interface S5Part {
   ringers: { index: number; label?: string; bells: string[] }[];
   notes: S5Note[];
 }
+/** Chart format id written by the S5 pipeline. */
+export const CHART_FORMAT = 'go-go-harmoniyo.chart';
+/** Format id used before the rename to Go Go HarmoniYo (ADR-0009); still accepted on read. */
+export const LEGACY_CHART_FORMATS = ['handbell-hero.chart'] as const;
+export type ChartFormat = typeof CHART_FORMAT | (typeof LEGACY_CHART_FORMATS)[number];
+export const isChartFormat = (format: unknown): format is ChartFormat =>
+  format === CHART_FORMAT || (LEGACY_CHART_FORMATS as readonly unknown[]).includes(format);
+
 export interface S5Chart {
-  format: 'handbell-hero.chart';
+  format: ChartFormat;
   formatVersion: string;
   song: { id: string; title: string; composer?: string; license: { id: string } };
   timing: { tempos: { tick: number; time: number; bpm: number }[]; timeSignatures: { tick: number; numerator: number; denominator: number }[]; durationSec: number };

@@ -17,7 +17,7 @@ several difficulty tiers.
 
 | Option | Pros | Cons |
 |---|---|---|
-| Engine-neutral JSON (`handbell-hero.chart`, S5 schema) | Language-neutral, readable, JSON-Schema validated; bells first-class; parts per difficulty × ringer count × controller profile; ticks + seconds; license inside | New format; needs exporters for other games |
+| Engine-neutral JSON (`go-go-harmoniyo.chart`, S5 schema; was `handbell-hero.chart` until 2026-10-23) | Language-neutral, readable, JSON-Schema validated; bells first-class; parts per difficulty × ringer count × controller profile; ticks + seconds; license inside | New format; needs exporters for other games |
 | Rock Band/Clone Hero-style `.mid` (one 5-lane track per ringer) | Existing tooling (Moonscraper, YARG, CH); YARG can play it today | Lanes lose pitch; ≤ 5 ringers × ≤ 5 bells; one assignment per file; no license/role metadata; binary |
 | RB3 Pro Keys `.mid` | Keeps real pitches | One player, 25-key window, ≤ 4 simultaneous notes |
 | MusicXML as the chart | Standard notation interchange | No ringer assignment/difficulty/profile concepts; verbose; heavy to parse at runtime |
@@ -36,6 +36,9 @@ license register; the pipeline generates charts. RB/CH-style `.mid` is an **expo
 - The bell list per ringer maps directly to HGP host→device bell assignment (S1).
 - The schema moves out of `spikes/` to a product location set after M2; v0.x may change freely.
 - A YARG-based host would need a reader for this JSON or a generated `PART HANDBELL`-style track.
+- The format id is `go-go-harmoniyo.chart` since the 2026-10-23 rename
+  ([ADR-0009 amendment](0009-product-name.md#amendment-2026-10-23-repository-renamed)). Readers
+  also accept the earlier id `handbell-hero.chart`.
 
 ## Evidence
 

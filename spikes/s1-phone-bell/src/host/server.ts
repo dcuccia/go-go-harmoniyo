@@ -10,6 +10,7 @@ import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
+import net from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { join, normalize, resolve, sep } from 'node:path';
 import { performance } from 'node:perf_hooks';
@@ -111,7 +112,7 @@ async function tlsOptions(): Promise<{ key: string; cert: string; mode: string }
     if (c.expires > Date.now() + 86_400_000) return { key: c.key, cert: c.cert, mode: 'self-signed (cached)' };
   }
   const notAfterDate = new Date(Date.now() + 30 * 86_400_000);
-  const pems = await generateCert([{ name: 'commonName', value: `handbell-hero ${LAN_IP}` }], {
+  const pems = await generateCert([{ name: 'commonName', value: `go-go-harmoniyo ${LAN_IP}` }], {
     keySize: 2048,
     algorithm: 'sha256',
     notAfterDate,
@@ -767,12 +768,41 @@ function serveHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
   });
 }
 
+/**
+ * Fail fast if another process already answers on this port. On Windows a 0.0.0.0 bind can succeed
+ * next to an existing 127.0.0.1 listener, so clients on 127.0.0.1 would silently reach the other host.
+ */
+async function assertPortFree(port: number): Promise<void> {
+  const inUse = await new Promise<boolean>((done) => {
+    const s = net.connect({ host: '127.0.0.1', port });
+    s.setTimeout(500);
+    s.once('connect', () => { s.destroy(); done(true); });
+    s.once('timeout', () => { s.destroy(); done(false); });
+    s.once('error', () => done(false));
+  });
+  if (inUse) exitPortInUse(port);
+}
+
+function exitPortInUse(port: number): never {
+  console.error(`\n  Port ${port} is already in use (another S1/I2 host?). Stop it or pick another port.\n`);
+  process.exit(1);
+}
+
+function listenOrExit(server: http.Server | https.Server, port: number, host: string): void {
+  server.once('error', (e: NodeJS.ErrnoException) => {
+    if (e.code === 'EADDRINUSE') exitPortInUse(port);
+    throw e;
+  });
+  server.listen(port, host);
+}
+
 async function main(): Promise<void> {
   await buildWeb();
+  await assertPortFree(HTTP_PORT);
   const local = http.createServer((req, res) => serveHttp(req, res));
   attach(local);
   // Loopback only (dashboard + cloudflared) unless --no-https, where it is the phones' listener too.
-  local.listen(HTTP_PORT, args['no-https'] ? '0.0.0.0' : '127.0.0.1');
+  listenOrExit(local, HTTP_PORT, args['no-https'] ? '0.0.0.0' : '127.0.0.1');
   // 127.0.0.1, not "localhost": on Windows "localhost" may resolve to ::1 where another app can live.
   const dashboardUrl = `http://127.0.0.1:${HTTP_PORT}/dashboard`;
 
@@ -808,9 +838,10 @@ async function main(): Promise<void> {
   } else if (!args['no-https']) {
     const tls = await tlsOptions();
     tlsMode = tls.mode;
+    await assertPortFree(HTTPS_PORT);
     const secure = https.createServer({ key: tls.key, cert: tls.cert }, (req, res) => serveHttp(req, res));
     attach(secure);
-    secure.listen(HTTPS_PORT, '0.0.0.0');
+    listenOrExit(secure, HTTPS_PORT, '0.0.0.0');
     const host = args.hostname ?? LAN_IP;
     const url = args['public-url'] ?? `https://${host}${HTTPS_PORT === 443 ? '' : `:${HTTPS_PORT}`}/`;
     console.log(`  TLS:       ${tls.mode}`);
