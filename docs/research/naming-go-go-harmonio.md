@@ -4,7 +4,11 @@
 - Issue: [#13](https://github.com/dcuccia/handbell-hero/issues/13)
 - Candidates: **Go Go Harmonio** (primary, mascot "Harmonio") and **Go Go HarmoniYo** (owner's
   fallback, mascot "HarmoniYo" or "Yo"; "YoYo" is a family nickname)
-- Draft brand guide: [docs/design/brand.md](../design/brand.md)
+- Brand guide: [docs/design/brand.md](../design/brand.md)
+
+> **Decision (2026-10-23):** the owner chose **Go Go HarmoniYo**, with the mascot HarmoniYo
+> ("Yo"). See [ADR-0009](../decisions/0009-product-name.md). This report is kept as the evidence
+> record.
 
 > **Not legal advice.** This is a knockout screen from public databases and web searches done on
 > one day. It is not a full clearance search or an attorney opinion. Database coverage has gaps,

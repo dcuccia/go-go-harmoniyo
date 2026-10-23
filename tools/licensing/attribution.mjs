@@ -151,13 +151,14 @@ function renderCredits() {
   return {
     $comment: 'Generated from attribution/register.json by tools/licensing/attribution.mjs. Do not edit; the game renders this file in its credits screen.',
     project: {
-      name: 'handbell-hero',
+      name: 'Go Go HarmoniYo',
+      codeName: 'handbell-hero',
       url: 'https://github.com/dcuccia/handbell-hero',
       codeLicense: 'MIT',
       attributionUrl: 'https://github.com/dcuccia/handbell-hero/blob/main/ATTRIBUTION.md',
     },
     disclaimer:
-      'handbell-hero is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any game or product it mentions. All trademarks belong to their owners.',
+      'Go Go HarmoniYo is an independent open-source project. It is not affiliated with, endorsed by, or sponsored by the makers of any game or product it mentions. All trademarks belong to their owners.',
     sections: SECTIONS.map(([title, kinds]) => ({
       title,
       entries: credited.filter((a) => kinds.includes(a.kind)).map((a) => ({
@@ -180,10 +181,10 @@ function renderAttribution() {
     '',
     '# Attribution and licensing',
     '',
-    'handbell-hero is an independent open-source project. It gratefully builds on public-domain music,',
-    'the volunteers of the [Mutopia Project](https://www.mutopiaproject.org), and the open-source',
-    'libraries listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crediting a person, project',
-    'or game does **not** imply their endorsement, and handbell-hero is not affiliated with, endorsed',
+    'Go Go HarmoniYo (code name: handbell-hero) is an independent open-source project. It gratefully',
+    'builds on public-domain music, the volunteers of the [Mutopia Project](https://www.mutopiaproject.org),',
+    'and the open-source libraries listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). Crediting a',
+    'person, project or game does **not** imply their endorsement, and Go Go HarmoniYo is not affiliated with, endorsed',
     'by, or sponsored by the makers of any game it mentions as inspiration. All trademarks belong to',
     'their owners.',
     '',

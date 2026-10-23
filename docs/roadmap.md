@@ -48,25 +48,26 @@ lane; the room rings it together and the game celebrates streaks and team accura
 
 ## Naming
 
-"Handbell Hero" is the **code name** (repo, docs). Before the public holiday release we
-choose a distinct public name, because Activision holds a family of "[instrument] Hero"
-marks for music games (GUITAR HERO, BAND HERO, and filings for DRUM HERO, SING HERO,
-KEYBOARD HERO), which raises likelihood-of-confusion risk even for a free MIT project.
+**Decided (2026-10-23): the product name is Go Go HarmoniYo**
+([ADR-0009](decisions/0009-product-name.md)). The mascot is HarmoniYo, nicknamed "Yo". The rules
+are in the [brand guide](design/brand.md):
 
-- Shortlist by Nov 15 (alpha); decision by Dec 1; rename public surfaces by Dec 18.
-- Checks per candidate: USPTO (classes 9, 28, 41), app stores, GitHub/npm/NuGet, domain,
-  general web; no "Hero"-style evocation of Activision marks. Not legal advice — consult
-  counsel if commercial use is ever planned.
-- Starting ideas: Peal, Chime In, Ring Along, Bell Rush.
-- **Finalists (2026-10-23):** **Go Go Harmonio** and **Go Go HarmoniYo**. Both are general
-  umbrella names, with instrument editions such as "Go Go Harmonio: Bells". Neither has a blocker.
-  HarmoniYo is the cleaner mark, and all its domains and handles are free. See the
-  [name check](research/naming-go-go-harmonio.md) and the draft [brand guide](design/brand.md):
-  - always use the full name;
-  - the mascot name is for the character only;
-  - never write "GGH".
+- always use the full name;
+- never write "GGH";
+- editions are written "Go Go HarmoniYo: <Edition>" (for example "Go Go HarmoniYo: Bells");
+- never imply a connection to Yo-Yo Ma.
 
-  Owner to pick one and reserve the domain and handles.
+The evidence is in the [name check](research/naming-go-go-harmonio.md). We moved away from
+"Handbell Hero" because Activision holds a family of "[instrument] Hero" marks for music games
+(GUITAR HERO, BAND HERO, and filings for DRUM HERO, SING HERO, KEYBOARD HERO).
+
+- **The code name `handbell-hero` stays** for the repository (and older docs) until the public
+  release. Renaming the repository then is optional; GitHub redirects.
+- **Owner reservations** for the domain and handles are pending (see the
+  [rollout checklist](design/brand.md#6-rollout-checklist)). Visible spike titles are renamed in
+  #12.
+- **Before a public app-store launch:** do a full clearance search and consider a USPTO filing in
+  classes 9 and 41. Not legal advice; consult counsel.
 
 The Nov 15 alpha is deliberately ambitious; if a spike shows it is not achievable, cut
 scope (fewer carols, Android-only, keyboard fallback) rather than move the date.
