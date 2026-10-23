@@ -60,10 +60,11 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 | [docs/spikes/](docs/spikes/README.md) | Time-boxed experiments with explicit questions and kill criteria |
 | [docs/decisions/](docs/decisions/README.md) | Architecture decision records (ADRs) |
 | [docs/research/landscape.md](docs/research/landscape.md) | Prior art: open-source rhythm games, handbell software, DIY bells |
+| [docs/research/naming-go-go-harmonio.md](docs/research/naming-go-go-harmonio.md) | Product-name check (trademarks, stores, domains, handles) for Go Go Harmonio / Go Go HarmoniYo |
 | [docs/protocol/](docs/protocol/README.md) | Handbell Gesture Protocol (HGP) — the hardware-agnostic input contract |
 | `spikes/` | Spike code (one folder per spike); `s1-phone-bell`, `s4-web-host`, `s5-chart-pipeline`, `i2-web-phones` carry forward until a product-layout ADR |
 | [tools/setup/](tools/setup/README.md) | Idempotent machine setup: web stack (`setup-web.ps1`), YARG fork (`setup-yarg.ps1`) |
-| [docs/design/](docs/design/visual-identity.md) | Visual identity and the pitch-class colour palette |
+| [docs/design/](docs/design/visual-identity.md) | Visual identity, the pitch-class colour palette, and the draft [brand guide](docs/design/brand.md) |
 | [attribution/](attribution/register.json), [ATTRIBUTION.md](ATTRIBUTION.md) | Asset register (provenance + license per asset) and the generated credits |
 | [tools/licensing/](tools/licensing/README.md) | License gate, asset-register checks, attribution generator (CI: `licensing`) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Licenses, asset checklist, gen-AI rules, DCO sign-off |

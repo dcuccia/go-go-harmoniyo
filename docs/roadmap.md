@@ -58,6 +58,15 @@ KEYBOARD HERO), which raises likelihood-of-confusion risk even for a free MIT pr
   general web; no "Hero"-style evocation of Activision marks. Not legal advice — consult
   counsel if commercial use is ever planned.
 - Starting ideas: Peal, Chime In, Ring Along, Bell Rush.
+- **Finalists (2026-10-23):** **Go Go Harmonio** and **Go Go HarmoniYo**. Both are general
+  umbrella names, with instrument editions such as "Go Go Harmonio: Bells". Neither has a blocker.
+  HarmoniYo is the cleaner mark, and all its domains and handles are free. See the
+  [name check](research/naming-go-go-harmonio.md) and the draft [brand guide](design/brand.md):
+  - always use the full name;
+  - the mascot name is for the character only;
+  - never write "GGH".
+
+  Owner to pick one and reserve the domain and handles.
 
 The Nov 15 alpha is deliberately ambitious; if a spike shows it is not achievable, cut
 scope (fewer carols, Android-only, keyboard fallback) rather than move the date.
