@@ -43,6 +43,13 @@ drive any host.
 **Goal:** any phone becomes a bell by scanning a QR code — no install.
 - MVP: web page on iOS Safari + Android Chrome; motion permission flow; strike detection;
   shows assigned bell(s)/note name and color; wake lock; reconnect.
+- **Top alpha bug: [#10](https://github.com/dcuccia/handbell-hero/issues/10).** On a real
+  Pixel, QR pairing works but taps and rings don't register with the Node host. Simulated
+  phones pass (S1, I1, I2), so this is the first real-device finding. To investigate:
+  - Which runbook was used (I1 `npm run yarg` vs I2 `npm start`).
+  - Motion permission, calibration, and zone touch vs swing.
+  - WSS status in the dashboard.
+  - `chrome://inspect` console logs and `?record=1` traces.
 - Open: one phone covering 2+ bells (tilt/orientation, on-screen thumb zones, gesture
   direction, or difficulty-based single-bell parts?); local vs host sound; iOS silent switch
   and Web Audio; phone-holder ergonomics (see handbellSTLs).
@@ -69,8 +76,14 @@ drive any host.
 - Candidates: YARG fork (+ HGP input), web-native (TypeScript + WebGL/WebGPU), .NET core
   with Avalonia/Blazor shells, osu! ruleset (fallback). Multiple hosts allowed only on a
   shared core.
-- Open: shared-core language (C# via YARG.Core vs TypeScript); frame pacing on low-end
-  classroom hardware; audio clock accuracy in browsers (`AudioContext.outputLatency`).
+- Decided (M2):
+  - [ADR-0004](../decisions/0004-host-strategy.md): the product host is web-first, on an
+    engine we own. The YARG fork is a community/experimental track.
+  - [ADR-0005](../decisions/0005-shared-core-language.md): the shared core is TypeScript,
+    with HGP + chart JSON as language-neutral contracts tested by golden vectors.
+  - The alpha path is the I2 host.
+- Open: frame pacing on low-end classroom hardware; audio clock accuracy in browsers
+  (`AudioContext.outputLatency`); product code layout (follow-up ADR).
 - Learned (S3 Phase A): a YARG "thin fork" reuses Five-Lane Keys for up to 5 ringers × 5 bells,
   with band score and practice mode for free; ~13–20 agent-days to holiday MVP. Host is desktop
   only (Win x64/macOS/Linux x86_64; no browser/ChromeOS/ARM). YARG's engine clamps late-arriving
@@ -143,6 +156,8 @@ difficulties.
 - MVP: modal/additive synthesis (handbells are tuned with a strong 12th partial) or CC0 /
   self-recorded samples; backing track optional.
 - Open: sound on host vs phone vs both; owner-recorded handbell samples?; latency budget.
+  - Direction (ADR-0004): move to **real recorded handbell samples**, with a per-file
+    license.
   - S1: recommends sound on the phone (TV/HDMI/Bluetooth audio adds 50–150+ ms on the host).
     `/meter` in the S1 harness measures knock→sound latency; results are pending.
   - S4: an additive synth (fundamental + tuned 12th + inharmonic partials) is pleasant but not
@@ -185,6 +200,11 @@ audience reactions, festive themes (holiday theme for M5).
 - Microphone "listener": onset + pitch detection to score real bells/chimes or the
   standalone RP2040 bells.
 - MIDI / keyboard / game-controller adapters for development and accessibility.
+- Direction (ADR-0004): digital handbells are a **premium peripheral**. The preferred link
+  for bells is an **ESP-NOW → USB gateway dongle** (Web Serial, with HID/MIDI fallbacks);
+  phones use WSS, then WebRTC. See the
+  [connectivity research](../research/connectivity-and-deployment.md) and ADR-0006
+  (Proposed).
 
 ## E10 Community, upstream & licensing
 
@@ -194,6 +214,12 @@ audience reactions, festive themes (holiday theme for M5).
   - S2 drafted (not filed) a YARG.Core issue: `YargLogger` static ctor starts a thread and
     crashes browser-wasm; see [S2 report](../spikes/S2-report.md#the-blocker-and-the-patch).
 - License register for code, assets, songs, samples.
+- Decided ([ADR-0004](../decisions/0004-host-strategy.md)):
+  [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike) is a
+  community/experimental track (snapshot tag `handbell-spike-2026-10-23`).
+  - Keep it buildable with [`tools/setup/setup-yarg.ps1`](../../tools/setup/setup-yarg.ps1).
+  - Backport HGP input and the YARG/CH exporter to the YARG community where useful.
+  - Upstream seams only with owner approval. No product dependency on YARG.
 - Open (S3 Phase A): a YARG-based host is **non-commercial only** (BASS is free for non-commercial
   use only; YARG also ships CC BY-NC crowd SFX). Draft upstream issues (latency budget for network
   input devices; software device registration) are in the [S3 report](../spikes/S3-report.md).

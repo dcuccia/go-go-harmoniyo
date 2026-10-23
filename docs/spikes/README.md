@@ -1,20 +1,27 @@
 # Spikes
 
-Time-boxed experiments for milestone M1 (Oct 22 – Oct 30, 2026; alpha Nov 15). Each spike answers specific
+Time-boxed experiments for milestone M1 (Oct 22 – Oct 30, 2026; alpha Nov 15). **M1 is
+complete;** the M2 outcome is in [ADR-0004](../decisions/0004-host-strategy.md) and
+[ADR-0005](../decisions/0005-shared-core-language.md). Each spike answers specific
 questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Code goes in
 `spikes/<id>-<slug>/`; the report goes in `docs/spikes/<id>-report.md`. Follow
 [AGENTS.md](../../AGENTS.md).
 
-| ID | Spike | Feeds | Status | Owner action needed |
-|---|---|---|---|---|
-| S1 | Phone-bell input, timing & transport | E01, E02, E11 | [Harness + emulation done](S1-report.md); physical tests pending | Run the [20-min runbook](../../spikes/s1-phone-bell/README.md#owner-runbook-pixel-first-20-minutes) on Pixel (iPhone if available); send `summary.md` |
-| S2 | YARG.Core portability (console + browser WASM) | E03, E04 | Done — [report](S2-report.md): works on console + browser-wasm with a 5-line logger patch | Decide on upstreaming the logger fix; review LGPL-in-browser notes |
-| S3 | YARG handbell mode | E03, E10 | Phase A + B done ([report](S3-report.md#phase-b-results), fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike)); in-game TV check open | Play-test on the TV with `-hgp -hgp-keyboard` — see [next steps](S3-report.md#phase-b-next-steps-owner-at-the-pc) |
-| S4 | Web-native host prototype | E03, E05, E07 | **Done** — [report](S4-report.md) | Look at it on the TV; run Calibrate there; enable Pages if wanted |
-| S5 | Carol chart pipeline | E04, E06 | Done — [report](S5-report.md) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
-| S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Optional | — |
-| I1 | Integration: phones → YARG fork | E01, E03 | Sidecar + fork bridge done; simulated phones verified against the built YARG ([report](I1-yarg-phones.md)) | Play one carol with real phones — [owner runbook](I1-yarg-phones.md#owner-runbook-phones--yarg) |
-| I2 | Integration: phones → web host (S1 + S4 + S5) | E02, E03, E06 | Built; verified with simulated phones — [report](I2-web-phones.md) | Play it on the TV with real phones: [runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes) |
+| ID | Spike | Feeds | Status | Code at tag | Owner action needed |
+|---|---|---|---|---|---|
+| S1 | Phone-bell input, timing & transport | E01, E02, E11 | **Done** — [report](S1-report.md) (harness + emulation); physical phone tests pending, see [#10](https://github.com/dcuccia/handbell-hero/issues/10) | [`spike/s1-phone-bell`](https://github.com/dcuccia/handbell-hero/tree/spike/s1-phone-bell) | Run the [20-min runbook](../../spikes/s1-phone-bell/README.md#owner-runbook-pixel-first-20-minutes) on Pixel (iPhone if available); send `summary.md` |
+| S2 | YARG.Core portability (console + browser WASM) | E03, E04 | **Done** — [report](S2-report.md): works on console + browser-wasm with a 5-line logger patch | [`spike/s2-yarg-core`](https://github.com/dcuccia/handbell-hero/tree/spike/s2-yarg-core) | Decide on upstreaming the logger fix; review LGPL-in-browser notes |
+| S3 | YARG handbell mode | E03, E10 | **Done** — Phase A + B ([report](S3-report.md#phase-b-results)); fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike), snapshot tag `handbell-spike-2026-10-23` | [`spike/s3-yarg-desk-study`](https://github.com/dcuccia/handbell-hero/tree/spike/s3-yarg-desk-study), [`spike/s3-yarg-phase-b`](https://github.com/dcuccia/handbell-hero/tree/spike/s3-yarg-phase-b) | Optional: play-test on the TV with `-hgp -hgp-keyboard` — see [next steps](S3-report.md#phase-b-next-steps-owner-at-the-pc) |
+| S4 | Web-native host prototype | E03, E05, E07 | **Done** — [report](S4-report.md) | [`spike/s4-web-host`](https://github.com/dcuccia/handbell-hero/tree/spike/s4-web-host) | Look at it on the TV; run Calibrate there; enable Pages if wanted |
+| S5 | Carol chart pipeline | E04, E06 | **Done** — [report](S5-report.md) | [`spike/s5-chart-pipeline`](https://github.com/dcuccia/handbell-hero/tree/spike/s5-chart-pipeline) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
+| S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Not run (optional; not needed after [ADR-0004](../decisions/0004-host-strategy.md)) | — | — |
+| I1 | Integration: phones → YARG fork | E01, E03 | **Done** — sidecar + fork bridge; simulated phones verified against the built YARG ([report](I1-yarg-phones.md)) | [`integration/i1-yarg-phones`](https://github.com/dcuccia/handbell-hero/tree/integration/i1-yarg-phones) | Play one carol with real phones — [owner runbook](I1-yarg-phones.md#owner-runbook-phones--yarg) |
+| I2 | Integration: phones → web host (S1 + S4 + S5) | E02, E03, E06 | **Done** — verified with simulated phones ([report](I2-web-phones.md)); the alpha path per ADR-0004 | [`integration/i2-web-phones`](https://github.com/dcuccia/handbell-hero/tree/integration/i2-web-phones) | Play it on the TV with real phones: [runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes) |
+
+All spike and integration PRs (#1–#9) were merged into `main` with merge commits on 2026-10-23.
+Each tag above is an annotated tag on that PR's final head commit, so the spike can be checked
+out exactly as reviewed. Set up a machine for the carried-forward code with
+[tools/setup](../../tools/setup/README.md).
 
 Common time box: **one focused session (~1–2 days of agent work)**. Stop at the time box
 and report what you have.
