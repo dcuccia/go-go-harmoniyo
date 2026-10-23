@@ -10,5 +10,5 @@ Status: `Proposed` → `Accepted` (owner only) → optionally `Superseded by NNN
 | [0003](0003-holiday-v1-scope.md) | Holiday 2026 v1 scope | Accepted |
 | 0004 | Host engine | Pending M2 |
 | 0005 | Shared-core language | Pending M2 |
-| 0006 | Phone ↔ host transport | Pending M2 |
+| [0006](0006-phone-host-transport.md) | Phone ↔ host transport | Proposed (S1) |
 | [0007](0007-chart-format.md) | Chart format | Proposed (S5) |

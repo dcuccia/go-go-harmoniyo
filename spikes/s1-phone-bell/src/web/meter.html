@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Handbell Hero — latency meter</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body class="dashboard">
+    <h1>🎙️ Gesture → sound latency meter</h1>
+    <ol>
+      <li>Open this page on the PC (<code>http://localhost:8080/meter</code>) or any device with a microphone, near where the phone will be knocked.</li>
+      <li>On the dashboard pick the sound placement (phone or host) and start the <b>Sound-latency test</b>.</li>
+      <li>Press <b>Record</b> here, then knock the phone flat on the table ~once a second, 20–30 times. The phone (or PC) answers each knock with a 2 kHz beep.</li>
+      <li>Press <b>Stop &amp; analyse</b>. Delay = beep onset − knock onset (same microphone, same clock). The WAV is uploaded to the host for checking in Audacity.</li>
+    </ol>
+    <p><label>Label <input id="label" value="phone-sound" /></label> <button id="rec">Record</button> <button id="stop" disabled>Stop &amp; analyse</button></p>
+    <p id="state" class="small"></p>
+    <div id="out" class="md"></div>
+    <script type="module" src="/dist/meter.js"></script>
+  </body>
+</html>

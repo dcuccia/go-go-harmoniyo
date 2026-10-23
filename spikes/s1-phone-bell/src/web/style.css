@@ -1,0 +1,210 @@
+:root {
+  --bell: #e53935;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+body {
+  margin: 0;
+  background: #111;
+  color: #eee;
+}
+[hidden] {
+  display: none !important;
+}
+button {
+  font: inherit;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  border: 1px solid #555;
+  background: #2a2a2a;
+  color: #eee;
+  cursor: pointer;
+}
+button.big {
+  font-size: 1.5em;
+  padding: 0.8em 1.5em;
+}
+input,
+select {
+  font: inherit;
+  padding: 0.3em;
+  background: #222;
+  color: #eee;
+  border: 1px solid #555;
+  border-radius: 0.3em;
+}
+.small {
+  font-size: 0.8em;
+  opacity: 0.8;
+}
+.mono {
+  font-family: ui-monospace, Consolas, monospace;
+}
+.warn {
+  color: #ffb74d;
+}
+.row {
+  display: flex;
+  gap: 0.5em;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* controller */
+body.controller {
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  text-align: center;
+  min-height: 100vh;
+}
+#start-screen {
+  padding: 2em 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  align-items: center;
+}
+#main {
+  padding: 1em;
+}
+#banner {
+  background: #333;
+  border-left: 6px solid var(--bell);
+  padding: 0.6em;
+  margin-bottom: 0.8em;
+  text-align: left;
+}
+#bell {
+  margin: 0.5em auto 1em;
+  width: min(70vw, 50vh);
+  height: min(70vw, 50vh);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff8, var(--bell) 45%, #0006 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: min(25vw, 18vh);
+  font-weight: 800;
+  text-shadow: 0 2px 8px #0008;
+}
+#bell small {
+  font-size: 0.2em;
+  font-weight: 400;
+}
+#bell.tappable {
+  outline: 4px dashed #fff6;
+}
+#bell.hit {
+  animation: hit 0.25s ease-out;
+}
+@keyframes hit {
+  0% {
+    transform: scale(1.12);
+    filter: brightness(1.8);
+  }
+  100% {
+    transform: scale(1);
+    filter: none;
+  }
+}
+
+/* multi-bell: 2×2 thumb zones in the lower half; the circle shows the selected bell */
+body.multi #bell {
+  width: min(32vw, 22vh);
+  height: min(32vw, 22vh);
+  font-size: min(14vw, 10vh);
+}
+#zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3vw;
+  margin: 0 auto 1em;
+  max-width: 34em;
+}
+.zone {
+  --zone: #888;
+  height: min(30vw, 22vh);
+  border-radius: 1em;
+  border: 3px solid transparent;
+  background: color-mix(in srgb, var(--zone) 35%, #111);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: min(10vw, 7vh);
+  touch-action: none;
+}
+.zone small {
+  font-size: 0.35em;
+  opacity: 0.8;
+}
+.zone.selected {
+  background: var(--zone);
+  border-color: #fff;
+}
+.zone.next {
+  box-shadow: 0 0 0 4px #fff, 0 0 24px 6px var(--zone);
+  animation: pulse 0.6s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+  to {
+    box-shadow: 0 0 0 2px #fff, 0 0 8px 2px var(--zone);
+  }
+}
+
+/* dashboard */
+body.dashboard {
+  padding: 1em 1.5em;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1.5em;
+}
+#qr img {
+  width: 240px;
+  background: #fff;
+  border-radius: 8px;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9em;
+}
+th,
+td {
+  border-bottom: 1px solid #333;
+  padding: 0.3em 0.5em;
+  text-align: left;
+  vertical-align: top;
+}
+fieldset {
+  border: 1px solid #444;
+  border-radius: 0.5em;
+  margin: 0 0 1em;
+}
+#log {
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8em;
+}
+#results pre,
+.md {
+  white-space: pre-wrap;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.8em;
+  background: #1b1b1b;
+  padding: 0.6em;
+  border-radius: 0.4em;
+}
+.swatch {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  border-radius: 50%;
+  vertical-align: middle;
+}
