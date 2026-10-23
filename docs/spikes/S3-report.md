@@ -1,8 +1,10 @@
-# S3 report — YARG handbell mode (Phase A: desk study)
+# S3 report — YARG handbell mode (Phase A: desk study; Phase B: prototype)
 
 - Spike: [S3 brief](README.md#s3--yarg-handbell-mode)
-- Phase: **A only.** This was a desk study. No Unity install, no GitHub fork, and no upstream contact.
-  Phase B needs owner action ([plan below](#phase-b-plan-needs-owner)).
+- Phase A was a desk study: no Unity, no fork, no upstream contact.
+  **Phase B** (owner-approved, 2026-10-22/23) built the thin fork
+  [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike) and measured it.
+  See [Phase B results](#phase-b-results).
 - Date: 2026-10-22. Time box: one session.
 - Sources studied (read-only clones, not vendored):
   - [YARC-Official/YARG](https://github.com/YARC-Official/YARG) `dev` @ `696e149f` (2026-10-19). Code-search
@@ -17,6 +19,16 @@
   Then grep the paths cited below.
 
 ## TL;DR
+
+> **Phase B update (2026-10-23):**
+> - The thin fork compiles in Unity `6000.3.5f2` with 0 errors.
+> - All 8 S5 carols × 4 ringers load in YARG once per-ringer bell stems are added. Without audio,
+>   YARG drops them from the library.
+> - The arrival-time clamp is real: stock YARG gives p95 32 ms error on modeled typical Wi-Fi. A
+>   40 ms lookbehind makes it exact, with 0 lines changed in YARG.Core.
+> - Remaining work to the Nov 15 alpha is ≈3–5.5 agent-days, provided S1 delivers.
+>
+> Details: [Phase B results](#phase-b-results).
 
 1. **YARG can already show 3–5 handbell ringers today, without code changes.** Its *Five-Lane Keys*
    mode can play any of the five 5-lane parts in a chart (`PART GUITAR`, `PART GUITAR COOP`,
@@ -311,7 +323,216 @@ No other open-source option we know of matches this. Handbell-specific gaps:
 
 ---
 
+## Phase B results
+
+- Date: 2026-10-22/23. Status: **B0, B1 and B3 done; the S5 integration is done headlessly.**
+  Still open: in-game play on the TV (B2 look test) and real phones (B4, waiting on S1). Both need
+  the owner at the PC/TV.
+- Fork: [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike), based on
+  `dev` @ `696e149f` with YARG.Core @ `9dafd346` (unchanged).
+- Harness: [`spikes/s3-yarg-handbell/`](../../spikes/s3-yarg-handbell/README.md). It runs YARG.Core
+  plus the fork's Unity-free HGP code headlessly and reproduces every number below.
+- Inputs used: S2 ([#2](https://github.com/dcuccia/handbell-hero/pull/2): YARG.Core runs per-ringer
+  engines unmodified) and S5 ([#3](https://github.com/dcuccia/handbell-hero/pull/3) @ `54675ba`: 8
+  carols, 4 ringers, one ringer per 5-lane track).
+
+### Headline
+
+| Question | Answer |
+|---|---|
+| Does the fork build from source here? | **Yes.** Unity `6000.3.5f2` compiles the fork with the HGP changes and **0 errors**. The setup has one non-obvious step: a NuGet restore with the `NuGetForUnity.Cli` tool. See [B0/B1](#b0b1--tooling-and-first-build). |
+| Do S5's charts load in YARG? | **Not as exported.** YARG's song scanner rejects all 8 ("No audio accompanying the chart file"). **With rendered per-ringer bell stems, all 8 songs × 4 ringers scan and load** through YARG.Core's real `CacheHandler.RunScan` → `SongEntry.LoadChart()` path (283 ms for 8 songs). |
+| Is the arrival-time clamp real, and does the lookbehind fix it? | **Yes and yes.** Stock YARG on modeled typical Wi-Fi judges perfect strikes with **p95 32 ms** error. On congested Wi-Fi it turns **8.4 %** of perfect strikes into misses. A **40 ms lookbehind brings typical Wi-Fi to p95 0.0 ms**. It needs **0 lines in YARG.Core** and +45 in `BasePlayer`. |
+| Thin-fork size | 10 files, +831 / −1. Existing YARG files: +66 lines in 3 files. YARG.Core: untouched. |
+| Phase B kill criteria | **Pass** on all measured criteria ([below](#kill-criteria-check)). The TV-readability criterion is still open (owner). |
+
+### B0/B1 — tooling and first build
+
+| Step | Result | Time |
+|---|---|---|
+| Git LFS | Already installed (3.7.1) | — |
+| Unity Hub 3.22.4 | `winget install Unity.UnityHub` installs an **MSIX** package (not `C:\Program Files\Unity Hub`). CLI: `& "$((Get-AppxPackage UnityTechnologies.UnityHub).InstallLocation)\app\Unity Hub.exe" --% -- --headless install --version 6000.3.5f2 --changeset 3fa8bc678cb0` | — |
+| Unity `6000.3.5f2` (`3fa8bc678cb0`), Windows Mono only | Installed by the Hub CLI to `C:\Program Files\Unity\Hub\Editor\6000.3.5f2`; 8.2 GB on disk. The installer's `Dism.exe` child step hung at 0 % CPU after the files were complete; the editor works regardless. | ~35 min download + install |
+| Unity Personal license | The owner signed in via the Hub. **Batch mode picked up the license with no file copy.** The log shows `Code 10 while verifying Licensing Client signature` for the MSIX licensing client, then `Successfully resolved entitlement details`. | — |
+| Blender | `winget` failed (download.blender.org returned **403**, even for the checksum file). Installed the **5.2.3 LTS portable zip** per-user from the Berkeley OCF mirror. SHA-256 `723f08a4…5dc2fb` matches the mirror's checksum file. Registered `.blend` for the user (`blender --register`). Unity then imported YARG's `.blend` models (e.g. `Notes.blend`, 13 s). | 5 min |
+| Clone fork `dev` + submodule + LFS (`--filter=blob:none`) | 535 LFS files; 405 MB working tree | 45 s |
+| First batch-mode import (`-batchmode -nographics -quit`) | **91 compile errors**, all missing NuGet types (ZString, DryWetMidi, SolutionPersistence). NuGetForUnity's restore-on-load never runs when batch mode quits on compile errors. | 6.0 min |
+| `dotnet tool install NuGetForUnity.Cli --version 4.5.0 --tool-path …` then `nugetforunity restore <project>` | 16 packages restored | 14 s |
+| Second batch-mode import | **0 errors**, exit 0, script compile 29 s | 4.1 min |
+| Windows x64 player build (`-buildTarget Win64 -buildWindows64Player`) | **Success**: 562 MB player with BASS, yarg_audio and VLC natives. Incremental rebuild via the fork's `scripts/handbell/build.ps1`: 1.3 min. | 13.3 min |
+
+Recommendation: use the fork's `scripts/handbell/build.ps1`
+(NuGetForUnity CLI restore → batch-mode import → Win64 player). It runs headlessly, so agents
+and CI can build.
+
+### In-game smoke test (built player)
+
+- Command: `YARG.exe -hgp -hgp-keyboard -offline -persistent-data-path <scratch dir>`, plus
+  `S3Harness send --ringers 4`.
+- The bridge started on 127.0.0.1:47800 with a 40 ms budget.
+- **9 bell devices joined:** 5 keyboard ringers and 4 UDP ringers.
+- YARG **auto-created a profile for each one.** Each is "Ringer N", Five-Lane Keys
+  (`GameMode.ProKeys`), Expert, on the right part (slots 1–5 → FiveFretGuitar, FiveFretBass,
+  FiveFretRhythm, Keys, FiveFretCoopGuitar). Each has default bindings `bell1–5` → Green…Orange,
+  persisted in `profiles.json`/`bindings.json`.
+- YARG scanned and loaded with no errors from the HGP code.
+
+Not done by the agent:
+- **Playing a song.** On first launch YARG shows its *Anti-Piracy Statement* ("By using YARG, users
+  agree…"). Clicking "I understand" is an agreement, so it is the owner's call.
+- Song play, frame times and TV readability are the owner steps below.
+
+Notes for testers:
+- `-screen-fullscreen 0` is overridden by YARG's own display settings (it opened fullscreen at
+  2560×1600).
+- A second device in the same slot gets a de-duplicated name ("Ringer 1 1").
+- Profiles are written to disk only on exit.
+
+### S5 charts in YARG
+
+`S3Harness prepare` copies each S5 song folder and renders one bell stem per ringer
+(`guitar/bass/rhythm/keys.wav`, self-authored additive bell synthesis, MIT). YARG's mute-on-miss
+then silences exactly the ringer who missed. `S3Harness scan` uses YARG.Core's own scanner and
+chart loader:
+
+| Song | Ringers | Expert notes per ringer (1/2/3/4) |
+|---|---|---|
+| Deck the Halls | 4 | 43 / 58 / 49 / 39 |
+| Good King Wenceslas | 4 | 43 / 55 / 60 / 48 |
+| It Came Upon the Midnight Clear | 4 | 43 / 48 / 55 / 51 |
+| Jingle Bells | 4 | 64 / 66 / 68 / 79 |
+| Joy to the World | 4 | 27 / 26 / 29 / 34 |
+| Silent Night | 4 | 44 / 29 / 22 / 17 |
+| The Holly and the Ivy | 4 | 6 / 28 / 15 / 10 |
+| We Wish You a Merry Christmas | 4 | 18 / 20 / 34 / 28 |
+
+Feedback for S5/E04:
+- The exporter must emit **at least one audio file**, or YARG never lists the song.
+- 16-bit WAV stems are ~12 MB per song. Prefer `.opus`/`.ogg` (YARG supports both), which is
+  roughly 10× smaller.
+- `The Holly and the Ivy` ringer 1 has only 6 notes; S5's load balancing should look at it.
+
+### B3 — lookbehind measurements (headless, real YARG.Core engines)
+
+Method (`S3Harness latency`):
+- For each of the 8 songs × 4 ringers × 5 seeds (160 runs per row), the stock
+  `YargFiveLaneKeysEngine` runs with YARG's `EnginePreset.Default` Five-Lane Keys parameters. It is
+  advanced frame by frame at 60 fps, the way `BasePlayer.UpdateInputs` does.
+- Each strike is source-timestamped and arrives after a one-way network delay. The delay model is
+  base + exponential tail, sent over an ordered transport. **These are assumptions; S1 will measure
+  the real distribution.**
+- The bridge's clamps are applied (never in the future; monotonic per device).
+- "System error" = judged hit time − true strike time.
+
+**Perfect ringers** (human σ 0, clock-sync σ 0). This isolates what YARG adds:
+
+| Network (one-way) | Net p95 | Policy | Hit % | Overhits | \|err\| p50 | \|err\| p95 | Inputs moved by engine | Later than budget |
+|---|---|---|---|---|---|---|---|---|
+| good LAN (4 + exp 4 ms) | 16 ms | stock YARG | 100.0 % | 0 | 0.0 ms | 11.3 ms | 6190 | — |
+| good LAN | 16 ms | lookbehind 20 ms | 100.0 % | 0 | 0.0 ms | 0.0 ms | 50 | 50 |
+| good LAN | 16 ms | lookbehind 40 ms | 100.0 % | 0 | 0.0 ms | 0.0 ms | 0 | 0 |
+| typical Wi-Fi (8 + exp 10 ms) | 39 ms | stock YARG | 100.0 % | 2 | 9.0 ms | **32.1 ms** | 10459 | — |
+| typical Wi-Fi | 39 ms | lookbehind 20 ms | 100.0 % | 2 | 0.0 ms | 12.1 ms | 2047 | 2047 |
+| typical Wi-Fi | 39 ms | **lookbehind 40 ms** | 100.0 % | 0 | 0.0 ms | **0.0 ms** | 282 | 282 |
+| typical Wi-Fi | 39 ms | lookbehind 60 ms | 100.0 % | 0 | 0.0 ms | 0.0 ms | 38 | 38 |
+| congested Wi-Fi (15 + exp 25 ms) | 95 ms | stock YARG | **91.6 %** | 507 | 25.5 ms | 62.2 ms | 12540 | — |
+| congested Wi-Fi | 95 ms | lookbehind 40 ms | 97.9 % | 125 | 0.0 ms | 37.8 ms | 3838 | 3838 |
+| congested Wi-Fi | 95 ms | lookbehind 80 ms | 99.6 % | 22 | 0.0 ms | 4.0 ms | 801 | 801 |
+
+With zero network delay every policy is exact (0.0 ms; not shown).
+
+**Realistic ringers** (human σ 20 ms, clock-sync σ 5 ms per device). This shows the effect on
+gameplay. The error columns here also include YARG's chord rule: a chord is judged at its last
+strike.
+
+| Network | Policy | Hit % | Overhits | \|judged − strike\| p95 |
+|---|---|---|---|---|
+| ideal | stock YARG | 98.9 % | 71 | 19.2 ms |
+| typical Wi-Fi | stock YARG | 97.8 % | 126 | 39.8 ms |
+| typical Wi-Fi | lookbehind 40 ms | 98.8 % | 74 | 20.1 ms |
+| congested Wi-Fi | stock YARG | 86.8 % | 788 | 64.2 ms |
+| congested Wi-Fi | lookbehind 60 ms | 97.5 % | 148 | 33.2 ms |
+
+Conclusions:
+- On Wi-Fi the clamp matters. Stock YARG misjudges strikes by up to the network delay, which
+  costs hits and adds overhits once delays approach the ±hit window.
+- **A 40 ms default budget** makes typical home Wi-Fi exact. The cost is hit/miss feedback (note
+  "explodes") lagging 40 ms behind the strike; the note highway and audio are not delayed. Whether
+  40 ms of visual lag *feels* acceptable needs the in-game test on the TV.
+- Congested networks need 60–80 ms. A per-device **adaptive budget** (e.g. the observed p95 delay,
+  capped at 80 ms) is the natural follow-up. HGP should report per-device delay statistics (S1).
+
+Verified in the Input System 1.17.0 package source (`InputManager.cs` ~L3507): events are rejected
+only if older than **that device's** previous event. Past-timestamped events are otherwise
+accepted and carry their `eventPtr.time` into YARG's bindings. So risk R2 reduces to "keep each bell
+device monotonic", which `HgpBridge` does.
+
+### What was built (fork `handbell-spike`)
+
+| File | Purpose |
+|---|---|
+| `Integration/Hgp/Core/LookbehindInputQueue.cs` | Holds inputs until the engine's delayed clock reaches them; counts inputs later than the budget. Pure C#, tested headlessly. |
+| `Integration/Hgp/Core/HgpClockMap.cs`, `HgpPacket.cs`, `HgpRingerSlots.cs` | Localhost bridge wire format (`hgp0 hello/bye/sync/ring …`), min-delay clock mapping, ringer slot → instrument (S5 track order), `IInputLatencyBudget`. Pure C#. |
+| `Input/Devices/HgpBellDevice.cs` | Virtual Input System device: 8 bell buttons, ringer slot, latency budget |
+| `Integration/Hgp/HgpBridge.cs` | `-hgp`: UDP 127.0.0.1:47800 receiver. Queues state events at mapped source times, clamped to the past and monotonic per device. `-hgp-keyboard`: QWERT / ASDFG / ZXCVB / YUIOP / HJKL; feed 5 bell devices, with optional simulated network delay/jitter (`-hgp-kbd-delay-ms`, `-hgp-kbd-jitter-ms`). `-hgp-budget-ms 0` gives stock YARG for A/B tests. |
+| `Gameplay/Player/BasePlayer.cs` (+45) | Opt-in lookbehind: the engine runs `budget` behind input time for players whose devices declare a budget |
+| `Player/PlayerContainer.cs` (+18), `Input/Bindings/*` (+29) | A joining bell auto-creates a "Ringer N" profile in Five-Lane Keys on its part (Guitar/Bass/Rhythm/Keys/Coop), Expert, with default bindings bell i → Green…Orange |
+
+`S3Harness send` stands in for the S1 sidecar. It joins N simulated ringers, sends `sync` every
+100 ms, and can play a song's charts over the bridge with a modeled network delay.
+
+### Kill-criteria check
+
+| Criterion | Result |
+|---|---|
+| B1 produces a working build within 1 day of setup | **Pass**: the player built about 1 h after the editor install finished (13.3 min build) and runs; the bridge and profiles work in-game |
+| Lookbehind needs ≤ ~150 LOC in YARG.Core | **Pass**: 0 LOC in YARG.Core (+45 in `BasePlayer`, plus an 80-line queue) |
+| p95 judged error with 40 ms injected jitter ≤ 15 ms | **Pass**: typical Wi-Fi (p95 delay 39 ms) with a 40 ms budget gives p95 0.0 ms (stock: 32.1 ms) |
+| 5 highways readable on the TV at living-room distance | **Open**: needs the owner at the TV ([next steps](#phase-b-next-steps-owner-at-the-pc)) |
+
+### Updated effort estimate (alpha Nov 15, holiday Dec 18)
+
+The thin-fork core from Phase A's estimate is now written and compiles. The headless parts are
+measured.
+
+| Remaining for the **Nov 15 alpha** (2+ phones, ≥2 carols, team score, Windows) | Agent-days | Owner |
+|---|---|---|
+| In-game validation with keyboard feeder + `send` (fix whatever the first play finds) | 1–2 | 1–2 h at the PC/TV |
+| S1 sidecar → bridge (`hgp0` datagrams; or have the sidecar speak HGP and fold the bridge into it) | 1–2 | — (depends on S1) |
+| `build.ps1` (restore → import → player) + portable zip | 0.5–1 | — |
+| S5 exporter: emit opus stems (or our renderer) | 0.5 | — |
+| **Alpha subtotal** | **3–5.5** | **≈½ day** |
+| Holiday (M4): bell-on-hit samples, note-name lane labels, holiday theme, adaptive budget, 5th ringer, polish | 6–10 | playtests |
+
+Phase A estimated ~13–20 agent-days in total; roughly 4–5 of those are now done.
+
+Team scoring (from S2): YARG already shows a band score and a band multiplier (`EngineManager`,
+`ScoreBox`). That multiplier is driven by players in star power, not by a team streak. A
+handbell-style "team streak" multiplier would be new work (about 1–2 days, in YARG's
+`EngineManager`/HUD). It isn't needed for the alpha, where the existing band score suffices.
+
+The Nov 15 alpha is
+**achievable on the YARG path** provided S1 delivers a phone → sidecar path. Without S1, the alpha
+could ship with keyboard/gamepad ringers as the cut-scope fallback named in the roadmap.
+
+### Phase B next steps (owner at the PC)
+
+1. Build with the fork's `scripts/handbell/build.ps1`, or use the existing build in
+   `C:\Projects\YARG-handbell-build`.
+2. Run `YARG.exe -hgp -hgp-keyboard`. Accept the Anti-Piracy Statement if you agree with it. Add
+   `spikes/s3-yarg-handbell/out/songs` as a song folder, then rescan.
+3. Five "Ringer N" profiles appear automatically. Play *Silent Night* with 2–4 people on one
+   keyboard: QWERT / ASDFG / ZXCVB / YUIOP are ringers 1–4.
+4. Repeat with `-hgp-kbd-delay-ms 30 -hgp-kbd-jitter-ms 30`, once with `-hgp-budget-ms 0` and once
+   with `40`, to *feel* the difference. Check readability of 4 highways on the TV.
+5. Report: does 40 ms of feedback lag feel OK; are 4 highways readable; frame rate on the TV.
+6. When S1 lands: point its sidecar at UDP 127.0.0.1:47800 (`hgp0` format, see `HgpPacket.cs`) and
+   play with phones.
+
+---
+
 ## Draft upstream issues (not filed — owner approval required)
+
 
 ### Draft upstream issue 1: Latency budget for network / virtual input devices
 

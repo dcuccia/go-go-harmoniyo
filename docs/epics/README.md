@@ -58,6 +58,13 @@ drive any host.
   inputs to "now", so network input needs a lookbehind seam. If the web host judges in TypeScript
   and YARG in C#, the two hosts would not share a core.
   See [S3 report](../spikes/S3-report.md).
+- Learned (S3 Phase B):
+  - The thin fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike)
+    builds headlessly (Unity 6000.3.5f2; 13 min full player build, 1.3 min incremental).
+  - Phones join as virtual bell devices and get auto-profiles.
+  - A 40 ms input lookbehind makes modeled typical Wi-Fi judging exact (stock: p95 32 ms error).
+  - ≈3–5.5 agent-days remain to the Nov 15 alpha on this path.
+  - See [Phase B results](../spikes/S3-report.md#phase-b-results).
 - Spikes: S2, S3, S4, (S6).
 
 ## E04 Songs, charts & arrangement pipeline
@@ -71,6 +78,9 @@ difficulties.
   handbell notation symbols; arrangement sharing.
 - Open: engine-neutral chart format vs reuse RB/CH MIDI conventions; sources (Mutopia,
   IMSLP, self-authored) and their per-file licenses.
+- Learned (S3 Phase B): YARG drops a chart from its library entirely if the folder has no audio
+  stem. Exports must include at least one stem; per-ringer stems also give per-ringer
+  mute-on-miss. Prefer opus/ogg over WAV.
 - Spikes: S5.
 
 ## E05 Bell audio
