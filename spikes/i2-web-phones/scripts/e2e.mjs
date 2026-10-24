@@ -10,6 +10,7 @@
 // ring arrival latency, strays, and each simulated phone's ring plan and clock-sync health.
 import { spawn } from 'node:child_process';
 import { appendFileSync, copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { constants, setPriority } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -78,7 +79,7 @@ function startHost(port) {
 }
 
 function startSims(port, names, late, seconds) {
-  const p = spawn(process.execPath, [tsx, 'tools/sim-phones.ts', '--game', '--diag', '--url', `ws://127.0.0.1:${port}/hgp`, '--names', names.join(','), '--seconds', String(seconds), '--late', String(late ?? 0), '--jitter', '20', '--miss', '0.03'], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, ['--import', 'tsx', 'tools/sim-phones.ts', '--game', '--diag', '--url', `ws://127.0.0.1:${port}/hgp`, '--names', names.join(','), '--seconds', String(seconds), '--late', String(late ?? 0), '--jitter', '20', '--miss', '0.03'], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   p.diag = null;
   let buf = '';
   p.stdout.on('data', (d) => {
@@ -91,6 +92,12 @@ function startSims(port, names, late, seconds) {
     }
   });
   p.stderr.on('data', (d) => process.stdout.write(`    [sim!] ${d}`));
+  // The simulated phones stand in for separate devices, whose CPUs the host PC's load can't stall.
+  try {
+    setPriority(p.pid, constants.priority.PRIORITY_ABOVE_NORMAL);
+  } catch {
+    // not permitted here (e.g. some Linux containers): the sims then share the PC's load
+  }
   return p;
 }
 
