@@ -29,6 +29,10 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 > Alpha: **Nov 15, 2026**. First real target: **holiday 2026** — 3–5 people playing
 > Christmas carols in a living room, using their **phones as handbells** and a PC driving the
 > TV. Set up a machine with [tools/setup](tools/setup/README.md).
+>
+> **Play the prototype:** with Node.js 22+, run `npm start` at the repo root. It checks the setup
+> (ports, network, firewall), installs, builds and opens the game; scan the QR code with the
+> phones. See the [runbook](spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes).
 
 ## Guiding principles
 

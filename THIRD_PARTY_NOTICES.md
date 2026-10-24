@@ -22,7 +22,7 @@ Licenses are as declared in package metadata; they are not legal advice.
 
 ## npm packages (225)
 
-Projects: `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0). Scope comes from the lockfile:
+Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0). Scope comes from the lockfile:
 *runtime* ships with the app; *dev* is build/test tooling only; *optional* installs only when available.
 
 | Package | Version | License | Scope | Used by |

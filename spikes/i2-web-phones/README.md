@@ -16,17 +16,20 @@ Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hu
 ## Owner runbook (TV playthrough, ~10 minutes)
 
 **You need:** the Windows PC connected to the TV (HDMI), Node ≥ 22, Chrome or Edge, 1–4 phones
-on the **same Wi-Fi** as the PC. First run downloads npm packages (~1 min).
+on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run downloads npm packages
+(~1 min).
 
-1. On the PC, in this folder:
+1. On the PC, at the **repo root** (a fresh clone is fine):
    ```sh
-   cd spikes/i2-web-phones
-   npm install
-   npm start                      # builds the game, starts the S1 phone host, opens the game
+   npm start                      # checks the setup, installs, builds, starts the phone host, opens the game
    ```
-   If the PC has several network adapters and the QR shows the wrong address, use
-   `npm start -- --ip 192.168.x.y`. Allow Node through the Windows firewall (Private networks)
-   if Windows asks.
+   It first runs the [start-up checks](#start-up-checks-and-troubleshooting) and stops with a
+   fix if something would get in the way (old Node, a busy port). Read any **!** warnings: they
+   cover the wrong network adapter, the Windows Firewall and guest Wi-Fi. When the game is up it
+   prints the **TV** and **Phones** addresses. **Ctrl+C** stops it.
+   Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter) or
+   `npm start -- --tunnel` (guest/work Wi-Fi, or phones on mobile data). `npm start` in this
+   folder does the same.
 2. The browser opens **http://127.0.0.1:8080/game/** — drag it to the TV and press **F11**.
 3. Each ringer scans the QR on the TV. The phone warns about the certificate **once**
    (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this website*). Type a name,
@@ -77,6 +80,42 @@ Shift = 20 ms) — it is saved. `` ` `` shows timing stats (clock sync, ring→T
 Please send back: the results JSON (*Copy JSON*), the host's `data/<session>/` folder from
 `spikes/s1-phone-bell/data/`, and how it felt.
 
+### Start-up checks and troubleshooting
+
+`npm start` (repo root or this folder) runs `scripts/start.mjs`: it checks the setup, installs
+missing packages (`npm ci` in `spikes/s1-phone-bell`, `spikes/s4-web-host` and here, when
+`node_modules` is missing or older than `package-lock.json`), builds the game, then runs the S1
+host with `--game dist`. `npm run preflight` at the root (or `npm start -- --check`) runs only
+the checks and exits with 1 if something blocks the start. The checks only read the system; each
+problem prints a fix for you to run.
+
+| Check | ✗ stops / ! warns | What it says to do |
+|---|---|---|
+| Node.js older than 22 | ✗ | `pwsh tools/setup/setup-web.ps1 -AllowElevation`, or install the LTS from nodejs.org |
+| Port 8080 (TV page) or 8443 (phones) in use | ✗ | Names the program (PID). An old host (`node.exe`): Ctrl+C in its window. Docker/WSL: stop the container. Or `--http-port`/`--port` with a free port it suggests |
+| No private IPv4 address (only VPN, virtual or 169.254.x.x adapters) | ! | Join the same Wi-Fi as the phones, or `--tunnel` |
+| Several adapters | i | Prints the address phones will use and each alternative as `npm start -- --ip …`. Wi-Fi is preferred because phones are on Wi-Fi; virtual and VPN adapters (WSL, Hyper-V, Docker, NordLynx, Tailscale…) are ignored |
+| Windows Firewall (reads the Node.js rules and the network's Private/Public type) | ! | Network is Public but Node is allowed only on Private: make the network Private (Settings → Network & internet → Wi-Fi → network → Private) or `--tunnel`. A *Block* rule (Cancel on the prompt): how to remove it. No rule yet: tick **Private networks** when Windows asks. If it can't tell, a reminder to allow Node on Private networks |
+| Guest or work (domain) network | ! | Guest Wi-Fi keeps devices apart: use home Wi-Fi or `--tunnel` |
+| `--tunnel` without cloudflared | ✗ | `winget install --id Cloudflare.cloudflared`. A portable copy in `%LOCALAPPDATA%\Programs\cloudflared` (or WinGet Links, Program Files) works without being on PATH |
+
+The Windows network and firewall checks can take a few seconds on a busy PC; they run while
+the game builds, and if they take over 10 s more, their result is printed after the host starts.
+The QR code works as soon as the tunnel address arrives (#19); if cloudflared gives no address in
+45 s, the launcher says so.
+
+Not detected: client isolation on a Wi-Fi that isn't named like a guest network, and third-party
+firewalls. If the phones can't open the join page, try `npm start -- --tunnel`. The certificate
+warning on the phones and help on the TV are [#26](https://github.com/dcuccia/go-go-harmoniyo/issues/26)
+(the host prints the certificate tip in the console).
+
+**macOS and Linux (untested):** the same command and checks run. Port owners come from `lsof`
+(if installed). Wi-Fi is recognised as `en0` (macOS) or `wl*`/`wlan*` (Linux). Instead of the
+Windows Firewall check there is a reminder: macOS asks whether `node` may accept incoming
+connections (click Allow); on Linux, open TCP 8080 and 8443 in `ufw`/`firewalld` if a firewall is
+on. cloudflared is found on PATH or in `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`,
+`~/.local/bin`. The browser opens with `open` / `xdg-open`.
+
 ### Backing track (procedural)
 
 Try it first with **Jingle Bells · Easy · 1 ringer** (sleigh-ride groove under the melody),
@@ -107,7 +146,8 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | Command | What |
 |---|---|
 | `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`). |
-| `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; part names and difficulty; backing chord timeline, count-in and patterns). |
+| `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
+| `npm start -- --check` | Start-up checks only (same as `npm run preflight` at the repo root). `npm start -- --help` lists the options. |
 | `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
 | `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. |
 | `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
