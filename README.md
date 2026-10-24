@@ -13,16 +13,18 @@ solo, as a family, or as a whole classroom ringing together in front of one shar
 Notes scroll down per-ringer lanes; players *ring* real (or virtual) bells in time; the game
 judges timing, keeps team streaks, and makes learning ensemble music feel like a concert.
 
-> **Status (2026-10-23): spikes done; host decided.** Spikes S1–S5 and integrations I1/I2
+> **Status (2026-10-24): alpha in progress.** Spikes S1–S5 and integrations I1/I2
 > are merged, with posterity tags `spike/*` and `integration/*`.
 > - **Host:** a web-first host on an engine we own, with a TypeScript core
 >   ([ADR-0004](docs/decisions/0004-host-strategy.md),
 >   [ADR-0005](docs/decisions/0005-shared-core-language.md)). The YARG fork continues as a
 >   community/experimental track.
-> - **Prototype:** phones (simulated so far) drive 1–4 ringers on one TV
->   ([I2](docs/spikes/I2-web-phones.md)).
-> - **Top alpha bug:** real-phone rings don't register yet
->   ([#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10)).
+> - **Prototype:** phones drive 1–4 ringers on one TV ([I2](docs/spikes/I2-web-phones.md)). The
+>   owner has played it at home with a real Pixel.
+> - **Alpha plan:** [docs/plan/v0.1-alpha.md](docs/plan/v0.1-alpha.md) covers scope, exit
+>   criteria, the test plan and the release checklist. Milestones:
+>   [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/milestone/1) and
+>   [v0.2 holiday](https://github.com/dcuccia/go-go-harmoniyo/milestone/2).
 >
 > Alpha: **Nov 15, 2026**. First real target: **holiday 2026** — 3–5 people playing
 > Christmas carols in a living room, using their **phones as handbells** and a PC driving the
@@ -58,13 +60,14 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 | Path | Purpose |
 |---|---|
 | [docs/roadmap.md](docs/roadmap.md) | Milestones, dates, and the current decision gate |
+| [docs/plan/](docs/plan/v0.1-alpha.md) | Release plans: the [v0.1.0-alpha and holiday plan](docs/plan/v0.1-alpha.md) |
 | [docs/epics/](docs/epics/README.md) | Long-lived workstreams (input, engine, songs, audio, …) |
 | [docs/spikes/](docs/spikes/README.md) | Time-boxed experiments with explicit questions and kill criteria |
 | [docs/decisions/](docs/decisions/README.md) | Architecture decision records (ADRs) |
 | [docs/research/landscape.md](docs/research/landscape.md) | Prior art: open-source rhythm games, handbell software, DIY bells |
 | [docs/research/naming-go-go-harmonio.md](docs/research/naming-go-go-harmonio.md) | Product-name check (trademarks, stores, domains, handles) for Go Go Harmonio / Go Go HarmoniYo |
 | [docs/protocol/](docs/protocol/README.md) | Handbell Gesture Protocol (HGP) — the hardware-agnostic input contract |
-| `spikes/` | Spike code (one folder per spike); `s1-phone-bell`, `s4-web-host`, `s5-chart-pipeline`, `i2-web-phones` carry forward until a product-layout ADR |
+| `spikes/` | Spike code (one folder per spike); `s1-phone-bell`, `s4-web-host`, `s5-chart-pipeline`, `i2-web-phones` carry forward until they graduate per [ADR-0010](docs/decisions/0010-product-layout.md) (Proposed) |
 | [tools/setup/](tools/setup/README.md) | Idempotent machine setup: web stack (`setup-web.ps1`), YARG fork (`setup-yarg.ps1`) |
 | [docs/design/](docs/design/visual-identity.md) | Visual identity, the pitch-class colour palette, and the [brand guide](docs/design/brand.md) (name rules, logo direction, mascot brief) |
 | [attribution/](attribution/register.json), [ATTRIBUTION.md](ATTRIBUTION.md) | Asset register (provenance + license per asset) and the generated credits |
