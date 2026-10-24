@@ -43,13 +43,14 @@ drive any host.
 **Goal:** any phone becomes a bell by scanning a QR code — no install.
 - MVP: web page on iOS Safari + Android Chrome; motion permission flow; strike detection;
   shows assigned bell(s)/note name and color; wake lock; reconnect.
-- **Top alpha bug: [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10).** On a real
-  Pixel, QR pairing works but taps and rings don't register with the Node host. Simulated
-  phones pass (S1, I1, I2), so this is the first real-device finding. To investigate:
-  - Which runbook was used (I1 `npm run yarg` vs I2 `npm start`).
-  - Motion permission, calibration, and zone touch vs swing.
-  - WSS status in the dashboard.
-  - `chrome://inspect` console logs and `?record=1` traces.
+- **Former top alpha bug, [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10) (resolved
+  2026-10-23).** Real Pixel rings didn't register. The causes were a guest Wi-Fi that couldn't
+  reach the PC (fixed with `--tunnel`, see [#19](https://github.com/dcuccia/go-go-harmoniyo/pull/19)) and a UX misunderstanding: zones *select* a bell
+  and the swing rings it. Swing detection works on a real Pixel. Tap-to-ring is under discussion
+  in [#20](https://github.com/dcuccia/go-go-harmoniyo/issues/20). iPhone work for the holiday:
+  [#31](https://github.com/dcuccia/go-go-harmoniyo/issues/31) and
+  [#34](https://github.com/dcuccia/go-go-harmoniyo/issues/34) (see the
+  [alpha plan](../plan/v0.1-alpha.md)).
 - Open: one phone covering 2+ bells (tilt/orientation, on-screen thumb zones, gesture
   direction, or difficulty-based single-bell parts?); local vs host sound; iOS silent switch
   and Web Audio; phone-holder ergonomics (see handbellSTLs).
@@ -83,7 +84,9 @@ drive any host.
     with HGP + chart JSON as language-neutral contracts tested by golden vectors.
   - The alpha path is the I2 host.
 - Open: frame pacing on low-end classroom hardware; audio clock accuracy in browsers
-  (`AudioContext.outputLatency`); product code layout (follow-up ADR).
+  (`AudioContext.outputLatency`); product code layout ([ADR-0010](../decisions/0010-product-layout.md),
+  Proposed: npm workspaces with `packages/`, `apps/`, `content/` and `contracts/`, graduated after
+  the alpha).
 - Learned (S3 Phase A): a YARG "thin fork" reuses Five-Lane Keys for up to 5 ringers × 5 bells,
   with band score and practice mode for free; ~13–20 agent-days to holiday MVP. Host is desktop
   only (Win x64/macOS/Linux x86_64; no browser/ChromeOS/ARM). YARG's engine clamps late-arriving
