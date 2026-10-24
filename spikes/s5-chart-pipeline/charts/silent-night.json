@@ -1,7 +1,7 @@
 {
   "format": "go-go-harmoniyo.chart",
-  "formatVersion": "0.1.0",
-  "generator": {"name":"go-go-harmoniyo/spikes/s5-chart-pipeline","version":"0.1.0"},
+  "formatVersion": "0.2.0",
+  "generator": {"name":"go-go-harmoniyo/spikes/s5-chart-pipeline","version":"0.2.0"},
   "song": {
     "id": "silent-night",
     "title": "Silent Night",
@@ -57,6 +57,51 @@
     {"id":"F5","midi":77,"natural":true}
   ],
   "handbellSet": {"set":"3oct","label":"3 octaves C4–C7 (37 bells)","transposeSemitones":19,"span":36},
+  "harmony": {
+    "source": "lead-sheet",
+    "style": "gentle",
+    "chords": [
+      {"tick":0,"time":0,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":1440,"time":2.143,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":2880,"time":4.286,"dur":1440,"durSec":2.143,"symbol":"G7","root":7,"bass":7,"tones":[7,11,2,5]},
+      {"tick":4320,"time":6.429,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":5760,"time":8.571,"dur":1440,"durSec":2.143,"symbol":"F","root":5,"bass":5,"tones":[5,9,0]},
+      {"tick":7200,"time":10.714,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":8640,"time":12.857,"dur":1440,"durSec":2.143,"symbol":"F","root":5,"bass":5,"tones":[5,9,0]},
+      {"tick":10080,"time":15,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":11520,"time":17.143,"dur":1440,"durSec":2.143,"symbol":"G7","root":7,"bass":7,"tones":[7,11,2,5]},
+      {"tick":12960,"time":19.286,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":14400,"time":21.429,"dur":720,"durSec":1.071,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]},
+      {"tick":15120,"time":22.5,"dur":720,"durSec":1.071,"symbol":"G7","root":7,"bass":7,"tones":[7,11,2,5]},
+      {"tick":15840,"time":23.571,"dur":1440,"durSec":2.143,"symbol":"C","root":0,"bass":0,"tones":[0,4,7]}
+    ],
+    "beats": [
+      {"tick":0,"time":0,"bar":1,"beat":0,"div":3,"strong":true,"chord":0},
+      {"tick":720,"time":1.071,"bar":1,"beat":1,"div":3,"strong":true,"chord":0},
+      {"tick":1440,"time":2.143,"bar":2,"beat":0,"div":3,"strong":true,"chord":1},
+      {"tick":2160,"time":3.214,"bar":2,"beat":1,"div":3,"strong":true,"chord":1},
+      {"tick":2880,"time":4.286,"bar":3,"beat":0,"div":3,"strong":true,"chord":2},
+      {"tick":3600,"time":5.357,"bar":3,"beat":1,"div":3,"strong":true,"chord":2},
+      {"tick":4320,"time":6.429,"bar":4,"beat":0,"div":3,"strong":true,"chord":3},
+      {"tick":5040,"time":7.5,"bar":4,"beat":1,"div":3,"strong":true,"chord":3},
+      {"tick":5760,"time":8.571,"bar":5,"beat":0,"div":3,"strong":true,"chord":4},
+      {"tick":6480,"time":9.643,"bar":5,"beat":1,"div":3,"strong":true,"chord":4},
+      {"tick":7200,"time":10.714,"bar":6,"beat":0,"div":3,"strong":true,"chord":5},
+      {"tick":7920,"time":11.786,"bar":6,"beat":1,"div":3,"strong":true,"chord":5},
+      {"tick":8640,"time":12.857,"bar":7,"beat":0,"div":3,"strong":true,"chord":6},
+      {"tick":9360,"time":13.929,"bar":7,"beat":1,"div":3,"strong":true,"chord":6},
+      {"tick":10080,"time":15,"bar":8,"beat":0,"div":3,"strong":true,"chord":7},
+      {"tick":10800,"time":16.071,"bar":8,"beat":1,"div":3,"strong":true,"chord":7},
+      {"tick":11520,"time":17.143,"bar":9,"beat":0,"div":3,"strong":true,"chord":8},
+      {"tick":12240,"time":18.214,"bar":9,"beat":1,"div":3,"strong":true,"chord":8},
+      {"tick":12960,"time":19.286,"bar":10,"beat":0,"div":3,"strong":true,"chord":9},
+      {"tick":13680,"time":20.357,"bar":10,"beat":1,"div":3,"strong":true,"chord":9},
+      {"tick":14400,"time":21.429,"bar":11,"beat":0,"div":3,"strong":true,"chord":10},
+      {"tick":15120,"time":22.5,"bar":11,"beat":1,"div":3,"strong":true,"chord":11},
+      {"tick":15840,"time":23.571,"bar":12,"beat":0,"div":3,"strong":true,"chord":12},
+      {"tick":16560,"time":24.643,"bar":12,"beat":1,"div":3,"strong":true,"chord":12}
+    ]
+  },
   "parts": [
     {
       "difficulty": "easy",

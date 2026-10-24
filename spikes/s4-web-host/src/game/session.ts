@@ -15,6 +15,14 @@ export type SessionHud = Pick<Hud, 'reset' | 'judgement' | 'update'>;
 export interface SessionOptions {
   /** Play the bell on the host when a player rings (default true). Off when phones sound locally. */
   hostRingSound?: boolean;
+  /**
+   * Extra audio events (e.g. a backing track or count-in clicks) scheduled on the same
+   * AudioContext timeline as the chart: `time` is song time in seconds (may be negative, down to
+   * −leadIn, for a count-in); `play(when)` gets the exact context time to start at.
+   */
+  extraEvents?: Scheduled[];
+  /** Seconds between start() and song time 0 (default 3). */
+  leadIn?: number;
 }
 
 export interface Offsets {
@@ -24,7 +32,7 @@ export interface Offsets {
   inputMs: number;
 }
 
-interface Scheduled {
+export interface Scheduled {
   time: number;
   play: (when: number) => void;
 }
@@ -92,13 +100,14 @@ export class Session {
       // Count-in clicks.
       for (let b = 0; b < 4; b++) this.scheduled.push({ time: chart.beatTimes[b], play: (w) => audio.click(w, b === 0) });
     }
+    if (opts.extraEvents) this.scheduled.push(...opts.extraEvents);
     this.scheduled.sort((a, b) => a.time - b.time);
     audio.prepare([...chart.lanes.map((l) => l.pitch), ...chart.backing.map((b) => b.pitch)]);
   }
 
   start(): void {
     this.audio.clock.update();
-    this.songStartCtx = this.audio.ctx.currentTime + LEAD_IN;
+    this.songStartCtx = this.audio.ctx.currentTime + (this.opts.leadIn ?? LEAD_IN);
     if (this.mode !== 'autoplay') for (const s of this.sources) s.start((e) => this.onGesture(e));
     this.renderer.setChart(this.chart);
     this.hud.reset(this.chart, this.mode);

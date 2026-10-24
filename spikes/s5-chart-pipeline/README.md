@@ -10,9 +10,28 @@ MIDI writer, so they can be bundled for a browser later.
 
 ```sh
 node build.mjs            # regenerate charts/, exports/, results/
-node --test               # 11 tests: importers, assignment, schema, determinism, export
+node --test               # 16 tests: importers, assignment, schema, determinism, export, harmony
 node build.mjs --ringers 3,4,5 --export-ringers 5
 ```
+
+## Harmony block (chart format 0.2)
+
+Each chart carries an optional `harmony` object for game-side backing tracks (used by the I2
+web game, `spikes/i2-web-phones/src/backing/`):
+
+- `chords[]`: `{ tick, time, dur, durSec, symbol, root, bass, tones }` (pitch classes, 0 = C).
+  `source` is `lead-sheet` when the file has chord symbols (the 5 ABC songs) and `inferred`
+  otherwise (the 3 Mutopia MIDI files: template matching per strong-beat segment with bass,
+  diatonic and tonic bonuses, `src/harmony.mjs`). Inferred chords are plausible, not
+  proofread; the melody-only Holly and the Ivy is the weakest.
+- `beats[]`: `{ tick, time, bar, beat, div, strong, chord }` — every beat with times from the
+  tempo map (compound meters count dotted quarters, `div` 3), and the chord sounding on it.
+- `style`: backing preset (`sleigh-ride`, `march`, `waltz`, `gentle`) from the manifest's
+  `options.backingStyle` (or an ABC `%%hh-backing-style` line), else a default from meter and
+  tempo.
+
+Readers that don't know `harmony` ignore it (unknown properties are ignored); charts without
+it still validate.
 
 ## Layout
 
@@ -23,6 +42,7 @@ node build.mjs --ringers 3,4,5 --export-ringers 5
 | `sources/mutopia/` | 3 Mutopia Project files (`.mid` input + `.ly` provenance), public domain |
 | `src/abc.mjs`, `src/midi.mjs`, `src/musicxml.mjs` | Importers → common score model (`src/score.mjs`) |
 | `src/arrange.mjs` | Melody/bass/inner role detection, lead-sheet realization, difficulty tiers |
+| `src/harmony.mjs` | Chord timeline + beat grid + backing style for the chart's `harmony` block; chord inference |
 | `src/assign.mjs` | Bell→ringer assignment (DP over contiguous natural slots) + playability repair; controller profiles |
 | `src/chart.mjs` | Engine-neutral chart JSON builder, handbell-set fit |
 | `src/export.mjs` | Clone Hero/YARG `notes.mid` + `song.ini`, General MIDI audition files, ASCII previews |
