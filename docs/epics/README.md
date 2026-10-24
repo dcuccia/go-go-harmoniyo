@@ -148,6 +148,9 @@ difficulties.
   non-contiguous bells on easy?), hard-tier melody concentrating on one ringer, pitch-set
   reduction when a phone covers ≤ 2 bells, bell-synth audio render for exports, proofreading
   workflow for self-encoded songs.
+- Chart format 0.2 (S5, for the I2 backing track): optional `harmony` block — chord symbols,
+  beat grid (tempo/meter changes resolved to seconds) and a backing style per song. Mutopia
+  scores without chord symbols get chords inferred from their notes (unproofread).
 - Spikes: S5.
 
 ## E05 Bell audio
@@ -162,6 +165,15 @@ difficulties.
     `/meter` in the S1 harness measures knock→sound latency; results are pending.
   - S4: an additive synth (fundamental + tuned 12th + inharmonic partials) is pleasant but not
     "beautiful"; Windows shared-mode output adds ~50 ms between a host-side ring and its sound.
+  - Backing track (I2, procedural): the TV synthesises a groove from each chart's chords —
+    sleigh bells, light kick/snare or brushes, walking/root–fifth bass, organ or warm pad — in
+    four style presets set from chart metadata (`sleigh-ride`, `march`, `waltz`, `gentle`), with
+    a count-in. No samples, so it is license-clean by construction. It is scheduled on the same
+    AudioContext timeline as the chart (render check: onsets within 0.06 ms of their slot; E2E
+    judging unchanged, 0 late schedules) and leaves out bass/inner tones the bells play. Default
+    mix ≈ 12–14 dB under the bells. Open: does a synth groove under phone bells feel right in a
+    living room, or does it need recorded loops/stems; a real ducking/limiter stage; per-song
+    hand-tuned patterns (intros, endings, fills); whether phones should play a quiet click.
 
 ## E06 Gameplay, scoring & team play
 
@@ -191,6 +203,10 @@ audience reactions, festive themes (holiday theme for M5).
     not its lane; naturals' lightness was stepped after a colour-vision check).
   - S4: procedural neon highway + bloom/particles reaches "Clone Hero default" level; the gap to
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
+  - Aural juice (I2): a procedural festive backing track (see E05) turns melody-only Easy into a
+    fuller song; lobby has Backing on/off + volume and a Count-in toggle (defaults: on, 50 %).
+    Next ideas: sleigh-bell swells on streaks, a cymbal/bell tree on full-team perfect phrases,
+    the backing thinning out on misses (classic "band drops out") — all procedural.
 
 ## E08 Classroom & coaching
 

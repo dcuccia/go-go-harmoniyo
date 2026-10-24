@@ -11,9 +11,12 @@ import type { SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, isChartFormat, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { buildTeamChart, findPart, isChartFormat, partBellNotes, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
 import { isAccidental } from '../../shared/pitch-palette';
+import { BackingTrack, DEFAULT_BACKING, type BackingSettings } from './backing/track';
+import { backingTimeline } from './backing/timeline';
+import { describe as describeBacking } from './backing/patterns';
 
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -26,6 +29,15 @@ const offsets: Offsets = { visualMs: 0, inputMs: 0, ...JSON.parse(localStorage.g
 if (params.has('vis')) offsets.visualMs = num('vis', 0);
 if (params.has('inp')) offsets.inputMs = num('inp', 0);
 const saveOffsets = (): void => localStorage.setItem(OFFSETS_KEY, JSON.stringify(offsets));
+
+// ── backing track settings (lobby; saved) ──────────────────────────────────
+const BACKING_KEY = 'i2.backing';
+const backingSettings: BackingSettings = { ...DEFAULT_BACKING, ...JSON.parse(localStorage.getItem(BACKING_KEY) ?? '{}') };
+if (params.has('backing')) backingSettings.enabled = flag('backing', true);
+if (params.has('backingVol')) backingSettings.volume = Math.max(0, Math.min(1, num('backingVol', 50) / 100));
+if (params.has('countin')) backingSettings.countIn = flag('countin', true);
+const saveBacking = (): void => localStorage.setItem(BACKING_KEY, JSON.stringify(backingSettings));
+let backing: BackingTrack | null = null;
 
 // ── engine pieces (S4) ──────────────────────────────────────────────────────
 const mh = new MultiHighway($('highways'), {
@@ -156,6 +168,11 @@ function renderLobby(): void {
   $<HTMLSelectElement>('sel-diff').value = difficulty;
   $<HTMLSelectElement>('sel-ringers').value = String(ringerCount);
   $<HTMLSelectElement>('sel-sound').value = soundMode;
+  $<HTMLInputElement>('chk-backing').checked = backingSettings.enabled;
+  $<HTMLInputElement>('rng-backing').value = String(Math.round(backingSettings.volume * 100));
+  $<HTMLInputElement>('rng-backing').disabled = !backingSettings.enabled;
+  $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
+  $<HTMLInputElement>('chk-countin').checked = backingSettings.countIn;
 
   const phones = link.phones;
   const opts = (sel: Slot): string =>
@@ -194,6 +211,7 @@ function renderLobby(): void {
     const m = part.notes.length;
     $('part-info').textContent = `${m} notes · ${preview?.ringers.reduce((a, r) => a + r.bells.length, 0)} bells on phones${preview?.ringers.some((r) => r.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the host' : ''} · chart profile ${index?.profile}`;
   }
+  $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
 
   $('phone-count').textContent = `(${onlinePhones().length} online)`;
   $('phones').innerHTML = phones
@@ -232,6 +250,20 @@ $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
 $<HTMLSelectElement>('sel-sound').onchange = (e) => {
   soundMode = (e.target as HTMLSelectElement).value as SoundMode;
   link.setSound(soundMode);
+};
+$<HTMLInputElement>('chk-backing').onchange = (e) => {
+  backingSettings.enabled = (e.target as HTMLInputElement).checked;
+  saveBacking();
+  renderLobby();
+};
+$<HTMLInputElement>('rng-backing').oninput = (e) => {
+  backingSettings.volume = Number((e.target as HTMLInputElement).value) / 100;
+  saveBacking();
+  $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
+};
+$<HTMLInputElement>('chk-countin').onchange = (e) => {
+  backingSettings.countIn = (e.target as HTMLInputElement).checked;
+  saveBacking();
 };
 
 let lastPhoneKey = '';
@@ -276,6 +308,8 @@ async function start(mode: Mode): Promise<void> {
   await audio.resume();
   session?.stop();
   session = null;
+  backing?.stop();
+  backing = null;
   await rebuild(mode);
   if (!team) return;
   if (mode === 'play' && !team.ringers.some((r) => slots[r.index] !== 'host')) {
@@ -283,6 +317,7 @@ async function start(mode: Mode): Promise<void> {
     return;
   }
   lastMode = mode;
+  (document.activeElement as HTMLElement | null)?.blur();
   const t = team;
   const lanes = laneMap();
   hgpInput = new HgpInputSource(link, (dev, bell) => lanes.get(`${dev}|${bell}`));
@@ -291,7 +326,11 @@ async function start(mode: Mode): Promise<void> {
   if (kbRinger) sources.push(keyboardRinger(kbRinger.laneStart, kbRinger.bells.length, (lane) => audio.bell(t.chart.lanes[lane].pitch, 0, 0.9, 0)));
 
   const hostRingSound = soundMode !== 'device';
-  const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound });
+  const s5 = chartCache.get(songId)!;
+  const part = findPart(s5, difficulty, ringerCount)!;
+  // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
+  backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
+  const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn });
   players = t.ringers.map((r) => newStats(slotName(slots[r.index], r.index), r.noteIds.length));
   teamHud.clearStats();
   s.onJudgement = (r, e) => {
@@ -385,6 +424,9 @@ function finish(r: SessionResult): void {
     difficulty,
     ringers: ringerCount,
     soundMode,
+    backing: backing
+      ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
+      : null,
     players: playerRows,
     autoRingers: team?.autoRingers,
     hgp: { input, hostClock: link.sync.estimate, joinUrl: link.info.joinUrl },
@@ -412,6 +454,8 @@ function finish(r: SessionResult): void {
 function toLobby(): void {
   session?.stop();
   session = null;
+  backing?.stop();
+  backing = null;
   clearCues();
   hud.show(false);
   $('results').classList.add('hidden');
@@ -427,7 +471,7 @@ $('btn-lobby').onclick = toLobby;
 $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').textContent ?? '');
 
 window.addEventListener('keydown', (e) => {
-  if ((e.target as HTMLElement).tagName === 'SELECT') return;
+  if (e.code !== 'Escape' && ['SELECT', 'INPUT'].includes((e.target as HTMLElement).tagName)) return;
   if (e.code === 'Escape') toLobby();
   else if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
@@ -466,7 +510,7 @@ function loop(ts: number): void {
     if (ts - lastLobby > 1000) {
       lastLobby = ts;
       if (!$('lobby').classList.contains('hidden')) {
-        const sel = document.activeElement?.tagName === 'SELECT';
+        const sel = ['SELECT', 'INPUT'].includes(document.activeElement?.tagName ?? '');
         if (!sel) renderLobby();
       }
     }

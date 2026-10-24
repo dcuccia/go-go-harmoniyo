@@ -72,8 +72,18 @@
               </select>
             </label>
           </div>
+          <div class="row backing-row">
+            <label title="Procedural groove from the song's chords: sleigh bells, light drums, bass and pad, under the bells">
+              <input type="checkbox" id="chk-backing" /> Backing track
+            </label>
+            <label>Volume <input type="range" id="rng-backing" min="0" max="100" step="5" /> <span id="backing-vol" class="dim"></span></label>
+            <label title="Woodblock clicks on the beat before the song starts">
+              <input type="checkbox" id="chk-countin" /> Count-in
+            </label>
+          </div>
           <div id="slots"></div>
           <div id="part-info" class="dim"></div>
+          <div id="backing-info" class="dim"></div>
           <div class="buttons">
             <button id="btn-play" class="primary">▶ Play</button>
             <button id="btn-auto">Autoplay demo</button>

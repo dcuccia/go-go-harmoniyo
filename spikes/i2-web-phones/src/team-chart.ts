@@ -3,6 +3,8 @@
 // Pure logic: no DOM, audio or network.
 import type { BackingNote, Chart, ChartNote, Lane } from '../../s4-web-host/src/core/chart';
 import { isAccidental, pitchColor } from '../../shared/pitch-palette';
+import type { BellNote } from './backing/patterns';
+import type { S5Harmony } from './backing/timeline';
 
 // ── S5 chart format (subset we read; see spikes/s5-chart-pipeline/schema/chart.schema.json) ──
 export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
@@ -35,11 +37,19 @@ export interface S5Chart {
   song: { id: string; title: string; composer?: string; license: { id: string } };
   timing: { tempos: { tick: number; time: number; bpm: number }[]; timeSignatures: { tick: number; numerator: number; denominator: number }[]; durationSec: number };
   bells: { id: string; midi: number }[];
+  /** Format 0.2+: chord timeline + beat grid for the procedural backing (absent in older charts). */
+  harmony?: S5Harmony;
   parts: S5Part[];
 }
 
 export function findPart(c: S5Chart, difficulty: Difficulty, ringerCount: number): S5Part | undefined {
   return c.parts.find((p) => p.difficulty === difficulty && p.ringerCount === ringerCount);
+}
+
+/** Every bell strike of a part (held by players or rung by the host), for backing exclusions. */
+export function partBellNotes(c: S5Chart, p: S5Part): BellNote[] {
+  const midiOf = new Map(c.bells.map((b) => [b.id, b.midi] as const));
+  return p.notes.map((n) => ({ time: n.time, dur: n.durSec ?? 0.5, midi: midiOf.get(n.bell) ?? 60, role: n.role }));
 }
 
 // ── team chart ───────────────────────────────────────────────────────────────

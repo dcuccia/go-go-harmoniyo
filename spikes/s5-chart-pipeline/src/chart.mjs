@@ -2,12 +2,14 @@
 import { pitchName, makeTimeMap, measureStarts, timeSigAt, isNatural } from './score.mjs';
 import { TIERS, tierNotes } from './arrange.mjs';
 import { PROFILES, assignBells, evaluateRinger, repair, ringerLabel } from './assign.mjs';
+import { buildHarmony } from './harmony.mjs';
 
 export const FORMAT = 'go-go-harmoniyo.chart';
 // Format ids written before the rename to Go Go HarmoniYo (ADR-0009); readers still accept them.
 export const LEGACY_FORMATS = ['handbell-hero.chart'];
-export const FORMAT_VERSION = '0.1.0';
-export const GENERATOR = { name: 'go-go-harmoniyo/spikes/s5-chart-pipeline', version: '0.1.0' };
+// 0.2.0 adds the optional `harmony` block (chords + beat grid + backing style); 0.1 readers ignore it.
+export const FORMAT_VERSION = '0.2.0';
+export const GENERATOR = { name: 'go-go-harmoniyo/spikes/s5-chart-pipeline', version: '0.2.0' };
 
 export const isChartFormat = (format) => format === FORMAT || LEGACY_FORMATS.includes(format);
 
@@ -104,9 +106,11 @@ function mapper(assignment) {
   return (midi) => m.get(midi);
 }
 
-// Pretty JSON with leaf objects/arrays (e.g. each note) on a single line.
+// Pretty JSON with leaf objects/arrays (e.g. each note) on a single line. Arrays of primitives
+// inside an object (e.g. a chord's `tones`) keep that object on one line.
 export function stringifyChart(value, indent = '') {
-  const isLeaf = (v) => v === null || typeof v !== 'object' || Object.values(v).every((x) => x === null || typeof x !== 'object');
+  const flat = (x) => x === null || typeof x !== 'object' || (Array.isArray(x) && x.every((y) => y === null || typeof y !== 'object'));
+  const isLeaf = (v) => v === null || typeof v !== 'object' || (Array.isArray(v) ? v.every((x) => x === null || typeof x !== 'object') : Object.values(v).every(flat));
   if (isLeaf(value)) return JSON.stringify(value);
   const inner = indent + '  ';
   if (Array.isArray(value)) return `[\n${value.map((v) => inner + stringifyChart(v, inner)).join(',\n')}\n${indent}]`;
@@ -121,6 +125,7 @@ export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], p
   const bellMidi = new Map(roleNotes.map((n) => [pitchName(n.midi), n.midi]));
   const bells = allMidis.map((id) => bellMidi.get(id)).sort((a, b) => a - b).map((m) => ({ id: pitchName(m), midi: m, natural: isNatural(m) }));
   const starts = measureStarts(score);
+  const harmony = buildHarmony(score, roleNotes);
   return {
     format: FORMAT,
     formatVersion: FORMAT_VERSION,
@@ -136,6 +141,7 @@ export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], p
     },
     bells,
     handbellSet: fitHandbellSet(bells.map((b) => b.midi)),
+    ...(harmony ? { harmony } : {}),
     parts,
   };
 }

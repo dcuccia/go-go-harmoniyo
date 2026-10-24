@@ -16,6 +16,7 @@ export function loadScore(entry, baseDir) {
   else throw new Error(`Unknown format ${entry.format}`);
   const o = entry.options || {};
   if (o.tempoQpm) score.tempos = [{ tick: 0, usPerQuarter: Math.round(60e6 / o.tempoQpm) }];
+  if (o.backingStyle) score.meta['backing-style'] = o.backingStyle;
   if (o.pickupTicks && !score.barTicks.length) {
     const bars = [];
     for (let t = o.pickupTicks; t < score.endTick; t += measureLength(score, timeSigAt(score, t))) bars.push(t);

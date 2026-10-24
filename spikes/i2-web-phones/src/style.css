@@ -53,6 +53,12 @@
 .setup label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; opacity: 0.9; }
 select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; background: #1a1a3a; color: #fff; border: 1px solid #556; max-width: 100%; }
 #sel-song { min-width: min(420px, 80vw); }
+.setup .backing-row { align-items: center; }
+.setup .backing-row label { flex-direction: row; align-items: center; gap: 8px; font-size: 15px; }
+.setup .backing-row input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--gold, #f3b01d); }
+.setup .backing-row input[type='range'] { width: 140px; accent-color: var(--gold, #f3b01d); }
+.setup .backing-row input:disabled { opacity: 0.4; }
+#backing-info { margin-top: 2px; }
 #slots { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
 .slot { display: grid; grid-template-columns: 82px 1fr minmax(160px, 220px); align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); }
 .bells i { display: inline-block; font-style: normal; font-weight: 800; font-size: 13px; padding: 2px 6px; margin: 1px 3px 1px 0; border-radius: 5px; color: #10121c; }

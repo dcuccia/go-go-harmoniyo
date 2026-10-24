@@ -39,6 +39,8 @@ license register; the pipeline generates charts. RB/CH-style `.mid` is an **expo
 - The format id is `go-go-harmoniyo.chart` since the 2026-10-23 rename
   ([ADR-0009 amendment](0009-product-name.md#amendment-2026-10-23-repository-renamed)). Readers
   also accept the earlier id `handbell-hero.chart`.
+- v0.2.0 (2026-10-23) adds an optional `harmony` block (chord symbols, beat grid, backing
+  style) for game-side backing tracks; additive, so v0.1 readers and charts keep working.
 
 ## Evidence
 

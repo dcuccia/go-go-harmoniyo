@@ -36,6 +36,21 @@ export class AudioEngine {
     if (this.ctx.state !== 'running') await this.ctx.resume();
   }
 
+  /**
+   * Mixes an external source (e.g. a backing-track bus) in with the bells: dry plus a `reverb`
+   * send into the shared hall. Returns a function that disconnects it again.
+   */
+  connect(node: AudioNode, reverb = 0): () => void {
+    node.connect(this.dry);
+    const send = this.ctx.createGain();
+    send.gain.value = reverb;
+    if (reverb > 0) node.connect(send).connect(this.send);
+    return () => {
+      node.disconnect();
+      send.disconnect();
+    };
+  }
+
   /** Pre-renders bell buffers so playback is a cheap BufferSource start. Returns ms spent. */
   prepare(pitches: Iterable<number>): number {
     const t0 = performance.now();

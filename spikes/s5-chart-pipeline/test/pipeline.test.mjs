@@ -13,6 +13,7 @@ import { buildChart, fitHandbellSet, FORMAT, isChartFormat } from '../src/chart.
 import { exportCloneHero, laneOf, CH_TRACKS } from '../src/export.mjs';
 import { loadSong } from '../src/pipeline.mjs';
 import { validate } from '../src/validate.mjs';
+import { buildHarmony, backingStyle, BACKING_STYLES } from '../src/harmony.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(join(root, 'songs', 'manifest.json'), 'utf8'));
@@ -168,4 +169,69 @@ test('Clone Hero / YARG export: track names and GH note ranges', () => {
   }
   assert.equal(laneOf(5, 6), 4);
   assert.equal(laneOf(2, 3), 2);
+});
+
+test('harmony: lead-sheet chords + beat grid carried into the chart (format 0.2)', () => {
+  const load = (id) => loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+  const jb = load('jingle-bells');
+  const h = buildHarmony(jb.score, jb.roleNotes);
+  assert.equal(h.source, 'lead-sheet');
+  assert.equal(h.style, 'sleigh-ride');
+  assert.deepEqual(h.chords.slice(0, 4).map((c) => [c.symbol, c.time, c.durSec]), [['G', 0, 2], ['G', 2, 2], ['G', 4, 2], ['C', 6, 2]]);
+  assert.deepEqual(h.chords[3].tones, [0, 4, 7]);
+  assert.equal(h.beats.length, 32 * 4);
+  assert.deepEqual(h.beats.slice(0, 5).map((b) => [b.time, b.bar, b.beat, b.div, b.strong, b.chord]), [[0, 1, 0, 2, true, 0], [0.5, 1, 1, 2, false, 0], [1, 1, 2, 2, true, 0], [1.5, 1, 3, 2, false, 0], [2, 2, 0, 2, true, 1]]);
+  // Compound meter: dotted-quarter beats, 3 subdivisions; G7 starts mid-bar on beat 2.
+  const sn = buildHarmony(load('silent-night').score, load('silent-night').roleNotes);
+  assert.equal(sn.style, 'gentle');
+  assert.equal(sn.beats.length, 12 * 2);
+  assert.ok(sn.beats.every((b) => b.div === 3));
+  assert.ok(Math.abs(sn.beats[1].time - 60 / 56) < 0.001);
+  const g7 = sn.chords.findLastIndex((c) => c.symbol === 'G7');
+  assert.equal(sn.beats.find((b) => b.bar === 11 && b.beat === 1).chord, g7);
+  // Pickup without a chord symbol: the pickup beat keeps its bar position and has no chord.
+  const ww = buildHarmony(load('we-wish-you-a-merry-christmas').score, load('we-wish-you-a-merry-christmas').roleNotes);
+  assert.deepEqual([ww.beats[0].beat, ww.beats[0].chord, ww.beats[1].beat, ww.beats[1].chord], [2, null, 0, 0]);
+  assert.equal(ww.style, 'waltz');
+});
+
+test('harmony: beat times follow tempo changes', () => {
+  const s = parseAbc('X:1\nT:t\nL:1/4\nM:4/4\nQ:1/4=120\nK:C\n"C"C D E F | "G"G A B c |\nQ:1/4=60\n"F"c B A G | "C"C4 |]\n');
+  const h = buildHarmony(s, s.notes.map((n) => ({ ...n, role: 'melody' })));
+  assert.deepEqual(h.beats.map((b) => b.time), [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 5, 6, 7, 8, 9, 10, 11]);
+  assert.deepEqual(h.chords.map((c) => [c.symbol, c.time, c.durSec]), [['C', 0, 2], ['G', 2, 2], ['F', 4, 4], ['C', 8, 4]]);
+});
+
+test('harmony: chords inferred for scores without chord symbols', () => {
+  const load = (id) => loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+  const gk = load('good-king-wenceslas');
+  const h = buildHarmony(gk.score, gk.roleNotes);
+  assert.equal(h.source, 'inferred');
+  assert.equal(h.chords[0].symbol, 'A', 'A major tonic');
+  assert.equal(h.chords.at(-1).symbol, 'A', 'ends on the tonic');
+  const hi = load('the-holly-and-the-ivy');
+  const hh = buildHarmony(hi.score, hi.roleNotes);
+  assert.equal(hh.chords.at(-1).symbol, 'F', 'melody-only song still ends on the tonic');
+  for (const c of [...h.chords, ...hh.chords]) assert.ok(c.dur > 0 && c.tones.includes(c.root));
+  // Deterministic, and contiguous from tick 0 to the end.
+  assert.deepEqual(buildHarmony(gk.score, gk.roleNotes), h);
+  assert.equal(h.chords[0].tick, 0);
+  for (let i = 1; i < h.chords.length; i++) assert.equal(h.chords[i].tick, h.chords[i - 1].tick + h.chords[i - 1].dur);
+  assert.equal(h.chords.at(-1).tick + h.chords.at(-1).dur, gk.score.endTick);
+  assert.throws(() => backingStyle({ meta: { 'backing-style': 'disco' }, timeSigs: [], tempos: [] }), /Unknown backing style/);
+  assert.ok(BACKING_STYLES.includes(backingStyle({ meta: {}, timeSigs: [{ tick: 0, num: 3, den: 4 }], tempos: [{ tick: 0, usPerQuarter: 500000 }] })));
+});
+
+test('harmony is optional: a 0.1 chart without it still validates', () => {
+  const schema = JSON.parse(readFileSync(join(root, 'schema', 'chart.schema.json'), 'utf8'));
+  const chart = JSON.parse(readFileSync(join(root, 'charts', 'jingle-bells.json'), 'utf8'));
+  assert.equal(chart.formatVersion, '0.2.0');
+  assert.ok(chart.harmony.chords.length > 0);
+  const old = { ...chart, formatVersion: '0.1.0' };
+  delete old.harmony;
+  assert.deepEqual(validate(schema, old), []);
+  const bad = structuredClone(chart);
+  bad.harmony.chords[0].root = 12;
+  bad.harmony.source = 'guess';
+  assert.equal(validate(schema, bad).length, 2);
 });

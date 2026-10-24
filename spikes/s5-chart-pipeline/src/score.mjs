@@ -119,10 +119,12 @@ export function measureStarts(score) {
   return out;
 }
 
-// Beat grid: [{ tick, downbeat, strong }].
+// Beat grid: [{ tick, downbeat, strong, measure, beat, div }].
 // Strong beats: beat 1 always; 4/4 adds beat 3; compound meters (6/8, 9/8, 12/8) count each
 // dotted-quarter pulse as a beat, and 6/8 / 12/8 add the mid-bar pulse as strong.
 // A short first measure is treated as a pickup aligned to its end.
+// measure = index into measureStarts(), beat = position in the bar (0-based, pickups keep their
+// bar position), div = subdivisions per beat (2 simple, 3 compound).
 export function beatGrid(score) {
   const starts = measureStarts(score);
   const out = [];
@@ -139,7 +141,7 @@ export function beatGrid(score) {
       const t = anchor + b * step;
       if (t < start || t >= end) continue;
       const strong = b === 0 || (beatsPerBar === 4 && b === 2) || (compound && beatsPerBar % 2 === 0 && b === beatsPerBar / 2);
-      out.push({ tick: t, downbeat: b === 0, strong });
+      out.push({ tick: t, downbeat: b === 0, strong, measure: i, beat: b, div: compound ? 3 : 2 });
     }
   }
   return out;

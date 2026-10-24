@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/dcuccia/go-go-harmoniyo/spikes/s5-chart-pipeline/schema/chart.schema.json",
-  "title": "Go Go HarmoniYo chart v0.1 (S5 proposal)",
+  "title": "Go Go HarmoniYo chart v0.2 (S5 proposal)",
   "description": "Engine-neutral handbell chart: one file per song, containing parts for several ringer counts and difficulty tiers. Times are given both in ticks (exact, for editing/export) and seconds (pre-computed from the tempo map, for playback). Unknown properties must be ignored by readers.",
   "type": "object",
   "required": ["format", "formatVersion", "song", "timing", "bells", "parts"],
@@ -76,6 +76,50 @@
       "description": "Smallest standard handbell set the bells fit, and the transposition needed (informational).",
       "properties": { "set": { "type": ["string", "null"] }, "label": { "type": "string" }, "transposeSemitones": { "type": "integer" }, "span": { "type": "integer" } }
     },
+    "harmony": {
+      "type": "object",
+      "description": "Optional (format 0.2+). Chord timeline and beat grid for a generated backing track. Readers that do not know it ignore it; charts without it play with no backing.",
+      "required": ["source", "chords", "beats"],
+      "properties": {
+        "source": { "enum": ["lead-sheet", "inferred"], "description": "lead-sheet: chord symbols written in the source file; inferred: chords estimated from the notes, one per strong-beat segment." },
+        "style": { "type": "string", "description": "Backing style preset, e.g. sleigh-ride, march, waltz, gentle. Unknown styles fall back to the reader's default." },
+        "chords": {
+          "type": "array",
+          "description": "Chord symbols in time order; a chord lasts until the next one (gaps = no chord).",
+          "items": {
+            "type": "object",
+            "required": ["tick", "time", "dur", "symbol", "root", "tones"],
+            "properties": {
+              "tick": { "$ref": "#/$defs/tick" },
+              "time": { "$ref": "#/$defs/seconds" },
+              "dur": { "type": "integer", "minimum": 1 },
+              "durSec": { "$ref": "#/$defs/seconds" },
+              "symbol": { "type": "string", "minLength": 1 },
+              "root": { "$ref": "#/$defs/pitchClass" },
+              "bass": { "$ref": "#/$defs/pitchClass" },
+              "tones": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/pitchClass" }, "description": "Pitch classes, root first (0 = C)." }
+            }
+          }
+        },
+        "beats": {
+          "type": "array",
+          "description": "Every beat of the song (compound meters: dotted-quarter beats), with times from the tempo map.",
+          "items": {
+            "type": "object",
+            "required": ["tick", "time", "bar", "beat"],
+            "properties": {
+              "tick": { "$ref": "#/$defs/tick" },
+              "time": { "$ref": "#/$defs/seconds" },
+              "bar": { "type": "integer", "minimum": 1, "description": "Measure number (matches timing.measures)." },
+              "beat": { "type": "integer", "minimum": 0, "description": "Beat position in the bar, 0 = downbeat (pickup beats keep their bar position)." },
+              "div": { "enum": [2, 3], "description": "Subdivisions per beat: 2 simple, 3 compound." },
+              "strong": { "type": "boolean" },
+              "chord": { "type": ["integer", "null"], "minimum": 0, "description": "Index into chords of the chord sounding on this beat." }
+            }
+          }
+        }
+      }
+    },
     "parts": {
       "type": "array", "minItems": 1,
       "items": { "$ref": "#/$defs/part" }
@@ -84,6 +128,7 @@
   "$defs": {
     "tick": { "type": "integer", "minimum": 0 },
     "seconds": { "type": "number", "minimum": 0 },
+    "pitchClass": { "type": "integer", "minimum": 0, "maximum": 11 },
     "bellId": { "type": "string", "pattern": "^[A-G]#?-?\\d$" },
     "part": {
       "type": "object",

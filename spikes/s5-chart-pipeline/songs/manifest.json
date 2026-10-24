@@ -7,7 +7,8 @@
       "format": "abc",
       "year": 1857,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Melody by James Lord Pierpont, published 1857 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." }
+      "source": { "kind": "self-encoded", "notes": "Melody by James Lord Pierpont, published 1857 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." },
+      "options": { "backingStyle": "sleigh-ride" }
     },
     {
       "id": "joy-to-the-world",
@@ -15,7 +16,8 @@
       "format": "abc",
       "year": 1839,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Tune ANTIOCH as arranged by Lowell Mason, 1839 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." }
+      "source": { "kind": "self-encoded", "notes": "Tune ANTIOCH as arranged by Lowell Mason, 1839 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." },
+      "options": { "backingStyle": "march" }
     },
     {
       "id": "silent-night",
@@ -23,7 +25,8 @@
       "format": "abc",
       "year": 1818,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Melody by Franz Xaver Gruber, 1818 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." }
+      "source": { "kind": "self-encoded", "notes": "Melody by Franz Xaver Gruber, 1818 (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." },
+      "options": { "backingStyle": "gentle" }
     },
     {
       "id": "deck-the-halls",
@@ -31,7 +34,8 @@
       "format": "abc",
       "year": 1862,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional Welsh melody 'Nos Galan' (public domain); English words 1862. Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." }
+      "source": { "kind": "self-encoded", "notes": "Traditional Welsh melody 'Nos Galan' (public domain); English words 1862. Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." },
+      "options": { "backingStyle": "sleigh-ride" }
     },
     {
       "id": "we-wish-you-a-merry-christmas",
@@ -39,7 +43,8 @@
       "format": "abc",
       "year": null,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional English (West Country) melody (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." }
+      "source": { "kind": "self-encoded", "notes": "Traditional English (West Country) melody (public domain). Encoded from the traditional tune by the S5 agent; chord symbols by the encoder. Needs a human proofread against a PD edition." },
+      "options": { "backingStyle": "waltz" }
     },
     {
       "id": "it-came-upon-the-midnight-clear",
@@ -50,7 +55,7 @@
       "year": 1850,
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
       "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1231", "fileUrl": "https://www.mutopiaproject.org/ftp/WillisRS/carol/carol.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). Source MIDI tempo is 60 qpm; overridden to 90 qpm for play." },
-      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "pickupTicks": 240, "tempoQpm": 90 }
+      "options": { "backingStyle": "gentle", "melodyVoice": "t1c1", "bassVoice": "t2c2", "pickupTicks": 240, "tempoQpm": 90 }
     },
     {
       "id": "good-king-wenceslas",
@@ -61,7 +66,7 @@
       "year": 1582,
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
       "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=905", "fileUrl": "https://www.mutopiaproject.org/ftp/Anonymous/GoodKingWenceslas/GoodKingWenceslas.mid", "attribution": "Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), from C. L. Hutchins, Carols Old and Carols New (1916), #415", "notes": "Four voices on two tracks (upper = S+A, lower = T+B), A major." },
-      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2" }
+      "options": { "backingStyle": "march", "melodyVoice": "t1c1", "bassVoice": "t2c2" }
     },
     {
       "id": "the-holly-and-the-ivy",
@@ -72,7 +77,7 @@
       "year": null,
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
       "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/thehollyandtheivy/thehollyandtheivy.mid", "attribution": "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644)", "notes": "Melody only (no harmony), so all tiers are melody-only: shows why lead-sheet chord symbols matter." },
-      "options": { "pickupTicks": 480 }
+      "options": { "backingStyle": "waltz", "pickupTicks": 480 }
     }
   ]
 }
