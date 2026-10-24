@@ -200,6 +200,21 @@ try {
     () => check('simulated phone Ready shows on the TV', true),
     () => check('simulated phone Ready shows on the TV', false),
   );
+  // Layout: the lobby's three columns (join / setup / phones) and the song dropdown must not overlap.
+  for (const [w, h] of [
+    [1280, 720],
+    [1920, 1080],
+  ]) {
+    await game.setViewportSize({ width: w, height: h });
+    await sleep(300);
+    const lay = await game.evaluate(() => {
+      const r = (s) => document.querySelector(s).getBoundingClientRect();
+      const [join, setup, phones, song] = [r('.lobby .join'), r('.lobby .setup'), r('.lobby .phones'), r('#sel-song')];
+      return { joinR: Math.round(join.right), setupL: Math.round(setup.left), setupR: Math.round(setup.right), phonesL: Math.round(phones.left), songR: Math.round(song.right), sameRow: Math.abs(setup.top - phones.top) < 5 };
+    });
+    check(`lobby columns don't overlap at ${w}×${h}`, lay.joinR <= lay.setupL + 1 && lay.songR <= lay.setupR + 1 && (!lay.sameRow || lay.setupR <= lay.phonesL + 1), JSON.stringify(lay));
+    if (shots && w === 1280) await game.screenshot({ path: join(outDir, 'i2-seating-lobby-1280.png') });
+  }
   if (shots) {
     await game.evaluate(() => document.activeElement?.blur());
     await game.mouse.move(5, 5);

@@ -53,6 +53,10 @@
 .setup label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; opacity: 0.9; }
 select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; background: #1a1a3a; color: #fff; border: 1px solid #556; max-width: 100%; }
 #sel-song { min-width: min(420px, 80vw); }
+/* Grid/flex items default to min-width:auto, so a long song <select> widened the middle column under the Phones panel. */
+.lobby > section, .setup .row label { min-width: 0; }
+.setup .row label:has(#sel-song) { flex: 1 1 100%; }
+#sel-song { width: 100%; min-width: 0; text-overflow: ellipsis; }
 .setup .backing-row { align-items: center; }
 .setup .backing-row label { flex-direction: row; align-items: center; gap: 8px; font-size: 15px; }
 .setup .backing-row input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--gold, #f3b01d); }

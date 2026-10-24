@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T01:45:49.418Z",
+  "at": "2026-10-24T02:20:50.521Z",
   "ok": true,
   "checks": [
     {
@@ -25,7 +25,7 @@
     {
       "name": "picker stays open, focused and is the same node across device broadcasts",
       "ok": true,
-      "detail": "{\"broadcasts\":6,\"picker\":true,\"expanded\":\"true\",\"song\":true,\"parts\":true,\"readyChip\":true}"
+      "detail": "{\"broadcasts\":4,\"picker\":true,\"expanded\":\"true\",\"song\":true,\"parts\":true,\"readyChip\":true}"
     },
     {
       "name": "song dropdown and part cards are patched in place, not replaced",
@@ -106,6 +106,16 @@
       "name": "simulated phone Ready shows on the TV",
       "ok": true,
       "detail": ""
+    },
+    {
+      "name": "lobby columns don't overlap at 1280×720",
+      "ok": true,
+      "detail": "{\"joinR\":377,\"setupL\":399,\"setupR\":881,\"phonesL\":903,\"songR\":881,\"sameRow\":true}"
+    },
+    {
+      "name": "lobby columns don't overlap at 1920×1080",
+      "ok": true,
+      "detail": "{\"joinR\":638,\"setupL\":660,\"setupR\":1260,\"phonesL\":1282,\"songR\":1260,\"sameRow\":true}"
     },
     {
       "name": "🎲 Shuffle seats everyone once",
