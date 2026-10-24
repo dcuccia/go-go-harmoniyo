@@ -188,6 +188,6 @@ $code = Write-SetupSummary
 if ($code -eq 0 -and -not (Test-SetupDryRun)) {
     Write-Host ''
     Write-Host 'Next: play the I2 web game on the TV with phones:' -ForegroundColor Cyan
-    Write-Host '  cd spikes\i2-web-phones; npm start   # allow Node.js on Private networks if Windows asks'
+    Write-Host '  npm start   # at the repo root; allow Node.js on Private networks if Windows asks'
 }
 exit $code
