@@ -1,0 +1,50 @@
+name: i2-web-phones
+
+on:
+  pull_request:
+    paths: ['spikes/i2-web-phones/**', 'spikes/s1-phone-bell/**', 'spikes/s4-web-host/**', 'spikes/s5-chart-pipeline/**', 'spikes/shared/**', 'docs/design/pitch-class-palette.json', '.github/workflows/i2-web-phones.yml']
+  push:
+    branches: [main]
+    paths: ['spikes/i2-web-phones/**', 'spikes/s1-phone-bell/**', 'spikes/s4-web-host/**', 'spikes/s5-chart-pipeline/**', 'spikes/shared/**', 'docs/design/pitch-class-palette.json', '.github/workflows/i2-web-phones.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+            spikes/s4-web-host/package-lock.json
+      - name: Install (I2 imports S1 and S4 sources)
+        run: |
+          for d in s1-phone-bell s4-web-host i2-web-phones; do (cd spikes/$d && npm ci); done
+      - name: S4 unit tests (judge, session miss sweep)
+        working-directory: spikes/s4-web-host
+        run: npm test
+      - name: I2 typecheck + unit tests
+        working-directory: spikes/i2-web-phones
+        run: |
+          npm run charts
+          npm run typecheck
+          npm test
+      - name: I2 end-to-end (S1 host + simulated phones + headless Chrome)
+        working-directory: spikes/i2-web-phones
+        run: |
+          npm run e2e
+          cat results/e2e-summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the E2E results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i2-e2e-results
+          path: spikes/i2-web-phones/results/e2e-*.json
+          if-no-files-found: ignore

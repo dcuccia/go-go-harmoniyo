@@ -23,6 +23,12 @@ export interface SessionOptions {
   extraEvents?: Scheduled[];
   /** Seconds between start() and song time 0 (default 3). */
   leadIn?: number;
+  /**
+   * Extra wait (ms) past the good window before an unhit note is declared a miss, so rings that
+   * are still in flight can be judged on their source timestamps (ADR-0002). Default 0 (local
+   * input). Networked phones need room for Wi-Fi power-save spikes (S1: up to ~200 ms).
+   */
+  missGraceMs?: number;
 }
 
 export interface Offsets {
@@ -59,6 +65,9 @@ export class Session {
   private schedPtr = 0;
   private autoPtr = 0;
   private lastRaf = NaN;
+  private lastCpu0 = NaN;
+  /** See SessionOptions.missGraceMs; may be adjusted while playing (e.g. to measured input latency). */
+  missGraceMs: number;
   private lastSong = NaN;
   private frameEst = 1000 / 60;
   private frameCount = 0;
@@ -91,6 +100,7 @@ export class Session {
     private readonly opts: SessionOptions = {},
   ) {
     this.judge = new Judge(chart.notes, chart.lanes.length);
+    this.missGraceMs = opts.missGraceMs ?? 0;
     const pans = chart.lanes.map((_, i) => (chart.lanes.length > 1 ? (i / (chart.lanes.length - 1)) * 1.2 - 0.6 : 0));
     for (const b of chart.backing) this.scheduled.push({ time: b.time, play: (w) => audio.bell(b.pitch, w, 0.25 + (b.velocity / 127) * 0.45, 0) });
     if (mode === 'autoplay') {
@@ -200,12 +210,16 @@ export class Session {
         this.renderer.hit(n.id, n.lane, 'perfect');
       }
     } else {
-      for (const miss of this.judge.sweep(songNow - this.offsets.inputMs / 1000)) {
+      // Sweep up to the previous frame's start, not this one's: input that arrived during a long
+      // frame is still queued behind this rAF callback and must get its chance to hit first.
+      const sweepPerf = (Number.isFinite(this.lastCpu0) ? this.lastCpu0 : cpu0) - this.missGraceMs;
+      for (const miss of this.judge.sweep(this.songTimeAt(sweepPerf) - this.offsets.inputMs / 1000)) {
         this.renderer.miss(miss.noteId, miss.lane);
         this.hud.judgement('miss');
         this.onJudgement?.(miss, null);
       }
     }
+    this.lastCpu0 = cpu0;
 
     if (this.frameCount > 30 && songDisplay > 0) {
       this.m.frameMs.push(dtMs);
