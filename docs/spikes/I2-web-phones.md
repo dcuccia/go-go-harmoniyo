@@ -126,6 +126,14 @@ zone, 300 ± 120 ms zone-touch lead). Reproduce: `npm run e2e` in `spikes/i2-web
   host (it uses the loopback listener); `npm run dev` also works against a host on port 8080.
 - Phones: unchanged from S1 — WSS on LAN with a one-time self-signed-cert warning; iOS untested.
   On iPhone the silent switch may mute the phone's bell: use "Phones + TV".
+- WebKit smoke test (#27, `node scripts/webkit-controller-check.mjs`, CI job `webkit-smoke`): S1's
+  phone page in Playwright WebKit 27.2 with an iPhone 15 profile over HTTPS (self-signed) passes on
+  Linux (15/15 checks: permission requested and Web Audio unlocked inside the tap, join, *Pick your
+  part*, touch → zone, next-zone glow 65/65, synthetic motion rings judged 63/65) and on Windows
+  (14/15; Playwright's Windows WebKit has no Web Audio, so that check is skipped). No WebKit-specific
+  failures found. Emulation can't show real sensors, the silent switch, the real certificate bypass,
+  Wake Lock or backgrounding ([results](../../spikes/i2-web-phones/results/webkit-controller-check.md));
+  the real iPhone test is #31/#34.
 - Each highway is one WebGL context (≤ 4 + none elsewhere), well under browser limits.
 
 ## Known limits / next steps

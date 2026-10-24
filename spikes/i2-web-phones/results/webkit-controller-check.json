@@ -1,0 +1,132 @@
+{
+  "at": "2026-10-24T23:05:58.180Z",
+  "ok": true,
+  "env": {
+    "device": "iPhone 15",
+    "webkit": "27.2",
+    "tv": "Chrome 155.0.8059.39",
+    "platform": "linux x64",
+    "node": "v22.23.3",
+    "ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.2 Mobile/15E148 Safari/604.1",
+    "nativeDeviceMotionEvent": true,
+    "nativeRequestPermission": false,
+    "webAudio": "native",
+    "wakeLockApi": true,
+    "audioSessionApi": false,
+    "motionEvents": "Event + defined properties"
+  },
+  "summary": {
+    "song": "jingle-bells",
+    "diff": "easy",
+    "zones": [
+      "B4",
+      "C5",
+      "D5",
+      "E5"
+    ],
+    "notes": 65,
+    "rung": 65,
+    "notesUnder260msApart": 5,
+    "hit": 63,
+    "perfect": 63,
+    "miss": 2,
+    "strays": 0,
+    "offsetMs": {
+      "n": 63,
+      "mean": -17.7,
+      "p50": -14.6,
+      "p95abs": 24.5
+    },
+    "glow": "65/65",
+    "input": {
+      "rings": 63,
+      "unsynced": 0,
+      "unmapped": 0,
+      "nonRing": 0,
+      "latencyMs": {
+        "n": 63,
+        "mean": 89.5,
+        "p50": 87.9,
+        "p95abs": 154.6
+      }
+    }
+  },
+  "checks": [
+    {
+      "name": "controller page loads over HTTPS (self-signed) as a secure context",
+      "status": "pass",
+      "detail": "HTTP 200, isSecureContext true"
+    },
+    {
+      "name": "Tap to start calls DeviceMotionEvent.requestPermission inside the tap",
+      "status": "pass",
+      "detail": "{\"what\":\"requestPermission\",\"inGesture\":true,\"t\":1065}"
+    },
+    {
+      "name": "Web Audio unlock on the tap (context created, silent buffer started and resumed inside the tap; running)",
+      "status": "pass",
+      "detail": "state running; new AudioContext (in tap), unlock buffer start (in tap), AudioContext.resume (in tap)"
+    },
+    {
+      "name": "calibration starts after Tap to start (uncalibrated phone)",
+      "status": "pass",
+      "detail": "Calibrating: ring 6 more times"
+    },
+    {
+      "name": "phone joins the host over WSS and appears on the TV",
+      "status": "pass",
+      "detail": "dev-n9r6sy28"
+    },
+    {
+      "name": "first phone takes the first part",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "\"Pick your part\" lists both parts with names, occupant and meter",
+      "status": "pass",
+      "detail": "Low melodyYouDEGAD4–A4●●○○○31 notes | High melody🤖 TV playsBCDEB4–E5●●●○○65 notes"
+    },
+    {
+      "name": "tapping a part the TV plays claims it",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "name": "6 synthetic rings calibrate the swing axis",
+      "status": "pass",
+      "detail": "axis [0.9999999979897124,-0.00006338870567659477,0.0000015644799884989025]; 499 devicemotion events via Event + defined properties; phone status: connected · devicemotion 60 Hz · sync ±0.5 ms, rtt 1 ms · sound: device · mode: ring"
+    },
+    {
+      "name": "synthetic motion rings reach the host (lobby practice: 4 rings, synced source times)",
+      "status": "pass",
+      "detail": "4 received: ring, ring, ring, ring"
+    },
+    {
+      "name": "touching a zone selects its bell (emulated touch → pointerdown)",
+      "status": "pass",
+      "detail": "selected zone 3 (want 3); touchstart 1, pointerdown 1"
+    },
+    {
+      "name": "zones show the part’s bells (low → high, like the highway)",
+      "status": "pass",
+      "detail": "B4 C5 D5 E5 vs part B4 C5 D5 E5"
+    },
+    {
+      "name": "the next zone glows for the upcoming note",
+      "status": "pass",
+      "detail": "65/65 samples"
+    },
+    {
+      "name": "motion rings during the song are judged as hits (≥ 70 % of notes)",
+      "status": "pass",
+      "detail": "63/65 hit (perfect 63, miss 2, strays 0; 5 notes < 260 ms after the previous one), offset {\"n\":63,\"mean\":-17.7,\"p50\":-14.6,\"p95abs\":24.5}"
+    },
+    {
+      "name": "no page errors",
+      "status": "pass",
+      "detail": ""
+    }
+  ],
+  "errors": []
+}

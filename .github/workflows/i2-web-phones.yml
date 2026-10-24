@@ -1,0 +1,150 @@
+name: i2-web-phones
+
+# The alpha path (docs/plan/v0.1-alpha.md, A7): the I2 game in spikes/i2-web-phones and the S1/S4/S5/shared
+# code it imports. Ports used by the e2e scripts are non-default (18080+, 18500, 18700).
+on:
+  pull_request:
+    paths:
+      - 'spikes/i2-web-phones/**'
+      - 'spikes/s1-phone-bell/**'
+      - 'spikes/s4-web-host/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - 'spikes/shared/**'
+      - 'docs/design/pitch-class-palette.json'
+      - '.github/workflows/i2-web-phones.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'spikes/i2-web-phones/**'
+      - 'spikes/s1-phone-bell/**'
+      - 'spikes/s4-web-host/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - 'spikes/shared/**'
+      - 'docs/design/pitch-class-palette.json'
+      - '.github/workflows/i2-web-phones.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: i2-web-phones-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: typecheck, unit tests, build, seating e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: spikes/i2-web-phones
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+            spikes/s4-web-host/package-lock.json
+      - name: npm ci (I2, plus S1 for the host and S4 for its tests)
+        run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+          npm ci --no-audit --no-fund --prefix ../s4-web-host
+      - run: npm run typecheck
+      # Build first: its prebuild generates public/charts/ (gitignored), which the chart, seating and
+      # backing tests need (they skip themselves without it).
+      - run: npm run build
+      - run: npm test
+      - name: S4 unit tests
+        working-directory: spikes/s4-web-host
+        run: npm test
+      - name: S5 unit tests
+        working-directory: spikes/s5-chart-pipeline
+        run: npm test
+      # Headless Chrome (preinstalled on ubuntu-latest). --ignore-scripts skips the pre-script's second build.
+      - name: Seating e2e (real S1 host, 2 emulated phone pages + 1 simulated phone)
+        run: npm run e2e:seating --ignore-scripts
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i2-seating-e2e
+          path: spikes/i2-web-phones/results/seating-e2e.json
+          if-no-files-found: ignore
+
+  # Non-blocking until #18 makes the timing scenarios deterministic
+  # (https://github.com/dcuccia/go-go-harmoniyo/issues/18). Then drop continue-on-error so it gates.
+  timing-e2e:
+    name: 'timing e2e (non-blocking until #18)'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: spikes/i2-web-phones
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+      - run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+      - run: npm run build
+      - name: 'Timing e2e (4 scenarios; flaky under load, see #18)'
+        id: e2e
+        continue-on-error: true
+        run: npm run e2e --ignore-scripts
+      - if: steps.e2e.outcome == 'failure'
+        run: >-
+          echo "::warning title=Timing e2e failed (non-blocking)::Known flake tracked in https://github.com/dcuccia/go-go-harmoniyo/issues/18"
+      - if: always()
+        run: cat results/e2e-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+
+  # Early Safari-engine signal for the phone controller (#27). Informational: not a substitute for a real
+  # iPhone, and Playwright's WebKit is not iOS Safari. See results/webkit-controller-check.md.
+  webkit-smoke:
+    name: WebKit controller smoke (iPhone emulation, informational)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: spikes/i2-web-phones
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+      - run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+      - name: Install Playwright WebKit (browser + system libraries; version pinned by playwright-core)
+        run: npx playwright-core install --with-deps webkit
+      - run: npm run build
+      - name: WebKit controller check
+        id: webkit
+        continue-on-error: true
+        run: node scripts/webkit-controller-check.mjs
+      - if: steps.webkit.outcome == 'failure'
+        run: >-
+          echo "::warning title=WebKit controller check failed (informational)::See the job summary and results/webkit-controller-check.md; file holiday issues under #34"
+      - if: always()
+        run: cat results/webkit-controller-check.md >> "$GITHUB_STEP_SUMMARY" || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i2-webkit-controller-check
+          path: |
+            spikes/i2-web-phones/results/webkit-controller-check.json
+            spikes/i2-web-phones/results/webkit-controller-check.md
+          if-no-files-found: ignore
