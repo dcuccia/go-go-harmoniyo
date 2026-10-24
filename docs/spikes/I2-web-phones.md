@@ -43,7 +43,7 @@ so C5 has the same colour on every highway and phone; F♯4 shows the sharp/flat
 | Bell assignment to phones | New S1 host command `assign-bells` (explicit `bells[]` + optional `ringer` label) → HGP `assign` with `select: "zones"`. Sounding pitch = written + 12 (handbells sound an octave up; `?octave=0` to disable). |
 | Team score / phone sound | S4 `Judge` over all lanes = team score/streak/multiplier; per-ringer stats via a new `Session.onJudgement` hook. Phones ring locally (`sound: device`, S1's recommendation); "Phones + TV" / "TV only" switch in the lobby. |
 | QR join on the game screen | The S1 host serves the built game at `/game/` (new `--game` flag) so the page loads `/qr.svg` and the join URL same-origin. |
-| Next-bell cue | New HGP host→device `cues` (`at[]` host times + `bells[]`) sent at song start; the controller glows the next zone (previously only in S1's metronome test). |
+| Next-bell cue | New HGP host→device `cues` (`at[]` host times + `bells[]`) sent at song start, and re-sent if the song→host-time mapping later moves by > 2 ms ([#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18)); the controller glows the next zone (previously only in S1's metronome test). |
 
 Lobby: QR + join URL, song/difficulty/ringer/sound pickers, one row per ringer (phone, "Host plays
 this part" or Keyboard A S D F), phone list with sync/sensor state; ringing a phone flashes its
