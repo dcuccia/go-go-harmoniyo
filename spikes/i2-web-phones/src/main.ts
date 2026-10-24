@@ -764,10 +764,11 @@ function maybeAutostart(): void {
   if (!mode || autostarted || session || !index) return;
   const need = num('waitPhones', 0);
   const ready = onlinePhones().filter((p) => typeof p.status?.syncN === 'number' && p.status.syncN > 0);
-  // Also wait for a tight host clock sync (best exchange's error bound ≤ 2 ms; loopback is ~0.5 ms),
+  // Also wait for a tight host clock sync (best exchange's error bound ≤ 10 ms; loopback is ~0.5 ms,
+  // a slow CI runner ~3 ms),
   // not just the first sample, which a busy page may have timed through a long task, and for the
   // audio output to have settled (no > 50 ms re-anchoring for 1 s: start-up underruns under load).
-  const tight = (link.sync.estimate?.errBound ?? Infinity) <= 2;
+  const tight = (link.sync.estimate?.errBound ?? Infinity) <= 10;
   const clk = audio.clock;
   const audioSettled = clk.ready && !(performance.now() - clk.lastSnapPerf < 1000);
   autostartWaiting = [ready.length < need && `phones ${ready.length}/${need}`, !link.sync.ready && 'host sync', !tight && `host sync ±${link.sync.estimate?.errBound.toFixed(1)} ms`, !audioSettled && `audio clock (${clk.snaps.length} re-anchorings)`].filter(Boolean).join(', ');
