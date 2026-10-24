@@ -772,11 +772,13 @@ function maybeAutostart(): void {
   const clk = audio.clock;
   const audioSettled = clk.ready && !(performance.now() - clk.lastSnapPerf < 1000);
   autostartWaiting = [ready.length < need && `phones ${ready.length}/${need}`, !link.sync.ready && 'host sync', !tight && `host sync ±${link.sync.estimate?.errBound.toFixed(1)} ms`, !audioSettled && `audio clock (${clk.snaps.length} re-anchorings)`].filter(Boolean).join(', ');
-  if (mode === 'play' && (ready.length < need || !link.sync.ready || !tight)) return;
-  // An output that never settles (no audio device: Chrome's fake output) must not block forever;
-  // cues are re-sent if the mapping moves during the song.
+  if (mode === 'play' && (ready.length < need || !link.sync.ready)) return;
+  // Clock conditions that never settle (a PC too busy to time a clean sync exchange; no audio
+  // device: Chrome's fake output) must not block a kiosk forever; cues are re-sent if the mapping
+  // moves during the song.
   autostartReadySince ||= performance.now();
-  if (mode === 'play' && !audioSettled && performance.now() - autostartReadySince < 10_000) return;
+  const waited = performance.now() - autostartReadySince;
+  if (mode === 'play' && ((!tight && waited < 20_000) || (!audioSettled && waited < 10_000))) return;
   autostarted = true;
   void rebuild().then(() => window.setTimeout(() => void start(mode), num('startDelay', 1500)));
 }

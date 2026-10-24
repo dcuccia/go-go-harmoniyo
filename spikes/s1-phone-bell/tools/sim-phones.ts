@@ -90,7 +90,10 @@ class FakePhone {
     const timer = setTimeout(() => {
       const sel = leadMs !== undefined ? { sel: t - leadMs } : {};
       const th = this.sync.toHost(t);
-      if (a.diag) this.thShift.push(th - thPlanned);
+      if (a.diag) {
+        this.thShift.push(th - thPlanned);
+        this.sendLate.push(this.now() - t - detMs);
+      }
       this.ws.send(JSON.stringify({ type: 'gesture', seq: ++this.seq, g, t, th, det: this.now() - t, src: 'sim', ...extra, ...sel }));
       onSent?.();
     }, delay);
@@ -99,13 +102,15 @@ class FakePhone {
   }
   /** th at send − th planned when the cue arrived (sync estimate moving under a scheduled ring). */
   thShift: number[] = [];
+  /** How late each ring left this process vs its intended send time (event-loop stalls), ms. */
+  sendLate: number[] = [];
   diag(): Record<string, unknown> {
     const e = this.sync.estimate;
     const sh = this.thShift.map(Math.abs);
     const rung = this.plan.filter((p) => p.done).length;
     // Rings planned on the right bell: what a correct game must count as hits (wrong-zone rings are strays).
     const expectHits = this.plan.filter((p) => !p.skip && !(this.bells.length > 1 && p.wrong)).length;
-    return { name: this.name, cues: this.plan.length, expectHits, rung, recued: this.recued, thShiftMaxAbs: sh.length ? Math.round(Math.max(...sh) * 100) / 100 : null, syncResets: this.sync.resets, rttMin: e ? Math.round(e.rttMin * 100) / 100 : null, used: e?.used };
+    return { name: this.name, cues: this.plan.length, expectHits, rung, recued: this.recued, sendLateMaxMs: this.sendLate.length ? Math.round(Math.max(...this.sendLate)) : null, thShiftMaxAbs: sh.length ? Math.round(Math.max(...sh) * 100) / 100 : null, syncResets: this.sync.resets, rttMin: e ? Math.round(e.rttMin * 100) / 100 : null, used: e?.used };
   }
   onMessage(m: Record<string, unknown>): void {
     if (m.type === 'sync') {
