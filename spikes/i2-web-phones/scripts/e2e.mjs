@@ -155,7 +155,12 @@ for (let run = 1; run <= repeat; run++) {
       await sleep(300);
       await page.screenshot({ path: join(outDir, `${sc.shot}-lobby.png`) });
     }
-    await page.waitForFunction(() => !document.querySelector('#hud')?.classList.contains('hidden'), null, { timeout: 30000 });
+    await page
+      .waitForFunction(() => !document.querySelector('#hud')?.classList.contains('hidden'), null, { timeout: 45000 })
+      .catch(async (e) => {
+        console.log(`    autostart still waiting for: ${await page.evaluate(() => window.__i2?.autostartWaiting).catch(() => '?')}`);
+        throw e;
+      });
     const t0 = Date.now();
     if (shots && sc.shot) {
       await sleep(9000);

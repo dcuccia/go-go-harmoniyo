@@ -756,6 +756,9 @@ window.addEventListener('resize', () => {
 
 // ── autostart (E2E / kiosk): ?start=play&waitPhones=3 ────────────────────────
 let autostarted = false;
+/** What autostart is still waiting for (E2E diagnostics). */
+let autostartWaiting = '';
+let autostartReadySince = 0;
 function maybeAutostart(): void {
   const mode = params.get('start') as Mode | null;
   if (!mode || autostarted || session || !index) return;
@@ -767,7 +770,12 @@ function maybeAutostart(): void {
   const tight = (link.sync.estimate?.errBound ?? Infinity) <= 2;
   const clk = audio.clock;
   const audioSettled = clk.ready && !(performance.now() - clk.lastSnapPerf < 1000);
-  if (mode === 'play' && (ready.length < need || !link.sync.ready || !tight || !audioSettled)) return;
+  autostartWaiting = [ready.length < need && `phones ${ready.length}/${need}`, !link.sync.ready && 'host sync', !tight && `host sync ±${link.sync.estimate?.errBound.toFixed(1)} ms`, !audioSettled && `audio clock (${clk.snaps.length} re-anchorings)`].filter(Boolean).join(', ');
+  if (mode === 'play' && (ready.length < need || !link.sync.ready || !tight)) return;
+  // An output that never settles (no audio device: Chrome's fake output) must not block forever;
+  // cues are re-sent if the mapping moves during the song.
+  autostartReadySince ||= performance.now();
+  if (mode === 'play' && !audioSettled && performance.now() - autostartReadySince < 10_000) return;
   autostarted = true;
   void rebuild().then(() => window.setTimeout(() => void start(mode), num('startDelay', 1500)));
 }
@@ -825,6 +833,9 @@ fetch('charts/index.json')
 
 (window as unknown as Record<string, unknown>).__i2 = {
   link,
+  get autostartWaiting() {
+    return autostartWaiting;
+  },
   get team() {
     return team;
   },
