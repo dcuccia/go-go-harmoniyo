@@ -55,8 +55,10 @@ jobs:
           npm ci --no-audit --no-fund --prefix ../s1-phone-bell
           npm ci --no-audit --no-fund --prefix ../s4-web-host
       - run: npm run typecheck
-      - run: npm test
+      # Build first: its prebuild generates public/charts/ (gitignored), which the chart, seating and
+      # backing tests need (they skip themselves without it).
       - run: npm run build
+      - run: npm test
       - name: S4 unit tests
         working-directory: spikes/s4-web-host
         run: npm test

@@ -203,7 +203,10 @@ function phoneInit() {
 const host = await new Promise((resolve, reject) => {
   const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(httpsPort)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   let buf = '';
-  const t = setTimeout(() => reject(new Error(`host did not start:\n${buf}`)), 30000);
+  const t = setTimeout(() => {
+    p.kill();
+    reject(new Error(`host did not start:\n${buf}`));
+  }, 30000);
   const on = (d) => {
     buf += d.toString();
     if (buf.includes('Game (TV)')) {
@@ -216,13 +219,16 @@ const host = await new Promise((resolve, reject) => {
   p.on('exit', (c) => reject(new Error(`host exited ${c}:\n${buf}`)));
 });
 
-const tvBrowser = await chromium.launch({ channel: opt('channel', 'chrome'), headless, args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
-const wkBrowser = await webkit.launch({ headless });
-const env = { device: deviceName, webkit: wkBrowser.version(), tv: `Chrome ${tvBrowser.version()}`, platform: `${process.platform} ${process.arch}`, node: process.version };
-console.log(`WebKit ${env.webkit} (${deviceName}) on ${env.platform}; TV: ${env.tv}`);
+const env = { device: deviceName, platform: `${process.platform} ${process.arch}`, node: process.version };
 const summary = {};
 let ok = false;
+let tvBrowser = null;
+let wkBrowser = null;
 try {
+  tvBrowser = await chromium.launch({ channel: opt('channel', 'chrome'), headless, args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
+  wkBrowser = await webkit.launch({ headless });
+  Object.assign(env, { webkit: wkBrowser.version(), tv: `Chrome ${tvBrowser.version()}` });
+  console.log(`WebKit ${env.webkit} (${deviceName}) on ${env.platform}; TV: ${env.tv}`);
   // TV page: two parts so the phone has something to pick; low render quality (no bloom/particles,
   // DPR 1) so the TV's software WebGL doesn't starve the phone on a 2-vCPU CI runner.
   const tv = await tvBrowser.newPage({ viewport: { width: 1920, height: 1080 } });
@@ -370,8 +376,8 @@ try {
   check('script completed', false, String(e).split('\n')[0]);
   ok = false;
 } finally {
-  await wkBrowser.close();
-  await tvBrowser.close();
+  await wkBrowser?.close().catch(() => {});
+  await tvBrowser?.close().catch(() => {});
   host.kill();
 }
 
