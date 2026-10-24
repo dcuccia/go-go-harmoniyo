@@ -59,8 +59,46 @@ select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; b
 .setup .backing-row input[type='range'] { width: 140px; accent-color: var(--gold, #f3b01d); }
 .setup .backing-row input:disabled { opacity: 0.4; }
 #backing-info { margin-top: 2px; }
-#slots { display: flex; flex-direction: column; gap: 8px; margin: 8px 0; }
-.slot { display: grid; grid-template-columns: 82px 1fr minmax(160px, 220px); align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); }
+
+/* Seating chart: part cards × player chips (src/seating-view.ts) */
+.seat-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.seat-bar h3 { margin: 0; font-size: 16px; }
+#seat-tools { display: flex; gap: 6px; flex-wrap: wrap; }
+#seat-tools button { padding: 5px 10px; font-size: 14px; }
+#seating { position: relative; margin: 8px 0; }
+#seating .tray { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; min-height: 38px; border-radius: 10px; border: 1px dashed #3a3a70; background: rgba(255, 255, 255, 0.03); }
+#seating .parts { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+#seating .part { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; border: 2px solid #3a3a70; background: rgba(255, 255, 255, 0.05); cursor: pointer; min-width: 0; }
+#seating .part:hover { border-color: #6a6ab0; }
+#seating .part:focus-visible, #seating .part[aria-expanded='true'] { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.35); }
+#seating .part.tv { background: rgba(255, 255, 255, 0.02); }
+#seating .part.ready { border-color: #2ee86b; }
+#seating .part.over, #seating .tray.over { border-color: var(--gold); background: rgba(255, 210, 63, 0.12); }
+.part-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.part-head b { font-size: 18px; line-height: 1.15; overflow-wrap: anywhere; }
+.part-head small { opacity: 0.55; white-space: nowrap; }
+.part-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; opacity: 0.85; }
+.meter { display: inline-flex; gap: 2px; }
+.meter i { width: 7px; height: 12px; border-radius: 2px; background: #33335a; }
+.meter.lv1 i:nth-child(-n + 1), .meter.lv2 i:nth-child(-n + 2), .meter.lv3 i:nth-child(-n + 3), .meter.lv4 i:nth-child(-n + 4), .meter.lv5 i:nth-child(-n + 5) { background: var(--gold); }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 999px; background: #22224a; border: 1px solid #556; font-size: 14px; font-weight: 700; cursor: grab; user-select: none; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.chip small { font-weight: 400; opacity: 0.6; }
+.chip em { font-style: normal; color: #7dff9a; }
+.chip.k-tv { background: #1a1a2e; border-style: dashed; font-weight: 400; }
+.chip.k-keyboard { background: #26263a; }
+.chip.ready { border-color: #2ee86b; }
+.chip.bench { opacity: 0.75; }
+.part-seat .chip { font-size: 15px; }
+#seating.dragging .chip { cursor: grabbing; }
+#seating .picker { position: absolute; z-index: 5; padding: 6px; border-radius: 12px; background: #141432; border: 2px solid var(--gold); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6); outline: none; }
+.picker-title { padding: 4px 8px 6px; font-size: 13px; opacity: 0.8; }
+.picker .opt { padding: 8px 10px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; white-space: nowrap; }
+.picker .opt small { font-weight: 400; opacity: 0.6; margin-left: 6px; }
+.picker .opt.current { color: var(--gold); }
+.picker .opt.active, .picker .opt:hover { background: #2e2e66; }
+#ready-info { align-self: center; }
+.phones li .rdy { font-style: normal; color: #7dff9a; font-size: 13px; }
+#res-next { margin: 4px 0 8px; }
 .bells i { display: inline-block; font-style: normal; font-weight: 800; font-size: 13px; padding: 2px 6px; margin: 1px 3px 1px 0; border-radius: 5px; color: #10121c; }
 .bells i.acc { box-shadow: 0 0 0 2px #05040d, 0 0 0 4px #f4f4ff; margin: 1px 7px 1px 4px; }
 .bells small { opacity: 0.7; }

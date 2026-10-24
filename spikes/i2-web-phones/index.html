@@ -81,17 +81,28 @@
               <input type="checkbox" id="chk-countin" /> Count-in
             </label>
           </div>
-          <div id="slots"></div>
+          <div class="seat-bar">
+            <h3>Who plays what</h3>
+            <span id="seat-tools">
+              <button id="btn-shuffle" title="Random parts for everyone">🎲 Shuffle</button>
+              <button id="btn-rotate" title="Everyone moves one part to the right">🔁 Rotate</button>
+              <button id="btn-balance" title="Easiest part to whoever has the lowest accuracy so far this session (random with no rounds yet)">⚖️ Balance</button>
+            </span>
+          </div>
+          <div id="seating"></div>
           <div id="part-info" class="dim"></div>
           <div id="backing-info" class="dim"></div>
           <div class="buttons">
             <button id="btn-play" class="primary">▶ Play</button>
             <button id="btn-auto">Autoplay demo</button>
+            <span id="ready-info" class="dim"></span>
           </div>
           <p id="lobby-msg" class="error"></p>
           <p class="help">
             <kbd>Enter</kbd> play · <kbd>Esc</kbd> back to lobby · <kbd>←</kbd>/<kbd>→</kbd> A/V offset · <kbd>`</kbd> stats.
-            A ringer set to <b>Keyboard</b> rings with <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd>.
+            Drag a player onto a part (onto a taken part to swap), or click a part to choose who plays it.
+            TV remote: <kbd>↓</kbd> then arrows and <kbd>Enter</kbd>. Phones can pick their own part too.
+            A part given to <b>Keyboard</b> rings with <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd>.
             Quality: <a href="?bloom=0">no bloom</a> · <a href="?bloom=0&amp;particles=0&amp;dpr=1">low</a> · <a href="?">high</a>
           </p>
         </section>
@@ -107,9 +118,11 @@
         <h2 id="res-title">Results</h2>
         <div id="res-body"></div>
         <table id="res-players"></table>
+        <p id="res-next" class="dim"></p>
         <details><summary>Measurements (JSON)</summary><pre id="res-json"></pre></details>
         <div class="buttons">
           <button id="btn-again" class="primary">Again</button>
+          <button id="btn-rotate-again" title="Everyone moves one part to the right, then play again">🔁 Rotate + Again</button>
           <button id="btn-lobby">Lobby</button>
           <button id="btn-copy">Copy JSON</button>
         </div>

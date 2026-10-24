@@ -227,3 +227,97 @@ fieldset {
   margin: 0.4em 0;
 }
 
+/* Lobby (I2 seating chart): "Pick your part" */
+#lobby {
+  text-align: left;
+  margin: 0 auto 0.6em;
+  max-width: 34em;
+}
+#lobby h2 {
+  margin: 0 0 0.1em;
+  font-size: 1.2em;
+}
+#lobby-song {
+  margin: 0 0 0.4em;
+}
+#parts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  max-height: 44vh;
+  overflow-y: auto;
+  /* Own scroll container: the controller page itself blocks touch panning. */
+  touch-action: pan-y;
+}
+.pcard {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.1em 0.6em;
+  width: 100%;
+  text-align: left;
+  padding: 0.5em 0.7em;
+  border-radius: 0.7em;
+  border: 2px solid #444;
+  background: #1d1d26;
+}
+.pcard.mine {
+  border-color: #ffd23f;
+  background: #2a2614;
+}
+.pcard b {
+  font-size: 1.05em;
+}
+.pcard .who {
+  text-align: right;
+  font-size: 0.85em;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+.pcard .who .rdy {
+  color: #7dff9a;
+}
+.pcard .meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.8em;
+  opacity: 0.9;
+}
+.pcard .pb i {
+  display: inline-block;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.85em;
+  padding: 0 0.35em;
+  margin-right: 0.15em;
+  border-radius: 0.3em;
+  color: #10121c;
+}
+.pcard .pb i.acc {
+  box-shadow: 0 0 0 2px #111, 0 0 0 3px #f4f4ff;
+  margin: 0 0.3em 0 0.2em;
+}
+.meter {
+  letter-spacing: 0.05em;
+  color: #ffd23f;
+}
+.pcard .swap {
+  grid-column: 1 / -1;
+  margin-top: 0.3em;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  background: #ffd23f;
+  color: #10121c;
+  font-weight: 700;
+  text-align: center;
+}
+#ready[aria-pressed='true'] {
+  background: #1f6b35;
+  border-color: #7dff9a;
+}
+#lobby .row {
+  margin-top: 0.5em;
+}
+

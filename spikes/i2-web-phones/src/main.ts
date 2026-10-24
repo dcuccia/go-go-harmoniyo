@@ -9,9 +9,13 @@ import type { InputSource } from '../../s4-web-host/src/input/types';
 import { Hud } from '../../s4-web-host/src/ui/hud';
 import type { SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
 import { HgpInputSource } from './hgp-input';
-import { defaultHgpUrl, HgpLink, type PhoneInfo } from './hgp-link';
+import { defaultHgpUrl, HgpLink, type LobbyParts, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, isChartFormat, partBellNotes, ringerSummary, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { buildTeamChart, findPart, isChartFormat, partBellNotes, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { partCards, type PartCard } from './parts';
+import { KEYBOARD, Seating, seededRng, TV } from './seating';
+import { SeatingView, type PlayerView } from './seating-view';
+import type { PartCard as PartCardMsg } from '../../s1-phone-bell/src/core/hgp.ts';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
 import { isAccidental } from '../../shared/pitch-palette';
 import { BackingTrack, DEFAULT_BACKING, type BackingSettings } from './backing/track';
@@ -63,7 +67,6 @@ const link = new HgpLink(defaultHgpUrl(params));
 link.connect();
 
 // ── lobby state ─────────────────────────────────────────────────────────────
-type Slot = string; // deviceId | 'host' | 'keyboard'
 interface SongIndex {
   profile: string;
   songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[] }[];
@@ -74,18 +77,31 @@ let songId = params.get('song') ?? 'jingle-bells';
 let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
 let ringerCount = num('ringers', 0);
 let ringersAuto = !params.has('ringers');
-let slots: Slot[] = [];
-const slotPinned: boolean[] = [];
+/** Seating chart: part index → phone deviceId | KEYBOARD | TV (persists across songs). */
+const seating = new Seating();
+/** Part cards of the current arrangement (names, ranges, difficulty). */
+let cards: PartCard[] = [];
+/** Phones the lobby has seen online (to notice joins and leaves). */
+const knownPhones = new Set<string>();
+/** Accuracy per player over this page session's play rounds (for ⚖️ Balance). */
+const accHistory = new Map<string, number[]>();
+const rng: () => number = params.has('seed') ? seededRng(num('seed', 1)) : Math.random;
 let soundMode: SoundMode = (params.get('sound') as SoundMode | null) ?? 'device';
 let team: TeamChart | null = null;
 let session: Session | null = null;
+/** A song is running (the session object stays around on the results screen). */
+let playing = false;
 let lastMode: Mode = 'play';
 const sentAssign = new Map<string, string>();
+let sentParts = '';
+/** Seats when the current/last round started (results rows → players). */
+let roundSeats: string[] = [];
 
 const onlinePhones = (): PhoneInfo[] => link.phones.filter((p) => p.online && p.kind !== 'dashboard');
 const phoneName = (id: string): string => link.phones.find((p) => p.id === id)?.name ?? id;
-const slotName = (s: Slot, i: number): string => (s === 'host' ? `Ringer ${i + 1} (host)` : s === 'keyboard' ? 'Keyboard' : phoneName(s));
-const slotKind = (s: Slot): string => (s === 'host' ? 'host plays' : s === 'keyboard' ? 'keyboard A S D F' : 'phone');
+const isPhone = (s: string): boolean => s !== TV && s !== KEYBOARD;
+const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name ?? `Ringer ${i + 1}`} (TV)` : s === KEYBOARD ? 'Keyboard' : phoneName(s));
+const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
 
 async function loadChart(id: string): Promise<S5Chart> {
   let c = chartCache.get(id);
@@ -99,138 +115,247 @@ async function loadChart(id: string): Promise<S5Chart> {
   return c;
 }
 
-/** Fill unpinned slots with online phones in join order; the rest are played by the host. */
-function autoSlots(): void {
-  const phones = onlinePhones().map((p) => p.id);
-  if (ringersAuto) ringerCount = Math.max(1, Math.min(4, phones.length || ringerCount || 3));
-  slots.length = ringerCount;
-  const used = new Set(slots.filter((s, i) => slotPinned[i] && s));
-  const free = phones.filter((p) => !used.has(p));
-  for (let i = 0; i < ringerCount; i++) {
-    if (slotPinned[i] && slots[i]) continue;
-    slots[i] = free.shift() ?? 'host';
+/**
+ * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
+ * TV (their home is kept, so a reconnect reclaims it). With the automatic ringer count, the count
+ * follows the phones the host has seen this session (1–4), so a dropped phone's part stays.
+ */
+function syncPhones(): string[] {
+  const online = new Set(onlinePhones().map((p) => p.id));
+  for (const id of [...knownPhones]) {
+    if (!online.has(id)) {
+      knownPhones.delete(id);
+      seating.leave(id);
+    }
   }
+  const joiners = [...online].filter((id) => !knownPhones.has(id));
+  joiners.forEach((id) => knownPhones.add(id));
+  if (ringersAuto) ringerCount = Math.max(1, Math.min(4, link.phones.length || ringerCount || 3));
+  return joiners;
 }
 
 async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   if (!index) return;
-  autoSlots();
+  const joiners = syncPhones();
   const s5 = await loadChart(songId);
   const part = findPart(s5, difficulty, ringerCount);
   if (!part) {
+    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
     $('lobby-msg').textContent = `No ${difficulty} part for ${ringerCount} ringers in ${s5.song.title}.`;
     return;
   }
   $('lobby-msg').textContent = '';
-  const active = slots.map((s) => forPlayMode === 'autoplay' || s !== 'host');
+  const transpose = num('octave', 1) ? 12 : 0;
+  cards = partCards(s5, part, buildTeamChart(s5, part, { transpose }));
+  seating.setParts(cards.map((c) => c.name));
+  // Seat newcomers, reconnecting phones and anyone waiting for a part (not those who sat out).
+  seating.fill(onlinePhones().map((p) => p.id));
+  const seats = seating.seats;
+  const active = seats.map((s) => forPlayMode === 'autoplay' || s !== TV);
   if (!active.some(Boolean)) active.fill(true); // lobby preview with no players: show every highway
-  team = buildTeamChart(s5, part, { active, transpose: num('octave', 1) ? 12 : 0 });
+  team = buildTeamChart(s5, part, { active, transpose });
   mh.setTeam(team);
-  const ringerSlots = team.ringers.map((r) => slots[r.index]);
   teamHud.setup(
     team,
-    ringerSlots.map((s, i) => slotName(s, team!.ringers[i].index)),
-    ringerSlots.map(slotKind),
+    team.ringers.map((r) => slotName(seats[r.index], r.index)),
+    team.ringers.map((r) => slotKind(seats[r.index])),
   );
   sendAssignments();
+  sendParts();
   renderLobby();
 }
 
-/** Each phone in a slot gets its ringer's bells (sounding pitch, pitch-class colour) via the S1 host. */
+/** After any seat change: rebuild in the lobby; on the results screen it applies when the next round starts. */
+function seatingChanged(): void {
+  if (playing) return;
+  if (session) {
+    sendParts();
+    renderNext();
+    return;
+  }
+  void rebuild();
+}
+
+/**
+ * Each phone in a part gets its ringer's bells (sounding pitch, pitch-class colour) via the S1 host;
+ * a phone on the bench keeps its bells but is told it is not playing.
+ */
 function sendAssignments(): void {
   if (!team) return;
+  const songLabel = `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})`;
   for (const r of team.ringers) {
-    const dev = slots[r.index];
-    if (!dev || dev === 'host' || dev === 'keyboard') continue;
+    const dev = seating.seats[r.index];
+    if (!dev || !isPhone(dev)) continue;
     const bells = r.bells.map((b) => ({ id: b.id, label: b.letter, midi: b.pitch, color: b.color }));
-    const ringer = { slot: r.index, title: `Ringer ${r.index + 1}`, song: `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})` };
+    const ringer = { slot: r.index, title: `${cards[r.index]?.name ?? `Ringer ${r.index + 1}`} · Ringer ${r.index + 1}`, song: songLabel };
     const key = JSON.stringify([bells, ringer]);
     if (sentAssign.get(dev) === key) continue;
     sentAssign.set(dev, key);
     link.assign(dev, bells, ringer);
   }
+  for (const p of onlinePhones()) {
+    if (seating.partOf(p.id) >= 0 || !p.bells?.length) continue;
+    const ringer = { slot: -1, title: 'Not playing: pick a part', song: songLabel };
+    const key = JSON.stringify([p.bells, ringer]);
+    if (sentAssign.get(p.id) === key) continue;
+    sentAssign.set(p.id, key);
+    link.assign(p.id, p.bells, ringer);
+  }
+}
+
+/** Lobby state for every phone's "Pick your part" list (HGP `parts`), sent when it changes. */
+function sendParts(): void {
+  if (!cards.length) return;
+  const parts: PartCardMsg[] = cards.map((c, i) => {
+    const s = seating.seats[i] ?? TV;
+    const player: PartCardMsg['player'] = s === TV ? { kind: 'tv', name: 'TV' } : s === KEYBOARD ? { kind: 'keyboard', name: 'Keyboard' } : { kind: 'phone', id: s, name: phoneName(s) };
+    return {
+      index: i,
+      name: c.name,
+      range: c.range,
+      bells: c.bells.map((b) => ({ id: b.id, label: b.letter, midi: b.midi, color: b.color })),
+      notes: c.notes,
+      perSec: c.perSec,
+      level: c.level,
+      player,
+      ready: isPhone(s) && !!link.phones.find((p) => p.id === s)?.ready,
+    };
+  });
+  const lobby: LobbyParts = { phase: playing ? 'play' : 'lobby', song: `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})`, parts };
+  const key = JSON.stringify(lobby);
+  if (key === sentParts) return;
+  sentParts = key;
+  link.parts(lobby);
 }
 
 function laneMap(): Map<string, number> {
   const m = new Map<string, number>();
   if (!team) return m;
-  for (const r of team.ringers) for (const b of r.bells) m.set(`${slots[r.index]}|${b.id}`, b.lane);
+  const seats = playing ? roundSeats : seating.seats;
+  for (const r of team.ringers) for (const b of r.bells) m.set(`${seats[r.index]}|${b.id}`, b.lane);
   return m;
 }
 
+const accuracyMap = (): Map<string, number> => new Map([...accHistory].map(([id, xs]) => [id, xs.reduce((a, b) => a + b, 0) / xs.length] as const));
+const benchPhones = (): string[] => onlinePhones().map((p) => p.id).filter((id) => seating.partOf(id) < 0);
+
 // ── lobby UI ────────────────────────────────────────────────────────────────
+/** Set a control's value unless the user is on it (an open dropdown must never be reset). */
+function setValue(el: HTMLSelectElement | HTMLInputElement, v: string): void {
+  if (document.activeElement !== el && el.value !== v) el.value = v;
+}
+function setChecked(el: HTMLInputElement, v: boolean): void {
+  if (document.activeElement !== el && el.checked !== v) el.checked = v;
+}
+
+const view = new SeatingView($('seating'), {
+  assign: (part, player) => {
+    seating.assign(part, player);
+    seatingChanged();
+  },
+  swap: (a, b) => {
+    seating.swap(a, b);
+    seatingChanged();
+  },
+  unseat: (part) => {
+    const p = seating.seats[part];
+    if (p && p !== TV) seating.assign(-1, p);
+    seatingChanged();
+  },
+});
+
+function playerViews(): PlayerView[] {
+  const seats = seating.seats;
+  const phones: PlayerView[] = link.phones
+    .filter((p) => p.online || seats.includes(p.id))
+    .map((p) => ({ id: p.id, name: p.name, kind: 'phone', online: p.online, ready: !!p.ready, part: seats.indexOf(p.id) }));
+  return [
+    ...phones,
+    { id: KEYBOARD, name: 'Keyboard', kind: 'keyboard', online: true, ready: false, part: seats.indexOf(KEYBOARD) },
+    { id: TV, name: 'TV plays', kind: 'tv', online: true, ready: false, part: -1 },
+  ];
+}
+
+/** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
   const selSong = $<HTMLSelectElement>('sel-song');
-  if (index && selSong.options.length !== index.songs.length) {
+  if (index && selSong.options.length !== index.songs.length && document.activeElement !== selSong) {
     selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(s.durationSec)} s, ${s.license ?? '?'})</option>`).join('');
   }
-  selSong.value = songId;
-  $<HTMLSelectElement>('sel-diff').value = difficulty;
-  $<HTMLSelectElement>('sel-ringers').value = String(ringerCount);
-  $<HTMLSelectElement>('sel-sound').value = soundMode;
-  $<HTMLInputElement>('chk-backing').checked = backingSettings.enabled;
-  $<HTMLInputElement>('rng-backing').value = String(Math.round(backingSettings.volume * 100));
+  setValue(selSong, songId);
+  setValue($<HTMLSelectElement>('sel-diff'), difficulty);
+  setValue($<HTMLSelectElement>('sel-ringers'), String(ringerCount));
+  setValue($<HTMLSelectElement>('sel-sound'), soundMode);
+  setChecked($<HTMLInputElement>('chk-backing'), backingSettings.enabled);
+  setValue($<HTMLInputElement>('rng-backing'), String(Math.round(backingSettings.volume * 100)));
   $<HTMLInputElement>('rng-backing').disabled = !backingSettings.enabled;
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
-  $<HTMLInputElement>('chk-countin').checked = backingSettings.countIn;
+  setChecked($<HTMLInputElement>('chk-countin'), backingSettings.countIn);
 
-  const phones = link.phones;
-  const opts = (sel: Slot): string =>
-    [`<option value="host"${sel === 'host' ? ' selected' : ''}>Host plays this part</option>`]
-      .concat(phones.map((p) => `<option value="${p.id}"${sel === p.id ? ' selected' : ''}>📱 ${esc(p.name)}${p.online ? '' : ' (offline)'}</option>`))
-      .concat([`<option value="keyboard"${sel === 'keyboard' ? ' selected' : ''}>⌨ Keyboard (A S D F)</option>`])
-      .join('');
+  view.update(cards, seating.seats, playerViews());
   const s5 = chartCache.get(songId);
   const part = s5 ? findPart(s5, difficulty, ringerCount) : undefined;
-  const preview = s5 && part ? buildTeamChart(s5, part) : null;
-  $('slots').innerHTML = slots
-    .map((s, i) => {
-      const r = preview?.ringers[i];
-      const colors = r ? r.bells.map((b) => `<i class="${b.accidental ? 'acc' : ''}" style="background:${b.color}" title="${b.name}">${b.name}</i>`).join('') : '';
-      const auto = r?.autoBells.length ? `<small> +${r.autoBells.join(' ')} rung by host</small>` : '';
-      return `<div class="slot"><b>Ringer ${i + 1}</b><span class="bells">${colors}${auto}</span><select data-slot="${i}">${opts(s)}</select></div>`;
-    })
-    .join('');
-  $('slots')
-    .querySelectorAll('select')
-    .forEach((el) =>
-      el.addEventListener('change', () => {
-        const i = Number(el.dataset.slot);
-        const v = el.value;
-        const j = slots.indexOf(v);
-        if (v !== 'host' && j >= 0 && j !== i) {
-          slots[j] = slots[i];
-          slotPinned[j] = true;
-        }
-        slots[i] = v;
-        slotPinned[i] = true;
-        void rebuild();
-      }),
-    );
   if (part) {
-    const m = part.notes.length;
-    $('part-info').textContent = `${m} notes · ${preview?.ringers.reduce((a, r) => a + r.bells.length, 0)} bells on phones${preview?.ringers.some((r) => r.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the host' : ''} · chart profile ${index?.profile}`;
+    const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
+    $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''} · chart profile ${index?.profile}`;
   }
   $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
+  const seated = seating.players.filter(isPhone);
+  const ready = seated.filter((id) => link.phones.find((p) => p.id === id)?.ready).length;
+  $('ready-info').textContent = seated.length ? `✓ Ready ${ready}/${seated.length}${ready < seated.length ? ' (you can start anyway)' : ''}` : '';
+  renderStatus();
+}
 
+/** Phones list + host status: diagnostics only, patched in place per phone. */
+function renderStatus(): void {
+  const phones = link.phones;
   $('phone-count').textContent = `(${onlinePhones().length} online)`;
-  $('phones').innerHTML = phones
-    .map((p) => {
+  const ul = $('phones');
+  if (!phones.length) {
+    setHtml(ul, '<li class="dim">No phones yet — scan the QR code.</li>');
+  } else {
+    ul.querySelector('li.dim')?.remove();
+    shown.delete(ul);
+    const want = phones.map((p) => `ph-${cssId(p.id)}`);
+    for (const li of [...ul.children]) if (!want.includes(li.id)) li.remove();
+    phones.forEach((p, k) => {
+      let li = document.getElementById(want[k]);
+      if (!li) {
+        li = document.createElement('li');
+        li.id = want[k];
+      }
+      if (ul.children[k] !== li) ul.insertBefore(li, ul.children[k] ?? null);
       const st = p.status ?? {};
-      const slot = slots.indexOf(p.id);
+      const part = seating.partOf(p.id);
       const sync = typeof st.rttP50 === 'number' ? `rtt ${st.rttP50.toFixed(0)} ms` : 'syncing…';
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
       const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
-      return `<li id="ph-${cssId(p.id)}" class="${p.online ? '' : 'off'}"><b>${esc(p.name)}</b> <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${slot >= 0 ? ` · ringer ${slot + 1}` : ' · not playing'}</small></li>`;
-    })
-    .join('') || '<li class="dim">No phones yet — scan the QR code.</li>';
-
+      li.classList.toggle('off', !p.online);
+      setHtml(
+        li,
+        `<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
+      );
+    });
+  }
   const hostOk = link.state === 'open';
   $('host-state').textContent = hostOk ? `S1 host ${link.info.lanIp ?? ''} · ${link.info.tlsMode ?? ''} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
   $('host-state').classList.toggle('error', !hostOk);
   $('join-url').textContent = link.info.joinUrl ?? 'waiting for host…';
 }
 
+/** Results screen: who plays what next round (claims, swaps and 🔁 apply on Again). */
+function renderNext(): void {
+  const who = (s: string): string => (s === TV ? '🤖 TV' : s === KEYBOARD ? '⌨ Keyboard' : phoneName(s));
+  $('res-next').textContent = cards.length ? `Next round: ${cards.map((c, i) => `${c.name} — ${who(seating.seats[i] ?? TV)}`).join(' · ')}` : '';
+}
+
+const shown = new WeakMap<Element, string>();
+/** Replace an element's markup only when it changed. */
+function setHtml(el: Element, html: string): void {
+  if (shown.get(el) === html) return;
+  shown.set(el, html);
+  el.innerHTML = html;
+}
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const cssId = (s: string): string => s.replace(/[^\w-]/g, '_');
 
@@ -268,22 +393,38 @@ $<HTMLInputElement>('chk-countin').onchange = (e) => {
 
 let lastPhoneKey = '';
 link.onDevices = () => {
-  // Rebuild only when the set of online phones changes (devices are broadcast every second).
-  const key = onlinePhones()
-    .map((p) => `${p.id}:${p.name}`)
-    .join();
-  if (key !== lastPhoneKey && !session) {
-    lastPhoneKey = key;
-    void rebuild();
-  } else if (!session) renderLobby();
+  // Rebuild (arrangement, seats, highways) only when phones join, leave or are renamed. Everything
+  // else in a device broadcast (Ready, sync, sensors, heartbeat) patches the lobby in place.
+  if (!session) {
+    const key = link.phones.map((p) => `${p.id}:${p.name}:${p.online}`).join();
+    if (key !== lastPhoneKey) {
+      lastPhoneKey = key;
+      void rebuild();
+    } else {
+      sendParts();
+      renderLobby();
+    }
+  } else if (!playing) sendParts(); // results screen: Ready flags to the phones
   maybeAutostart();
+};
+// A phone picked a part ("Pick your part"); a taken part is swapped (v0: no consent prompt).
+link.onClaim = (deviceId, part) => {
+  if (playing || !onlinePhones().some((p) => p.id === deviceId)) return;
+  seating.assign(part, deviceId);
+  seatingChanged();
 };
 link.onInfo = () => {
   $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl ?? '')}`;
   renderLobby();
 };
 link.onState = (s) => {
-  if (s === 'open') link.setSound(soundMode);
+  if (s === 'open') {
+    // A (re)started host has forgotten assignments and lobby state: send them again.
+    link.setSound(soundMode);
+    sentAssign.clear();
+    sentParts = '';
+    lastPhoneKey = '';
+  }
   renderLobby();
 };
 
@@ -310,10 +451,12 @@ async function start(mode: Mode): Promise<void> {
   session = null;
   backing?.stop();
   backing = null;
+  playing = false;
   await rebuild(mode);
   if (!team) return;
-  if (mode === 'play' && !team.ringers.some((r) => slots[r.index] !== 'host')) {
-    $('lobby-msg').textContent = 'No players: join with a phone (or set a ringer to Keyboard), or use Autoplay demo.';
+  roundSeats = [...seating.seats];
+  if (mode === 'play' && !team.ringers.some((r) => roundSeats[r.index] !== TV)) {
+    $('lobby-msg').textContent = 'No players: join with a phone (or give a part to Keyboard), or use Autoplay demo.';
     return;
   }
   lastMode = mode;
@@ -322,7 +465,7 @@ async function start(mode: Mode): Promise<void> {
   const lanes = laneMap();
   hgpInput = new HgpInputSource(link, (dev, bell) => lanes.get(`${dev}|${bell}`));
   const sources: InputSource[] = [hgpInput];
-  const kbRinger = t.ringers.find((r) => slots[r.index] === 'keyboard');
+  const kbRinger = t.ringers.find((r) => roundSeats[r.index] === KEYBOARD);
   if (kbRinger) sources.push(keyboardRinger(kbRinger.laneStart, kbRinger.bells.length, (lane) => audio.bell(t.chart.lanes[lane].pitch, 0, 0.9, 0)));
 
   const hostRingSound = soundMode !== 'device';
@@ -331,7 +474,7 @@ async function start(mode: Mode): Promise<void> {
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn });
-  players = t.ringers.map((r) => newStats(slotName(slots[r.index], r.index), r.noteIds.length));
+  players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
   teamHud.clearStats();
   s.onJudgement = (r, e) => {
     const ri = t.laneRinger[r.lane];
@@ -351,11 +494,13 @@ async function start(mode: Mode): Promise<void> {
     void e;
   };
   s.onFinish = (r) => finish(r);
-  const hostParts = t.autoRingers.map((i) => `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
+  const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
   $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
   session = s;
+  playing = true;
   s.start();
   sendCues(s);
+  sendParts(); // phase "play": phones hide the part picker
   teamHud.position();
   $('lobby').classList.add('hidden');
   $('results').classList.add('hidden');
@@ -380,8 +525,8 @@ function keyboardRinger(laneStart: number, n: number, ring: (lane: number) => vo
 function sendCues(s: Session): void {
   if (!team || !link.sync.ready) return;
   for (const r of team.ringers) {
-    const dev = slots[r.index];
-    if (!dev || dev === 'host' || dev === 'keyboard') continue;
+    const dev = roundSeats[r.index];
+    if (!dev || !isPhone(dev)) continue;
     const notes = r.noteIds.map((id) => team!.chart.notes[id]);
     const bellOfLane = new Map(r.bells.map((b) => [b.lane, b.id] as const));
     link.cues(
@@ -393,7 +538,7 @@ function sendCues(s: Session): void {
 }
 
 function clearCues(): void {
-  for (const s of slots) if (s && s !== 'host' && s !== 'keyboard') link.cues(s, [], []);
+  for (const s of roundSeats) if (s && isPhone(s)) link.cues(s, [], []);
 }
 
 function summarize(xs: number[]): { n: number; mean: number; p50: number; p95abs: number } {
@@ -405,11 +550,20 @@ function summarize(xs: number[]): { n: number; mean: number; p50: number; p95abs
 }
 
 function finish(r: SessionResult): void {
+  playing = false;
   clearCues();
+  if (r.mode === 'play' && team) {
+    // Accuracy history for ⚖️ Balance (this page session only).
+    players.forEach((p, i) => {
+      const id = roundSeats[team!.ringers[i].index];
+      if (!id || id === TV || !p.notes) return;
+      accHistory.set(id, [...(accHistory.get(id) ?? []), accuracyOf(p)]);
+    });
+  }
   const playerRows = players.map((p, i) => ({
     ringer: team?.ringers[i].index,
     name: p.name,
-    slot: team ? slotKind(slots[team.ringers[i].index]) : '',
+    slot: team ? slotKind(roundSeats[team.ringers[i].index]) : '',
     notes: p.notes,
     ...p.counts,
     strays: p.strays,
@@ -449,11 +603,14 @@ function finish(r: SessionResult): void {
       .join('');
   $('res-json').textContent = JSON.stringify(result, null, 2);
   $('results').classList.remove('hidden');
+  sendParts(); // phones can pick parts for the next round
+  renderNext();
 }
 
 function toLobby(): void {
   session?.stop();
   session = null;
+  playing = false;
   backing?.stop();
   backing = null;
   clearCues();
@@ -467,17 +624,65 @@ function toLobby(): void {
 $('btn-play').onclick = () => void start('play');
 $('btn-auto').onclick = () => void start('autoplay');
 $('btn-again').onclick = () => void start(lastMode);
+$('btn-rotate-again').onclick = () => {
+  seating.rotate();
+  void start(lastMode);
+};
+$('btn-shuffle').onclick = () => {
+  seating.shuffle(rng, benchPhones());
+  seatingChanged();
+};
+$('btn-rotate').onclick = () => {
+  seating.rotate();
+  seatingChanged();
+};
+$('btn-balance').onclick = () => {
+  seating.balance(
+    cards.map((c) => c.effort),
+    accuracyMap(),
+    rng,
+  );
+  seatingChanged();
+};
 $('btn-lobby').onclick = toLobby;
 $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').textContent ?? '');
 
+/**
+ * TV-remote navigation in the lobby: rows [helpers] / [part cards] / [Play, Autoplay]; ↑/↓ between
+ * rows, ←/→ within a row, Enter activates (a part card opens its picker). ↓ from nowhere enters.
+ */
+function lobbyNav(e: KeyboardEvent): boolean {
+  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return false;
+  const rows: HTMLElement[][] = [[...document.querySelectorAll<HTMLElement>('#seat-tools button')], view.cardEls, [$('btn-play'), $('btn-auto')]];
+  const t = document.activeElement as HTMLElement | null;
+  const r = rows.findIndex((row) => !!t && row.includes(t));
+  if (r < 0) {
+    if (e.key !== 'ArrowDown' || (t && t !== document.body)) return false;
+    (view.cardEls[0] ?? $('btn-play')).focus();
+    e.preventDefault();
+    return true;
+  }
+  const row = rows[r];
+  const c = row.indexOf(t!);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') row[(c + (e.key === 'ArrowLeft' ? -1 : 1) + row.length) % row.length]?.focus();
+  else {
+    const next = rows[r + (e.key === 'ArrowUp' ? -1 : 1)];
+    if (next?.length) next[Math.min(c, next.length - 1)].focus();
+  }
+  e.preventDefault();
+  return true;
+}
+
 window.addEventListener('keydown', (e) => {
-  if (e.code !== 'Escape' && ['SELECT', 'INPUT'].includes((e.target as HTMLElement).tagName)) return;
+  const target = e.target as HTMLElement;
+  if (e.code !== 'Escape' && ['SELECT', 'INPUT'].includes(target.tagName)) return;
+  if (!session && lobbyNav(e)) return;
   if (e.code === 'Escape') toLobby();
   else if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
     offsets.visualMs += (e.code === 'ArrowRight' ? 5 : -5) * (e.shiftKey ? 4 : 1);
     saveOffsets();
-  } else if (e.code === 'Enter' && !session) void start('play');
+  } else if (e.code === 'Enter' && !session && !target.closest('button, [role="button"], a, .picker')) void start('play');
 });
 window.addEventListener('resize', () => {
   mh.resize();
@@ -509,10 +714,7 @@ function loop(ts: number): void {
     mh.frame(ts / 1000 + 1e4, dt, ts / 1000);
     if (ts - lastLobby > 1000) {
       lastLobby = ts;
-      if (!$('lobby').classList.contains('hidden')) {
-        const sel = ['SELECT', 'INPUT'].includes(document.activeElement?.tagName ?? '');
-        if (!sel) renderLobby();
-      }
+      if (!$('lobby').classList.contains('hidden')) renderStatus(); // clock-sync text, in place
     }
   }
   if (session && !statsEl.classList.contains('hidden') && ts - lastStats > 500) {
@@ -550,9 +752,15 @@ fetch('charts/index.json')
   get team() {
     return team;
   },
-  get slots() {
-    return slots;
+  /** Part index → deviceId | 'keyboard' | 'tv'. */
+  get seats() {
+    return seating.seats;
   },
+  get cards() {
+    return cards;
+  },
+  seating,
+  view,
   get session() {
     return session;
   },

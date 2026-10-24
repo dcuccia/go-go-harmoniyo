@@ -29,6 +29,10 @@ const { values: a } = parseArgs({
     jitter: { type: 'string', default: '20' },
     /** Systematic lateness of every ring, ms (to check that judging sees it). */
     late: { type: 'string', default: '0' },
+    /** Game lobby (HGP `parts`): claim this part index once the lobby appears (swaps if taken). */
+    claim: { type: 'string' },
+    /** Game lobby: press ✓ Ready once the lobby appears. */
+    ready: { type: 'boolean', default: false },
   },
 });
 
@@ -88,6 +92,8 @@ class FakePhone {
       this.bells = (m.bells as { id: string }[]).map((b) => b.id);
     } else if (m.type === 'cues' && a.game) {
       this.ringCues(m.at as number[], m.bells as string[]);
+    } else if (m.type === 'parts') {
+      this.onParts(m);
     } else if (m.type === 'test' && m.action === 'start') {
       if (m.test === 'metronome') {
         const expect = m.expect as string[] | undefined;
@@ -106,6 +112,27 @@ class FakePhone {
       } else if (m.test === 'clink') {
         for (const h of clinkTimes) this.gesture('impact', h, 0, 15);
       }
+    }
+  }
+  /** Game lobby state (HGP `parts`): optionally claim a part and press Ready, once each. */
+  claimed = false;
+  readied = false;
+  lastPart: number | undefined;
+  onParts(m: Record<string, unknown>): void {
+    const you = Number(m.you);
+    const parts = (m.parts as { name: string }[]) ?? [];
+    if (you !== this.lastPart) {
+      this.lastPart = you;
+      console.log(`${this.name}: part ${you >= 0 ? `${you} ${parts[you]?.name ?? ''}` : '(none)'}`);
+    }
+    if (m.phase !== 'lobby') return;
+    if (a.claim !== undefined && !this.claimed && you >= 0) {
+      this.claimed = true;
+      if (you !== Number(a.claim)) this.ws.send(JSON.stringify({ type: 'claim', part: Number(a.claim) }));
+    }
+    if (a.ready && !this.readied && you >= 0) {
+      this.readied = true;
+      this.ws.send(JSON.stringify({ type: 'ready', ready: true }));
     }
   }
   /** Game mode: ring each cued note (host time) on its bell, with human jitter, misses and wrong zones. */

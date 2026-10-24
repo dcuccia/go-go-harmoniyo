@@ -54,6 +54,22 @@ lane-row zones; A4 is the next note: ![phone](media/i2-phone-controller.png)
 
 Two phones + host ringing ringer 3 (note "Host rings: ringer 3"): ![2+host](media/i2-2-phones-plus-host-play.png)
 
+### Seating chart (follow-up, 2026-10-24)
+
+The owner found that re-assigning parts in the lobby was nearly impossible: the S1 host broadcast
+`devices` every second and the lobby rebuilt every ringer `<select>` on each broadcast, so an
+open dropdown collapsed within a second. Fixed at both ends — the host now broadcasts on change
+(+ 3 s heartbeat) and the lobby patches the DOM in place — and the per-ringer dropdowns were
+replaced by a **seating chart**: part cards (musical name from the chart's note roles, bells,
+range, 1–5 difficulty meter) × player chips (phones, Keyboard, 🤖 TV plays), with drag-to-swap,
+a stable picker that works with a TV remote, 🎲 Shuffle / 🔁 Rotate / ⚖️ Balance, and seats that
+persist across songs, ringer-count changes and reconnects. Phones get a Jackbox-style **Pick
+your part** list with *Swap with …?* and ✓ Ready (HGP `parts` / `claim` / `ready`). Verified by
+unit tests and `npm run e2e:seating` (30 checks, including a regression check that the picker
+survives device broadcasts). Runbook: [spike README](../../spikes/i2-web-phones/README.md).
+
+![Seating chart lobby](media/i2-seating-lobby.png) ![Pick your part on a phone](media/i2-phone-part-picker.png)
+
 ### Alignment with I1 (YARG fork, PR #8)
 
 I1 changed the same S1 controller. I2 takes I1's controller/HGP changes **verbatim** (optional

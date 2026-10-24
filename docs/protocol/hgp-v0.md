@@ -64,6 +64,8 @@ and when the page becomes visible again.
 | `raw` | `off` (host − device at batch end), `cols` (e.g. `["t","ax","ay","az","gx","gy","gz"]`), `s` (rows) | Optional diagnostic sensor stream (~4 batches/s). |
 | `result` | `test`, `data` | Test/diagnostic results (environment, calibration, latency meter). |
 | `rtc` | `kind: "offer"`, `sdp` | Non-trickle WebRTC offer. |
+| `claim` | `part` (index into the last `parts.parts`; `-1` = sit out) | Lobby (I2 seating chart): the player picks a part. If someone holds it, the two swap **at once** (v0: the other player is not asked; a consent step is a possible v1 option). The host relays it to the game, which owns the seating and answers with a new `parts`. |
+| `ready` | `ready` (boolean) | Lobby: the player's ✓ Ready toggle. Informational — the game can start without everyone ready. Cleared when a song starts. |
 
 ## 5. Gesture events
 
@@ -127,7 +129,18 @@ immediately and take `t1` as early as possible on receipt.
 | `config` | `mode?` (`ring`·`impact`), `record?` (stream `raw`), `detector?` (threshold overrides), `calibrate?` | |
 | `test` | `action` (`start`·`stop`), `id`, `test` (`metronome`·`idle`·`clink`·`latency`), `start?` (host time of beat 0), `period?`, `count?`, `durationMs?`, `expect?` (bell id per beat) | Spike test orchestration; a game host would send chart cues instead. |
 | `cues` | `at` (host times, ms), `bells` (bell id per note) | I2 web host: this device's notes for the song, sent at song start (empty arrays clear). The device glows the zone of the next note not more than ~120 ms in the past. Purely a display hint; judging stays on the host. |
+| `parts` | `phase` (`lobby`·`play`), `song?`, `parts` (array of `{index, name, range, bells, notes, perSec, level, player: {kind: "phone"·"keyboard"·"tv", id?, name}, ready?}`), `you` (this device's part index, −1 = not in a part), `ready` (this device's Ready) | I2 seating chart: the arrangement's parts and who plays each, for the phone's "Pick your part" list. `name` is musical where the chart has note roles ("Melody", "Bass", "Harmony", "Low melody", …) else "Ringer N"; `level` is a 1–5 difficulty meter; `bells` use the pitch-class colours. Sent whenever it changes and to every device that joins; `phase: "play"` hides the list during a song. The device's actual bells still come from `assign`. |
 | `rtc` | `kind` (`answer`·`error`), `sdp?`, `error?` | |
+
+**Lobby flow (I2 seating chart).** The game (a `dashboard` client of the S1 host) sends
+`{"type":"cmd","cmd":"parts", phase, song, parts}`; the host stores it, adds each device's `you`
+and `ready` and sends `parts` to every phone (and to phones that join later). A phone's `claim`
+reaches the game as `{"type":"claim", deviceId, name, part}`; `ready` is kept by the host and shown
+in the `devices` list (`ready` per device). The host broadcasts `devices` when something
+meaningful changes (join, leave, rename, assignment, Ready, sync/sensor state) plus a 3 s
+heartbeat for diagnostics — not every second — so a game can rebuild its lobby on change only.
+Devices that ignore `parts` (I1/YARG mode, older controllers) are unaffected: their seat and bells
+still come from `assign` (`assign.ringer.slot` = part index in I2, YARG seat in I1).
 
 ## 9. Multi-bell devices
 
@@ -150,10 +163,14 @@ hold up to **4 bells**. v0 behaviour (`select: "zones"`):
 {"type":"hello","v":0,"deviceId":"dev-k3j9x2","kind":"phone","name":"Dad","sensors":{"api":"devicemotion"},"gestures":["ring","impact","tap"],"sound":true}
 {"type":"assign","bells":[{"id":"G4","label":"G","midi":67,"color":"hsl(0 75% 52%)"},{"id":"A4","label":"A","midi":69,"color":"hsl(67 75% 52%)"}],"sound":"device","select":"zones"}
 {"type":"gesture","seq":12,"g":"ring","t":20877.95,"th":34791.02,"err":1.3,"bell":"A4","sel":20512.4,"vel":0.5,"det":9.1,"src":"motion"}
+{"type":"parts","phase":"lobby","song":"Jingle Bells (easy)","parts":[{"index":0,"name":"Low melody","range":"D4–G4","bells":[{"id":"D4","label":"D","midi":74,"color":"hsl(…)"}],"notes":18,"perSec":0.28,"level":1,"player":{"kind":"phone","id":"dev-k3j9x2","name":"Dad"},"ready":true},{"index":1,"name":"High melody","range":"A4–E5","bells":[],"notes":79,"perSec":1.23,"level":3,"player":{"kind":"tv","name":"TV"}}],"you":0,"ready":true}
+{"type":"claim","part":1}
+{"type":"ready","ready":true}
 ```
 
 ## 11. Open for v1
 
 Binary/BLE encoding for ESP32-S3 bells; authentication/pairing (session code in the QR);
 host-initiated sync for devices without a reliable clock; per-device latency calibration as
-a protocol step; `damp`/`shake` detection on phones; battery/health.
+a protocol step; `damp`/`shake` detection on phones; battery/health; optional consent for a
+lobby `claim` that swaps with another player ("Bob wants your part — OK?").
