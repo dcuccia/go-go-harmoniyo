@@ -1,0 +1,14 @@
+{
+  "name": "go-go-harmoniyo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Go Go HarmoniYo: `npm start` checks the setup, installs, builds and starts the game (spikes/i2-web-phones). No dependencies of its own.",
+  "license": "MIT",
+  "scripts": {
+    "start": "node spikes/i2-web-phones/scripts/start.mjs",
+    "preflight": "node spikes/i2-web-phones/scripts/start.mjs --check"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

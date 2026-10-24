@@ -42,10 +42,11 @@ Expected time:
 - Fresh PC with Node: ~1–2 min (`npm ci` for 3 projects, 2 builds).
 - Add a few minutes if Node itself must be installed.
 
-Then: `cd spikes\i2-web-phones; npm start`
+Then, at the repo root: `npm start`
 ([runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)).
-Allow Node.js through Windows Firewall for **Private networks** when asked. The phones and the PC
-must be on the same, non-guest Wi-Fi.
+Its start-up checks explain firewall, adapter and port problems. Allow Node.js through Windows
+Firewall for **Private networks** when asked. The phones and the PC must be on the same,
+non-guest Wi-Fi (or use `npm start -- --tunnel`).
 
 ## setup-yarg.ps1
 
