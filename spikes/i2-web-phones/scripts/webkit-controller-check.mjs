@@ -155,6 +155,29 @@ function phoneInit() {
     return e;
   };
   wk.ringAt = (epochMs) => rings.push(epochMs - performance.timeOrigin);
+  // Touch and pointer events seen by the page (does Playwright's touch emulation reach pointerdown?).
+  wk.events = { touchstart: 0, pointerdown: 0 };
+  for (const k of Object.keys(wk.events)) window.addEventListener(k, () => wk.events[k]++, { capture: true, passive: true });
+  // The song, scheduled in the page so the result doesn't depend on Node ↔ browser round trips on a
+  // busy CI runner: each note's zone is selected (pointerdown, as a finger would) between the previous
+  // note and this one, and the ring lands on the note time. Times are epoch ms.
+  wk.schedule = (notes) => {
+    let zone = -1;
+    let prev = -Infinity;
+    for (const { at, zone: z } of notes) {
+      const tp = at - performance.timeOrigin;
+      if (z !== zone) {
+        const sel = tp - Math.min(250, (tp - prev) / 2);
+        setTimeout(() => {
+          const el = document.querySelectorAll('#zones .zone')[z];
+          el?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true }));
+        }, Math.max(0, sel - performance.now()));
+        zone = z;
+      }
+      rings.push(tp);
+      prev = tp;
+    }
+  };
   wk.samples = 0;
   const step = 1000 / 60;
   let next = performance.now();
@@ -200,10 +223,11 @@ console.log(`WebKit ${env.webkit} (${deviceName}) on ${env.platform}; TV: ${env.
 const summary = {};
 let ok = false;
 try {
-  // TV (game) page: two parts so the phone has something to pick.
+  // TV page: two parts so the phone has something to pick; low render quality (no bloom/particles,
+  // DPR 1) so the TV's software WebGL doesn't starve the phone on a 2-vCPU CI runner.
   const tv = await tvBrowser.newPage({ viewport: { width: 1920, height: 1080 } });
   tv.on('pageerror', (e) => errors.push(`tv: ${e}`));
-  await tv.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=2&seed=7`);
+  await tv.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=2&seed=7&bloom=0&particles=0&dpr=1`);
   await tv.waitForFunction(() => window.__i2?.cards?.length === 2, null, { timeout: 20000 });
   await tv.evaluate(() => {
     window.__rings = [];
@@ -273,6 +297,23 @@ try {
   const practice = await tv.evaluate(([id, n]) => window.__rings.filter((r) => r.deviceId === id).slice(n), [phoneId, before]);
   check('synthetic motion rings reach the host (lobby practice: 4 rings, synced source times)', practice.length === 4 && practice.every((r) => r.g === 'ring' && r.synced), `${practice.length} received: ${practice.map((r) => `${r.g}${r.synced ? '' : ' (unsynced)'}`).join(', ')}`);
 
+  // A real (emulated) touch on a zone: Playwright touch → the controller's pointerdown handler.
+  const touchName = 'touching a zone selects its bell (emulated touch → pointerdown)';
+  const nz = await phone.locator('#zones .zone').count();
+  if (nz >= 2) {
+    const ev0 = await phone.evaluate(() => ({ ...window.__wk.events }));
+    await phone.locator('#zones .zone').nth(nz - 1).tap();
+    await sleep(300);
+    const z = await phone.evaluate(() => ({ sel: [...document.querySelectorAll('#zones .zone')].findIndex((e) => e.classList.contains('selected')), ev: { ...window.__wk.events } }));
+    const touches = z.ev.touchstart - ev0.touchstart;
+    const pointers = z.ev.pointerdown - ev0.pointerdown;
+    const detail = `selected zone ${z.sel} (want ${nz - 1}); touchstart ${touches}, pointerdown ${pointers}`;
+    if (z.sel === nz - 1) check(touchName, true, detail);
+    else if (touches > 0 && pointers === 0) check(touchName, null, `skipped: this WebKit build turns emulated touches into touch events but not pointer events (iOS Safari 13+ does both), so the song below selects zones with dispatched pointerdown events; ${detail}`);
+    else check(touchName, false, detail);
+    await phone.evaluate(() => document.querySelector('#zones .zone')?.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, pointerType: 'touch', isPrimary: true })));
+  } else check(touchName, null, `skipped: ${nz} zone(s) shown in the lobby`);
+
   // 4. Song: zones + next-zone glow, ring each note by touching its zone and swinging.
   await tv.click('#btn-play');
   await tv.waitForFunction(() => window.__i2?.session, null, { timeout: 20000 });
@@ -294,13 +335,11 @@ try {
   const phoneBells = part.bells.slice(0, 4).map((b) => b.id);
   check('zones show the part’s bells (low → high, like the highway)', zoneIds.join() === phoneBells.join(), `${zoneIds.join(' ')} vs part ${phoneBells.join(' ')}`);
   const plan = part.plan.filter((n) => zoneIds.includes(n.bell));
-  const boxes = {};
-  for (const [i, id] of zoneIds.entries()) boxes[id] = await phone.locator('#zones .zone').nth(i).boundingBox();
-  const center = (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
-  let selected = null;
+  console.log(`  ringing ${plan.length} notes on ${zoneIds.join(' ')}…`);
+  await phone.evaluate((notes) => window.__wk.schedule(notes), plan.map((n) => ({ at: n.epoch, zone: zoneIds.indexOf(n.bell) })));
+  // Sample the glow ~300 ms before each note (allow one 50 ms UI refresh of staleness).
   let glowOk = 0;
   let glowChecked = 0;
-  console.log(`  ringing ${plan.length} notes on ${zoneIds.join(' ')}…`);
   for (const [k, n] of plan.entries()) {
     const lead = n.epoch - 300 - Date.now();
     if (lead > 0) await sleep(lead);
@@ -311,12 +350,6 @@ try {
       const due = (t) => plan.find((p) => p.epoch > t - 120)?.bell;
       if (next === due(at) || next === due(at - 60)) glowOk++;
     }
-    if (selected !== n.bell && boxes[n.bell]) {
-      const c = center(boxes[n.bell]);
-      await phone.touchscreen.tap(c.x, c.y);
-      selected = n.bell;
-    }
-    await phone.evaluate((at) => window.__wk.ringAt(at), n.epoch);
     if (shots && k === Math.floor(plan.length / 2)) await phone.screenshot({ path: join(outDir, 'webkit-iphone-controller.png') });
   }
   check('the next zone glows for the upcoming note', glowChecked > 0 && glowOk / glowChecked >= 0.8, `${glowOk}/${glowChecked} samples`);

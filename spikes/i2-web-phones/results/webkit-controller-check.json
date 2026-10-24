@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T22:50:29.495Z",
+  "at": "2026-10-24T23:03:17.733Z",
   "ok": true,
   "env": {
     "device": "iPhone 15",
@@ -27,15 +27,15 @@
     "notes": 65,
     "rung": 65,
     "notesUnder260msApart": 5,
-    "hit": 62,
-    "perfect": 62,
-    "miss": 3,
-    "strays": 1,
+    "hit": 63,
+    "perfect": 63,
+    "miss": 2,
+    "strays": 0,
     "offsetMs": {
-      "n": 62,
-      "mean": -6.1,
-      "p50": -7.1,
-      "p95abs": 7.8
+      "n": 63,
+      "mean": -7.9,
+      "p50": -8.2,
+      "p95abs": 11.6
     },
     "glow": "65/65",
     "input": {
@@ -45,9 +45,9 @@
       "nonRing": 0,
       "latencyMs": {
         "n": 63,
-        "mean": 45.2,
-        "p50": 46.8,
-        "p95abs": 55.2
+        "mean": 61.7,
+        "p50": 51.9,
+        "p95abs": 116.8
       }
     }
   },
@@ -60,7 +60,7 @@
     {
       "name": "Tap to start calls DeviceMotionEvent.requestPermission inside the tap",
       "status": "pass",
-      "detail": "{\"what\":\"requestPermission\",\"inGesture\":true,\"t\":540}"
+      "detail": "{\"what\":\"requestPermission\",\"inGesture\":true,\"t\":1117}"
     },
     {
       "name": "Web Audio unlock on the tap",
@@ -75,7 +75,7 @@
     {
       "name": "phone joins the host over WSS and appears on the TV",
       "status": "pass",
-      "detail": "dev-98ohco77"
+      "detail": "dev-bprkdffh"
     },
     {
       "name": "first phone takes the first part",
@@ -95,12 +95,17 @@
     {
       "name": "6 synthetic rings calibrate the swing axis",
       "status": "pass",
-      "detail": "axis [0.9999999990824051,-0.000027569074986536037,0.00003278927107498377]; 323 devicemotion events via Event + defined properties; phone status: connected · devicemotion 60 Hz · sync ±7.4 ms, rtt 32 ms · sound: device · mode: ring"
+      "detail": "axis [0.9999999988786552,0.0000016392660388945788,-0.00004732866584968852]; 348 devicemotion events via Event + defined properties; phone status: connected · devicemotion 60 Hz · sync ±4.4 ms, rtt 41 ms · sound: device · mode: ring"
     },
     {
       "name": "synthetic motion rings reach the host (lobby practice: 4 rings, synced source times)",
       "status": "pass",
       "detail": "4 received: ring, ring, ring, ring"
+    },
+    {
+      "name": "touching a zone selects its bell (emulated touch → pointerdown)",
+      "status": "pass",
+      "detail": "selected zone 3 (want 3); touchstart 1, pointerdown 1"
     },
     {
       "name": "zones show the part’s bells (low → high, like the highway)",
@@ -115,7 +120,7 @@
     {
       "name": "motion rings during the song are judged as hits (≥ 70 % of notes)",
       "status": "pass",
-      "detail": "62/65 hit (perfect 62, miss 3, strays 1; 5 notes < 260 ms after the previous one), offset {\"n\":62,\"mean\":-6.1,\"p50\":-7.1,\"p95abs\":7.8}"
+      "detail": "63/65 hit (perfect 63, miss 2, strays 0; 5 notes < 260 ms after the previous one), offset {\"n\":63,\"mean\":-7.9,\"p50\":-8.2,\"p95abs\":11.6}"
     },
     {
       "name": "no page errors",
