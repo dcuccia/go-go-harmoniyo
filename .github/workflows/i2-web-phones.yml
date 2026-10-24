@@ -36,10 +36,11 @@ jobs:
           npm run charts
           npm run typecheck
           npm test
+      # No GPU on the runner: WebGL is SwiftShader on 4 vCPUs, so render without bloom/particles.
       - name: I2 end-to-end (S1 host + simulated phones + headless Chrome)
         working-directory: spikes/i2-web-phones
         run: |
-          npm run e2e
+          npm run e2e -- --quality=low
           cat results/e2e-summary.md >> "$GITHUB_STEP_SUMMARY"
       - name: Keep the E2E results
         if: always()
