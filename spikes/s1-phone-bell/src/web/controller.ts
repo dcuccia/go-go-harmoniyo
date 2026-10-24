@@ -1,4 +1,4 @@
-import { DEFAULT_BELLS, midiToHz, type Bell, type DetectMode, type SoundMode } from '../core/hgp.ts';
+import { DEFAULT_BELLS, midiToHz, type Bell, type DetectMode, type Parts, type SoundMode } from '../core/hgp.ts';
 import { isAccidental } from '../../../shared/pitch-palette.ts';
 import { ImpactDetector } from '../core/impact-detector.ts';
 import { learnAxis, RingDetector, type MotionSample, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
@@ -20,6 +20,10 @@ const myBell = (): Bell => myBells[Math.min(selIdx, myBells.length - 1)];
 let soundMode: SoundMode = 'device';
 /** YARG mode (I1): this phone's ringer seat, shown above the bell. */
 let ringer: { slot: number; title: string; song?: string } | null = null;
+/** Lobby (I2 seating chart): the game's parts, which one is mine, my Ready state. */
+let lobby: Parts | null = null;
+/** Taken part the player tapped: asks "Swap with <name>?" before claiming. */
+let pendingSwap = -1;
 let mode: DetectMode = 'ring';
 let recording = false;
 let raw: number[][] = [];
@@ -322,6 +326,24 @@ client.onMessage = (m) => {
       cueIdx = 0;
       renderZones();
       break;
+    case 'parts':
+      if (Array.isArray(m.parts)) {
+        // Normalise once: everything below can trust the shapes (strings, numbers, arrays).
+        const parts = (m.parts as Record<string, any>[]).filter((p) => p && typeof p === 'object').map((p, i) => ({
+          index: i,
+          name: String(p.name ?? `Ringer ${i + 1}`),
+          range: String(p.range ?? ''),
+          bells: (Array.isArray(p.bells) ? p.bells : []).map((b: Record<string, unknown>) => ({ id: String(b?.id ?? ''), label: String(b?.label ?? ''), midi: Number(b?.midi) || 0, color: String(b?.color ?? '#888') })),
+          notes: Number(p.notes) || 0,
+          perSec: Number(p.perSec) || 0,
+          level: Math.round(Number(p.level)) || 1,
+          player: { kind: p.player?.kind === 'phone' || p.player?.kind === 'keyboard' ? p.player.kind : 'tv', id: typeof p.player?.id === 'string' ? p.player.id : undefined, name: String(p.player?.name ?? '') },
+          ready: p.ready === true,
+        })) as Parts['parts'];
+        lobby = { type: 'parts', phase: m.phase === 'play' ? 'play' : 'lobby', song: typeof m.song === 'string' ? m.song : undefined, parts, you: Number.isInteger(m.you) ? (m.you as number) : -1, ready: m.ready === true };
+        renderLobby();
+      }
+      break;
   }
   render();
 };
@@ -329,6 +351,82 @@ client.onState = (s) => {
   lastInfo = s;
   render();
 };
+
+// ── lobby: pick your part (I2 seating chart, HGP `parts` / `claim` / `ready`) ──
+const escHtml = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+const meter = (level: number): string => '●'.repeat(Math.max(0, Math.min(5, level))) + '○'.repeat(Math.max(0, 5 - level));
+
+/** Update one element's markup only if it changed, so taps never land on a node being replaced. */
+const shown = new WeakMap<Element, string>();
+function setHtml(el: Element, html: string): void {
+  if (shown.get(el) === html) return;
+  shown.set(el, html);
+  el.innerHTML = html;
+}
+
+function renderLobby(): void {
+  const show = !!lobby && lobby.phase === 'lobby' && lobby.parts.length > 0;
+  $('lobby').hidden = !show;
+  if (!show || !lobby) return;
+  $('lobby-song').textContent = lobby.song ?? '';
+  const box = $('parts');
+  while (box.children.length > lobby.parts.length) box.lastElementChild!.remove();
+  while (box.children.length < lobby.parts.length) {
+    const el = document.createElement('div');
+    el.className = 'pcard';
+    el.setAttribute('role', 'listitem');
+    box.appendChild(el);
+  }
+  const occupant = (i: number) => lobby!.parts[i]?.player;
+  if (pendingSwap >= 0 && (pendingSwap === lobby.you || occupant(pendingSwap)?.kind === 'tv')) pendingSwap = -1;
+  lobby.parts.forEach((p, i) => {
+    const el = box.children[i] as HTMLElement;
+    el.dataset.part = String(i);
+    const mine = i === lobby!.you;
+    el.classList.toggle('mine', mine);
+    el.classList.toggle('taken', !mine && p.player.kind !== 'tv');
+    const who = mine ? 'You' : p.player.kind === 'tv' ? '🤖 TV plays' : `${p.player.kind === 'keyboard' ? '⌨' : '📱'} ${escHtml(p.player.name)}`;
+    const bells = p.bells.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${escHtml(b.color)}">${escHtml(b.label)}</i>`).join('');
+    const swap = pendingSwap === i ? `<button class="swap" data-swap="${i}">⇄ Swap with ${escHtml(p.player.name)}?</button>` : '';
+    setHtml(
+      el,
+      `<b>${escHtml(p.name)}</b><span class="who">${who}${p.ready ? ' <span class="rdy">✓</span>' : ''}</span>` +
+        `<span class="meta"><span class="pb">${bells}</span><span>${escHtml(p.range)}</span><span class="meter" title="difficulty ${p.level}/5">${meter(p.level)}</span><span>${p.notes} notes</span></span>${swap}`,
+    );
+  });
+  const ready = $('ready');
+  ready.setAttribute('aria-pressed', String(lobby.ready));
+  ready.textContent = lobby.ready ? '✓ Ready' : "I'm ready";
+  $('sit-out').hidden = lobby.you < 0;
+}
+
+$('parts').addEventListener('click', (e) => {
+  if (!lobby) return;
+  const t = e.target as HTMLElement;
+  const swap = t.closest<HTMLElement>('[data-swap]');
+  if (swap) {
+    client.send({ type: 'claim', part: Number(swap.dataset.swap) });
+    pendingSwap = -1;
+    navigator.vibrate?.(15);
+    return;
+  }
+  const card = t.closest<HTMLElement>('.pcard');
+  if (!card) return;
+  const i = Number(card.dataset.part);
+  const p = lobby.parts[i];
+  if (!p || i === lobby.you) return;
+  if (p.player.kind === 'tv') {
+    client.send({ type: 'claim', part: i });
+    pendingSwap = -1;
+    navigator.vibrate?.(10);
+  } else pendingSwap = pendingSwap === i ? -1 : i;
+  renderLobby();
+});
+$('ready').addEventListener('click', () => {
+  if (!lobby) return;
+  client.send({ type: 'ready', ready: !lobby.ready });
+});
+$('sit-out').addEventListener('click', () => client.send({ type: 'claim', part: -1 }));
 
 // ── startup (needs a user gesture for iOS motion permission + audio) ────────
 async function requestWakeLock(): Promise<void> {

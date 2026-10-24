@@ -1,0 +1,166 @@
+{
+  "at": "2026-10-24T02:20:50.521Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "first phone takes the first part",
+      "ok": true,
+      "detail": "Alice / tv / tv"
+    },
+    {
+      "name": "second phone takes the next TV-played part",
+      "ok": true,
+      "detail": "Alice / Bob / tv"
+    },
+    {
+      "name": "phone shows \"Pick your part\" with every part, occupant, range and meter",
+      "ok": true,
+      "detail": "Low melodyYouDEF♯GD4–G4●○○○○18 notes | Middle melody📱 BobABA4–B4●●○○○47 notes | High melody🤖 TV playsCDEC5–E5●●○○○32 notes"
+    },
+    {
+      "name": "parts have musical names",
+      "ok": true,
+      "detail": "Low melody, Middle melody, High melody"
+    },
+    {
+      "name": "picker stays open, focused and is the same node across device broadcasts",
+      "ok": true,
+      "detail": "{\"broadcasts\":4,\"picker\":true,\"expanded\":\"true\",\"song\":true,\"parts\":true,\"readyChip\":true}"
+    },
+    {
+      "name": "song dropdown and part cards are patched in place, not replaced",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TV shows Ready (✓) on the part of the phone that pressed it",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TV picker (↓ ↓ Enter) moves Bob to the TV-played part",
+      "ok": true,
+      "detail": "Alice / tv / Bob"
+    },
+    {
+      "name": "picker closed after choosing",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "phone claims a free (TV-played) part",
+      "ok": true,
+      "detail": "tv / Alice / Bob"
+    },
+    {
+      "name": "phone gets the new part’s bells and label",
+      "ok": true,
+      "detail": "Middle melody"
+    },
+    {
+      "name": "taken part offers \"Swap with <name>?\"",
+      "ok": true,
+      "detail": "⇄ Swap with Alice?"
+    },
+    {
+      "name": "swap is executed immediately",
+      "ok": true,
+      "detail": "tv / Bob / Alice"
+    },
+    {
+      "name": "TV counts Ready 2/2",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "phone Ready toggle reflects the host state",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "🔁 Rotate moves everyone one part",
+      "ok": true,
+      "detail": "Alice / tv / Bob"
+    },
+    {
+      "name": "drag Bob’s chip onto Alice’s part swaps them",
+      "ok": true,
+      "detail": "Bob / tv / Alice"
+    },
+    {
+      "name": "remote keys (↓ → Enter End Enter) give part 2 to Keyboard",
+      "ok": true,
+      "detail": "Bob / keyboard / Alice"
+    },
+    {
+      "name": "drag the TV chip onto a part",
+      "ok": true,
+      "detail": "Bob / tv / Alice"
+    },
+    {
+      "name": "late joiner takes the TV part, then claims part 0 (swap with Bob)",
+      "ok": true,
+      "detail": "Cara / Bob / Alice"
+    },
+    {
+      "name": "simulated phone Ready shows on the TV",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "lobby columns don't overlap at 1280×720",
+      "ok": true,
+      "detail": "{\"joinR\":377,\"setupL\":399,\"setupR\":881,\"phonesL\":903,\"songR\":881,\"sameRow\":true}"
+    },
+    {
+      "name": "lobby columns don't overlap at 1920×1080",
+      "ok": true,
+      "detail": "{\"joinR\":638,\"setupL\":660,\"setupR\":1260,\"phonesL\":1282,\"songR\":1260,\"sameRow\":true}"
+    },
+    {
+      "name": "🎲 Shuffle seats everyone once",
+      "ok": true,
+      "detail": "Bob / Alice / Cara"
+    },
+    {
+      "name": "disconnect: the TV plays the part",
+      "ok": true,
+      "detail": "part 2"
+    },
+    {
+      "name": "reconnect reclaims the same part (simulated phone)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "reconnect reclaims the same part (phone page reloaded)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "▶ Play starts without everyone Ready",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "phones hide \"Pick your part\" during the song",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "back in the lobby the phones show it again",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Ready resets when a song starts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

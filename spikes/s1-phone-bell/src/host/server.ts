@@ -20,7 +20,7 @@ import * as esbuild from 'esbuild';
 import QRCode from 'qrcode';
 import { generate as generateCert } from 'selfsigned';
 import { WebSocket, WebSocketServer } from 'ws';
-import { bellBlock, DEFAULT_BELLS, HGP_VERSION, parseMessage, type Bell, type SoundMode, type TestKind } from '../core/hgp.ts';
+import { bellBlock, DEFAULT_BELLS, HGP_VERSION, parseMessage, type Bell, type PartCard, type SoundMode, type TestKind } from '../core/hgp.ts';
 import {
   analyzeClink,
   analyzeIdle,
@@ -250,6 +250,10 @@ interface Device {
   bells: Bell[];
   /** Ringer seat shown on the phone (HGP `assign.ringer`, shared with I1's YARG mode). */
   ringer?: { slot: number; title: string; song?: string };
+  /** Lobby ✓ Ready toggle (HGP `ready`, I2 seating chart). */
+  ready: boolean;
+  /** Coarse status (api, synced, calibrated, …): a change triggers a device broadcast. */
+  statusKey?: string;
   connectedAt: number;
   lastSeen: number;
   events: number;
@@ -259,6 +263,8 @@ const devices = new Map<string, Device>();
 const dashboards = new Set<WebSocket>();
 const gestures: LoggedGesture[] = [];
 let soundMode: SoundMode = 'device';
+/** Last lobby state from the game (HGP `parts`), re-sent to phones that join later. */
+let lobby: { phase: 'lobby' | 'play'; song?: string; parts: PartCard[] } | null = null;
 
 interface RunningTest {
   id: string;
@@ -370,13 +376,32 @@ function deviceSummary(d: Device) {
     rtc: d.rtc !== null,
     bells: d.bells,
     status: d.status,
+    ready: d.ready,
     events: d.events,
     lastSeen: d.lastSeen,
   };
 }
 
+/**
+ * Device list to dashboards/the game. Sent when something meaningful changes (join, leave, rename,
+ * assignment, Ready, sync/sensor state) plus a slow heartbeat for the diagnostics (rtt, rates):
+ * a game must not rebuild its lobby on every frame of this.
+ */
 function broadcastDevices(): void {
   toDashboards({ type: 'devices', hostTime: now(), devices: [...devices.values()].map(deviceSummary), soundMode, bellsPerPhone, test: running, yarg: yargSummary() });
+}
+const HEARTBEAT_MS = 3000;
+
+/** Coarse status fields whose change is worth a broadcast (not rtt/rate jitter). */
+function statusKey(st: Record<string, unknown>): string {
+  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null]);
+}
+
+/** HGP `parts`: the game's lobby state, with this device's own part index and Ready state. */
+function sendParts(d: Device): void {
+  if (!lobby || !d.ws || d.kind === 'dashboard' || d.kind === 'meter') return;
+  const you = lobby.parts.findIndex((p) => p.player?.kind === 'phone' && p.player.id === d.id);
+  send(d.ws, { type: 'parts', phase: lobby.phase, song: lobby.song, parts: lobby.parts, you, ready: d.ready });
 }
 
 let bellsPerPhone = 1;
@@ -424,9 +449,32 @@ function handleDeviceMessage(d: Device, m: Record<string, unknown> & { type: str
     case 'raw':
       appendFileSync(join(DATA, `raw-${d.id}.ndjson`), JSON.stringify({ rx, ...m }) + '\n');
       return;
-    case 'status':
+    case 'status': {
       d.status = m;
+      const key = statusKey(m);
+      if (key !== d.statusKey) {
+        d.statusKey = key;
+        broadcastDevices();
+      }
       return;
+    }
+    case 'claim': {
+      // Lobby: relay to the game, which owns the seating chart (and answers with a new `parts`).
+      const part = Number(m.part);
+      if (!Number.isInteger(part) || part < -1) return;
+      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
+      toDashboards({ type: 'claim', deviceId: d.id, name: d.name, part });
+      return;
+    }
+    case 'ready': {
+      const ready = m.ready === true;
+      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
+      if (ready === d.ready) return;
+      d.ready = ready;
+      sendParts(d);
+      broadcastDevices();
+      return;
+    }
     case 'result':
       logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
       appendFileSync(SUMMARY, `\n### ${String(m.test)} result from ${d.name} (${new Date().toLocaleString()})\n\n\`\`\`json\n${JSON.stringify(m.data, null, 2)}\n\`\`\`\n`);
@@ -572,6 +620,16 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
       if (d) send(d.ws, { type: 'cues', at: Array.isArray(m.at) ? m.at : [], bells: Array.isArray(m.bells) ? m.bells : [] });
       return; // high volume: skip event log + device broadcast
     }
+    case 'parts': {
+      // Lobby state from the game (I2 seating chart) → every phone (HGP `parts`). Starting a song
+      // clears everyone's Ready.
+      const phase = m.phase === 'play' ? 'play' : 'lobby';
+      if (phase === 'play' && lobby?.phase !== 'play') for (const d of devices.values()) d.ready = false;
+      const parts = Array.isArray(m.parts) ? (m.parts as PartCard[]).filter((p) => p && typeof p.name === 'string').slice(0, 8) : [];
+      lobby = { phase, song: typeof m.song === 'string' ? m.song : undefined, parts };
+      for (const d of devices.values()) sendParts(d);
+      break;
+    }
     case 'config': {
       const targets = m.deviceId === 'all' ? phones() : [devices.get(String(m.deviceId))].filter((d): d is Device => !!d);
       for (const d of targets) send(d.ws, { type: 'config', ...(m.config as object) });
@@ -670,6 +728,7 @@ wss.on('connection', (ws) => {
         ws,
         rtc: null,
         bells: nextBells(),
+        ready: false,
         connectedAt: rx,
         lastSeen: rx,
         events: 0,
@@ -686,6 +745,7 @@ wss.on('connection', (ws) => {
       logEvent({ dir: 'in', via: 'ws', rx, deviceId: id, msg: m });
       send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: id, session: SESSION, hostTime: now() });
       sendAssign(dev);
+      sendParts(dev);
       if (running) {
         const t = running;
         if (!t.deviceIds.includes(id)) t.deviceIds.push(id);
@@ -713,7 +773,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-setInterval(broadcastDevices, 1000);
+setInterval(broadcastDevices, HEARTBEAT_MS);
 
 // ── listeners ───────────────────────────────────────────────────────────────
 

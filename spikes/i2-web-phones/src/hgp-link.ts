@@ -3,7 +3,7 @@
 // every phone's HGP gesture (relayed by the host with its source timestamp `th` in host time)
 // and sends bell assignments + note cues back through the host.
 import { ClockSync } from '../../s1-phone-bell/src/core/clock-sync.ts';
-import { HGP_VERSION, type Bell, type SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
+import { HGP_VERSION, type Bell, type PartCard, type SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
 
 export interface PhoneInfo {
   id: string;
@@ -12,7 +12,16 @@ export interface PhoneInfo {
   online: boolean;
   bells: Bell[];
   status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown };
+  /** Lobby ✓ Ready (HGP `ready`). */
+  ready?: boolean;
   events: number;
+}
+
+/** Lobby state for the phones (HGP `parts`; the S1 host adds each phone's `you`/`ready`). */
+export interface LobbyParts {
+  phase: 'lobby' | 'play';
+  song?: string;
+  parts: PartCard[];
 }
 
 export interface HostInfo {
@@ -50,6 +59,8 @@ export class HgpLink {
   onDevices: (phones: PhoneInfo[]) => void = () => {};
   onInfo: (info: HostInfo) => void = () => {};
   onState: (s: string) => void = () => {};
+  /** A phone asked for a part in the lobby (HGP `claim`, relayed by the host); -1 = sit out. */
+  onClaim: (deviceId: string, part: number) => void = () => {};
   /** Every gesture from any phone (lobby practice + gameplay). Multiple listeners. */
   readonly ringListeners = new Set<(e: RingEvent) => void>();
   private ws: WebSocket | null = null;
@@ -120,6 +131,9 @@ export class HgpLink {
         this.phones = (m.devices as PhoneInfo[]).filter((d) => d.kind !== 'dashboard' && d.kind !== 'meter');
         this.onDevices(this.phones);
         return;
+      case 'claim':
+        if (typeof m.deviceId === 'string' && Number.isInteger(m.part)) this.onClaim(m.deviceId, m.part as number);
+        return;
       case 'event': {
         const g = m.msg ?? {};
         const ev: RingEvent = {
@@ -176,6 +190,11 @@ export class HgpLink {
   /** HGP sound mode for every phone: 'device' (phone rings itself) | 'host' | 'both' | 'none'. */
   setSound(sound: SoundMode): void {
     this.cmd({ cmd: 'sound', sound });
+  }
+
+  /** Lobby state (seating chart) for every phone's "Pick your part" list. */
+  parts(lobby: LobbyParts): void {
+    this.cmd({ cmd: 'parts', ...lobby });
   }
 }
 

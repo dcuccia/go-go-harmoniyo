@@ -122,7 +122,23 @@ export interface RtcSignal {
   kind: 'offer' | 'answer';
 }
 
-export type DeviceToHost = Hello | SyncReq | Gesture | Status | Raw | Result | RtcSignal;
+/**
+ * Lobby (I2 seating chart): the player asks for part `part` of the current arrangement (index into
+ * `parts.parts`); -1 = sit out. A part someone else holds is swapped at once (v0: the other player
+ * is not asked). The host relays it to the game, which owns the seating.
+ */
+export interface Claim {
+  type: 'claim';
+  part: number;
+}
+
+/** Lobby: the player's ✓ Ready toggle. Informational: the game can start without everyone ready. */
+export interface Ready {
+  type: 'ready';
+  ready: boolean;
+}
+
+export type DeviceToHost = Hello | SyncReq | Gesture | Status | Raw | Result | RtcSignal | Claim | Ready;
 
 // ── host → device ────────────────────────────────────────────────────────────
 
@@ -181,7 +197,47 @@ export interface TestCmd {
   expect?: string[];
 }
 
-export type HostToDevice = Welcome | SyncRes | Assign | Config | TestCmd | RtcSignal;
+export type HostToDevice = Welcome | SyncRes | Assign | Config | TestCmd | RtcSignal | Parts;
+
+/** Who plays a part: a phone (deviceId + name), the game PC's keyboard, or the TV (host rings it). */
+export interface PartPlayer {
+  kind: 'phone' | 'keyboard' | 'tv';
+  id?: string;
+  name: string;
+}
+
+/** One part of the arrangement, as shown on the phone's "Pick your part" list. */
+export interface PartCard {
+  index: number;
+  /** Musical name ("Melody", "Bass", "Harmony", "Low melody", …) or "Ringer N". */
+  name: string;
+  /** e.g. "G4–D5" */
+  range: string;
+  /** The bells a phone in this part holds (pitch-class colours). */
+  bells: Bell[];
+  notes: number;
+  /** Notes per second. */
+  perSec: number;
+  /** Difficulty meter 1–5. */
+  level: number;
+  player: PartPlayer;
+  /** The player in this part pressed ✓ Ready. */
+  ready?: boolean;
+}
+
+/**
+ * Lobby state from a game host (I2 seating chart), relayed to every phone. The host fills in `you`
+ * (index of this device's part, -1 = not in a part) and `ready` (this device's own Ready state).
+ * `phase: "play"` hides the part picker while a song runs.
+ */
+export interface Parts {
+  type: 'parts';
+  phase: 'lobby' | 'play';
+  song?: string;
+  parts: PartCard[];
+  you: number;
+  ready: boolean;
+}
 
 export function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null && !Array.isArray(x);

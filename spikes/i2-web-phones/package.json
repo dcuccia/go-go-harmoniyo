@@ -14,6 +14,8 @@
     "start": "node scripts/start.mjs",
     "pree2e": "npm run build",
     "e2e": "node scripts/e2e.mjs",
+    "pree2e:seating": "npm run build",
+    "e2e:seating": "node scripts/seating-e2e.mjs",
     "preaudio-check": "npm run charts",
     "audio-check": "node scripts/backing-render-check.mjs",
     "test": "vitest run",

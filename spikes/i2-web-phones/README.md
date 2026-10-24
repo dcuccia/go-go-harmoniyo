@@ -32,11 +32,30 @@ on the **same Wi-Fi** as the PC. First run downloads npm packages (~1 min).
    (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
 4. The TV lobby lists the phones. Ring a phone: its row flashes and its lane lights on the TV.
-   Each phone shows its ringer number, song and its bells as coloured zones in the same order
+   Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
 5. Pick **Song**, **Difficulty** (start with Easy) and **Ringers** (defaults to the number of
-   phones). Each *Ringer* row can be a phone, **Host plays this part** (the TV rings it) or
-   **Keyboard** (A S D F). Bells beyond 4 per ringer are rung by the TV automatically.
+   phones that have joined). **Who plays what** is a seating chart: one card per part, named
+   musically where the arrangement allows (*Melody*, *Bass*, *Harmony*, *Low/High melody*…, else
+   *Ringer N*), with its bells in their colours, range and a 1–5 difficulty meter (notes and
+   bell changes per second). Above the cards are the player chips: each phone, ⌨ **Keyboard**
+   (A S D F) and 🤖 **TV plays** (the TV rings that part; any part nobody holds).
+   - **On the TV:** drag a chip onto a part (onto a taken part = swap; drag a part's chip back to
+     the chip row = sit out), or click a part and choose who plays it. TV remote / keyboard:
+     **↓** to reach the part cards, **← →** to move, **Enter** to open, **↑ ↓ Enter** to choose,
+     **Esc** to close.
+   - **On the phones:** the phone shows **Pick your part** with each part's name, bells, range,
+     difficulty and who has it. Tap a part the TV plays to take it; tap someone's part and then
+     **⇄ Swap with Bob?** (their name) to swap at once. **I'm ready** toggles ✓ Ready (shown on the TV);
+     **▶ Play** works whether or not everyone is ready.
+   - **🎲 Shuffle** deals random parts, **🔁 Rotate** moves everyone one part to the right, and
+     **⚖️ Balance** gives the easiest part to whoever has the lowest accuracy in this session's
+     earlier rounds (random before the first round).
+   - Seats stick across songs and difficulties. If the number of ringers changes, players keep
+     a part with the same name (or position). A phone that joins late takes the first part the
+     TV is playing; if a phone drops out the TV plays its part until it reconnects and takes it
+     back.
+   Bells beyond 4 per part are rung by the TV automatically.
    **Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
    on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
@@ -44,8 +63,14 @@ on the **same Wi-Fi** as the PC. First run downloads npm packages (~1 min).
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
    Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
-7. Results show the team score and a row per ringer (hits, misses, timing). **Again** / **Lobby**.
-   Esc returns to the lobby any time.
+7. Results show the team score and a row per ringer (hits, misses, timing). **Again**,
+   **🔁 Rotate + Again** (everyone moves one part) or **Lobby**. Phones can pick parts on the
+   results screen too; changes apply to the next round. Esc returns to the lobby any time.
+
+**With 2+ phones, please try:** take the part the TV is playing from a phone; swap two phones
+from a phone (*Swap with …?*) and by dragging on the TV; open a part's chooser on the TV and keep
+it open while someone presses Ready (it must stay open); 🔁 Rotate + Again after a round; turn
+one phone's screen off for a few seconds (the TV takes its part) and back on (it gets it back).
 
 Tips: if hits feel consistently early/late on the TV, use ←/→ (A/V offset, 5 ms steps;
 Shift = 20 ms) — it is saved. `` ` `` shows timing stats (clock sync, ring→TV latency).
@@ -82,9 +107,10 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | Command | What |
 |---|---|
 | `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`). |
-| `npm test` | Unit tests (chart → team chart mapping; backing chord timeline, count-in and patterns). |
+| `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; part names and difficulty; backing chord timeline, count-in and patterns). |
 | `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
 | `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. |
+| `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample, silence after stop. Writes `results/backing-render.md`. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `npm run charts` | Regenerate `public/charts/` from S5 (`-- --profile handbell --ringers 3,4,5` for the S5 defaults). |
@@ -92,7 +118,22 @@ before, with no backing (the count-in then uses the first tempo and meter).
 URL parameters on the game page: `song`, `diff`, `ringers`, `sound` (`device`·`both`·`none`),
 `start=play|autoplay` + `waitPhones=N` (kiosk/E2E autostart), `hgp=ws://host:port/hgp`,
 `octave=0` (play written pitch instead of handbell sounding pitch), `bloom=0`, `particles=0`,
-`dpr`, `vis`/`inp` (offsets, ms), `stats=1`, `backing=0|1`, `backingVol=0–100`, `countin=0|1`.
+`dpr`, `vis`/`inp` (offsets, ms), `stats=1`, `backing=0|1`, `backingVol=0–100`, `countin=0|1`,
+`seed=N` (deterministic 🎲 Shuffle / ⚖️ Balance, for tests).
+
+### Seating chart: how it works
+
+`src/seating.ts` is the model (pure, unit-tested): a seat per part holding a phone's deviceId,
+`keyboard` or `tv`, plus each player's "home" (last part name + index) for reconnects and
+arrangement changes. `src/parts.ts` names the parts from the S5 note roles (majority role per
+ringer; repeated roles are qualified low → high) and rates difficulty as
+(notes + ½ bell changes) per second → 1–5. `src/seating-view.ts` renders the TV chart **in place**:
+part cards are rebuilt only when the arrangement changes, everything else is patched per element,
+and the picker is a separate element that stays open across updates. The game rebuilds the lobby
+only when phones join, leave or are renamed; Ready/sync/heartbeat broadcasts patch it in place.
+(The old lobby rebuilt every ringer `<select>` on each 1 s device broadcast, which closed an open
+dropdown within a second.) Phones talk to the seating through HGP `parts` / `claim` / `ready`
+([hgp-v0.md](../../docs/protocol/hgp-v0.md)).
 
 ## Changes made to the other spikes (additive)
 
@@ -101,6 +142,10 @@ URL parameters on the game page: `song`, `diff`, `ringers`, `sound` (`device`·`
   and `cues` (relayed to one phone). Controller: glows the next zone from `cues`; takes I1's
   `assign.ringer` label and lane-row zones verbatim. `tools/sim-phones.ts --game` rings cued
   notes (with jitter, misses, wrong zones, `--late`).
+  Seating chart: HGP `claim` / `ready` from phones (relayed to the game; Ready kept per device and
+  in `devices`), dashboard command `parts` → HGP `parts` to every phone (also on join); device list
+  broadcast on change + 3 s heartbeat instead of every second. Controller: **Pick your part** list,
+  *Swap with …?*, **I'm ready**, *Sit out*. `tools/sim-phones.ts --claim N --ready`.
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
   `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
   come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
