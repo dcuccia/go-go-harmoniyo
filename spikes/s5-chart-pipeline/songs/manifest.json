@@ -78,6 +78,94 @@
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
       "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/thehollyandtheivy/thehollyandtheivy.mid", "attribution": "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644)", "notes": "Melody only (no harmony), so all tiers are melody-only: shows why lead-sheet chord symbols matter." },
       "options": { "backingStyle": "waltz", "pickupTicks": 480 }
+    },
+    {
+      "id": "o-come-all-ye-faithful",
+      "file": "../sources/mutopia/adeste_fideles.mid",
+      "format": "midi",
+      "title": "O Come, All Ye Faithful (tune ADESTE FIDELES)",
+      "composer": "John Francis Wade (c. 1743)",
+      "year": 1743,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220", "fileUrl": "https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup. Source MIDI tempo is 60 qpm; overridden to 100 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "march", "pickupTicks": 480, "tempoQpm": 100 }
+    },
+    {
+      "id": "hark-the-herald-angels-sing",
+      "file": "../sources/mutopia/mendelssohn.mid",
+      "format": "midi",
+      "title": "Hark! The Herald Angels Sing (tune MENDELSSOHN)",
+      "composer": "Felix Mendelssohn (1840); words Charles Wesley (1739)",
+      "year": 1840,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1261", "fileUrl": "https://www.mutopiaproject.org/ftp/Mendelssohn-BartholdyF/mendelssohn/mendelssohn.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). Source MIDI tempo is 60 qpm; overridden to 108 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "march", "tempoQpm": 108 }
+    },
+    {
+      "id": "the-first-noel",
+      "file": "../sources/mutopia/first_noel.mid",
+      "format": "midi",
+      "title": "The First Noel",
+      "composer": "Traditional English (first published 1833)",
+      "year": 1833,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1243", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/first_noel/first_noel.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). The source has no \\partial, but the music opens with a one-beat (two-eighth) pickup; declared here. Source MIDI tempo is 60 qpm; overridden to 108 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "waltz", "pickupTicks": 480, "tempoQpm": 108 }
+    },
+    {
+      "id": "o-little-town-of-bethlehem",
+      "file": "../sources/mutopia/st_louis.mid",
+      "format": "midi",
+      "title": "O Little Town of Bethlehem (tune ST. LOUIS)",
+      "composer": "Lewis H. Redner (1868); words Phillips Brooks (1868)",
+      "year": 1868,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1292", "fileUrl": "https://www.mutopiaproject.org/ftp/RednerLH/st_louis/st_louis.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup. Source MIDI tempo is 60 qpm; overridden to 92 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "gentle", "pickupTicks": 480, "tempoQpm": 92 }
+    },
+    {
+      "id": "what-child-is-this",
+      "file": "../sources/mutopia/greensleeves.mid",
+      "format": "midi",
+      "title": "What Child Is This (tune GREENSLEEVES)",
+      "composer": "Traditional English (16th c.); words William Chatterton Dix (1865)",
+      "year": 1865,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1247", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/greensleeves/greensleeves.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). Eighth-note pickup, 6/8. Voices are t1c0/t2c1 in this file. Source MIDI tempo is 60 qpm; overridden to 84 qpm (dotted quarter 56) for play." },
+      "options": { "melodyVoice": "t1c0", "bassVoice": "t2c1", "backingStyle": "gentle", "pickupTicks": 240, "tempoQpm": 84 }
+    },
+    {
+      "id": "away-in-a-manger",
+      "file": "../sources/mutopia/mueller.mid",
+      "format": "midi",
+      "title": "Away in a Manger (tune MUELLER)",
+      "composer": "James Ramsey Murray (1887)",
+      "year": 1887,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1264", "fileUrl": "https://www.mutopiaproject.org/ftp/MurrayJR/mueller/mueller.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). MUELLER is a 3/4 tune with a one-beat pickup; this edition is engraved in 4/4 without a pickup, so the manifest overrides the meter (timeSig 3/4) and declares the pickup. Notes and durations are unchanged. Source MIDI tempo is 60 qpm; overridden to 100 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "waltz", "timeSig": "3/4", "pickupTicks": 480, "tempoQpm": 100 }
+    },
+    {
+      "id": "o-come-o-come-emmanuel",
+      "file": "../sources/mutopia/veniemma.mid",
+      "format": "midi",
+      "title": "O Come, O Come, Emmanuel (tune VENI EMMANUEL)",
+      "composer": "Traditional (15th-c. French); arr. Thomas Helmore (1856)",
+      "year": 1856,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1300", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/veniemma/veniemma.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). Eighth-note pickup (the edition notates the tune in eighths). Source MIDI tempo is 60 qpm; overridden to 80 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "gentle", "pickupTicks": 240, "tempoQpm": 80 }
+    },
+    {
+      "id": "in-the-bleak-midwinter",
+      "file": "../sources/mutopia/cranham.mid",
+      "format": "midi",
+      "title": "In the Bleak Midwinter (tune CRANHAM)",
+      "composer": "Gustav Holst (1906); words Christina Rossetti (1872)",
+      "year": 1906,
+      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233", "fileUrl": "https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup (the edition includes the pickup note some verses use). Source MIDI tempo is 60 qpm; overridden to 76 qpm for play." },
+      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "gentle", "pickupTicks": 480, "tempoQpm": 76 }
     }
   ]
 }

@@ -170,7 +170,9 @@ const songs = Object.entries(charts).filter(([k]) => !k.endsWith('index.json')) 
 describe.skipIf(songs.length === 0)('generated carol charts (run "npm run charts" first)', () => {
   it('every carol carries chords, a beat grid and a style; every part gets a groove and a count-in', () => {
     const expected: Record<string, string> = { 'jingle-bells': 'sleigh-ride', 'silent-night': 'gentle', 'we-wish-you-a-merry-christmas': 'waltz', 'joy-to-the-world': 'march' };
-    expect(songs.length).toBe(8);
+    const index = Object.entries(charts).find(([k]) => k.endsWith('index.json'))?.[1] as { songs: unknown[] } | undefined;
+    expect(songs.length).toBe(index?.songs.length);
+    expect(songs.length).toBeGreaterThanOrEqual(16);
     for (const [, c] of songs) {
       const tl = backingTimeline(c);
       expect(tl, c.song.id).not.toBeNull();
