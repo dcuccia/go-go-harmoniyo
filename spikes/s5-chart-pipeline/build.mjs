@@ -68,10 +68,15 @@ for (const entry of manifest.songs) {
         const after = buildPart(formed, tier, k, pid, 'balanced');
         const chord = buildPart(formed, tier, k, pid, 'chord-split');
         fairRows[pid].push(`| ${song.id} | ${k} | ${tier} | ${fmt(before.metrics.fairness)} | ${fmt(after.metrics.fairness)} | ${fmt(chord.metrics.fairness)} | ${after.ringers.map((r) => `${r.name} ${r.stats.strikes}/${r.stats.bells}`).join(', ')} |`);
-        const a = (fairAgg[`${pid}|${k}|${tier}`] ||= { before: [], after: [], chord: [] });
+        const a = (fairAgg[`${pid}|${k}|${tier}`] ||= { before: [], after: [], chord: [], mixed: [0, 0], oneBell: [0, 0], ringers: 0 });
         a.before.push(before.metrics.fairness.jain);
         a.after.push(after.metrics.fairness.jain);
         a.chord.push(chord.metrics.fairness.jain);
+        a.ringers += k;
+        [before, after].forEach((p, i) => {
+          a.mixed[i] += mixedRoleRingers(p);
+          a.oneBell[i] += p.ringers.filter((r) => r.bells.length <= 1).length;
+        });
         if (pid === 'handbell') metricRows.push(`| ${song.id} | ${k} | ${tier} | ${after.metrics.strikes} | ${after.metrics.distinctBells} | ${after.metrics.maxBellsPerRinger} | ${after.metrics.fairness.jain} | ${after.metrics.droppedForPlayability.total} | ${after.metrics.remainingViolations} | ${after.metrics.guideNotes ?? 0} | ${after.ringers.map((r) => `${r.name} ${r.label}`).join(', ')} |`);
       }
     }
@@ -95,6 +100,10 @@ for (const entry of manifest.songs) {
   previews.push(`## ${song.title}\n\nForm: ${chart.form.sections.map((s) => `${s.label}${s.transpose ? ` (+${s.transpose})` : ''}`).join(' · ')} — ${chart.timing.durationSec} s\n\nSuper easy, ${exportRingers} ringers (first 4 bars of verse 1):\n\n\`\`\`\n${asciiPreview(formed.score, part('super-easy'), 4, chart.form.sections.find((s) => s.kind === 'verse')?.tick ?? 0)}\n\`\`\`\n\nHard, ${exportRingers} ringers (first 4 bars of ${verse2.label.toLowerCase()}):\n\n\`\`\`\n${asciiPreview(formed.score, part('hard'), 4, verse2.tick)}\n\`\`\`\n`);
 }
 
+function mixedRoleRingers(p) {
+  const family = { bass: 'bass', inner: 'harmony', melody: 'tune', descant: 'tune' };
+  return p.ringers.filter((r) => new Set(p.notes.filter((n) => n.ringer === r.index).map((n) => family[n.role])).size > 1).length;
+}
 const mean = (xs) => (xs.reduce((a, b) => a + b, 0) / xs.length).toFixed(2);
 const totalMs = performance.now() - t0;
 const md = [
@@ -119,9 +128,11 @@ const md = [
   '',
   '### Mean fairness over the corpus',
   '',
-  '| Profile | Ringers | Tier | Before (by-range, short) | After (balanced, full) | Chord split (full) |',
-  '|---|---|---|---|---|---|',
-  ...[['handbell', metricRingers], [PHONE, PHONE_RINGERS]].flatMap(([pid, ks]) => ks.flatMap((k) => TIERS.map((tier) => { const a = fairAgg[`${pid}|${k}|${tier}`]; return `| ${pid} | ${k} | ${tier} | ${mean(a.before)} | ${mean(a.after)} | ${mean(a.chord)} |`; }))),
+  'Mixed = ringers whose bells mix roles (bass + harmony + tune); 1-bell = ringers with at most one bell (before → after, summed over songs).',
+  '',
+  '| Profile | Ringers | Tier | Before (by-range, short) | After (balanced, full) | Chord split (full) | Mixed-role ringers | 1-bell ringers |',
+  '|---|---|---|---|---|---|---|---|',
+  ...[['handbell', metricRingers], [PHONE, PHONE_RINGERS]].flatMap(([pid, ks]) => ks.flatMap((k) => TIERS.map((tier) => { const a = fairAgg[`${pid}|${k}|${tier}`]; return `| ${pid} | ${k} | ${tier} | ${mean(a.before)} | ${mean(a.after)} | ${mean(a.chord)} | ${a.mixed[0]} → ${a.mixed[1]} of ${a.ringers} | ${a.oneBell[0]} → ${a.oneBell[1]} |`; }))),
   '',
   `### Per song, profile \`${PHONE}\` (the I2 phone game)`,
   '',

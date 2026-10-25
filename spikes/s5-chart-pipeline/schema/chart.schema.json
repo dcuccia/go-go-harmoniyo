@@ -82,7 +82,7 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["index", "kind", "tick", "endTick", "time", "endTime"],
+            "required": ["index", "kind", "tick", "endTick", "time", "durSec"],
             "properties": {
               "index": { "type": "integer", "minimum": 0 },
               "kind": { "enum": ["intro", "verse", "interlude", "coda"] },
@@ -91,7 +91,7 @@
               "tick": { "$ref": "#/$defs/tick" },
               "endTick": { "$ref": "#/$defs/tick" },
               "time": { "$ref": "#/$defs/seconds" },
-              "endTime": { "$ref": "#/$defs/seconds" },
+              "durSec": { "$ref": "#/$defs/seconds", "description": "Times are named time / *Sec so a reader that rescales them (practice speed) catches every one." },
               "transpose": { "type": "integer", "description": "Semitones relative to the song's written key (key change)." },
               "key": { "$ref": "#/$defs/pitchClass", "description": "Tonic pitch class in this section." },
               "development": { "type": "string", "description": "Arrangement stage, e.g. intro, light, full, descant, quiet, finale, interlude, coda, once." },

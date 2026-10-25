@@ -33,8 +33,6 @@ export const TIER_SPECS = {
   hard: { melody: 'full', bass: [2, 3], harmony: [1, 3], richness: 0.06, harmonyFrom: 4, descantFrom: 5, nominal: { bass: 2, harmony: 3 }, chord: 3 },
 };
 
-/** Chord split: preference per chord ringer, in richness units (3 ringers on 1-3-5 when it fits). */
-const CHORD_BONUS = 2;
 /** Penalty per bell beyond the profile's bells-per-ringer capacity. */
 const OVER_CAPACITY = 0.04;
 const r3 = (x) => Math.round(x * 1000) / 1000;
@@ -72,19 +70,30 @@ function hitsOf(formed) {
     });
   }
   formed._hits = hits;
-  // Score bass lines (SATB sources): level by metric position, folded into the bass window.
-  const bassTop = formed.windows.bass[1];
+  // The score's own voices (SATB sources): level by metric position (off-beat passing notes are
+  // left to the backing), folded by octaves into the role's window (bass: only down).
   const down = new Set(formed.beats.filter((b) => b.downbeat).map((b) => b.tick));
   const strong = new Set(formed.beats.filter((b) => b.strong).map((b) => b.tick));
-  formed._sourceBass = formed.sourceBass.map((n) => {
-    let midi = n.midi;
-    while (midi > bassTop) midi -= 12;
-    const ci = chordIndexAt(n.tick);
-    const change = ci >= 0 && chords[ci].tick === n.tick;
-    const level = change || down.has(n.tick) ? 1 : strong.has(n.tick) ? 2 : 3;
-    return { ...n, midi, level, dev: DEVELOPMENT[formed.sections[formed.sectionAt(n.tick)].development] };
-  });
+  const voice = (notes, [lo, hi], up) =>
+    notes.map((n) => {
+      let midi = n.midi;
+      while (midi > hi) midi -= 12;
+      while (up && midi < lo) midi += 12;
+      const ci = chordIndexAt(n.tick);
+      const change = ci >= 0 && chords[ci].tick === n.tick;
+      const level = change || down.has(n.tick) ? 1 : strong.has(n.tick) ? 2 : beatTicks.has(n.tick) ? 3 : 4;
+      return { ...n, midi, level, dev: DEVELOPMENT[formed.sections[formed.sectionAt(n.tick)].development] };
+    });
+  formed._sourceBass = voice(formed.sourceBass, formed.windows.bass, false);
+  formed._sourceInner = voice(formed.sourceInner ?? [], formed.windows.harmony, true);
   return hits;
+}
+
+/** Chord split has no bass ringers, so its chord may reach down into the bass window (17–18 semitones, so each ringer's region can usually take a different chord tone). */
+function chordWindow(w) {
+  let lo = w.harmony[0] - 5;
+  if ([1, 3, 6, 8, 10].includes(mod12(lo))) lo -= 1;
+  return [lo, w.harmony[1]];
 }
 
 /** Split the harmony window into `count` contiguous regions with (nearly) equal numbers of naturals. */
@@ -117,7 +126,7 @@ function toneRank(chord, pc, priority) {
 /**
  * Accompaniment notes for one part.
  * cfg: { bass: level, harmony: level, regions: [[lo, hi]...], voices: tones per region,
- *        priority: 'inner' | 'triad', bassFromScore: boolean }
+ *        priority: 'inner' | 'triad', bassFromScore, harmonyFromScore: use the score's own voices }
  */
 export function realize(formed, cfg) {
   const hits = hitsOf(formed);
@@ -136,7 +145,26 @@ export function realize(formed, cfg) {
       });
     }
   }
-  if (cfg.harmony > 0 && cfg.regions?.length) {
+  if (cfg.harmony > 0 && cfg.regions?.length && cfg.harmonyFromScore) {
+    // Alto/tenor voices of the score, folded into the harmony window: per region and onset, the
+    // note(s) closest to that region's previous one (the upper voice to start).
+    const prev = cfg.regions.map(() => null);
+    const byTick = new Map();
+    for (const n of formed._sourceInner) {
+      if (n.level > Math.min(cfg.harmony, n.dev.harmony)) continue;
+      if (!byTick.has(n.tick)) byTick.set(n.tick, []);
+      byTick.get(n.tick).push(n);
+    }
+    for (const [tick, ns] of [...byTick].sort((a, b) => a[0] - b[0])) {
+      cfg.regions.forEach(([a, b], r) => {
+        const cands = [...new Map(ns.filter((n) => n.midi >= a && n.midi <= b).map((n) => [n.midi, n])).values()];
+        cands.sort((x, y) => (prev[r] === null ? y.midi - x.midi : Math.abs(x.midi - prev[r]) - Math.abs(y.midi - prev[r]) || y.midi - x.midi));
+        const pick = cands.slice(0, cfg.voices);
+        pick.forEach((n) => out.push({ tick, dur: n.dur, midi: n.midi, role: 'inner', region: r }));
+        if (pick.length) prev[r] = pick[0].midi;
+      });
+    }
+  } else if (cfg.harmony > 0 && cfg.regions?.length) {
     const kept = hits.filter((h) => h.harmonyLevel <= Math.min(cfg.harmony, h.dev.harmony));
     const low = formed.windows.harmony[0];
     const prev = cfg.regions.map(() => null);
@@ -147,7 +175,7 @@ export function realize(formed, cfg) {
       const c = chords[h.chord];
       if (h.chord !== voicedChord) {
         voicedChord = h.chord;
-        voicing = cfg.regions.map(([a, b], r) => {
+        voicing = cfg.priority === 'triad' ? voiceTriad(c, cfg.regions, prev) : cfg.regions.map(([a, b], r) => {
           const cands = c.tones
             .map((pc) => ({ m: place(pc, low), rank: toneRank(c, pc, cfg.priority) }))
             .filter(({ m }) => m >= a && m <= b)
@@ -163,6 +191,44 @@ export function realize(formed, cfg) {
     });
   }
   return out;
+}
+
+/**
+ * Chord split voicing: a different chord tone for each region (ringer), any octave inside the
+ * region, so all of 1-3-5 sound whenever the regions allow; least movement from the last chord.
+ */
+function voiceTriad(chord, regions, prev) {
+  const tones = chord.tones.length >= 4 ? [chord.tones[0], chord.tones[1], chord.tones[3], chord.tones[2]] : chord.tones;
+  const spots = (pc, [a, b]) => range([a, b]).filter((m) => mod12(m) === pc);
+  let best = null;
+  const walk = (r, used, picks, cost) => {
+    if (r === regions.length) {
+      if (!best || cost < best.cost) best = { cost, picks: picks.slice() };
+      return;
+    }
+    let any = false;
+    tones.forEach((pc, ti) => {
+      if (used.has(pc)) return;
+      for (const m of spots(pc, regions[r])) {
+        any = true;
+        used.add(pc);
+        picks.push([m]);
+        walk(r + 1, used, picks, cost + (ti >= 3 ? 3 : 0) + (prev[r] === null ? 0 : Math.abs(m - prev[r]) * 0.5));
+        picks.pop();
+        used.delete(pc);
+      }
+    });
+    if (!any || regions.length > tones.length) {
+      picks.push([]);
+      walk(r + 1, used, picks, cost + 10);
+      picks.pop();
+    }
+  };
+  walk(0, new Set(), [], 0);
+  best.picks.forEach((ms, r) => {
+    if (ms.length) prev[r] = ms[0];
+  });
+  return best.picks;
 }
 
 /** Tune notes on downbeats or of at least a beat, at least `minGapSec` apart (super easy). */
@@ -226,15 +292,18 @@ export function ringerNames(roles) {
 function plans(formed, tier, K, arrangement, profile) {
   const spec = TIER_SPECS[tier];
   const bassFromScore = formed.sourceBass.length > 0;
+  const harmonyFromScore = (formed.sourceInner ?? []).length > 0;
   const melodyOnly = { bass: 0, harmony: 0, descant: false, regions: [], voices: 1, priority: 'inner', bassFromScore, players: { bass: 0, harmony: 0, melody: K, descant: 0 } };
   if (arrangement === 'by-range') {
-    return [{ bass: spec.nominal.bass, harmony: spec.nominal.harmony, descant: false, regions: [formed.windows.harmony], voices: 2, priority: 'inner', bassFromScore, players: null }];
+    return [{ bass: spec.nominal.bass, harmony: spec.nominal.harmony, descant: false, regions: [formed.windows.harmony], voices: 2, priority: 'inner', bassFromScore, harmonyFromScore, players: null }];
   }
   if (arrangement === 'chord-split') {
-    // 1–3 chord ringers (3 = a 1-3-5 triad, one tone each); the plan chooser weighs the chord
-    // against the tune ringers' bell capacity (a 9-bell tune on one 4-bell phone is no fun).
+    // Up to 3 chord ringers (a 1-3-5 triad, one tone each), as many as leave enough tune ringers to
+    // hold the tune's bells (a 9-bell tune on one 4-bell phone is no fun).
     if (K < 2) return [{ ...melodyOnly, priority: 'triad' }];
-    return range([1, Math.min(3, K - 1)]).map((h) => ({ bass: 0, harmony: spec.chord, descant: false, regions: harmonyRegions(formed.windows.harmony, h), voices: 1, priority: 'triad', bassFromScore, players: { bass: 0, harmony: h, melody: K - h, descant: 0 }, chord: true }));
+    const need = Math.ceil(new Set(formed.melody.map((n) => n.midi)).size / profile.maxBells);
+    const h = Math.max(1, Math.min(3, K - need, K - 1));
+    return [{ bass: 0, harmony: spec.chord, descant: false, regions: harmonyRegions(chordWindow(formed.windows), h), voices: 1, priority: 'triad', bassFromScore, players: { bass: 0, harmony: h, melody: K - h, descant: 0 }, chord: true }];
   }
   const out = [];
   // With one or two ringers the tune needs everyone, so every tier may leave the bass out.
@@ -247,7 +316,7 @@ function plans(formed, tier, K, arrangement, profile) {
         const b = bl > 0 ? 1 : 0;
         const h = hl > 0 ? (K >= 6 ? 2 : 1) : 0;
         if (K - b - h - d < 1) continue;
-        out.push({ bass: bl, harmony: hl, descant: d > 0, regions: h ? harmonyRegions(formed.windows.harmony, h) : [], voices: Math.min(2, profile.maxSimultaneous), priority: 'inner', bassFromScore, players: { bass: b, harmony: h, melody: K - b - h - d, descant: d } });
+        out.push({ bass: bl, harmony: hl, descant: d > 0, regions: h ? harmonyRegions(formed.windows.harmony, h) : [], voices: Math.min(2, profile.maxSimultaneous), priority: 'inner', bassFromScore, harmonyFromScore, players: { bass: b, harmony: h, melody: K - b - h - d, descant: d } });
       }
     }
   }
@@ -292,7 +361,7 @@ function choosePlan(formed, tier, K, arrangement, profile) {
     loads.push(...tuneSplit(p.players.melody));
     if (p.players.descant) loads.push(descantLoad);
     const over = loads.reduce((s, l) => s + Math.max(0, l.bells - profile.maxBells), 0);
-    const score = jain(loads.map((l) => l.effort)) + TIER_SPECS[tier].richness * (p.bass + p.harmony + (p.descant ? 1 : 0) + (p.chord ? CHORD_BONUS * p.players.harmony : 0)) - OVER_CAPACITY * over;
+    const score = jain(loads.map((l) => l.effort)) + TIER_SPECS[tier].richness * (p.bass + p.harmony + (p.descant ? 1 : 0)) - OVER_CAPACITY * over;
     if (!best || score > best.score + 1e-9) best = { score, p };
   }
   return best.p;

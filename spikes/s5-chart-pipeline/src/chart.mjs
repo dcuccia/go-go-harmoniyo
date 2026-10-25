@@ -61,6 +61,7 @@ export function songMaterial(score, roleNotes) {
   return {
     melody: roleNotes.filter((n) => n.role === 'melody'),
     sourceBass: leadSheet ? [] : roleNotes.filter((n) => n.role === 'bass'),
+    sourceInner: leadSheet ? [] : roleNotes.filter((n) => n.role === 'inner'),
     chords: leadSheet ? score.chords : inferChords(score, roleNotes),
     chordSource: leadSheet ? 'lead-sheet' : 'inferred',
     key: keyOf(score, roleNotes),
@@ -97,7 +98,7 @@ export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], p
     song,
     form: {
       id: formed.id,
-      sections: formed.sections.map((s) => ({ ...s, time: r3(toSec(s.tick)), endTime: r3(toSec(s.endTick)) })),
+      sections: formed.sections.map((s) => ({ ...s, time: r3(toSec(s.tick)), durSec: r3(toSec(s.endTick) - toSec(s.tick)) })),
     },
     timing: {
       resolution: exp.ppq,

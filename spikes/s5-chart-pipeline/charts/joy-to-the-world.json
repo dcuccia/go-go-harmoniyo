@@ -14,14 +14,14 @@
   "form": {
     "id": "full",
     "sections": [
-      {"index":0,"kind":"intro","label":"Intro","tick":0,"endTick":3840,"transpose":0,"key":2,"development":"intro","energy":0.45,"time":0,"endTime":5.455},
-      {"index":1,"kind":"verse","label":"Verse 1","verse":1,"tick":3840,"endTick":22080,"transpose":0,"key":2,"development":"light","energy":0.55,"time":5.455,"endTime":31.364},
-      {"index":2,"kind":"verse","label":"Verse 2","verse":2,"tick":22080,"endTick":40320,"transpose":0,"key":2,"development":"full","energy":0.8,"time":31.364,"endTime":57.273},
-      {"index":3,"kind":"verse","label":"Verse 3","verse":3,"tick":40320,"endTick":58560,"transpose":0,"key":2,"development":"descant","energy":0.9,"time":57.273,"endTime":83.182},
-      {"index":4,"kind":"verse","label":"Verse 4","verse":4,"tick":58560,"endTick":76800,"transpose":0,"key":2,"development":"quiet","energy":0.4,"time":83.182,"endTime":109.091},
-      {"index":5,"kind":"interlude","label":"Interlude","tick":76800,"endTick":78720,"transpose":0,"key":2,"development":"interlude","energy":0.65,"time":109.091,"endTime":111.818},
-      {"index":6,"kind":"verse","label":"Verse 5","verse":5,"tick":78720,"endTick":96960,"transpose":2,"key":4,"development":"finale","energy":1,"time":111.818,"endTime":137.727},
-      {"index":7,"kind":"coda","label":"Coda","tick":96960,"endTick":101760,"transpose":2,"key":4,"development":"coda","energy":1,"time":137.727,"endTime":145.132}
+      {"index":0,"kind":"intro","label":"Intro","tick":0,"endTick":3840,"transpose":0,"key":2,"development":"intro","energy":0.45,"time":0,"durSec":5.455},
+      {"index":1,"kind":"verse","label":"Verse 1","verse":1,"tick":3840,"endTick":22080,"transpose":0,"key":2,"development":"light","energy":0.55,"time":5.455,"durSec":25.909},
+      {"index":2,"kind":"verse","label":"Verse 2","verse":2,"tick":22080,"endTick":40320,"transpose":0,"key":2,"development":"full","energy":0.8,"time":31.364,"durSec":25.909},
+      {"index":3,"kind":"verse","label":"Verse 3","verse":3,"tick":40320,"endTick":58560,"transpose":0,"key":2,"development":"descant","energy":0.9,"time":57.273,"durSec":25.909},
+      {"index":4,"kind":"verse","label":"Verse 4","verse":4,"tick":58560,"endTick":76800,"transpose":0,"key":2,"development":"quiet","energy":0.4,"time":83.182,"durSec":25.909},
+      {"index":5,"kind":"interlude","label":"Interlude","tick":76800,"endTick":78720,"transpose":0,"key":2,"development":"interlude","energy":0.65,"time":109.091,"durSec":2.727},
+      {"index":6,"kind":"verse","label":"Verse 5","verse":5,"tick":78720,"endTick":96960,"transpose":2,"key":4,"development":"finale","energy":1,"time":111.818,"durSec":25.909},
+      {"index":7,"kind":"coda","label":"Coda","tick":96960,"endTick":101760,"transpose":2,"key":4,"development":"coda","energy":1,"time":137.727,"durSec":7.405}
     ]
   },
   "timing": {

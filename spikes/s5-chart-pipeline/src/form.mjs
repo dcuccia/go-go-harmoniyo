@@ -95,7 +95,7 @@ export function windowsFor(melody, up = 0) {
 }
 
 /**
- * material: { melody[], sourceBass[] (score bass line, may be empty), chords[] (raw, source ticks),
+ * material: { melody[], sourceBass[] / sourceInner[] (the score's own bass and inner voices, empty for lead\n *             sheets), chords[] (raw, source ticks),
  *             chordSource: 'lead-sheet' | 'inferred', key: { tonic, mode } }
  * Returns { id, score (expanded: ppq, tempos, timeSigs, barTicks, endTick, meta, chords),
  *           sections[], segments[], melody[], sourceBass[], descant[], windows, beats, toSec }.
@@ -203,6 +203,7 @@ export function expandForm(score, material, formOpt) {
   };
   const melody = copyLine(material.melody, 'melody', (s) => DEVELOPMENT[s.dev].melody);
   const sourceBass = copyLine(material.sourceBass, 'bass', () => true);
+  const sourceInner = copyLine(material.sourceInner ?? [], 'inner', () => true);
 
   // ── chords (contiguous: a chord lasts until the next one) ──
   let chords = [];
@@ -289,7 +290,7 @@ export function expandForm(score, material, formOpt) {
     return k;
   };
   const descant = segments.some((s) => DEVELOPMENT[s.dev].descant) ? buildDescant(melody, chords, beats, segments, windows, material.key) : [];
-  return { id: opts.id, opts, score: exp, segments, sections, sectionAt, melody, sourceBass, descant, windows, beats, toSec, chordSource: material.chordSource };
+  return { id: opts.id, opts, score: exp, segments, sections, sectionAt, melody, sourceBass, sourceInner, descant, windows, beats, toSec, chordSource: material.chordSource };
 }
 
 function chordOf(root, intervals) {
