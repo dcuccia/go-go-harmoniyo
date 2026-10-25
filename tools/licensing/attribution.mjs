@@ -69,7 +69,11 @@ for (const a of assets.filter((x) => x.ai)) {
   const hits = blocked.filter(([, re]) => re.test(a.ai.prompt)).map(([t]) => t);
   if (hits.length) errors.push(`${a.id}: AI prompt names a franchise/artist or copies a style (${hits.join(', ')}); describe the feeling, not the asset (ADR-0008)`);
   const gaps = Object.entries(a.ai).filter(([, v]) => /^(unrecorded|pending)\b/i.test(v)).map(([k]) => k);
-  if (gaps.length && !a.legacy) errors.push(`${a.id}: AI provenance incomplete (${gaps.join(', ')}); new AI assets need tool/model/version/terms/prompt and a human resemblance review before merge`);
+  const reviewOnly = gaps.length && gaps.every((k) => k === 'reviewer' || k === 'reviewDate');
+  if (a.candidate && a.credit !== false) errors.push(`${a.id}: candidate assets are not credited until promoted; set "credit": false`);
+  if (a.candidate && a.review.status !== 'pending') errors.push(`${a.id}: an approved asset is no longer a candidate; remove "candidate"`);
+  if (gaps.length && a.candidate && reviewOnly) warnings.push(`${a.id}: candidate awaiting the human resemblance review (required before promotion; ADR-0011)`);
+  else if (gaps.length && !a.legacy) errors.push(`${a.id}: AI provenance incomplete (${gaps.join(', ')}); new AI assets need tool/model/version/terms/prompt and a human resemblance review before merge`);
   else if (gaps.length) warnings.push(`${a.id}: legacy AI provenance gaps: ${gaps.join(', ')}`);
 }
 for (const a of assets) if (a.review.status === 'pending') warnings.push(`${a.id}: review pending${a.review.notes ? ` (${a.review.notes})` : ''}`);

@@ -1,0 +1,1555 @@
+[
+  {
+    "run": 1,
+    "scenario": "silent-night-easy-3",
+    "ok": true,
+    "fails": [],
+    "wallS": 32.799,
+    "timing": {
+      "cueAnchorDriftMs": {
+        "min": -0.01,
+        "max": 0.11,
+        "end": 0.06
+      },
+      "cueSends": 1,
+      "audioSnaps": [
+        {
+          "perf": 766.4,
+          "deltaMs": -83.15
+        },
+        {
+          "perf": 1661.9,
+          "deltaMs": -390.68
+        }
+      ],
+      "hostSyncResets": 0,
+      "hostSyncJumps": [],
+      "roundStartPerf": 4508,
+      "longFrames": {
+        "n": 4,
+        "maxMs": 218.3
+      },
+      "ringArrivalMs": {
+        "p50": 36.5,
+        "p99": 57.8,
+        "max": 57.8
+      },
+      "strays": [
+        {
+          "p": 1,
+          "latMs": 47.7
+        }
+      ],
+      "meanOffsetByHalfMs": [
+        "Alice 10 → -14",
+        "Bob 1.8 → 2.3",
+        "Cara -2.5 → 3.6"
+      ],
+      "phones": [
+        {
+          "name": "Alice",
+          "cues": 7,
+          "expectHits": 7,
+          "rung": 7,
+          "recued": 0,
+          "sendLateMaxMs": 13,
+          "thShiftMaxAbs": 1.02,
+          "syncResets": 0,
+          "rttMin": 0.65,
+          "used": 8
+        },
+        {
+          "name": "Bob",
+          "cues": 26,
+          "expectHits": 25,
+          "rung": 26,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 1.12,
+          "syncResets": 0,
+          "rttMin": 0.66,
+          "used": 8
+        },
+        {
+          "name": "Cara",
+          "cues": 13,
+          "expectHits": 13,
+          "rung": 13,
+          "recued": 0,
+          "sendLateMaxMs": 11,
+          "thShiftMaxAbs": 1.1,
+          "syncResets": 0,
+          "rttMin": 0.57,
+          "used": 8
+        }
+      ]
+    },
+    "result": {
+      "mode": "play",
+      "title": "Silent Night · easy · 3 ringers",
+      "score": 10910,
+      "accuracy": 0.9652173913043478,
+      "counts": {
+        "perfect": 43,
+        "great": 2,
+        "good": 0,
+        "miss": 1
+      },
+      "maxStreak": 36,
+      "strays": 1,
+      "metrics": {
+        "frameMs": {
+          "n": 4341,
+          "mean": 6.27,
+          "std": 2.64,
+          "min": 3.7,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 12.1,
+          "max": 127.2
+        },
+        "fps": 159.5,
+        "longFramePct": 2.14,
+        "cpuMs": {
+          "n": 5170,
+          "mean": 3.06,
+          "std": 0.91,
+          "min": 1.2,
+          "p50": 3,
+          "p95": 4.1,
+          "p99": 5.1,
+          "max": 34.4
+        },
+        "smoothnessErrMs": {
+          "n": 4341,
+          "mean": 0.02,
+          "std": 0.09,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.08,
+          "p99": 0.26,
+          "max": 4.27
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.066,
+          "min": -0.721,
+          "p50": 0.004,
+          "p95": 0.091,
+          "p99": 0.121,
+          "max": 0.177
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -5.61,
+          "std": 2.59,
+          "min": -11.33,
+          "p50": -5.62,
+          "p95": -1.37,
+          "p99": -0.42,
+          "max": 0.97
+        },
+        "audioDriftPpm": -13064.9,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 46,
+            "mean": 37.88,
+            "std": 5.77,
+            "min": 30.22,
+            "p50": 36.32,
+            "p95": 47.65,
+            "p99": 57.79,
+            "max": 57.79
+          },
+          "eventToJudgeMs": {
+            "n": 46,
+            "mean": 38.68,
+            "std": 5.77,
+            "min": 31.23,
+            "p50": 36.89,
+            "p95": 47.85,
+            "p99": 58.49,
+            "max": 58.49
+          },
+          "eventToNextFrameMs": {
+            "n": 46,
+            "mean": 39.53,
+            "std": 5.81,
+            "min": 31.43,
+            "p50": 37.89,
+            "p95": 48.45,
+            "p99": 59.19,
+            "max": 59.19
+          },
+          "hitOffsetMs": {
+            "n": 45,
+            "mean": 0.78,
+            "std": 22.11,
+            "min": -48.93,
+            "p50": 5.59,
+            "p95": 26.58,
+            "p99": 48.56,
+            "max": 48.56
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 918,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 48,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      },
+      "song": "silent-night",
+      "difficulty": "easy",
+      "ringers": 3,
+      "speed": 1,
+      "chartDurationSec": 25.714,
+      "soundMode": "device",
+      "backing": {
+        "enabled": true,
+        "volume": 0.5,
+        "countIn": true,
+        "style": "gentle",
+        "chords": "lead-sheet",
+        "events": 60,
+        "countInClicks": 4,
+        "leadInSec": 5.284
+      },
+      "players": [
+        {
+          "ringer": 0,
+          "name": "Alice",
+          "slot": "phone",
+          "notes": 7,
+          "perfect": 6,
+          "great": 1,
+          "good": 0,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 7,
+          "accuracy": 0.957,
+          "offsetMs": {
+            "n": 7,
+            "mean": -3.7,
+            "p50": 8.5,
+            "p95abs": 48.9
+          }
+        },
+        {
+          "ringer": 1,
+          "name": "Bob",
+          "slot": "phone",
+          "notes": 26,
+          "perfect": 24,
+          "great": 1,
+          "good": 0,
+          "miss": 1,
+          "strays": 1,
+          "maxStreak": 22,
+          "accuracy": 0.95,
+          "offsetMs": {
+            "n": 25,
+            "mean": 2.1,
+            "p50": 4,
+            "p95abs": 40.7
+          }
+        },
+        {
+          "ringer": 2,
+          "name": "Cara",
+          "slot": "phone",
+          "notes": 13,
+          "perfect": 13,
+          "great": 0,
+          "good": 0,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 13,
+          "accuracy": 1,
+          "offsetMs": {
+            "n": 13,
+            "mean": 0.8,
+            "p50": 1.9,
+            "p95abs": 24.7
+          }
+        }
+      ],
+      "autoRingers": [],
+      "hgp": {
+        "input": {
+          "rings": 46,
+          "unsynced": 0,
+          "unmapped": 0,
+          "nonRing": 0,
+          "latencyMs": {
+            "n": 46,
+            "mean": 37.9,
+            "p50": 36.5,
+            "p95abs": 47.7
+          }
+        },
+        "hostClock": {
+          "ref": 36695.05000001192,
+          "offset": 3459.4222594122225,
+          "drift": -0.0000015480113626980707,
+          "n": 79,
+          "used": 8,
+          "rttMin": 0.9567999999999302,
+          "rttP50": 4.64870001788222,
+          "errBound": 0.4783999999999651
+        },
+        "joinUrl": "https://192.168.1.143:18443/"
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+    }
+  },
+  {
+    "run": 1,
+    "scenario": "jingle-bells-medium-4",
+    "ok": true,
+    "fails": [],
+    "wallS": 69.021,
+    "timing": {
+      "cueAnchorDriftMs": {
+        "min": -0.01,
+        "max": 0.14,
+        "end": 0.11
+      },
+      "cueSends": 1,
+      "audioSnaps": [
+        {
+          "perf": 436.3,
+          "deltaMs": -75.36
+        }
+      ],
+      "hostSyncResets": 0,
+      "hostSyncJumps": [],
+      "roundStartPerf": 3527.6,
+      "longFrames": {
+        "n": 1,
+        "maxMs": 236.2
+      },
+      "ringArrivalMs": {
+        "p50": 35.8,
+        "p99": 74.2,
+        "max": 81.3
+      },
+      "strays": [
+        {
+          "p": 3,
+          "latMs": 31.5
+        },
+        {
+          "p": 3,
+          "latMs": 27.1
+        }
+      ],
+      "meanOffsetByHalfMs": [
+        "Alice -0.7 → -3.5",
+        "Bob -8.6 → 3.9",
+        "Cara 8.8 → -5.2",
+        "Dan -9.8 → 4.5"
+      ],
+      "phones": [
+        {
+          "name": "Alice",
+          "cues": 40,
+          "expectHits": 38,
+          "rung": 38,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 2.13,
+          "syncResets": 0,
+          "rttMin": 0.41,
+          "used": 13
+        },
+        {
+          "name": "Bob",
+          "cues": 28,
+          "expectHits": 27,
+          "rung": 27,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 3.39,
+          "syncResets": 0,
+          "rttMin": 0.42,
+          "used": 13
+        },
+        {
+          "name": "Cara",
+          "cues": 28,
+          "expectHits": 27,
+          "rung": 27,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 2.69,
+          "syncResets": 0,
+          "rttMin": 0.23,
+          "used": 13
+        },
+        {
+          "name": "Dan",
+          "cues": 65,
+          "expectHits": 62,
+          "rung": 64,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 0.98,
+          "syncResets": 0,
+          "rttMin": 0.39,
+          "used": 13
+        }
+      ]
+    },
+    "result": {
+      "mode": "play",
+      "title": "Jingle Bells · medium · 4 ringers",
+      "score": 31980,
+      "accuracy": 0.9490683229813666,
+      "counts": {
+        "perfect": 150,
+        "great": 4,
+        "good": 0,
+        "miss": 7
+      },
+      "maxStreak": 34,
+      "strays": 2,
+      "metrics": {
+        "frameMs": {
+          "n": 10417,
+          "mean": 6.29,
+          "std": 1.36,
+          "min": 4.1,
+          "p50": 6.1,
+          "p95": 6.3,
+          "p99": 12.2,
+          "max": 36.3
+        },
+        "fps": 159,
+        "longFramePct": 3.31,
+        "cpuMs": {
+          "n": 10863,
+          "mean": 3.04,
+          "std": 0.83,
+          "min": 1.3,
+          "p50": 2.9,
+          "p95": 4.5,
+          "p99": 5.2,
+          "max": 11.6
+        },
+        "smoothnessErrMs": {
+          "n": 10417,
+          "mean": 0.02,
+          "std": 0.06,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.09,
+          "p99": 0.28,
+          "max": 1.48
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.061,
+          "min": -0.584,
+          "p50": 0.003,
+          "p95": 0.087,
+          "p99": 0.117,
+          "max": 0.157
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.01,
+          "std": 2.78,
+          "min": -7.28,
+          "p50": -1.02,
+          "p95": 3.36,
+          "p99": 4.28,
+          "max": 4.91
+        },
+        "audioDriftPpm": -1248.8,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 156,
+            "mean": 36.16,
+            "std": 6.83,
+            "min": 26.19,
+            "p50": 35.74,
+            "p95": 44.07,
+            "p99": 74.16,
+            "max": 81.26
+          },
+          "eventToJudgeMs": {
+            "n": 156,
+            "mean": 36.68,
+            "std": 6.89,
+            "min": 26.59,
+            "p50": 36.28,
+            "p95": 45.19,
+            "p99": 74.86,
+            "max": 81.76
+          },
+          "eventToNextFrameMs": {
+            "n": 156,
+            "mean": 37.85,
+            "std": 7.01,
+            "min": 27.19,
+            "p50": 37.23,
+            "p95": 45.87,
+            "p99": 75.36,
+            "max": 83.26
+          },
+          "hitOffsetMs": {
+            "n": 154,
+            "mean": -1.69,
+            "std": 20.35,
+            "min": -53.61,
+            "p50": -2.47,
+            "p95": 31.75,
+            "p99": 46.46,
+            "max": 47.2
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 918,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      },
+      "song": "jingle-bells",
+      "difficulty": "medium",
+      "ringers": 4,
+      "speed": 1,
+      "chartDurationSec": 64,
+      "soundMode": "device",
+      "backing": {
+        "enabled": true,
+        "volume": 0.5,
+        "countIn": true,
+        "style": "sleigh-ride",
+        "chords": "lead-sheet",
+        "events": 400,
+        "countInClicks": 4,
+        "leadInSec": 3
+      },
+      "players": [
+        {
+          "ringer": 0,
+          "name": "Alice",
+          "slot": "phone",
+          "notes": 40,
+          "perfect": 35,
+          "great": 3,
+          "good": 0,
+          "miss": 2,
+          "strays": 0,
+          "maxStreak": 30,
+          "accuracy": 0.928,
+          "offsetMs": {
+            "n": 38,
+            "mean": -2.1,
+            "p50": -3.1,
+            "p95abs": 47.2
+          }
+        },
+        {
+          "ringer": 1,
+          "name": "Bob",
+          "slot": "phone",
+          "notes": 28,
+          "perfect": 27,
+          "great": 0,
+          "good": 0,
+          "miss": 1,
+          "strays": 0,
+          "maxStreak": 22,
+          "accuracy": 0.964,
+          "offsetMs": {
+            "n": 27,
+            "mean": -2.1,
+            "p50": -6.5,
+            "p95abs": 39.6
+          }
+        },
+        {
+          "ringer": 2,
+          "name": "Cara",
+          "slot": "phone",
+          "notes": 28,
+          "perfect": 27,
+          "great": 0,
+          "good": 0,
+          "miss": 1,
+          "strays": 0,
+          "maxStreak": 18,
+          "accuracy": 0.964,
+          "offsetMs": {
+            "n": 27,
+            "mean": 1.5,
+            "p50": -4.2,
+            "p95abs": 28.7
+          }
+        },
+        {
+          "ringer": 3,
+          "name": "Dan",
+          "slot": "phone",
+          "notes": 65,
+          "perfect": 61,
+          "great": 1,
+          "good": 0,
+          "miss": 3,
+          "strays": 2,
+          "maxStreak": 28,
+          "accuracy": 0.949,
+          "offsetMs": {
+            "n": 62,
+            "mean": -2.7,
+            "p50": -1.5,
+            "p95abs": 35.3
+          }
+        }
+      ],
+      "autoRingers": [],
+      "hgp": {
+        "input": {
+          "rings": 156,
+          "unsynced": 0,
+          "unmapped": 0,
+          "nonRing": 0,
+          "latencyMs": {
+            "n": 156,
+            "mean": 36.2,
+            "p50": 35.8,
+            "p95abs": 44.1
+          }
+        },
+        "hostClock": {
+          "ref": 71874.55000001192,
+          "offset": 2610.3098453513658,
+          "drift": 5.183854328156783e-7,
+          "n": 121,
+          "used": 13,
+          "rttMin": 0.7576000119152013,
+          "rttP50": 1.0647999940410955,
+          "errBound": 0.37880000595760066
+        },
+        "joinUrl": "https://192.168.1.143:18444/"
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+    }
+  },
+  {
+    "run": 1,
+    "scenario": "joy-easy-2-with-host",
+    "ok": true,
+    "fails": [],
+    "wallS": 31.217,
+    "timing": {
+      "cueAnchorDriftMs": {
+        "min": 0,
+        "max": 0.34,
+        "end": 0.05
+      },
+      "cueSends": 1,
+      "audioSnaps": [],
+      "hostSyncResets": 0,
+      "hostSyncJumps": [],
+      "roundStartPerf": 2882.3,
+      "longFrames": {
+        "n": 1,
+        "maxMs": 103.1
+      },
+      "ringArrivalMs": {
+        "p50": 34.8,
+        "p99": 42.9,
+        "max": 42.9
+      },
+      "strays": [],
+      "meanOffsetByHalfMs": [
+        "Alice 1.3 → -11.9",
+        "Bob 5.7 → 5.1"
+      ],
+      "phones": [
+        {
+          "name": "Alice",
+          "cues": 22,
+          "expectHits": 22,
+          "rung": 22,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 1.04,
+          "syncResets": 0,
+          "rttMin": 0.37,
+          "used": 7
+        },
+        {
+          "name": "Bob",
+          "cues": 16,
+          "expectHits": 16,
+          "rung": 16,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 1.38,
+          "syncResets": 0,
+          "rttMin": 0.39,
+          "used": 7
+        }
+      ]
+    },
+    "result": {
+      "mode": "play",
+      "title": "Joy to the World · easy · 3 ringers",
+      "score": 10550,
+      "accuracy": 0.9842105263157894,
+      "counts": {
+        "perfect": 36,
+        "great": 2,
+        "good": 0,
+        "miss": 0
+      },
+      "maxStreak": 38,
+      "strays": 0,
+      "metrics": {
+        "frameMs": {
+          "n": 4518,
+          "mean": 6.07,
+          "std": 0.3,
+          "min": 4.3,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 6.3,
+          "max": 18.3
+        },
+        "fps": 164.8,
+        "longFramePct": 0.13,
+        "cpuMs": {
+          "n": 5106,
+          "mean": 1.63,
+          "std": 0.43,
+          "min": 0.6,
+          "p50": 1.6,
+          "p95": 2.3,
+          "p99": 2.8,
+          "max": 6.2
+        },
+        "smoothnessErrMs": {
+          "n": 4518,
+          "mean": 0.01,
+          "std": 0.01,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.01,
+          "p99": 0.02,
+          "max": 0.61
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0.001,
+          "std": 0.075,
+          "min": -0.612,
+          "p50": 0.002,
+          "p95": 0.121,
+          "p99": 0.155,
+          "max": 0.211
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.04,
+          "std": 2.77,
+          "min": -6.74,
+          "p50": -1.04,
+          "p95": 3.37,
+          "p99": 4.26,
+          "max": 4.95
+        },
+        "audioDriftPpm": -108.2,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 38,
+            "mean": 35.54,
+            "std": 4.53,
+            "min": 27.71,
+            "p50": 34.68,
+            "p95": 42.38,
+            "p99": 42.92,
+            "max": 42.92
+          },
+          "eventToJudgeMs": {
+            "n": 38,
+            "mean": 36.02,
+            "std": 4.59,
+            "min": 28.31,
+            "p50": 34.98,
+            "p95": 42.78,
+            "p99": 43.42,
+            "max": 43.42
+          },
+          "eventToNextFrameMs": {
+            "n": 38,
+            "mean": 38.15,
+            "std": 4.83,
+            "min": 28.91,
+            "p50": 36.72,
+            "p95": 45.02,
+            "p99": 46.02,
+            "max": 46.02
+          },
+          "hitOffsetMs": {
+            "n": 38,
+            "mean": -0.79,
+            "std": 23.74,
+            "min": -72.26,
+            "p50": -1.28,
+            "p95": 31.59,
+            "p99": 47.05,
+            "max": 47.05
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 918,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      },
+      "song": "joy-to-the-world",
+      "difficulty": "easy",
+      "ringers": 3,
+      "speed": 1,
+      "chartDurationSec": 25.909,
+      "soundMode": "device",
+      "backing": {
+        "enabled": true,
+        "volume": 0.5,
+        "countIn": true,
+        "style": "march",
+        "chords": "lead-sheet",
+        "events": 134,
+        "countInClicks": 4,
+        "leadInSec": 3.728
+      },
+      "players": [
+        {
+          "ringer": 0,
+          "name": "Alice",
+          "slot": "phone",
+          "notes": 22,
+          "perfect": 21,
+          "great": 1,
+          "good": 0,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 22,
+          "accuracy": 0.986,
+          "offsetMs": {
+            "n": 22,
+            "mean": -5.3,
+            "p50": -1.3,
+            "p95abs": 42.2
+          }
+        },
+        {
+          "ringer": 1,
+          "name": "Bob",
+          "slot": "phone",
+          "notes": 16,
+          "perfect": 15,
+          "great": 1,
+          "good": 0,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 16,
+          "accuracy": 0.981,
+          "offsetMs": {
+            "n": 16,
+            "mean": 5.4,
+            "p50": 9.6,
+            "p95abs": 47
+          }
+        }
+      ],
+      "autoRingers": [
+        2
+      ],
+      "hgp": {
+        "input": {
+          "rings": 38,
+          "unsynced": 0,
+          "unmapped": 0,
+          "nonRing": 0,
+          "latencyMs": {
+            "n": 38,
+            "mean": 35.5,
+            "p50": 34.8,
+            "p95abs": 42.4
+          }
+        },
+        "hostClock": {
+          "ref": 33776.64999999106,
+          "offset": 1541.2371204356266,
+          "drift": -0.0000029416665733089937,
+          "n": 77,
+          "used": 7,
+          "rttMin": 0.6644999880791147,
+          "rttP50": 1.0555999940370384,
+          "errBound": 0.33224999403955735
+        },
+        "joinUrl": "https://192.168.1.143:18445/"
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+    }
+  },
+  {
+    "run": 1,
+    "scenario": "silent-night-late60",
+    "ok": true,
+    "fails": [],
+    "wallS": 32.729,
+    "timing": {
+      "cueAnchorDriftMs": {
+        "min": -0.03,
+        "max": 0.11,
+        "end": 0.08
+      },
+      "cueSends": 1,
+      "audioSnaps": [],
+      "hostSyncResets": 0,
+      "hostSyncJumps": [],
+      "roundStartPerf": 2906.6,
+      "longFrames": {
+        "n": 1,
+        "maxMs": 121.4
+      },
+      "ringArrivalMs": {
+        "p50": 37.1,
+        "p99": 54.4,
+        "max": 54.4
+      },
+      "strays": [
+        {
+          "p": 1,
+          "latMs": 37.2
+        }
+      ],
+      "meanOffsetByHalfMs": [
+        "Alice 71.7 → 58.6",
+        "Bob 60.8 → 59.8",
+        "Cara 56.2 → 66.6"
+      ],
+      "phones": [
+        {
+          "name": "Alice",
+          "cues": 7,
+          "expectHits": 7,
+          "rung": 7,
+          "recued": 0,
+          "sendLateMaxMs": 15,
+          "thShiftMaxAbs": 1.03,
+          "syncResets": 0,
+          "rttMin": 0.6,
+          "used": 7
+        },
+        {
+          "name": "Bob",
+          "cues": 26,
+          "expectHits": 25,
+          "rung": 26,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 1.5,
+          "syncResets": 0,
+          "rttMin": 0.36,
+          "used": 7
+        },
+        {
+          "name": "Cara",
+          "cues": 13,
+          "expectHits": 13,
+          "rung": 13,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 1.09,
+          "syncResets": 0,
+          "rttMin": 0.33,
+          "used": 8
+        }
+      ]
+    },
+    "result": {
+      "mode": "play",
+      "title": "Silent Night · easy · 3 ringers",
+      "score": 8030,
+      "accuracy": 0.7239130434782608,
+      "counts": {
+        "perfect": 10,
+        "great": 31,
+        "good": 4,
+        "miss": 1
+      },
+      "maxStreak": 36,
+      "strays": 1,
+      "metrics": {
+        "frameMs": {
+          "n": 4481,
+          "mean": 6.08,
+          "std": 0.41,
+          "min": 4,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 6.3,
+          "max": 18.4
+        },
+        "fps": 164.6,
+        "longFramePct": 0.22,
+        "cpuMs": {
+          "n": 5325,
+          "mean": 2.12,
+          "std": 0.48,
+          "min": 1,
+          "p50": 2.1,
+          "p95": 2.9,
+          "p99": 3.4,
+          "max": 5.3
+        },
+        "smoothnessErrMs": {
+          "n": 4481,
+          "mean": 0.01,
+          "std": 0.02,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.01,
+          "p99": 0.03,
+          "max": 0.62
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": -0.001,
+          "std": 0.07,
+          "min": -0.466,
+          "p50": 0.003,
+          "p95": 0.102,
+          "p99": 0.142,
+          "max": 0.175
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.86,
+          "std": 2.79,
+          "min": -7.82,
+          "p50": -1.85,
+          "p95": 2.51,
+          "p99": 3.48,
+          "max": 4.23
+        },
+        "audioDriftPpm": -80.6,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 46,
+            "mean": 36.72,
+            "std": 5.07,
+            "min": 27.35,
+            "p50": 36.79,
+            "p95": 43.29,
+            "p99": 54.35,
+            "max": 54.35
+          },
+          "eventToJudgeMs": {
+            "n": 46,
+            "mean": 37.18,
+            "std": 5.06,
+            "min": 28.85,
+            "p50": 37.09,
+            "p95": 43.49,
+            "p99": 54.65,
+            "max": 54.65
+          },
+          "eventToNextFrameMs": {
+            "n": 46,
+            "mean": 38.72,
+            "std": 5.1,
+            "min": 29.05,
+            "p50": 38.97,
+            "p95": 45.16,
+            "p99": 55.95,
+            "max": 55.95
+          },
+          "hitOffsetMs": {
+            "n": 45,
+            "mean": 61.33,
+            "std": 21.01,
+            "min": 15.3,
+            "p50": 63.44,
+            "p95": 90.95,
+            "p99": 104.77,
+            "max": 104.77
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 918,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      },
+      "song": "silent-night",
+      "difficulty": "easy",
+      "ringers": 3,
+      "speed": 1,
+      "chartDurationSec": 25.714,
+      "soundMode": "device",
+      "backing": {
+        "enabled": true,
+        "volume": 0.5,
+        "countIn": true,
+        "style": "gentle",
+        "chords": "lead-sheet",
+        "events": 60,
+        "countInClicks": 4,
+        "leadInSec": 5.284
+      },
+      "players": [
+        {
+          "ringer": 0,
+          "name": "Alice",
+          "slot": "phone",
+          "notes": 7,
+          "perfect": 2,
+          "great": 4,
+          "good": 1,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 7,
+          "accuracy": 0.743,
+          "offsetMs": {
+            "n": 7,
+            "mean": 64.2,
+            "p50": 70.2,
+            "p95abs": 95.9
+          }
+        },
+        {
+          "ringer": 1,
+          "name": "Bob",
+          "slot": "phone",
+          "notes": 26,
+          "perfect": 7,
+          "great": 16,
+          "good": 2,
+          "miss": 1,
+          "strays": 1,
+          "maxStreak": 22,
+          "accuracy": 0.731,
+          "offsetMs": {
+            "n": 25,
+            "mean": 60.3,
+            "p50": 61.8,
+            "p95abs": 90.8
+          }
+        },
+        {
+          "ringer": 2,
+          "name": "Cara",
+          "slot": "phone",
+          "notes": 13,
+          "perfect": 1,
+          "great": 11,
+          "good": 1,
+          "miss": 0,
+          "strays": 0,
+          "maxStreak": 13,
+          "accuracy": 0.7,
+          "offsetMs": {
+            "n": 13,
+            "mean": 61.8,
+            "p50": 57.7,
+            "p95abs": 91
+          }
+        }
+      ],
+      "autoRingers": [],
+      "hgp": {
+        "input": {
+          "rings": 46,
+          "unsynced": 0,
+          "unmapped": 0,
+          "nonRing": 0,
+          "latencyMs": {
+            "n": 46,
+            "mean": 36.7,
+            "p50": 37.1,
+            "p95abs": 43.3
+          }
+        },
+        "hostClock": {
+          "ref": 35260.85000000894,
+          "offset": 1494.3064062722265,
+          "drift": -7.15334823504282e-7,
+          "n": 80,
+          "used": 8,
+          "rttMin": 0.7752999821168487,
+          "rttP50": 1.060649994038613,
+          "errBound": 0.38764999105842435
+        },
+        "joinUrl": "https://192.168.1.143:18446/"
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+    }
+  },
+  {
+    "run": 1,
+    "scenario": "holly-easy-2-speed50",
+    "ok": true,
+    "fails": [],
+    "wallS": 55.861,
+    "timing": {
+      "cueAnchorDriftMs": {
+        "min": -0.05,
+        "max": 0.2,
+        "end": 0.06
+      },
+      "cueSends": 1,
+      "audioSnaps": [],
+      "hostSyncResets": 0,
+      "hostSyncJumps": [],
+      "roundStartPerf": 2861.6,
+      "longFrames": {
+        "n": 1,
+        "maxMs": 103.2
+      },
+      "ringArrivalMs": {
+        "p50": 35,
+        "p99": 387,
+        "max": 387
+      },
+      "strays": [
+        {
+          "p": 1,
+          "latMs": 33.9
+        }
+      ],
+      "meanOffsetByHalfMs": [
+        "Alice -5.5 → -0.4",
+        "Bob -4.2 → 6.6"
+      ],
+      "phones": [
+        {
+          "name": "Alice",
+          "cues": 0,
+          "expectHits": 0,
+          "rung": 0,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 1.66,
+          "syncResets": 0,
+          "rttMin": 0.44,
+          "used": 12
+        },
+        {
+          "name": "Bob",
+          "cues": 0,
+          "expectHits": 0,
+          "rung": 0,
+          "recued": 0,
+          "sendLateMaxMs": 14,
+          "thShiftMaxAbs": 2.52,
+          "syncResets": 0,
+          "rttMin": 0.37,
+          "used": 12
+        }
+      ]
+    },
+    "result": {
+      "mode": "play",
+      "title": "The Holly and the Ivy · easy · 2 ringers",
+      "score": 11070,
+      "accuracy": 0.9101694915254238,
+      "counts": {
+        "perfect": 53,
+        "great": 1,
+        "good": 0,
+        "miss": 5
+      },
+      "maxStreak": 28,
+      "strays": 1,
+      "metrics": {
+        "frameMs": {
+          "n": 8141,
+          "mean": 6.08,
+          "std": 0.48,
+          "min": 4.5,
+          "p50": 6.1,
+          "p95": 6.2,
+          "p99": 6.3,
+          "max": 24.2
+        },
+        "fps": 164.4,
+        "longFramePct": 0.27,
+        "cpuMs": {
+          "n": 9101,
+          "mean": 1.58,
+          "std": 0.43,
+          "min": 0.7,
+          "p50": 1.5,
+          "p95": 2.3,
+          "p99": 2.8,
+          "max": 8.6
+        },
+        "smoothnessErrMs": {
+          "n": 8141,
+          "mean": 0.01,
+          "std": 0.02,
+          "min": 0,
+          "p50": 0,
+          "p95": 0.01,
+          "p99": 0.03,
+          "max": 0.9
+        },
+        "avQuantizationMs": {
+          "n": 0,
+          "mean": null,
+          "std": null,
+          "min": null,
+          "p50": null,
+          "p95": null,
+          "p99": null,
+          "max": null
+        },
+        "clockJitterMs": {
+          "n": 2048,
+          "mean": 0,
+          "std": 0.06,
+          "min": -0.478,
+          "p50": 0.004,
+          "p95": 0.088,
+          "p99": 0.115,
+          "max": 0.339
+        },
+        "naiveLatencyEstimateDeltaMs": {
+          "n": 2048,
+          "mean": -1.14,
+          "std": 2.74,
+          "min": -7,
+          "p50": -1.2,
+          "p95": 3.25,
+          "p99": 4.17,
+          "max": 4.72
+        },
+        "audioDriftPpm": -62.3,
+        "lateSchedules": 0,
+        "input": {
+          "dispatchMs": {
+            "n": 55,
+            "mean": 41.39,
+            "std": 47.2,
+            "min": 27,
+            "p50": 35.03,
+            "p95": 41.83,
+            "p99": 386.97,
+            "max": 386.97
+          },
+          "eventToJudgeMs": {
+            "n": 55,
+            "mean": 41.9,
+            "std": 47.19,
+            "min": 27.5,
+            "p50": 35.53,
+            "p95": 42.33,
+            "p99": 387.37,
+            "max": 387.37
+          },
+          "eventToNextFrameMs": {
+            "n": 55,
+            "mean": 43.81,
+            "std": 47.43,
+            "min": 28.6,
+            "p50": 37.6,
+            "p95": 44.95,
+            "p99": 390.87,
+            "max": 390.87
+          },
+          "hitOffsetMs": {
+            "n": 54,
+            "mean": -1.03,
+            "std": 19.98,
+            "min": -42.4,
+            "p50": 3.31,
+            "p95": 24.83,
+            "p99": 55.32,
+            "max": 55.32
+          }
+        },
+        "render": {
+          "width": 1920,
+          "height": 918,
+          "gpu": "ANGLE (Intel, Intel(R) Arc(TM) Pro Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "dpr": 1
+        },
+        "audio": {
+          "sampleRate": 48000,
+          "baseLatencyMs": 10,
+          "outputLatencyMs": 40,
+          "getOutputTimestamp": true
+        },
+        "frameEstimateMs": 6.06
+      },
+      "song": "the-holly-and-the-ivy",
+      "difficulty": "easy",
+      "ringers": 2,
+      "speed": 0.5,
+      "chartDurationSec": 48,
+      "soundMode": "device",
+      "backing": {
+        "enabled": true,
+        "volume": 0.5,
+        "countIn": true,
+        "style": "waltz",
+        "chords": "inferred",
+        "events": 169,
+        "countInClicks": 5,
+        "leadInSec": 6
+      },
+      "players": [
+        {
+          "ringer": 0,
+          "name": "Alice",
+          "slot": "phone",
+          "notes": 34,
+          "perfect": 31,
+          "great": 0,
+          "good": 0,
+          "miss": 3,
+          "strays": 0,
+          "maxStreak": 15,
+          "accuracy": 0.912,
+          "offsetMs": {
+            "n": 31,
+            "mean": -2.8,
+            "p50": 7.8,
+            "p95abs": 42.2
+          }
+        },
+        {
+          "ringer": 1,
+          "name": "Bob",
+          "slot": "phone",
+          "notes": 25,
+          "perfect": 22,
+          "great": 1,
+          "good": 0,
+          "miss": 2,
+          "strays": 1,
+          "maxStreak": 14,
+          "accuracy": 0.908,
+          "offsetMs": {
+            "n": 23,
+            "mean": 1.4,
+            "p50": 3.3,
+            "p95abs": 39
+          }
+        }
+      ],
+      "autoRingers": [],
+      "hgp": {
+        "input": {
+          "rings": 55,
+          "unsynced": 0,
+          "unmapped": 0,
+          "nonRing": 0,
+          "latencyMs": {
+            "n": 55,
+            "mean": 41.4,
+            "p50": 35,
+            "p95abs": 41.8
+          }
+        },
+        "hostClock": {
+          "ref": 58250.54999999702,
+          "offset": 1420.5430220119592,
+          "drift": -5.460798929350983e-7,
+          "n": 126,
+          "used": 12,
+          "rttMin": 0.7624999821200618,
+          "rttP50": 1.0598499940424517,
+          "errBound": 0.3812499910600309
+        },
+        "joinUrl": "https://192.168.1.143:18447/"
+      },
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36"
+    }
+  }
+]

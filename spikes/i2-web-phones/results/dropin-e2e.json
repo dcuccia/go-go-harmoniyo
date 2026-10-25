@@ -1,0 +1,171 @@
+{
+  "at": "2026-10-25T22:25:34.581Z",
+  "ok": true,
+  "checks": [
+    {
+      "name": "speed control: 50–100 % in 5 % steps, default 100 %",
+      "ok": true,
+      "detail": "{\"min\":\"50\",\"max\":\"100\",\"step\":\"5\",\"value\":\"100\",\"label\":\"100%\"}"
+    },
+    {
+      "name": "lobby: no corner QR (the lobby has the big one)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "arrow keys step the speed down to 50 %",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "speed is remembered for the browser session (reload)",
+      "ok": true,
+      "detail": "{\"speed\":0.5,\"ui\":\"50\",\"info\":\"Slower for learning: 41 s instead of 20 s; bells, backing and count-in slow down too, timing is judged the same.\",\"dur\":40.834}"
+    },
+    {
+      "name": "lobby says what slows down and the song length at this speed",
+      "ok": true,
+      "detail": "Slower for learning: 41 s instead of 20 s; bells, backing and count-in slow down too, timing is judged the same."
+    },
+    {
+      "name": "Alice takes the first part",
+      "ok": true,
+      "detail": "Alice / tv"
+    },
+    {
+      "name": "phone label shows the practice speed",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "round starts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "HUD shows the speed",
+      "ok": true,
+      "detail": "{\"badge\":\"🐢 50% speed\",\"shown\":true,\"bpm\":72,\"dur\":40.834}"
+    },
+    {
+      "name": "corner QR is shown and loaded during the song",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "corner shows the short join URL (and the certificate hint with a self-signed cert)",
+      "ok": true,
+      "detail": "{\"url\":\"https://192.168.1.143:18963\",\"hint\":\"scan · accept the warning once\",\"src\":\"http://127.0.0.1:18600/qr.svg?u=https%3A%2F%2F192.168.1.143%3A18963%2F\",\"x\":19.1875,\"y\":16.1875,\"w\":152.390625,\"h\":221.984375}"
+    },
+    {
+      "name": "corner QR is small and in the top-left corner",
+      "ok": true,
+      "detail": "152×222 at 19,16"
+    },
+    {
+      "name": "phone that joins mid-song shows \"you're in for the next song\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "waiting screen names the next song and the one playing",
+      "ok": true,
+      "detail": "You're in! 🎉 A song is playing. You'll get a part when the next song starts. Now playing: We Wish You a Merry Christmas (easy) · 50% speed"
+    },
+    {
+      "name": "waiting phone does not see the part picker mid-song",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TV shows \"+1 waiting\"",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "TV names the waiting player",
+      "ok": true,
+      "detail": "+1 waiting Bob"
+    },
+    {
+      "name": "the running round is unchanged (the TV keeps playing the free part)",
+      "ok": true,
+      "detail": "Alice / tv"
+    },
+    {
+      "name": "song finishes (results screen)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "result records the speed and the stretched song (≈ 2 × 20.4 s)",
+      "ok": true,
+      "detail": "speed 0.5, 40.834 s"
+    },
+    {
+      "name": "results show the practice speed",
+      "ok": true,
+      "detail": "Team score 0Accuracy 0.0% · best team streak 0Perfect 0 · Great 0 · Good 0 · Miss 36 · stray rings 0🐢 Practice speed 50%"
+    },
+    {
+      "name": "results list who joins next round",
+      "ok": true,
+      "detail": "Next round: Low melody — Alice · High melody — 🤖 TV · Joining: Bob (first part the TV plays)"
+    },
+    {
+      "name": "corner QR and \"+1 waiting\" stay on the results screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "waiting phone sees \"Pick your part\" with \"you're in for the next song\" on the results screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Again: the waiting phone is seated in the first TV-played part",
+      "ok": true,
+      "detail": "Alice / Bob"
+    },
+    {
+      "name": "\"+1 waiting\" clears",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Bob's phone gets the part's bells and label",
+      "ok": true,
+      "detail": "High melody"
+    },
+    {
+      "name": "Bob's waiting screen is gone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "round 2 has both phones and keeps the speed",
+      "ok": true,
+      "detail": "{\"phones\":2,\"speed\":0.5}"
+    },
+    {
+      "name": "corner QR hides in the lobby",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "speed back to 100 % restores the written tempo",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "?joinQr=0 hides the corner QR",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}

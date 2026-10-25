@@ -1,0 +1,19 @@
+X:1
+T:Deck the Halls (S6 AI candidate)
+C:Traditional Welsh ("Nos Galan", 16th c.); English words Thomas Oliphant (1862)
+S:Tune: S5 lead sheet spikes/s5-chart-pipeline/songs/deck-the-halls.abc
+Z:S6 AI candidate: qwen3:8b (Qwen3-8B, Apache-2.0) via a local llama.cpp stand-in (Q4_K_M GGUF) (Go Go HarmoniYo spikes/s6-ai-arranging); prompts and replies in results/runs/*-local.jsonl. Human resemblance review pending.
+N:AI-generated parts: intro and ending. Intro/ending: qwen3 intro+ending T=0 seed 1.
+%%hh-id deck-the-halls-s6
+%%hh-license CC0-1.0
+%%hh-backing-style sleigh-ride
+L:1/8
+M:4/4
+Q:1/4=116
+K:F
+"F"c3 B A2 "C"G2  | "F"F2 "C"G2 "F"A2 F2  | "C7"G A B G "F"A3 G  | "F"F2 "C7"E2 "F"F4  |
+"F"c3 B A2 "C"G2  | "F"F2 "C"G2 "F"A2 F2  | "C7"G A B G "F"A3 G  | "F"F2 "C7"E2 "F"F4  |
+"F"c3 B A2 "C"G2  | "F"F2 "C"G2 "F"A2 F2  | "C7"G A B G "F"A3 G  | "F"F2 "C7"E2 "F"F4  |
+"C"G3 A "C7"B2 G2  | "F"A3 B c2 "C"G2  | "F"A B c2 "Bb"d "C"e "F"f2  | "C"e2 d2 c4  |
+"F"c3 B A2 "C"G2  | "F"F2 "C"G2 "F"A2 F2  | "Bb"d d d d "F"c3 "C7"B  | "F"A2 "C7"G2 "F"F4  |
+"C"G3 A "C7"B2 G2  | "F"F2 "C"G2 "F"A2 F2  |]

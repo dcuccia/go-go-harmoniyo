@@ -1,0 +1,1295 @@
+{
+ "summary": {
+  "mode": "local",
+  "date": "2026-10-24T23:35:05.372Z",
+  "outputs": 34,
+  "calls": 92,
+  "validFinal": 7,
+  "validFirstTry": 3,
+  "latencyMs": {
+   "median": 5140,
+   "p90": 9536,
+   "max": 78520
+  }
+ },
+ "results": {
+  "deck-the-halls": {
+   "chordSource": "lead sheet (S5)",
+   "low": "B4",
+   "high": "C6",
+   "descant": [
+    {
+     "label": "rule-based descant (baseline)",
+     "kind": "baseline",
+     "ok": true,
+     "notes": 32,
+     "distinctPitches": 4,
+     "barVariety": 0.313,
+     "similarMotion": 0.889,
+     "fitAll": 1,
+     "fitStrong": 1,
+     "dissonant": 0.132,
+     "aboveRatio": 0.985,
+     "crossings": 0,
+     "parallels": 0,
+     "range": "C5–G5",
+     "nonDiatonic": 0,
+     "shortNotes": 0,
+     "playability": {
+      "strikes": 100,
+      "distinctBells": 10,
+      "maxBellsPerRinger": 3,
+      "dropped": 0,
+      "violations": 0,
+      "loadBalance": 1.526,
+      "handbellSet": "2oct",
+      "transpose": 12
+     },
+     "objective": 0.401,
+     "abc": "f4 f4  | c4 c4  | c4 c4  | c4 c4  |\nf4 f4  | c4 c4  | c4 c4  | c4 c4  |\nc4 e4  | f4 f4  | f4 f4  | g4 g4  |\nf4 f4  | c4 c4  | f4 f4  | f4 c4  |]"
+    },
+    {
+     "label": "qwen3 descant v1 T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      9536,
+      8936,
+      8085
+     ],
+     "completionTokens": [
+      216,
+      216,
+      216
+     ],
+     "firstErrors": [
+      "42 notes outside B4–C6 (e.g. E6)",
+      "the same bar repeats 6 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ],
+     "errors": [
+      "42 notes outside B4–C6 (e.g. E6)",
+      "the same bar repeats 6 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      6948,
+      7267,
+      7309
+     ],
+     "completionTokens": [
+      197,
+      197,
+      197
+     ],
+     "firstErrors": [
+      "no notes"
+     ],
+     "errors": [
+      "the same bar repeats 16 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      7367,
+      8350,
+      8699
+     ],
+     "completionTokens": [
+      213,
+      216,
+      219
+     ],
+     "firstErrors": [
+      "bar 1 lasts 3 eighths, the tune's bar 1 lasts 8",
+      "bar 2 lasts 4 eighths, the tune's bar 2 lasts 8",
+      "bar 3 lasts 6 eighths, the tune's bar 3 lasts 8",
+      "bar 4 lasts 3 eighths, the tune's bar 4 lasts 8",
+      "bar 5 lasts 3 eighths, the tune's bar 5 lasts 8",
+      "bar 6 lasts 4 eighths, the tune's bar 6 lasts 8",
+      "bar 7 lasts 6 eighths, the tune's bar 7 lasts 8",
+      "bar 8 lasts 3 eighths, the tune's bar 8 lasts 8"
+     ],
+     "errors": [
+      "bar 1 lasts 5 eighths, the tune's bar 1 lasts 8",
+      "bar 2 lasts 4 eighths, the tune's bar 2 lasts 8",
+      "bar 3 lasts 6 eighths, the tune's bar 3 lasts 8",
+      "bar 4 lasts 3 eighths, the tune's bar 4 lasts 8",
+      "bar 5 lasts 5 eighths, the tune's bar 5 lasts 8",
+      "bar 6 lasts 4 eighths, the tune's bar 6 lasts 8",
+      "bar 7 lasts 6 eighths, the tune's bar 7 lasts 8",
+      "bar 8 lasts 3 eighths, the tune's bar 8 lasts 8"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      6420,
+      7154,
+      7076
+     ],
+     "completionTokens": [
+      164,
+      192,
+      192
+     ],
+     "firstErrors": [
+      "bar 4 lasts 4 eighths, the tune's bar 4 lasts 8",
+      "bar 8 lasts 4 eighths, the tune's bar 8 lasts 8",
+      "bar 12 lasts 4 eighths, the tune's bar 12 lasts 8",
+      "bar 16 lasts 4 eighths, the tune's bar 16 lasts 8",
+      "the descant uses only 1 different pitch; use at least 5 and make it a melody",
+      "the same bar repeats 3 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ],
+     "errors": [
+      "bar 4 lasts 4 eighths, the tune's bar 4 lasts 8",
+      "bar 8 lasts 4 eighths, the tune's bar 8 lasts 8",
+      "bar 12 lasts 4 eighths, the tune's bar 12 lasts 8",
+      "bar 16 lasts 4 eighths, the tune's bar 16 lasts 8",
+      "21 notes outside B4–C6 (e.g. E6)",
+      "the same bar repeats 3 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      7483,
+      9090,
+      8522
+     ],
+     "completionTokens": [
+      216,
+      216,
+      216
+     ],
+     "firstErrors": [
+      "64 notes outside B4–C6 (e.g. Bb3)",
+      "the descant uses only 1 different pitch; use at least 5 and make it a melody",
+      "the same bar repeats 16 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ],
+     "errors": [
+      "64 notes outside B4–C6 (e.g. Bb3)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 51",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 51,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5899,
+      5885,
+      5669
+     ],
+     "completionTokens": [
+      152,
+      152,
+      152
+     ],
+     "firstErrors": [
+      "the descant uses only 2 different pitches; use at least 5 and make it a melody",
+      "the same bar repeats 16 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ],
+     "errors": [
+      "the descant uses only 2 different pitches; use at least 5 and make it a melody",
+      "the same bar repeats 16 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": true,
+     "attempts": 1,
+     "firstTryOk": true,
+     "latencyMs": [
+      4004
+     ],
+     "completionTokens": [
+      84
+     ],
+     "firstErrors": [],
+     "errors": [],
+     "notes": 32,
+     "distinctPitches": 4,
+     "barVariety": 0.125,
+     "similarMotion": 0.808,
+     "fitAll": 0.5,
+     "fitStrong": 0.571,
+     "dissonant": 0.208,
+     "aboveRatio": 0.889,
+     "crossings": 5,
+     "parallels": 5,
+     "range": "A#4–E5",
+     "nonDiatonic": 0,
+     "shortNotes": 0,
+     "playability": {
+      "strikes": 100,
+      "distinctBells": 9,
+      "maxBellsPerRinger": 3,
+      "dropped": 0,
+      "violations": 0,
+      "loadBalance": 2.818,
+      "handbellSet": "2oct",
+      "transpose": 12
+     },
+     "objective": 0.018,
+     "abc": "e4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |]"
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5140,
+      4429,
+      4786
+     ],
+     "completionTokens": [
+      108,
+      108,
+      108
+     ],
+     "firstErrors": [
+      "bar 2 lasts 6 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 6 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 6 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 6 eighths, the tune's bar 8 lasts 8",
+      "bar 9 lasts 10 eighths, the tune's bar 9 lasts 8",
+      "bar 11 lasts 10 eighths, the tune's bar 11 lasts 8",
+      "bar 12 lasts 6 eighths, the tune's bar 12 lasts 8",
+      "bar 13 lasts 10 eighths, the tune's bar 13 lasts 8"
+     ],
+     "errors": [
+      "bar 2 lasts 6 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 6 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 6 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 6 eighths, the tune's bar 8 lasts 8",
+      "bar 9 lasts 10 eighths, the tune's bar 9 lasts 8",
+      "bar 11 lasts 10 eighths, the tune's bar 11 lasts 8",
+      "bar 12 lasts 6 eighths, the tune's bar 12 lasts 8",
+      "bar 13 lasts 10 eighths, the tune's bar 13 lasts 8"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5264,
+      5650,
+      5737
+     ],
+     "completionTokens": [
+      144,
+      144,
+      144
+     ],
+     "firstErrors": [
+      "descant has 28 bars, the tune has 16",
+      "bar 2 lasts 10 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 10 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 10 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 10 eighths, the tune's bar 8 lasts 8",
+      "bar 10 lasts 10 eighths, the tune's bar 10 lasts 8",
+      "bar 12 lasts 10 eighths, the tune's bar 12 lasts 8",
+      "bar 14 lasts 10 eighths, the tune's bar 14 lasts 8"
+     ],
+     "errors": [
+      "descant has 28 bars, the tune has 16",
+      "bar 2 lasts 10 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 10 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 10 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 10 eighths, the tune's bar 8 lasts 8",
+      "bar 10 lasts 10 eighths, the tune's bar 10 lasts 8",
+      "bar 12 lasts 10 eighths, the tune's bar 12 lasts 8",
+      "bar 14 lasts 10 eighths, the tune's bar 14 lasts 8"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": true,
+     "attempts": 1,
+     "firstTryOk": true,
+     "latencyMs": [
+      2960
+     ],
+     "completionTokens": [
+      84
+     ],
+     "firstErrors": [],
+     "errors": [],
+     "notes": 32,
+     "distinctPitches": 4,
+     "barVariety": 0.125,
+     "similarMotion": 0.808,
+     "fitAll": 0.5,
+     "fitStrong": 0.571,
+     "dissonant": 0.208,
+     "aboveRatio": 0.889,
+     "crossings": 5,
+     "parallels": 5,
+     "range": "A#4–E5",
+     "nonDiatonic": 0,
+     "shortNotes": 0,
+     "playability": {
+      "strikes": 100,
+      "distinctBells": 9,
+      "maxBellsPerRinger": 3,
+      "dropped": 0,
+      "violations": 0,
+      "loadBalance": 2.818,
+      "handbellSet": "2oct",
+      "transpose": 12
+     },
+     "objective": 0.018,
+     "abc": "e4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |\ne4 d4  | c6 B2  | e4 d4  | c6 B2  |]"
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      3221,
+      3768,
+      3829
+     ],
+     "completionTokens": [
+      92,
+      92,
+      92
+     ],
+     "firstErrors": [
+      "bar 2 lasts 4 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 4 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 4 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 4 eighths, the tune's bar 8 lasts 8",
+      "bar 10 lasts 4 eighths, the tune's bar 10 lasts 8",
+      "bar 12 lasts 4 eighths, the tune's bar 12 lasts 8",
+      "bar 14 lasts 4 eighths, the tune's bar 14 lasts 8",
+      "bar 16 lasts 4 eighths, the tune's bar 16 lasts 8"
+     ],
+     "errors": [
+      "bar 1 lasts 16 eighths, the tune's bar 1 lasts 8",
+      "bar 2 lasts 16 eighths, the tune's bar 2 lasts 8",
+      "bar 3 lasts 16 eighths, the tune's bar 3 lasts 8",
+      "bar 4 lasts 16 eighths, the tune's bar 4 lasts 8",
+      "bar 5 lasts 16 eighths, the tune's bar 5 lasts 8",
+      "bar 6 lasts 16 eighths, the tune's bar 6 lasts 8",
+      "bar 7 lasts 16 eighths, the tune's bar 7 lasts 8",
+      "bar 8 lasts 16 eighths, the tune's bar 8 lasts 8"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 51",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 51,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      3334,
+      3525,
+      3422
+     ],
+     "completionTokens": [
+      84,
+      84,
+      84
+     ],
+     "firstErrors": [
+      "bar 2 lasts 6 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 6 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 6 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 6 eighths, the tune's bar 8 lasts 8",
+      "bar 10 lasts 6 eighths, the tune's bar 10 lasts 8",
+      "bar 12 lasts 6 eighths, the tune's bar 12 lasts 8",
+      "bar 14 lasts 6 eighths, the tune's bar 14 lasts 8",
+      "bar 16 lasts 6 eighths, the tune's bar 16 lasts 8"
+     ],
+     "errors": [
+      "bar 2 lasts 6 eighths, the tune's bar 2 lasts 8",
+      "bar 4 lasts 6 eighths, the tune's bar 4 lasts 8",
+      "bar 6 lasts 6 eighths, the tune's bar 6 lasts 8",
+      "bar 8 lasts 6 eighths, the tune's bar 8 lasts 8",
+      "bar 10 lasts 6 eighths, the tune's bar 10 lasts 8",
+      "bar 12 lasts 6 eighths, the tune's bar 12 lasts 8",
+      "bar 14 lasts 6 eighths, the tune's bar 14 lasts 8",
+      "bar 16 lasts 6 eighths, the tune's bar 16 lasts 8"
+     ]
+    }
+   ],
+   "introEnding": [
+    {
+     "label": "qwen3 intro+ending T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": true,
+     "attempts": 2,
+     "firstTryOk": false,
+     "latencyMs": [
+      3497,
+      3479
+     ],
+     "firstErrors": [
+      "ending must finish on the tonic chord (F), not C",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [],
+     "introBars": 4,
+     "endingBars": 2,
+     "introFit": 0.906,
+     "endingFit": 0.938,
+     "introEndsOnV": false,
+     "objective": 0.645,
+     "intro": "\"F\"c3 B A2 \"C\"G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  | \"C7\"G A B G \"F\"A3 G  | \"F\"F2 \"C7\"E2 \"F\"F4  |]",
+     "ending": "\"C\"G3 A \"C7\"B2 G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  |]"
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": true,
+     "attempts": 2,
+     "firstTryOk": false,
+     "latencyMs": [
+      4027,
+      3777
+     ],
+     "firstErrors": [
+      "ending must finish on the tonic chord (F), not C",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [],
+     "introBars": 4,
+     "endingBars": 2,
+     "introFit": 0.906,
+     "endingFit": 0.938,
+     "introEndsOnV": false,
+     "objective": 0.645,
+     "intro": "\"F\"c3 B A2 \"C\"G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  | \"C7\"G A B G \"F\"A3 G  | \"F\"F2 \"C7\"E2 \"F\"F4  |]",
+     "ending": "\"C\"G3 A \"C7\"B2 G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  |]"
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": true,
+     "attempts": 2,
+     "firstTryOk": false,
+     "latencyMs": [
+      3594,
+      2798
+     ],
+     "firstErrors": [
+      "ending must finish on the tonic chord (F), not C",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [],
+     "introBars": 4,
+     "endingBars": 2,
+     "introFit": 0.906,
+     "endingFit": 0.938,
+     "introEndsOnV": false,
+     "objective": 0.645,
+     "intro": "\"F\"c3 B A2 \"C\"G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  | \"C7\"G A B G \"F\"A3 G  | \"F\"F2 \"C7\"E2 \"F\"F4  |]",
+     "ending": "\"C\"G3 A \"C7\"B2 G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  |]"
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      2996,
+      4063,
+      5121
+     ],
+     "firstErrors": [
+      "intro bar 1 is 6 eighths long, a full bar is 8"
+     ],
+     "errors": [
+      "intro bar 1 is 6 eighths long, a full bar is 8"
+     ]
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": true,
+     "attempts": 2,
+     "firstTryOk": false,
+     "latencyMs": [
+      4792,
+      3551
+     ],
+     "firstErrors": [
+      "ending must finish on the tonic chord (F), not C",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [],
+     "introBars": 4,
+     "endingBars": 2,
+     "introFit": 0.906,
+     "endingFit": 0.813,
+     "introEndsOnV": false,
+     "objective": 0.602,
+     "intro": "\"F\"c3 B A2 \"C\"G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  | \"C7\"G A B G \"F\"A3 G  | \"F\"F2 \"C7\"E2 \"F\"F4  |]",
+     "ending": "\"F\"c3 B A2 \"F\"G2  | \"F\"F2 \"C\"G2 \"F\"A2 F2  |]"
+    }
+   ],
+   "best": {
+    "descant": "qwen3 descant v2 T=0 seed 1",
+    "introEnding": "qwen3 intro+ending T=0 seed 1"
+   },
+   "assembled": {
+    "bars": 22,
+    "durationTicks": 42240,
+    "playabilityHardR4": {
+     "strikes": 277,
+     "distinctBells": 16,
+     "maxBellsPerRinger": 5,
+     "dropped": 15,
+     "violations": 6,
+     "loadBalance": 2.564,
+     "handbellSet": "3oct",
+     "transpose": 14
+    },
+    "playabilityHardR3": {
+     "strikes": 269,
+     "distinctBells": 16,
+     "maxBellsPerRinger": 6,
+     "dropped": 23,
+     "violations": 13,
+     "loadBalance": 1.408,
+     "handbellSet": "3oct",
+     "transpose": 14
+    },
+    "abcChars": 854
+   },
+   "originalPlayabilityHardR4": {
+    "strikes": 189,
+    "distinctBells": 16,
+    "maxBellsPerRinger": 6,
+    "dropped": 4,
+    "violations": 12,
+    "loadBalance": 1.487,
+    "handbellSet": "3oct",
+    "transpose": 14
+   }
+  },
+  "the-holly-and-the-ivy": {
+   "chordSource": "exp-chords best: qwen3 proofread T=0 seed 1",
+   "low": "G4",
+   "high": "A5",
+   "descant": [
+    {
+     "label": "rule-based descant (baseline)",
+     "kind": "baseline",
+     "ok": true,
+     "notes": 17,
+     "distinctPitches": 5,
+     "barVariety": 0.412,
+     "similarMotion": 0.4,
+     "fitAll": 1,
+     "fitStrong": 1,
+     "dissonant": 0.136,
+     "aboveRatio": 0.932,
+     "crossings": 0,
+     "parallels": 0,
+     "range": "A4–F5",
+     "nonDiatonic": 0,
+     "shortNotes": 0,
+     "playability": {
+      "strikes": 76,
+      "distinctBells": 10,
+      "maxBellsPerRinger": 4,
+      "dropped": 0,
+      "violations": 0,
+      "loadBalance": 4.667,
+      "handbellSet": "2oct",
+      "transpose": 12
+     },
+     "objective": 0.736,
+     "abc": "c2  | d6  | f6  | d6  |\ne6  | f6  | A6  | c6  |\nc6  | d6  | f6  | d6  |\ne6  | f6  | A6  | c6  |\nc4  |]"
+    },
+    {
+     "label": "qwen3 descant v1 T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": true,
+     "attempts": 1,
+     "firstTryOk": true,
+     "latencyMs": [
+      6397
+     ],
+     "completionTokens": [
+      161
+     ],
+     "firstErrors": [],
+     "errors": [],
+     "notes": 59,
+     "distinctPitches": 7,
+     "barVariety": 0.588,
+     "similarMotion": 0.6,
+     "fitAll": 0.667,
+     "fitStrong": 0.733,
+     "dissonant": 0.169,
+     "aboveRatio": 0.932,
+     "crossings": 0,
+     "parallels": 12,
+     "range": "C5–A#5",
+     "nonDiatonic": 0,
+     "shortNotes": 0,
+     "playability": {
+      "strikes": 107,
+      "distinctBells": 13,
+      "maxBellsPerRinger": 5,
+      "dropped": 11,
+      "violations": 4,
+      "loadBalance": 2.4,
+      "handbellSet": "2oct",
+      "transpose": 7
+     },
+     "objective": 0.378,
+     "abc": "a2  | a a a2 d2  | g2 e3 f  | a a a2 d2  |\ng4 g f  | e d c2 e e  | f f d2 a b  | g a g2 f2  |\na4 a2  | a a a2 d2  | g2 e3 f  | a a a2 d2  |\ng4 g f  | e d c2 e2  | f f d2 a b  | g a g2 f2  |\na4  |]"
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5791,
+      5939,
+      6195
+     ],
+     "completionTokens": [
+      169,
+      153,
+      137
+     ],
+     "firstErrors": [
+      "bar 2 lasts 8 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 8 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 8 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 8 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 8 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 8 eighths, the tune's bar 7 lasts 6",
+      "bar 8 lasts 8 eighths, the tune's bar 8 lasts 6",
+      "bar 9 lasts 8 eighths, the tune's bar 9 lasts 6"
+     ],
+     "errors": [
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4",
+      "the same bar repeats 14 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5498,
+      3938,
+      4760
+     ],
+     "completionTokens": [
+      149,
+      97,
+      121
+     ],
+     "firstErrors": [
+      "bar 2 lasts 8 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 8 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 8 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 4 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 8 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 8 eighths, the tune's bar 7 lasts 6",
+      "bar 8 lasts 8 eighths, the tune's bar 8 lasts 6",
+      "bar 9 lasts 2 eighths, the tune's bar 9 lasts 6"
+     ],
+     "errors": [
+      "bar 5 lasts 2 eighths, the tune's bar 5 lasts 6",
+      "bar 9 lasts 2 eighths, the tune's bar 9 lasts 6",
+      "bar 13 lasts 2 eighths, the tune's bar 13 lasts 6",
+      "bar 17 lasts 2 eighths, the tune's bar 17 lasts 4",
+      "the descant uses only 1 different pitch; use at least 5 and make it a melody",
+      "the same bar repeats 3 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      8026,
+      10243,
+      11167
+     ],
+     "completionTokens": [
+      222,
+      242,
+      266
+     ],
+     "firstErrors": [
+      "bar 3 lasts 5 eighths, the tune's bar 3 lasts 6",
+      "bar 5 lasts 4 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 4 eighths, the tune's bar 6 lasts 6",
+      "bar 8 lasts 4 eighths, the tune's bar 8 lasts 6",
+      "bar 9 lasts 3 eighths, the tune's bar 9 lasts 6",
+      "bar 11 lasts 5 eighths, the tune's bar 11 lasts 6",
+      "bar 13 lasts 4 eighths, the tune's bar 13 lasts 6",
+      "bar 14 lasts 4 eighths, the tune's bar 14 lasts 6"
+     ],
+     "errors": [
+      "bar 3 lasts 7 eighths, the tune's bar 3 lasts 6",
+      "bar 11 lasts 7 eighths, the tune's bar 11 lasts 6",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      6801,
+      10984,
+      14469
+     ],
+     "completionTokens": [
+      168,
+      196,
+      196
+     ],
+     "firstErrors": [
+      "descant has 32 bars, the tune has 17",
+      "bar 1 lasts 8 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 8 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 8 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 8 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 8 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 8 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 8 eighths, the tune's bar 7 lasts 6"
+     ],
+     "errors": [
+      "descant has 24 bars, the tune has 17",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4",
+      "the descant uses only 3 different pitches; use at least 5 and make it a melody",
+      "the same bar repeats 23 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v1 T=0.8 seed 51",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 51,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      31238,
+      30747,
+      6245
+     ],
+     "completionTokens": [
+      598,
+      565,
+      114
+     ],
+     "firstErrors": [
+      "descant has 144 bars, the tune has 17",
+      "bar 1 lasts 1 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 1 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 1 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 1 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 1 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 1 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 1 eighths, the tune's bar 7 lasts 6"
+     ],
+     "errors": [
+      "descant has 16 bars, the tune has 17",
+      "bar 1 lasts 1 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 5 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 5 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 5 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 5 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 5 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 5 eighths, the tune's bar 7 lasts 6"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5231,
+      5068,
+      5574
+     ],
+     "completionTokens": [
+      90,
+      90,
+      90
+     ],
+     "firstErrors": [
+      "bar 1 lasts 6 eighths, the tune's bar 1 lasts 2",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4"
+     ],
+     "errors": [
+      "bar 1 lasts 4 eighths, the tune's bar 1 lasts 2",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      4263,
+      4642,
+      4928
+     ],
+     "completionTokens": [
+      116,
+      116,
+      112
+     ],
+     "firstErrors": [
+      "bar 1 lasts 12 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 12 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 12 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 12 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 12 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 12 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 12 eighths, the tune's bar 7 lasts 6",
+      "bar 8 lasts 12 eighths, the tune's bar 8 lasts 6"
+     ],
+     "errors": [
+      "bar 2 lasts 12 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 12 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 12 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 12 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 12 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 12 eighths, the tune's bar 7 lasts 6",
+      "bar 8 lasts 12 eighths, the tune's bar 8 lasts 6",
+      "bar 9 lasts 2 eighths, the tune's bar 9 lasts 6"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      65407,
+      68678,
+      78520
+     ],
+     "completionTokens": [
+      1500,
+      1500,
+      1500
+     ],
+     "firstErrors": [
+      "descant has 215 bars, the tune has 17",
+      "bar 1 lasts 11 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 8 eighths, the tune's bar 2 lasts 6",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4",
+      "the same bar repeats 212 times in a row; write a melody that develops (at most 2 identical bars in a row)"
+     ],
+     "errors": [
+      "descant has 300 bars, the tune has 17",
+      "bar 1 lasts 7 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 4 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 4 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 4 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 4 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 4 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 4 eighths, the tune's bar 7 lasts 6"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      4440,
+      4860,
+      4530
+     ],
+     "completionTokens": [
+      108,
+      108,
+      108
+     ],
+     "firstErrors": [
+      "bar 1 lasts 12 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 12 eighths, the tune's bar 2 lasts 6",
+      "bar 5 lasts 12 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 12 eighths, the tune's bar 6 lasts 6",
+      "bar 9 lasts 12 eighths, the tune's bar 9 lasts 6",
+      "bar 10 lasts 12 eighths, the tune's bar 10 lasts 6",
+      "bar 13 lasts 12 eighths, the tune's bar 13 lasts 6",
+      "bar 14 lasts 12 eighths, the tune's bar 14 lasts 6"
+     ],
+     "errors": [
+      "bar 1 lasts 10 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 12 eighths, the tune's bar 2 lasts 6",
+      "bar 5 lasts 12 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 12 eighths, the tune's bar 6 lasts 6",
+      "bar 9 lasts 12 eighths, the tune's bar 9 lasts 6",
+      "bar 10 lasts 12 eighths, the tune's bar 10 lasts 6",
+      "bar 13 lasts 12 eighths, the tune's bar 13 lasts 6",
+      "bar 14 lasts 12 eighths, the tune's bar 14 lasts 6"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      5582,
+      6909,
+      7122
+     ],
+     "completionTokens": [
+      146,
+      180,
+      180
+     ],
+     "firstErrors": [
+      "descant has 19 bars, the tune has 17",
+      "bar 1 lasts 8 eighths, the tune's bar 1 lasts 2",
+      "bar 10 lasts 8 eighths, the tune's bar 10 lasts 6",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4",
+      "20 notes outside G4–A5 (e.g. C6)"
+     ],
+     "errors": [
+      "descant has 19 bars, the tune has 17",
+      "bar 1 lasts 4 eighths, the tune's bar 1 lasts 2",
+      "bar 10 lasts 4 eighths, the tune's bar 10 lasts 6",
+      "bar 17 lasts 6 eighths, the tune's bar 17 lasts 4",
+      "50 notes outside G4–A5 (e.g. A6)"
+     ]
+    },
+    {
+     "label": "qwen3 descant v2 T=0.8 seed 51",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 51,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      6472,
+      7195,
+      6909
+     ],
+     "completionTokens": [
+      170,
+      169,
+      159
+     ],
+     "firstErrors": [
+      "descant has 33 bars, the tune has 17",
+      "bar 1 lasts 10 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 16 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 10 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 16 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 10 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 16 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 10 eighths, the tune's bar 7 lasts 6"
+     ],
+     "errors": [
+      "descant has 31 bars, the tune has 17",
+      "bar 1 lasts 13 eighths, the tune's bar 1 lasts 2",
+      "bar 2 lasts 16 eighths, the tune's bar 2 lasts 6",
+      "bar 3 lasts 10 eighths, the tune's bar 3 lasts 6",
+      "bar 4 lasts 16 eighths, the tune's bar 4 lasts 6",
+      "bar 5 lasts 10 eighths, the tune's bar 5 lasts 6",
+      "bar 6 lasts 16 eighths, the tune's bar 6 lasts 6",
+      "bar 7 lasts 10 eighths, the tune's bar 7 lasts 6"
+     ]
+    }
+   ],
+   "introEnding": [
+    {
+     "label": "qwen3 intro+ending T=0 seed 1",
+     "kind": "llm",
+     "temperature": 0,
+     "seed": 1,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      2663,
+      2370,
+      3261
+     ],
+     "firstErrors": [
+      "intro bar 1 is 8 eighths long, a full bar is 6",
+      "intro bar 2 is 8 eighths long, a full bar is 6",
+      "intro bar 3 is 8 eighths long, a full bar is 6",
+      "intro bar 4 is 8 eighths long, a full bar is 6",
+      "ending bar 1 is 8 eighths long, a full bar is 6",
+      "ending bar 2 is 8 eighths long, a full bar is 6",
+      "the intro's last note must be held at least 1 beat(s) to the end of the bar",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [
+      "intro bar 1 is 7 eighths long, a full bar is 6",
+      "intro bar 2 is 7 eighths long, a full bar is 6",
+      "intro bar 3 is 7 eighths long, a full bar is 6",
+      "intro bar 4 is 7 eighths long, a full bar is 6",
+      "ending bar 1 is 7 eighths long, a full bar is 6",
+      "ending bar 2 is 7 eighths long, a full bar is 6",
+      "the intro's last note must be held at least 1 beat(s) to the end of the bar"
+     ]
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 11",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 11,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      2915,
+      3024,
+      2453
+     ],
+     "firstErrors": [
+      "intro has 1 bars (want 2–4)",
+      "intro bar 1 is 0 eighths long, a full bar is 6",
+      "intro: no chord symbols",
+      "intro: no notes",
+      "ending's last note must be the tonic F"
+     ],
+     "errors": [
+      "ending bar 2 is 5 eighths long, a full bar is 6"
+     ]
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 21",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 21,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      1930,
+      2750,
+      2801
+     ],
+     "firstErrors": [
+      "intro has 1 bars (want 2–4)",
+      "intro bar 1 is 0 eighths long, a full bar is 6",
+      "intro: no chord symbols",
+      "intro: no notes",
+      "ending has 1 bars (want 2–4)",
+      "ending bar 1 is 0 eighths long, a full bar is 6",
+      "ending: no chord symbols",
+      "ending: no notes"
+     ],
+     "errors": [
+      "intro has 1 bars (want 2–4)",
+      "intro bar 1 is 0 eighths long, a full bar is 6",
+      "intro: no chord symbols",
+      "intro: no notes",
+      "ending has 1 bars (want 2–4)",
+      "ending bar 1 is 0 eighths long, a full bar is 6",
+      "ending: no chord symbols",
+      "ending: no notes"
+     ]
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 31",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 31,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      1915,
+      1920,
+      2008
+     ],
+     "firstErrors": [
+      "intro bar 1 is 4 eighths long, a full bar is 6",
+      "intro should end on the dominant (C) chord, not Dm"
+     ],
+     "errors": [
+      "intro bar 1 is 5 eighths long, a full bar is 6",
+      "intro bar 4 is 5 eighths long, a full bar is 6",
+      "the intro's last note must be held at least 1 beat(s) to the end of the bar"
+     ]
+    },
+    {
+     "label": "qwen3 intro+ending T=0.8 seed 41",
+     "kind": "llm",
+     "temperature": 0.8,
+     "seed": 41,
+     "ok": false,
+     "attempts": 3,
+     "firstTryOk": false,
+     "latencyMs": [
+      3202,
+      2704,
+      2673
+     ],
+     "firstErrors": [
+      "intro bar 1 is 16 eighths long, a full bar is 6",
+      "intro bar 2 is 16 eighths long, a full bar is 6",
+      "intro bar 3 is 16 eighths long, a full bar is 6",
+      "intro bar 4 is 16 eighths long, a full bar is 6",
+      "ending bar 2 is 12 eighths long, a full bar is 6",
+      "ending bar 3 is 8 eighths long, a full bar is 6",
+      "ending bar 4 is 5 eighths long, a full bar is 6",
+      "intro should end on the dominant (C) chord, not Dm"
+     ],
+     "errors": [
+      "ending bar 2 is 12 eighths long, a full bar is 6",
+      "ending bar 3 is 8 eighths long, a full bar is 6",
+      "ending bar 4 is 5 eighths long, a full bar is 6",
+      "the intro's last note must be held at least 1 beat(s) to the end of the bar",
+      "ending's last note must be the tonic F"
+     ]
+    }
+   ],
+   "best": {
+    "descant": "qwen3 descant v1 T=0 seed 1",
+    "introEnding": null
+   },
+   "assembled": {
+    "bars": 17,
+    "durationTicks": 23040,
+    "playabilityHardR4": {
+     "strikes": 142,
+     "distinctBells": 18,
+     "maxBellsPerRinger": 6,
+     "dropped": 23,
+     "violations": 4,
+     "loadBalance": 2.19,
+     "handbellSet": "4oct",
+     "transpose": 12
+    },
+    "playabilityHardR3": {
+     "strikes": 131,
+     "distinctBells": 18,
+     "maxBellsPerRinger": 6,
+     "dropped": 34,
+     "violations": 13,
+     "loadBalance": 1.361,
+     "handbellSet": "4oct",
+     "transpose": 12
+    },
+    "abcChars": 538
+   },
+   "originalPlayabilityHardR4": {
+    "strikes": 59,
+    "distinctBells": 8,
+    "maxBellsPerRinger": 2,
+    "dropped": 0,
+    "violations": 0,
+    "loadBalance": 4.667,
+    "handbellSet": "2oct",
+    "transpose": 12
+   }
+  }
+ }
+}

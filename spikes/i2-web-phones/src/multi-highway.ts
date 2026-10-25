@@ -4,6 +4,7 @@ import type { Chart } from '../../s4-web-host/src/core/chart';
 import type { Grade } from '../../s4-web-host/src/core/judge';
 import { HighwayRenderer, type RenderOptions } from '../../s4-web-host/src/render/highway';
 import type { SessionRenderer } from '../../s4-web-host/src/game/session';
+import { scaledScroll } from './speed';
 import type { TeamChart } from './team-chart';
 
 export const MAX_HIGHWAYS = 4;
@@ -12,6 +13,9 @@ export class MultiHighway implements SessionRenderer {
   private readonly pool: { canvas: HTMLCanvasElement; col: HTMLElement; r: HighwayRenderer }[] = [];
   private team: TeamChart | null = null;
   private active = 0;
+  /** Practice speed (1 = full): the highways scroll in slow motion (src/speed.ts). */
+  private speed = 1;
+  private baseScroll: { speed: number; lookAhead: number } | null = null;
 
   constructor(
     private readonly root: HTMLElement,
@@ -52,9 +56,21 @@ export class MultiHighway implements SessionRenderer {
       this.root.appendChild(col);
       // WebGL contexts are created once and reused across songs (browsers cap live contexts).
       // fitLanes 4: every highway is framed for a full phone (4 bells), so strike lines line up.
-      this.pool.push({ canvas, col, r: new HighwayRenderer(canvas, { ...this.opts, fitCanvas: true, fitLanes: 4 }) });
+      const r = new HighwayRenderer(canvas, { ...this.opts, fitCanvas: true, fitLanes: 4 });
+      this.baseScroll ??= { speed: r.speed, lookAhead: r.lookAhead };
+      const s = scaledScroll(this.baseScroll, this.speed);
+      r.setScroll(s.speed, s.lookAhead);
+      this.pool.push({ canvas, col, r });
     }
     return this.pool[i];
+  }
+
+  /** Practice speed for every highway: gems scroll at `speed` × and appear 1/`speed` × earlier. */
+  setSpeed(speed: number): void {
+    this.speed = speed;
+    if (!this.baseScroll) return;
+    const s = scaledScroll(this.baseScroll, speed);
+    for (const p of this.pool) p.r.setScroll(s.speed, s.lookAhead);
   }
 
   /** Lay out one highway per active ringer and load their sub-charts. */

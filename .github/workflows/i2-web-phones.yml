@@ -1,7 +1,7 @@
 name: i2-web-phones
 
 # The alpha path (docs/plan/v0.1-alpha.md, A7): the I2 game in spikes/i2-web-phones and the S1/S4/S5/shared
-# code it imports. Ports used by the e2e scripts are non-default (18080+, 18500, 18700).
+# code it imports. Ports used by the e2e scripts are non-default (18080+, 18500, 18600, 18700).
 on:
   pull_request:
     paths:
@@ -35,7 +35,7 @@ jobs:
   test:
     name: typecheck, unit tests, build, seating e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     defaults:
       run:
         working-directory: spikes/i2-web-phones
@@ -68,11 +68,15 @@ jobs:
       # Headless Chrome (preinstalled on ubuntu-latest). --ignore-scripts skips the pre-script's second build.
       - name: Seating e2e (real S1 host, 2 emulated phone pages + 1 simulated phone)
         run: npm run e2e:seating --ignore-scripts
+      - name: Drop-in + practice speed e2e (join mid-song → seated next round; corner QR; speed control)
+        run: npm run e2e:dropin --ignore-scripts
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: i2-seating-e2e
-          path: spikes/i2-web-phones/results/seating-e2e.json
+          path: |
+            spikes/i2-web-phones/results/seating-e2e.json
+            spikes/i2-web-phones/results/dropin-e2e.json
           if-no-files-found: ignore
 
   # Gating since #18: misses wait for in-flight rings (source-timestamp judging survives slow frames
@@ -81,7 +85,7 @@ jobs:
   timing-e2e:
     name: timing e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     defaults:
       run:
         working-directory: spikes/i2-web-phones
@@ -98,7 +102,7 @@ jobs:
           npm ci --no-audit --no-fund
           npm ci --no-audit --no-fund --prefix ../s1-phone-bell
       - run: npm run build
-      - name: Timing e2e (4 scenarios)
+      - name: Timing e2e (5 scenarios, one at 50 % practice speed)
         run: npm run e2e --ignore-scripts
       - if: always()
         run: cat results/e2e-summary.md >> "$GITHUB_STEP_SUMMARY" || true

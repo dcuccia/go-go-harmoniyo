@@ -1,0 +1,61 @@
+{
+  "$comment": "Workload manifest for cuccia-infra review (contract v0, docs/ai-node-consumers.md 'Registering your workload'). The image is built and pushed by the s6-amt-image GitHub Actions workflow (see amt/README.md); workload.image is the pushed digest. Keys under 'workload' mirror services/releases.json ai_worker_workloads entries; 'review' holds the extra facts the guide asks for.",
+  "name": "go-go-harmoniyo-amt",
+  "workload": {
+    "description": "Anticipatory Music Transformer: accompaniment for a melody MIDI (/inputs/melody.mid + args.json -> /outputs/accompaniment.mid, combined.mid, report.json)",
+    "projects": ["go-go-harmoniyo"],
+    "image": "ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097",
+    "image_tag": "0.1.0-cu124-medium",
+    "command": ["python", "/app/amt_accompany.py"],
+    "gpu": "exclusive",
+    "memory": "8g",
+    "cpus": 4,
+    "timeout_s": 900,
+    "caches": [],
+    "network": "none"
+  },
+  "review": {
+    "image_build": {
+      "workflow_run": "https://github.com/dcuccia/go-go-harmoniyo/actions/runs/40237996285",
+      "source_revision": "cf4e96ea7b523b1b7a79450c5efbc001a295fe2b",
+      "index_digest": "sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097",
+      "linux_amd64_manifest_digest": "sha256:89d10fa46b868933b3eb883673de33ef83a8c47d3f48d69c0cab9f836e54b336",
+      "attestations": "SPDX SBOM and SLSA provenance (BuildKit) in the index",
+      "compressed_bytes": 4474424663,
+      "uncompressed_bytes": 7031343606,
+      "registry_visibility": "public (anonymous pull by digest works); if the owner makes it private, the node needs a read:packages pull credential",
+      "verified": "pulled digest run with --network none --read-only --cap-drop ALL: UID 10001, torch 2.6.0+cu124 (CUDA 12.4), transformers 4.51.3, model SHA-256 matches"
+    },
+    "vram_estimate_mib": 3072,
+    "vram_basis": "360M-parameter GPT-2 in fp16 = 0.7 GiB weights; batch 1, 1024-token context, no KV cache; plus CUDA context. Measured peak is written to report.json max_vram_mib on the first node run; expected well under the ~10 GiB budget.",
+    "expected_runtime": "GPU: seconds per carol (3 forward passes per generated note, ~120 notes for a 25 s carol) plus ~10-20 s model load. CPU reference (laptop, small model): 824 s generate for a 23 s carol.",
+    "inputs": {
+      "melody.mid": "Standard MIDI file, every note is a melody control; <= 99 s (AMT max sequence length 100 s); a few KB",
+      "args.json": "optional: top_p (0.95), seed (1), end_seconds, history_seconds (0), drop_drums (true), keep_programs (null), device"
+    },
+    "outputs": ["accompaniment.mid", "combined.mid", "report.json"],
+    "runtime_requirements": "non-root UID 10001, read-only rootfs OK (writes only /outputs; HOME=/tmp), HF_HUB_OFFLINE=1, no network, no caches mounted (weights baked into the image)",
+    "models": [
+      {
+        "name": "stanford-crfm/music-medium-800k",
+        "source": "https://huggingface.co/stanford-crfm/music-medium-800k",
+        "revision": "93b6eb7e09bad33be6cb2ebd50ce5279cbfde7f6",
+        "file": "pytorch_model.bin",
+        "sha256": "7af65dbabb2f6b7df9df03c2ea5b1909b74043591ba578fb663d80fcf82241ad",
+        "size_bytes": 1438866529,
+        "parameters": "360M",
+        "license": "Apache-2.0",
+        "license_evidence": "Hugging Face model card metadata 'license: apache-2.0' (checked 2026-10-24); no use restrictions in the card",
+        "training_data": "Lakh MIDI Dataset (CC BY 4.0 dataset; the underlying MIDI files are of mixed provenance)",
+        "baked_into_image_at": "/opt/models/music-medium-800k"
+      }
+    ],
+    "code": [
+      { "name": "jthickstun/anticipation", "commit": "af37397922665a0fb8d474d7988b0f3755a38d45", "license": "Apache-2.0" },
+      { "name": "go-go-harmoniyo spikes/s6-ai-arranging/amt", "license": "MIT" }
+    ],
+    "python_packages": { "torch": "2.6.0 (cu124 wheel; BSD-3-Clause; bundles NVIDIA CUDA runtime libraries under NVIDIA's redistribution terms)", "transformers": "4.51.3 (Apache-2.0)", "mido": "1.2.10 (MIT)", "numpy": "2.2.6 (BSD-3-Clause)", "tqdm": "4.67.1 (MPL-2.0 AND MIT)" },
+    "base_image": "python:3.11-slim-bookworm@sha256:f06d01d4ba3f8ad5af45a3ec87df19c1d317d8e8961edc0fabda61811af6f7cf",
+    "license_review": "Project-side review (ADR-0008) in spikes/s6-ai-arranging/amt/README.md and the S6 report: model and code Apache-2.0, no NC/ND terms or use restrictions; outputs are treated as AI-generated assets (CC0) with provenance and a human resemblance review."
+  }
+}

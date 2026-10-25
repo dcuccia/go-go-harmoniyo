@@ -1,4 +1,4 @@
-// Preflight checks for `npm start` (#25). Ports use ephemeral (OS-assigned) numbers, never 8080/8443.
+// Preflight checks for `npm start` (#25). Ports use ephemeral (OS-assigned) numbers, never the defaults (18900/8443).
 import net from 'node:net';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -32,9 +32,19 @@ describe('parseStartArgs', () => {
     expect(o).toMatchObject({ check: true, noBuild: true, ip: '10.0.0.5', httpPort: 8091, httpsPort: 8491, tunnel: true });
     expect(o.hostArgs).toEqual(['--ip', '10.0.0.5', '--http-port=8091', '--port', '8491', '--tunnel', '--no-open']);
   });
-  it('defaults to 8080/8443 and flags a bad port', () => {
-    expect(parseStartArgs([])).toMatchObject({ httpPort: 8080, httpsPort: 8443, tunnel: false });
+  it('defaults to 18900/8443 and flags a bad port', () => {
+    expect(parseStartArgs([])).toMatchObject({ httpPort: 18900, httpPortGiven: false, httpsPort: 8443, tunnel: false });
+    expect(parseStartArgs(['--http-port=18900']).httpPortGiven).toBe(true);
     expect(parseStartArgs(['--port', 'abc']).httpsPort).toBeNaN();
+  });
+  it('keeps the default TV port away from 8080 and the test scripts\' ports (#53)', () => {
+    const { httpPort } = parseStartArgs([]);
+    expect(httpPort).not.toBe(8080);
+    // e2e 18080+ / 18443+, controller-check 18300/18663, seating-e2e 18500/18863, dropin-e2e 18600/18963,
+    // webkit 18700/19063;
+    // the fallback scans the next 49 ports.
+    const taken = [[18080, 18099], [18443, 18462], [18300, 18300], [18663, 18663], [18500, 18500], [18863, 18863], [18600, 18600], [18963, 18963], [18700, 18700], [19063, 19063]];
+    for (const [lo, hi] of taken) expect(httpPort + 49 < lo || httpPort > hi).toBe(true);
   });
 });
 
@@ -123,6 +133,30 @@ describe('runPreflight (network and ports)', () => {
       busy.close();
     }
   }, 20000);
+  it('moves the default TV port to the next free one, with a clear message (#53)', async () => {
+    const busy = net.createServer();
+    await new Promise((r) => busy.listen(0, '127.0.0.1', () => r(null)));
+    const port = busy.address().port;
+    try {
+      // As if the default were busy: same options as no --http-port, with the busy port as the default.
+      const o = { ...parseStartArgs(['--tunnel']), httpPort: port };
+      const r = await runPreflight(o, { platform: 'linux', env: { PATH: '' }, ifaces: {} });
+      const portFinding = r.findings.find((f) => f.title.startsWith(`Port ${port}`));
+      expect(portFinding?.level).toBe('info');
+      expect(portFinding?.title).toMatch(new RegExp(`^Port ${port} \\(TV page\\) is already in use.*: using port \\d+ instead$`));
+      expect(r.httpPort).toBeGreaterThan(port);
+      expect(portFinding?.lines?.join('\n')).toContain(`http://127.0.0.1:${r.httpPort}/game/`);
+      expect((await probePort(r.httpPort, '127.0.0.1')).free).toBe(true);
+    } finally {
+      busy.close();
+    }
+  }, 20000);
+  it('keeps the default TV port when it is free', async () => {
+    const o = { ...parseStartArgs(['--tunnel']), httpPort: await free() };
+    const r = await runPreflight(o, { platform: 'linux', env: { PATH: '' }, ifaces: {} });
+    expect(r.httpPort).toBe(o.httpPort);
+    expect(r.findings.find((f) => f.title.startsWith(`Port ${o.httpPort}`))?.level).toBe('ok');
+  });
 });
 
 describe('cloudflared', () => {
