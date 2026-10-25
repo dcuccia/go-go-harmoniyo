@@ -39,6 +39,12 @@ repository "MIT" in a way that hides them.
 - It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain. License: Public domain (Mutopia Project dedication).
 - Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain. License: Public domain (Mutopia Project dedication).
 - The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain. License: Public domain (Mutopia Project dedication).
+- Fredoka by Milena Brandão, Hafontia. Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One). Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
+- Outfit by Smartsheet Inc, Rodrigo Fuenzalida. Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts). Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
+- Sniglet ExtraBold by Haley Fiege, Brenda Gallo, Pablo Impallari. Copyright (c) 2008, Haley Fiege (haley@kingdomofawesome.com), Copyright (c) 2012, Brenda Gallo (gbrenda1987@gmail.com), Copyright (c) 2013, Pablo Impallari (www.impallari.com|impallari@gmail.com). Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
+- Nunito by Vernon Adams, Cyreal, Jacques Le Bailly. Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito). Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
+- Lilita One by Juan Montoreano. Copyright (c) 2011 Juan Montoreano (juan@remolacha.biz), with Reserved Font Name Lilita. Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
+- Grandstander by Tyler Finck, ETC (Etcetera Type Co). Copyright 2020 The Grandstander Project Authors (https://github.com/Etcetera-Type-Co/Grandstander). Licensed under the SIL Open Font License 1.1. License: SIL Open Font License 1.1.
 
 ## Asset inventory
 
@@ -59,6 +65,19 @@ repository "MIT" in a way that hides them.
 | [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
 | [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
 | [S5 charts and exports for 'The Holly and the Ivy'](#s5-charts-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
+| [Fredoka font (SIL OFL 1.1), used to set brand-option wordmarks](#font-fredoka) | third-party | OFL-1.1 | 2 | pending |
+| [Outfit font (SIL OFL 1.1), used to set brand-option wordmarks](#font-outfit) | third-party | OFL-1.1 | 2 | pending |
+| [Sniglet ExtraBold font (SIL OFL 1.1), used to set brand-option wordmarks](#font-sniglet) | third-party | OFL-1.1 | 2 | pending |
+| [Nunito font (SIL OFL 1.1), used to set brand-option wordmarks](#font-nunito) | third-party | OFL-1.1 | 2 | pending |
+| [Lilita One font (SIL OFL 1.1), used to set brand-option wordmarks](#font-lilitaone) | third-party | OFL-1.1 | 2 | pending |
+| [Grandstander font (SIL OFL 1.1), used to set brand-option wordmarks](#font-grandstander) | third-party | OFL-1.1 | 2 | pending |
+| [Brand option 1, Ring Burst: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-1-ring-burst) | derived | CC-BY-4.0 | 16 | pending |
+| [Brand option 2, Resonance: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-2-resonance) | derived | CC-BY-4.0 | 12 | pending |
+| [Brand option 3, Triad: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-3-triad) | derived | CC-BY-4.0 | 16 | pending |
+| [Brand option 4, Pitch Wheel: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-4-pitch-wheel) | derived | CC-BY-4.0 | 12 | pending |
+| [Brand option 5, Bell Tag: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-5-bell-tag) | derived | CC-BY-4.0 | 16 | pending |
+| [Brand option 6, Sing-Along: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-6-sing-along) | derived | CC-BY-4.0 | 16 | pending |
+| [Brand options: side-by-side overview sheets (wordmarks, icons, mascots)](#brand-options-overviews) | derived | CC-BY-4.0 | 3 | pending |
 
 ### project-ui-captures
 
@@ -272,6 +291,192 @@ repository "MIT" in a way that hides them.
 - Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
 
+### font-fredoka
+
+**Fredoka font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/fredoka/*` (2 file(s))
+- Origin: third-party
+- Authors: Milena Brandão; Hafontia
+- Copyright: Copyright 2016 The Fredoka Project Authors (https://github.com/hafontia/Fredoka-One)
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fredoka> (google/fonts@e7db6ca603fd ofl/fredoka), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/fredoka/Fredoka[wdth,wght].ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fredoka/Fredoka%5Bwdth,wght%5D.ttf> sha256 `2ba02e68b152868aef9ba28e24b3648c7d457fe6f25c761f2c2c53fb61a73fc8`
+  - `docs/design/brand-options/fonts/fredoka/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/fredoka/OFL.txt> sha256 `5c9e7eee5c6b25f4b05b8d53b2e470ea4962f9ced742d044a98f7d95d1375bab`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL (no Reserved Font Name). Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### font-outfit
+
+**Outfit font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/outfit/*` (2 file(s))
+- Origin: third-party
+- Authors: Smartsheet Inc; Rodrigo Fuenzalida
+- Copyright: Copyright 2021 The Outfit Project Authors (https://github.com/Outfitio/Outfit-Fonts)
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/outfit> (google/fonts@e7db6ca603fd ofl/outfit), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/outfit/Outfit[wght].ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/outfit/Outfit%5Bwght%5D.ttf> sha256 `fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade`
+  - `docs/design/brand-options/fonts/outfit/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/outfit/OFL.txt> sha256 `c676351bf8576b9aba743cd5eaa8c0e7ee0d51f805d720447b4df4ddb6a2e416`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL (no Reserved Font Name). Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### font-sniglet
+
+**Sniglet ExtraBold font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/sniglet/*` (2 file(s))
+- Origin: third-party
+- Authors: Haley Fiege; Brenda Gallo; Pablo Impallari
+- Copyright: Copyright (c) 2008, Haley Fiege (haley@kingdomofawesome.com), Copyright (c) 2012, Brenda Gallo (gbrenda1987@gmail.com), Copyright (c) 2013, Pablo Impallari (www.impallari.com|impallari@gmail.com)
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/sniglet> (google/fonts@e7db6ca603fd ofl/sniglet), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/sniglet/Sniglet-ExtraBold.ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/sniglet/Sniglet-ExtraBold.ttf> sha256 `fb92a118e14b4bde101a0143895f570a54b070a307b359510b7703b5a94bb18c`
+  - `docs/design/brand-options/fonts/sniglet/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/sniglet/OFL.txt> sha256 `bca612761639e27860c5af7d702831b71f9230367d90fc094235c5e7838c0c01`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL (no Reserved Font Name). Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### font-nunito
+
+**Nunito font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/nunito/*` (2 file(s))
+- Origin: third-party
+- Authors: Vernon Adams; Cyreal; Jacques Le Bailly
+- Copyright: Copyright 2014 The Nunito Project Authors (https://github.com/googlefonts/nunito)
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/nunito> (google/fonts@e7db6ca603fd ofl/nunito), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/nunito/Nunito[wght].ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/nunito/Nunito%5Bwght%5D.ttf> sha256 `bb55a5ca5c2042335b3991af27c4d0705d0ef41cac6164ac737fd8f2a1e85207`
+  - `docs/design/brand-options/fonts/nunito/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/nunito/OFL.txt> sha256 `580df76c95a1ec5ab878ceb25bb3d85c6a076804e9c970c8c6972aea775fdf65`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL (no Reserved Font Name). Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### font-lilitaone
+
+**Lilita One font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/lilitaone/*` (2 file(s))
+- Origin: third-party
+- Authors: Juan Montoreano
+- Copyright: Copyright (c) 2011 Juan Montoreano (juan@remolacha.biz), with Reserved Font Name Lilita
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilitaone> (google/fonts@e7db6ca603fd ofl/lilitaone), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/lilitaone/LilitaOne-Regular.ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilitaone/LilitaOne-Regular.ttf> sha256 `f5b641c45c69d772ee4eda687bc9fda411d5cad6b0b45371491da4580cbc8d59`
+  - `docs/design/brand-options/fonts/lilitaone/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/lilitaone/OFL.txt> sha256 `255d5debbb80eb2ea762644311f266a279e8778f00156655a516e2b7781a63e1`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL and may not use the Reserved Font Name "Lilita". Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### font-grandstander
+
+**Grandstander font (SIL OFL 1.1), used to set brand-option wordmarks**
+
+- Files: `docs/design/brand-options/fonts/grandstander/*` (2 file(s))
+- Origin: third-party
+- Authors: Tyler Finck; ETC (Etcetera Type Co)
+- Copyright: Copyright 2020 The Grandstander Project Authors (https://github.com/Etcetera-Type-Co/Grandstander)
+- License: [SIL Open Font License 1.1](https://openfontlicense.org/open-font-license-official-text/) (`OFL-1.1`)
+- Source: <https://github.com/google/fonts/tree/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/grandstander> (google/fonts@e7db6ca603fd ofl/grandstander), retrieved 2026-10-25
+- License evidence: OFL.txt shipped with the font (kept unmodified next to it) and METADATA.pb `license: "OFL"` in google/fonts at commit e7db6ca603fd, checked 2026-10-25.
+  - `docs/design/brand-options/fonts/grandstander/Grandstander[wght].ttf` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/grandstander/Grandstander%5Bwght%5D.ttf> sha256 `fbc7d1d934e6aa7842f7e8420cd833eca9eb123d61880075eec68751369e2f13`
+  - `docs/design/brand-options/fonts/grandstander/OFL.txt` ← <https://raw.githubusercontent.com/google/fonts/e7db6ca603fd4862010383ff17ffd6cc4ffac1c0/ofl/grandstander/OFL.txt> sha256 `c98642ce049ee94f1868c47db44dbdc69e1800e2cf3edb539f030ac4abc22ceb`
+- Modifications: none (byte-identical to google/fonts; OFL.txt kept unmodified)
+- Reuse limits: SIL OFL 1.1: keep the copyright notice and OFL.txt with the font; the font may not be sold by itself; modified versions stay under the OFL (no Reserved Font Name). Graphics and logos made with the font are not covered by the OFL (OFL-FAQ 1.1, 1.2).
+- Review: pending. License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.
+
+### brand-option-1-ring-burst
+
+**Brand option 1, Ring Burst: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/1-ring-burst/*` (16 file(s))
+- Origin: derived — from [font-fredoka](#font-fredoka) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-option-2-resonance
+
+**Brand option 2, Resonance: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/2-resonance/*` (12 file(s))
+- Origin: derived — from [font-outfit](#font-outfit) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-option-3-triad
+
+**Brand option 3, Triad: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/3-triad/*` (16 file(s))
+- Origin: derived — from [font-sniglet](#font-sniglet) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-option-4-pitch-wheel
+
+**Brand option 4, Pitch Wheel: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/4-pitch-wheel/*` (12 file(s))
+- Origin: derived — from [font-nunito](#font-nunito) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-option-5-bell-tag
+
+**Brand option 5, Bell Tag: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/5-bell-tag/*` (16 file(s))
+- Origin: derived — from [font-lilitaone](#font-lilitaone) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-option-6-sing-along
+
+**Brand option 6, Sing-Along: wordmarks, mark, app icon, favicon, mascot sketch and preview board**
+
+- Files: `docs/design/brand-options/6-sing-along/*` (16 file(s))
+- Origin: derived — from [font-grandstander](#font-grandstander) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
+### brand-options-overviews
+
+**Brand options: side-by-side overview sheets (wordmarks, icons, mascots)**
+
+- Files: `docs/design/brand-options/overview-*.png` (3 file(s))
+- Origin: derived — from [brand-option-1-ring-burst](#brand-option-1-ring-burst), [brand-option-2-resonance](#brand-option-2-resonance), [brand-option-3-triad](#brand-option-3-triad), [brand-option-4-pitch-wheel](#brand-option-4-pitch-wheel), [brand-option-5-bell-tag](#brand-option-5-bell-tag), [brand-option-6-sing-along](#brand-option-6-sing-along) via `python tools/design/brand-options/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
+
 ## Open items
 
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -287,6 +492,19 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-we-wish-you-a-merry-christmas-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-musicxml-test-fixture: review pending (A few hand-written test measures, not a song.)
+- font-fredoka: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- font-outfit: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- font-sniglet: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- font-nunito: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- font-lilitaone: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- font-grandstander: review pending (License verified from the source by the brand-options session (agent); owner to confirm. Used only by tools/design/brand-options/build.py to outline wordmarks; no font is shipped in the game.)
+- brand-option-1-ring-burst: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-2-resonance: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-3-triad: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-4-pitch-wheel: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-5-bell-tag: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-6-sing-along: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-options-overviews: review pending (Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
 
 ## Required record for each new asset
 

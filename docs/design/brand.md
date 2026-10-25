@@ -76,7 +76,8 @@ The name is an umbrella. Instruments and audiences become editions:
 
 ## 3. Logo direction
 
-These are directions for future human or AI work, not a finished logo.
+These are directions for future human or AI work, not a finished logo. Six worked options for the
+owner to choose from (2026-10-25, not adopted yet) are in [brand options](brand-options/README.md).
 
 - **A wordmark first:** custom, rounded, friendly lettering. It must be readable from three meters
   on a TV and at 48 px as an app icon. "Go Go" can be smaller and sit above "HarmoniYo". The
