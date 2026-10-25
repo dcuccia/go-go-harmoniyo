@@ -91,7 +91,7 @@
         "reuseLimits": { "type": "string", "description": "Conditions downstream users must keep (notices, ShareAlike, NC, trademarks)." },
         "ai": { "$ref": "#/$defs/ai" },
         "legacy": { "type": "boolean", "description": "Added before ADR-0008; incomplete AI provenance is allowed but must be listed as a gap." },
-        "candidate": { "type": "boolean", "description": "Spike candidate kept for owner review (ADR-0011, Proposed): not used by any game build and not credited. Its human resemblance review (ai.reviewer/ai.reviewDate) may be pending; it must be done, and this flag removed, before the asset is promoted or shipped." },
+        "candidate": { "type": "boolean", "description": "Spike candidate kept for owner review (ADR-0011): not used by any game build and not credited. Its human resemblance review (ai.reviewer/ai.reviewDate) may be pending; it must be done, and this flag removed, before the asset is promoted or shipped." },
         "credit": { "type": "boolean", "description": "Include in in-game credits (default true)." },
         "review": {
           "type": "object",

@@ -60,7 +60,7 @@
       "copyright": "Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain",
       "license": "CC0-1.0",
       "attribution": "Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
-      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder. 2026-10-25 data fix (#30, owner playtest): the four verse phrases that open on the dominant now start on the low D (D4), not D5.",
       "legacy": true,
       "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
       "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
@@ -105,7 +105,7 @@
       "copyright": "Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain",
       "license": "CC0-1.0",
       "attribution": "Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
-      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder.",
+      "modifications": "Encoded from the traditional tune; chord symbols added by the encoder. 2026-10-25 data fix (#30): bar 11 second note is B natural (was B flat); chords for bars 11-12 corrected to C, G7, C.",
       "legacy": true,
       "ai": { "tool": "GitHub Copilot coding agent", "model": "unrecorded", "version": "unrecorded", "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot", "termsDate": "unrecorded", "prompt": "unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md", "reviewer": "pending", "reviewDate": "pending" },
       "review": { "status": "pending", "notes": "Proofread against a public-domain edition (S5 report)." }
@@ -213,6 +213,198 @@
       "review": { "status": "approved", "reviewer": "IP audit (agent), pending owner confirmation", "date": "2026-10-23" }
     },
     {
+      "id": "mutopia-o-come-all-ye-faithful",
+      "title": "O Come, All Ye Faithful (tune ADESTE FIDELES), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.*"],
+      "authors": ["John Francis Wade (tune ADESTE FIDELES, c. 1743)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "O Come, All Ye Faithful (tune ADESTE FIDELES) by John Francis Wade (c. 1743). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220",
+        "id": "Mutopia-2008/01/13-1220",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.ly", "sha256": "75e2152e43828a22e02632d57c5bf9a8325734a5b6132264c4021a51cc20a644", "url": "https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.mid", "sha256": "d6fe90acc41b3da16a932e636c75219d4accae3bf89105741581825b7a889976", "url": "https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-hark-the-herald-angels-sing",
+      "title": "Hark! The Herald Angels Sing (tune MENDELSSOHN), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.*"],
+      "authors": ["Felix Mendelssohn (tune MENDELSSOHN, 1840)", "Charles Wesley (words, 1739)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "Hark! The Herald Angels Sing (tune MENDELSSOHN) by Felix Mendelssohn (1840), words by Charles Wesley (1739). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1261",
+        "id": "Mutopia-2008/01/13-1261",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.ly", "sha256": "98e4566aac8733138b97a6f96a35a2f873c47c933835bc48ff65898bd037dc7a", "url": "https://www.mutopiaproject.org/ftp/Mendelssohn-BartholdyF/mendelssohn/mendelssohn.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.mid", "sha256": "0e8cbffa0a338e1df93110256d8968b2fd807355151c5130733aa15b1365cc61", "url": "https://www.mutopiaproject.org/ftp/Mendelssohn-BartholdyF/mendelssohn/mendelssohn.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-the-first-noel",
+      "title": "The First Noel, Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/first_noel.*"],
+      "authors": ["Traditional English (melody, first published 1833)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "The First Noel, traditional English (first published 1833). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1243",
+        "id": "Mutopia-2008/01/13-1243",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/first_noel.ly", "sha256": "9c3826496117f17e3bd1768020371a93194796ef9f12041afb54ad7e37daa923", "url": "https://www.mutopiaproject.org/ftp/Traditional/first_noel/first_noel.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/first_noel.mid", "sha256": "5529d7e725981d92b5649b820c431e77a08fb71f0db94249d994e67a28546dea", "url": "https://www.mutopiaproject.org/ftp/Traditional/first_noel/first_noel.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-o-little-town-of-bethlehem",
+      "title": "O Little Town of Bethlehem (tune ST. LOUIS), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/st_louis.*"],
+      "authors": ["Lewis H. Redner (tune ST. LOUIS, 1868)", "Phillips Brooks (words, 1868)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "O Little Town of Bethlehem (tune ST. LOUIS) by Lewis H. Redner (1868), words by Phillips Brooks (1868). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1292",
+        "id": "Mutopia-2008/02/19-1292",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/st_louis.ly", "sha256": "302611825c0733e76a878e8b1b4960b850ba3c21542c1fe4ba2a002160ee0d68", "url": "https://www.mutopiaproject.org/ftp/RednerLH/st_louis/st_louis.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/st_louis.mid", "sha256": "fdd5a9362ae05bf3b8e667de5ca3c1e73b6832e0da9600b86315ff637589183b", "url": "https://www.mutopiaproject.org/ftp/RednerLH/st_louis/st_louis.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-what-child-is-this",
+      "title": "What Child Is This (tune GREENSLEEVES), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/greensleeves.*"],
+      "authors": ["Traditional English (tune GREENSLEEVES, 16th c.)", "William Chatterton Dix (words, 1865)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "What Child Is This (tune GREENSLEEVES), traditional English melody, words by William Chatterton Dix (1865). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1247",
+        "id": "Mutopia-2014/03/30-1247",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/greensleeves.ly", "sha256": "e580b31e882580d7f96d52e8aafd79b8e2f4e89ad9b32c360af9f5814a2d7a37", "url": "https://www.mutopiaproject.org/ftp/Traditional/greensleeves/greensleeves.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/greensleeves.mid", "sha256": "04a6e03dd6128aa291aa75e4df757bbba40567ef885eca18d14d51d9365cb8e8", "url": "https://www.mutopiaproject.org/ftp/Traditional/greensleeves/greensleeves.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-away-in-a-manger",
+      "title": "Away in a Manger (tune MUELLER), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/mueller.*"],
+      "authors": ["James Ramsey Murray (tune MUELLER, 1887)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "Away in a Manger (tune MUELLER) by James Ramsey Murray (1887). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1264",
+        "id": "Mutopia-2008/01/13-1264",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/mueller.ly", "sha256": "452892017f5b9487375d28787e1caafba190928191563c7a9d42ab1d4ba83f65", "url": "https://www.mutopiaproject.org/ftp/MurrayJR/mueller/mueller.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/mueller.mid", "sha256": "d3a6632c836fa9190191ae300a249fb61916fb47679af565d72fb551f77ee228", "url": "https://www.mutopiaproject.org/ftp/MurrayJR/mueller/mueller.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-o-come-o-come-emmanuel",
+      "title": "O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/veniemma.*"],
+      "authors": ["Traditional (15th-c. French melody, tune VENI EMMANUEL)", "Thomas Helmore (arranger, 1856)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "O Come, O Come, Emmanuel (tune VENI EMMANUEL), 15th-century French melody arranged by Thomas Helmore (1856). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1300",
+        "id": "Mutopia-2008/02/19-1300",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/veniemma.ly", "sha256": "985895a084729980da17758720e4aa0db3a86bb7fca9dde9a1db33874572be07", "url": "https://www.mutopiaproject.org/ftp/Traditional/veniemma/veniemma.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/veniemma.mid", "sha256": "935dfdd5d7fa90b8d78a52990dc6bbe16c818d0be20e710e58ab471a08093224", "url": "https://www.mutopiaproject.org/ftp/Traditional/veniemma/veniemma.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
+      "id": "mutopia-in-the-bleak-midwinter",
+      "title": "In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)",
+      "kind": "midi",
+      "origin": "third-party",
+      "paths": ["spikes/s5-chart-pipeline/sources/mutopia/cranham.*"],
+      "authors": ["Gustav Holst (tune CRANHAM, 1906)", "Christina Rossetti (words, 1872)", "Steve Dunlop (typesetter)"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233), placed in the public domain",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "attribution": "In the Bleak Midwinter (tune CRANHAM) by Gustav Holst (1906), words by Christina Rossetti (1872). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233) from www.cyberhymnal.org, public domain.",
+      "source": {
+        "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233",
+        "id": "Mutopia-2008/01/13-1233",
+        "retrieved": "2026-10-25",
+        "licenseEvidence": "Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.",
+        "files": [
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/cranham.ly", "sha256": "e5ffd19b9aab0b5789b120e633151a8d5d8b97786646ead8cfb85b321fb073a0", "url": "https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.ly" },
+          { "path": "spikes/s5-chart-pipeline/sources/mutopia/cranham.mid", "sha256": "8bdd6cb58b8bef36cfa18ae2046128ae3faddf9ed2be1341d3fa09ee9aa745e1", "url": "https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.mid" }
+        ]
+      },
+      "modifications": "none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)",
+      "reuseLimits": "None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.",
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25" }
+    },
+    {
       "id": "s5-charts-from-cc0-lead-sheets",
       "title": "S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets",
       "kind": "chart",
@@ -304,7 +496,7 @@
       "credit": false,
       "review": {
         "status": "pending",
-        "notes": "S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed)."
+        "notes": "S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion."
       }
     },
     {
@@ -323,7 +515,7 @@
       "credit": false,
       "review": {
         "status": "pending",
-        "notes": "S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed)."
+        "notes": "S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion."
       }
     },
     {
@@ -387,7 +579,7 @@
       "credit": false,
       "review": {
         "status": "pending",
-        "notes": "S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed)."
+        "notes": "S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion."
       }
     },
     {
@@ -415,8 +607,26 @@
       "credit": false,
       "review": {
         "status": "pending",
-        "notes": "S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed)."
+        "notes": "S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion."
       }
+    },
+    {
+      "id": "s5-charts-mutopia-satb-2026-10-25",
+      "title": "S5 charts and exports for the Mutopia SATB carols added 2026-10-25",
+      "kind": "chart",
+      "origin": "derived",
+      "paths": [
+        "spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json",
+        "spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*"
+      ],
+      "authors": ["Go Go HarmoniYo S5 chart pipeline"],
+      "copyright": "Typeset by Steve Dunlop for the Mutopia Project, placed in the public domain (per-song ids in the source entries)",
+      "license": "LicenseRef-Mutopia-PublicDomain",
+      "derivedFrom": ["mutopia-o-come-all-ye-faithful", "mutopia-hark-the-herald-angels-sing", "mutopia-the-first-noel", "mutopia-o-little-town-of-bethlehem", "mutopia-what-child-is-this", "mutopia-away-in-a-manger", "mutopia-o-come-o-come-emmanuel", "mutopia-in-the-bleak-midwinter"],
+      "generator": "node spikes/s5-chart-pipeline/build.mjs",
+      "modifications": "Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged.",
+      "credit": false,
+      "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25", "notes": "Each chart carries its source and license in song.license / song.source." }
     }
   ]
 }

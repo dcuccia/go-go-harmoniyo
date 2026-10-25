@@ -16,6 +16,12 @@ export function loadScore(entry, baseDir) {
   else throw new Error(`Unknown format ${entry.format}`);
   const o = entry.options || {};
   if (o.tempoQpm) score.tempos = [{ tick: 0, usPerQuarter: Math.round(60e6 / o.tempoQpm) }];
+  // For sources typeset in the wrong meter (e.g. a 3/4 hymn tune engraved in 4/4).
+  if (o.timeSig) {
+    const [num, den] = o.timeSig.split('/').map(Number);
+    score.timeSigs = [{ tick: 0, num, den }];
+    score.barTicks = [];
+  }
   if (o.backingStyle) score.meta['backing-style'] = o.backingStyle;
   if (o.pickupTicks && !score.barTicks.length) {
     const bars = [];

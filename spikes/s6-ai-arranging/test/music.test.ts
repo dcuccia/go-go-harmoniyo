@@ -5,6 +5,10 @@ import { bars, chordsFromBars, chordsPerBar, loadS5Song, manifest, melodyAbc, me
 import { chordAgreement, chordToneFit, playability, verticals } from '../src/theory.ts';
 
 const key = (n: { tick: number; dur: number; midi: number }) => `${n.tick}/${n.dur}/${n.midi}`;
+/** What a monophonic ABC voice can hold: the writer truncates a note that overlaps the next one
+ * (some SATB soprano lines from Mutopia overlap, e.g. What Child Is This). */
+const monophonic = <T extends { tick: number; dur: number }>(ns: T[]) =>
+  ns.map((n, i) => (i + 1 < ns.length && n.tick + n.dur > ns[i + 1].tick ? { ...n, dur: ns[i + 1].tick - n.tick } : n));
 
 test('lengthStr', () => {
   assert.equal(lengthStr(240, 240), '');
@@ -19,7 +23,7 @@ for (const e of manifest()) {
     const s = loadS5Song(e.id);
     const abc = melodyAbc(s, s.current);
     const back = parseAbc(abc) as Score;
-    assert.deepEqual(back.notes.map(key), s.melody.map(key));
+    assert.deepEqual(back.notes.map(key), monophonic(s.melody).map(key));
     assert.deepEqual(back.chords.map((c) => `${c.tick}:${c.symbol}`), s.current.map((c) => `${c.tick}:${c.symbol}`));
     assert.equal(back.endTick, s.score.endTick);
     assert.deepEqual(back.barTicks, bars(s.score).slice(1).map((b) => b.start));

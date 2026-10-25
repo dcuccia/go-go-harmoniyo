@@ -39,6 +39,14 @@ repository "MIT" in a way that hides them.
 - It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain. License: Public domain (Mutopia Project dedication).
 - Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain. License: Public domain (Mutopia Project dedication).
 - The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain. License: Public domain (Mutopia Project dedication).
+- O Come, All Ye Faithful (tune ADESTE FIDELES) by John Francis Wade (c. 1743). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- Hark! The Herald Angels Sing (tune MENDELSSOHN) by Felix Mendelssohn (1840), words by Charles Wesley (1739). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- The First Noel, traditional English (first published 1833). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- O Little Town of Bethlehem (tune ST. LOUIS) by Lewis H. Redner (1868), words by Phillips Brooks (1868). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- What Child Is This (tune GREENSLEEVES), traditional English melody, words by William Chatterton Dix (1865). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- Away in a Manger (tune MUELLER) by James Ramsey Murray (1887). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- O Come, O Come, Emmanuel (tune VENI EMMANUEL), 15th-century French melody arranged by Thomas Helmore (1856). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
+- In the Bleak Midwinter (tune CRANHAM) by Gustav Holst (1906), words by Christina Rossetti (1872). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233) from www.cyberhymnal.org, public domain. License: Public domain (Mutopia Project dedication).
 - AI-assisted candidate arrangements (qwen3:8b) of public-domain carols for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - AI-generated accompaniment (Anticipatory Music Transformer, Apache-2.0) for public-domain carols, Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - Synthesized previews of public-domain carols, partly AI-arranged, Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
@@ -58,6 +66,14 @@ repository "MIT" in a way that hides them.
 | [Carol (hymn tune for 'It Came Upon the Midnight Clear'), Mutopia edition](#mutopia-carol) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [Good King Wenceslas, Mutopia edition](#mutopia-good-king-wenceslas) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [The Holly and the Ivy, Mutopia edition](#mutopia-the-holly-and-the-ivy) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [O Come, All Ye Faithful (tune ADESTE FIDELES), Mutopia edition (SATB)](#mutopia-o-come-all-ye-faithful) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [Hark! The Herald Angels Sing (tune MENDELSSOHN), Mutopia edition (SATB)](#mutopia-hark-the-herald-angels-sing) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [The First Noel, Mutopia edition (SATB)](#mutopia-the-first-noel) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [O Little Town of Bethlehem (tune ST. LOUIS), Mutopia edition (SATB)](#mutopia-o-little-town-of-bethlehem) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [What Child Is This (tune GREENSLEEVES), Mutopia edition (SATB)](#mutopia-what-child-is-this) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [Away in a Manger (tune MUELLER), Mutopia edition (SATB)](#mutopia-away-in-a-manger) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)](#mutopia-o-come-o-come-emmanuel) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
+| [In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)](#mutopia-in-the-bleak-midwinter) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 30 | approved (legacy) |
 | [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
 | [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
@@ -68,6 +84,7 @@ repository "MIT" in a way that hides them.
 | [The Holly and the Ivy melody MIDI (AMT input)](#s6-amt-melody-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 1 | approved |
 | [S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)](#s6-amt-accompaniments) | ai-generated | CC0-1.0 | 4 | pending |
 | [S6 blind-listening previews (procedural vs qwen3:8b vs AMT)](#s6-blind-listening-previews) | ai-generated | CC0-1.0 | 6 | pending |
+| [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 48 | approved |
 
 ### project-ui-captures
 
@@ -103,7 +120,7 @@ repository "MIT" in a way that hides them.
 - Authors: James Lord Pierpont (melody, 1857, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
 - Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
-- Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
+- Modifications: Encoded from the traditional tune; chord symbols added by the encoder. 2026-10-25 data fix (#30, owner playtest): the four verse phrases that open on the dominant now start on the low D (D4), not D5.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
 - Review: pending. Proofread against a public-domain edition (S5 report).
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
@@ -145,7 +162,7 @@ repository "MIT" in a way that hides them.
 - Authors: Traditional Welsh (melody 'Nos Galan', public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
 - Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
-- Modifications: Encoded from the traditional tune; chord symbols added by the encoder.
+- Modifications: Encoded from the traditional tune; chord symbols added by the encoder. 2026-10-25 data fix (#30): bar 11 second note is B natural (was B flat); chords for bars 11-12 corrected to C, G7, C.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
 - Review: pending. Proofread against a public-domain edition (S5 report).
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
@@ -229,6 +246,142 @@ repository "MIT" in a way that hides them.
 - Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy.
 - Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23
 
+### mutopia-o-come-all-ye-faithful
+
+**O Come, All Ye Faithful (tune ADESTE FIDELES), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.*` (2 file(s))
+- Origin: third-party
+- Authors: John Francis Wade (tune ADESTE FIDELES, c. 1743); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220> (Mutopia-2008/01/13-1220), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.ly` ← <https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.ly> sha256 `75e2152e43828a22e02632d57c5bf9a8325734a5b6132264c4021a51cc20a644`
+  - `spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.mid` ← <https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.mid> sha256 `d6fe90acc41b3da16a932e636c75219d4accae3bf89105741581825b7a889976`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-hark-the-herald-angels-sing
+
+**Hark! The Herald Angels Sing (tune MENDELSSOHN), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.*` (2 file(s))
+- Origin: third-party
+- Authors: Felix Mendelssohn (tune MENDELSSOHN, 1840); Charles Wesley (words, 1739); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1261> (Mutopia-2008/01/13-1261), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.ly` ← <https://www.mutopiaproject.org/ftp/Mendelssohn-BartholdyF/mendelssohn/mendelssohn.ly> sha256 `98e4566aac8733138b97a6f96a35a2f873c47c933835bc48ff65898bd037dc7a`
+  - `spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.mid` ← <https://www.mutopiaproject.org/ftp/Mendelssohn-BartholdyF/mendelssohn/mendelssohn.mid> sha256 `0e8cbffa0a338e1df93110256d8968b2fd807355151c5130733aa15b1365cc61`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-the-first-noel
+
+**The First Noel, Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/first_noel.*` (2 file(s))
+- Origin: third-party
+- Authors: Traditional English (melody, first published 1833); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1243> (Mutopia-2008/01/13-1243), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/first_noel.ly` ← <https://www.mutopiaproject.org/ftp/Traditional/first_noel/first_noel.ly> sha256 `9c3826496117f17e3bd1768020371a93194796ef9f12041afb54ad7e37daa923`
+  - `spikes/s5-chart-pipeline/sources/mutopia/first_noel.mid` ← <https://www.mutopiaproject.org/ftp/Traditional/first_noel/first_noel.mid> sha256 `5529d7e725981d92b5649b820c431e77a08fb71f0db94249d994e67a28546dea`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-o-little-town-of-bethlehem
+
+**O Little Town of Bethlehem (tune ST. LOUIS), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/st_louis.*` (2 file(s))
+- Origin: third-party
+- Authors: Lewis H. Redner (tune ST. LOUIS, 1868); Phillips Brooks (words, 1868); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1292> (Mutopia-2008/02/19-1292), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/st_louis.ly` ← <https://www.mutopiaproject.org/ftp/RednerLH/st_louis/st_louis.ly> sha256 `302611825c0733e76a878e8b1b4960b850ba3c21542c1fe4ba2a002160ee0d68`
+  - `spikes/s5-chart-pipeline/sources/mutopia/st_louis.mid` ← <https://www.mutopiaproject.org/ftp/RednerLH/st_louis/st_louis.mid> sha256 `fdd5a9362ae05bf3b8e667de5ca3c1e73b6832e0da9600b86315ff637589183b`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-what-child-is-this
+
+**What Child Is This (tune GREENSLEEVES), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/greensleeves.*` (2 file(s))
+- Origin: third-party
+- Authors: Traditional English (tune GREENSLEEVES, 16th c.); William Chatterton Dix (words, 1865); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1247> (Mutopia-2014/03/30-1247), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/greensleeves.ly` ← <https://www.mutopiaproject.org/ftp/Traditional/greensleeves/greensleeves.ly> sha256 `e580b31e882580d7f96d52e8aafd79b8e2f4e89ad9b32c360af9f5814a2d7a37`
+  - `spikes/s5-chart-pipeline/sources/mutopia/greensleeves.mid` ← <https://www.mutopiaproject.org/ftp/Traditional/greensleeves/greensleeves.mid> sha256 `04a6e03dd6128aa291aa75e4df757bbba40567ef885eca18d14d51d9365cb8e8`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-away-in-a-manger
+
+**Away in a Manger (tune MUELLER), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/mueller.*` (2 file(s))
+- Origin: third-party
+- Authors: James Ramsey Murray (tune MUELLER, 1887); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1264> (Mutopia-2008/01/13-1264), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/mueller.ly` ← <https://www.mutopiaproject.org/ftp/MurrayJR/mueller/mueller.ly> sha256 `452892017f5b9487375d28787e1caafba190928191563c7a9d42ab1d4ba83f65`
+  - `spikes/s5-chart-pipeline/sources/mutopia/mueller.mid` ← <https://www.mutopiaproject.org/ftp/MurrayJR/mueller/mueller.mid> sha256 `d3a6632c836fa9190191ae300a249fb61916fb47679af565d72fb551f77ee228`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-o-come-o-come-emmanuel
+
+**O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/veniemma.*` (2 file(s))
+- Origin: third-party
+- Authors: Traditional (15th-c. French melody, tune VENI EMMANUEL); Thomas Helmore (arranger, 1856); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1300> (Mutopia-2008/02/19-1300), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/veniemma.ly` ← <https://www.mutopiaproject.org/ftp/Traditional/veniemma/veniemma.ly> sha256 `985895a084729980da17758720e4aa0db3a86bb7fca9dde9a1db33874572be07`
+  - `spikes/s5-chart-pipeline/sources/mutopia/veniemma.mid` ← <https://www.mutopiaproject.org/ftp/Traditional/veniemma/veniemma.mid> sha256 `935dfdd5d7fa90b8d78a52990dc6bbe16c818d0be20e710e58ab471a08093224`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
+### mutopia-in-the-bleak-midwinter
+
+**In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)**
+
+- Files: `spikes/s5-chart-pipeline/sources/mutopia/cranham.*` (2 file(s))
+- Origin: third-party
+- Authors: Gustav Holst (tune CRANHAM, 1906); Christina Rossetti (words, 1872); Steve Dunlop (typesetter)
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Source: <https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233> (Mutopia-2008/01/13-1233), retrieved 2026-10-25
+- License evidence: Piece page 'Copyright: Public Domain' (checked 2026-10-25) and the LilyPond source's copyright/license field and tagline.
+  - `spikes/s5-chart-pipeline/sources/mutopia/cranham.ly` ← <https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.ly> sha256 `e5ffd19b9aab0b5789b120e633151a8d5d8b97786646ead8cfb85b321fb073a0`
+  - `spikes/s5-chart-pipeline/sources/mutopia/cranham.mid` ← <https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.mid> sha256 `8bdd6cb58b8bef36cfa18ae2046128ae3faddf9ed2be1341d3fa09ee9aa745e1`
+- Modifications: none (byte-identical to the Mutopia files; the .ly keeps its tagline notice)
+- Reuse limits: None required. We keep the Mutopia notice and credit the typesetter as a courtesy. Source of the edition: www.cyberhymnal.org.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25
+
 ### s5-charts-from-cc0-lead-sheets
 
 **S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets**
@@ -292,7 +445,7 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Deck the Halls: 4-bar intro and 2-bar ending by qwen3:8b around the S5 lead sheet. The Holly and the Ivy: Mutopia melody, S5-inferred chords (qwen3:8b proofreading kept them unchanged) and a qwen3:8b descant (voice 2). Assembled by scripts/build-candidates.ts.
 - AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json)); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line; resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
+- Review: pending. S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.
 
 ### s6-candidate-charts
 
@@ -304,7 +457,7 @@ repository "MIT" in a way that hides them.
 - Copyright: 2026 Go Go HarmoniYo contributors (generated; dedicated to the public domain)
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Built from the candidate lead sheets: bass/inner bells realized by S5 from the chord symbols, descant as inner bells; 3/4/5 ringers × 3 tiers.
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
+- Review: pending. S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.
 
 ### s6-amt-melody-deck-the-halls
 
@@ -341,7 +494,7 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Drum notes dropped; otherwise as generated.
 - AI provenance: Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
+- Review: pending. S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.
 
 ### s6-blind-listening-previews
 
@@ -354,7 +507,19 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: One set covers all clips so the register does not reveal which letter is AI: per song one procedural render (S5 chart + I2 backing), one qwen3:8b candidate render and one AMT render (the key is in previews/answer-key.json). The procedural clips contain no AI material.
 - AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); and Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf; stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json); pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE ; https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line. AMT: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
+- Review: pending. S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.
+
+### s5-charts-mutopia-satb-2026-10-25
+
+**S5 charts and exports for the Mutopia SATB carols added 2026-10-25**
+
+- Files: `spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json`, `spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*` (48 file(s))
+- Origin: derived — from [mutopia-o-come-all-ye-faithful](#mutopia-o-come-all-ye-faithful), [mutopia-hark-the-herald-angels-sing](#mutopia-hark-the-herald-angels-sing), [mutopia-the-first-noel](#mutopia-the-first-noel), [mutopia-o-little-town-of-bethlehem](#mutopia-o-little-town-of-bethlehem), [mutopia-what-child-is-this](#mutopia-what-child-is-this), [mutopia-away-in-a-manger](#mutopia-away-in-a-manger), [mutopia-o-come-o-come-emmanuel](#mutopia-o-come-o-come-emmanuel), [mutopia-in-the-bleak-midwinter](#mutopia-in-the-bleak-midwinter) via `node spikes/s5-chart-pipeline/build.mjs`
+- Authors: Go Go HarmoniYo S5 chart pipeline
+- Copyright: Typeset by Steve Dunlop for the Mutopia Project, placed in the public domain (per-song ids in the source entries)
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Modifications: Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged.
+- Review: approved by License check (agent session), pending owner confirmation on 2026-10-25. Each chart carries its source and license in song.license / song.source.
 
 ## Open items
 
@@ -374,10 +539,10 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-we-wish-you-a-merry-christmas-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-musicxml-test-fixture: review pending (A few hand-written test measures, not a song.)
-- s6-candidate-lead-sheets: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
-- s6-candidate-charts: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
-- s6-amt-accompaniments: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
-- s6-blind-listening-previews: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
+- s6-candidate-lead-sheets: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
+- s6-candidate-charts: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
+- s6-amt-accompaniments: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
+- s6-blind-listening-previews: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
 
 ## Required record for each new asset
 
