@@ -1,9 +1,9 @@
 // One command to play: `npm start` at the repo root (or in this folder).
-//   npm start [-- --tunnel] [--ip 192.168.1.20] [--http-port 8081 --port 8444] [--check] [--no-build] [--help]
+//   npm start [-- --tunnel] [--ip 192.168.1.20] [--http-port 18901 --port 8444] [--check] [--no-build] [--help]
 // Checks the setup (Node, ports, network adapters, firewall, cloudflared) and explains problems with
 // a fix, installs missing packages, builds the game and runs the S1 phone host serving it at /game/.
 // Phones join over HTTPS on the LAN (S1, self-signed cert) or a cloud tunnel; the TV page is
-// http://127.0.0.1:8080/game/. Ctrl+C stops the host.
+// http://127.0.0.1:18900/game/ (or the next free port, #53). Ctrl+C stops the host.
 //
 // This file must stay parseable by old Node versions so it can explain the version requirement.
 const MIN_NODE = 22;

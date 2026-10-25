@@ -73,7 +73,9 @@ The rules are in the [brand guide](../design/brand.md). In short:
     software) and class 41 (online games; music entertainment and education);
   - consider class 28 or 15 only if we sell hardware.
 - **Mascot art** follows the brand guide's brief and ADR-0008 provenance rules. The public wording
-  of the YoYo origin story is pending owner approval.
+  of the YoYo origin story was approved as drafted on 2026-10-25
+  ([#46](https://github.com/dcuccia/go-go-harmoniyo/issues/46); see the
+  [brand guide](../design/brand.md#origin-story)).
 
 ## Amendment 2026-10-23: repository renamed
 

@@ -1,6 +1,6 @@
 # 0010 — Product layout: how spike code graduates into product packages
 
-- Status: Proposed
+- Status: Accepted, option A (owner, 2026-10-25; [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32))
 - Date: 2026-10-24
 - Deciders: @dcuccia (owner); proposed by the v0.1-alpha planning session (agent)
 - Plan: [v0.1-alpha plan](../plan/v0.1-alpha.md). Owner decision issue:
@@ -98,7 +98,7 @@ Rules:
 | D. Never graduate; keep growing the spikes | Zero migration cost | Contradicts AGENTS.md (spikes are throwaway); cross-spike relative imports and five lockfiles get worse with each feature; no clear home for contracts |
 | E. Separate repositories per package | Independent versioning | Cross-repo changes for every HGP change; more CI, more licensing setup; wrong scale for one team |
 
-## Decision (proposed)
+## Decision
 
 **Option A.** Tag `v0.1.0-alpha` from `spikes/i2-web-phones` with a root `npm start` that
 delegates to it ([#25](https://github.com/dcuccia/go-go-harmoniyo/issues/25)). Then graduate in
@@ -148,6 +148,12 @@ the imports of the next.
   and checks `contracts/` (ADR-0005).
 - Publishing packages to npm, and moving the repository to a GitHub org, are separate later
   decisions.
+
+## Owner decision (2026-10-25)
+
+Accepted, **option A** ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)): ship the
+alpha from `spikes/i2-web-phones`, then graduate into `packages/` and `apps/` from Nov 16 to 24
+([#41](https://github.com/dcuccia/go-go-harmoniyo/issues/41), now unblocked).
 
 ## Evidence
 

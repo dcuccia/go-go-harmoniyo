@@ -10,7 +10,12 @@ import { delimiter, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 
 export const MIN_NODE = 22;
-export const DEFAULT_HTTP_PORT = 8080;
+// The TV page port is loopback-only (phones use the HTTPS port or the tunnel), so its number has no
+// network or certificate meaning. 8080 is what Docker, WSL, dev servers and proxies grab first
+// (#53), so the default is a rarely used port instead, away from the test scripts' ports (e2e
+// 18080+ and 18443+, controller-check 18300/18663, seating-e2e 18500/18863, webkit 18700/19063).
+// If it is busy anyway, npm start moves to the next free port (unless --http-port was given).
+export const DEFAULT_HTTP_PORT = 18900;
 export const DEFAULT_HTTPS_PORT = 8443;
 
 // ── arguments ───────────────────────────────────────────────────────────────
@@ -75,6 +80,7 @@ export function parseStartArgs(argv) {
     hostArgs,
     ip: flagValue(hostArgs, 'ip'),
     httpPort: port('http-port', DEFAULT_HTTP_PORT),
+    httpPortGiven: flagValue(hostArgs, 'http-port') !== undefined,
     httpsPort: port('port', DEFAULT_HTTPS_PORT),
     tunnel: hostArgs.includes('--tunnel'),
     noHttps: hostArgs.includes('--no-https'),
@@ -397,7 +403,8 @@ export async function windowsFindings({ adapter, ports, nodePath = process.execP
 
 /**
  * Fast checks (ports, adapters, cloudflared), then the slow Windows probes as a promise.
- * Returns { findings, later: Promise<findings[]>, ip, env } — `ip` goes to the host as --ip,
+ * Returns { findings, later: Promise<findings[]>, ip, httpPort, env } — `ip` goes to the host as --ip,
+ * `httpPort` is the TV page port to use (the default, or the next free one), and
  * `env` carries cloudflared's folder on PATH when it isn't there already.
  */
 export async function runPreflight(opts, { platform = process.platform, env = process.env, ifaces } = {}) {
@@ -408,14 +415,27 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
   const bad = [opts.httpPort, opts.httpsPort].filter((p) => Number.isNaN(p));
   if (bad.length) findings.push({ level: 'error', title: '--port and --http-port take a number from 1 to 65535' });
   const httpBind = opts.noHttps ? '0.0.0.0' : '127.0.0.1';
-  const wanted = [{ port: opts.httpPort, bind: httpBind, flag: '--http-port', use: 'TV page' }];
+  // The TV page port falls back to the next free one when it is the default and loopback-only (#53).
+  const wanted = [{ port: opts.httpPort, bind: httpBind, flag: '--http-port', use: 'TV page', fallback: !opts.httpPortGiven && !opts.noHttps }];
   if (!opts.tunnel && !opts.noHttps) wanted.push({ port: opts.httpsPort, bind: '0.0.0.0', flag: '--port', use: 'phones, HTTPS' });
+  let httpPort = opts.httpPort;
   for (const w of wanted.filter((x) => !Number.isNaN(x.port))) {
     const st = await probePort(w.port, w.bind);
     if (st.free) { findings.push({ level: 'ok', title: `Port ${w.port} is free (${w.use})` }); continue; }
     const owners = st.code === 'EADDRINUSE' ? await portOwners(w.port, platform) : [];
     const alt = await nextFreePort(w.port, w.bind, wanted.map((x) => x.port));
     const who = owners.length ? ` by ${owners.map((o) => `${o.name} (PID ${o.pid})`).join(', ')}` : '';
+    const busy = st.code === 'EACCES' ? 'is reserved by the system' : `is already in use${who}`;
+    if (w.fallback && alt) {
+      findings.push({
+        level: 'info', title: `Port ${w.port} (${w.use}) ${busy}: using port ${alt} instead`,
+        lines: [`The TV page will be http://127.0.0.1:${alt}/game/ (only this PC uses it; phones are not affected).`,
+          `To choose the port yourself: npm start -- --http-port <n>`],
+      });
+      w.port = alt;
+      httpPort = alt;
+      continue;
+    }
     const stopCmd = (pid) => (platform === 'win32' ? `Stop-Process -Id ${pid}` : `kill ${pid}`);
     const fix = [];
     if (st.code === 'EACCES' && platform === 'win32') {
@@ -428,7 +448,7 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
       fix.push(owners.length ? `Close ${owners[0].name}, or stop it: ${stopCmd(owners[0].pid)}` : 'Close the program that uses it (another game host, a dev server, Docker…)');
     }
     if (alt) fix.push(`Or start on another port: npm start -- ${w.flag} ${alt}`);
-    findings.push({ level: 'error', title: `Port ${w.port} (${w.use}) ${st.code === 'EACCES' ? 'is reserved by the system' : `is already in use${who}`}`, fix });
+    findings.push({ level: 'error', title: `Port ${w.port} (${w.use}) ${busy}`, fix });
   }
 
   // Network adapters
@@ -490,10 +510,12 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
     } else if (platform === 'darwin') {
       later = Promise.resolve([{ level: 'info', title: 'macOS firewall: if macOS asks whether "node" may accept incoming connections, click Allow' }]);
     } else {
-      later = Promise.resolve([{ level: 'info', title: `Linux firewall: if one is on (ufw, firewalld), allow TCP ${wanted.map((w) => w.port).join(' and ')} from your LAN, e.g. sudo ufw allow ${wanted.map((w) => w.port).join(',')}/tcp` }]);
+      // Only the ports phones reach; the TV page port is loopback-only unless --no-https.
+      const lan = wanted.filter((w) => w.bind !== '127.0.0.1').map((w) => w.port);
+      later = Promise.resolve([{ level: 'info', title: `Linux firewall: if one is on (ufw, firewalld), allow TCP ${lan.join(' and ')} from your LAN, e.g. sudo ufw allow ${lan.join(',')}/tcp` }]);
     }
   }
-  return { findings, later, ip, adapter, env: childEnv };
+  return { findings, later, ip, adapter, httpPort, env: childEnv };
 }
 
 // ── output ──────────────────────────────────────────────────────────────────

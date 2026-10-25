@@ -21,7 +21,7 @@ const USAGE = `Go Go HarmoniYo — start the game on this PC (the TV) and let ph
   --check              Run the preflight checks only, then exit (exit code 1 if something blocks the start)
   --ip <address>       Address phones use to reach this PC (default: the best Wi-Fi/LAN address)
   --tunnel             Cloud tunnel via cloudflared: works on guest Wi-Fi or mobile data, no certificate warning
-  --http-port <n>      TV page port (default 8080)
+  --http-port <n>      TV page port, only used on this PC (default 18900; if it is busy, the next free one)
   --port <n>           Phone HTTPS port (default 8443)
   --no-build           Reuse the last build (dist/) if there is one
   --no-open            Don't open the browser
@@ -109,6 +109,8 @@ export async function main(argv) {
 function startHost(opts, pre, warnings) {
   const hostArgs = [...opts.hostArgs];
   if (pre.ip && !opts.ip && !opts.tunnel) hostArgs.push('--ip', pre.ip);
+  // The S1 host's own default is 8080; always pass the port preflight chose (#53).
+  if (!opts.httpPortGiven) hostArgs.push('--http-port', String(pre.httpPort));
   const tsx = join(s1, 'node_modules', 'tsx', 'dist', 'cli.mjs');
   console.log('\nStarting the phone host…');
   const child = spawn(process.execPath, [tsx, 'src/host/server.ts', '--game', join(root, 'dist'), ...hostArgs], {
