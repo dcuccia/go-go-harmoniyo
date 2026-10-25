@@ -74,17 +74,17 @@ repository "MIT" in a way that hides them.
 | [Away in a Manger (tune MUELLER), Mutopia edition (SATB)](#mutopia-away-in-a-manger) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)](#mutopia-o-come-o-come-emmanuel) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)](#mutopia-in-the-bleak-midwinter) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
-| [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 30 | approved (legacy) |
-| [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
-| [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
-| [S5 charts and exports for 'The Holly and the Ivy'](#s5-charts-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
+| [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 35 | approved (legacy) |
+| [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
+| [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
+| [S5 charts and exports for 'The Holly and the Ivy'](#s5-charts-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
 | [S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)](#s6-candidate-lead-sheets) | ai-generated | CC0-1.0 | 2 | pending |
 | [S6 candidate charts (chart format 0.2.0)](#s6-candidate-charts) | derived | CC0-1.0 | 2 | pending |
 | [Deck the Halls melody MIDI (AMT input)](#s6-amt-melody-deck-the-halls) | derived | CC0-1.0 | 1 | approved |
 | [The Holly and the Ivy melody MIDI (AMT input)](#s6-amt-melody-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 1 | approved |
 | [S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)](#s6-amt-accompaniments) | ai-generated | CC0-1.0 | 4 | pending |
 | [S6 blind-listening previews (procedural vs qwen3:8b vs AMT)](#s6-blind-listening-previews) | ai-generated | CC0-1.0 | 6 | pending |
-| [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 48 | approved |
+| [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 56 | approved |
 
 ### project-ui-captures
 
@@ -386,7 +386,7 @@ repository "MIT" in a way that hides them.
 
 **S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets**
 
-- Files: `spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json`, `spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*` (30 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json`, `spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*` (35 file(s))
 - Origin: derived — from [s5-jingle-bells-abc](#s5-jingle-bells-abc), [s5-joy-to-the-world-abc](#s5-joy-to-the-world-abc), [s5-silent-night-abc](#s5-silent-night-abc), [s5-deck-the-halls-abc](#s5-deck-the-halls-abc), [s5-we-wish-you-a-merry-christmas-abc](#s5-we-wish-you-a-merry-christmas-abc) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: 2026 Go Go HarmoniYo contributors (generated), dedicated to the public domain
@@ -399,7 +399,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for 'It Came Upon the Midnight Clear'**
 
-- Files: `spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json`, `spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*` (6 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json`, `spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*` (7 file(s))
 - Origin: derived — from [mutopia-carol](#mutopia-carol) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), placed in the public domain
@@ -412,7 +412,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for 'Good King Wenceslas'**
 
-- Files: `spikes/s5-chart-pipeline/charts/good-king-wenceslas.json`, `spikes/s5-chart-pipeline/exports/good-king-wenceslas/*` (6 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/good-king-wenceslas.json`, `spikes/s5-chart-pipeline/exports/good-king-wenceslas/*` (7 file(s))
 - Origin: derived — from [mutopia-good-king-wenceslas](#mutopia-good-king-wenceslas) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), placed in the public domain
@@ -425,7 +425,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for 'The Holly and the Ivy'**
 
-- Files: `spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json`, `spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/*` (6 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json`, `spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/*` (7 file(s))
 - Origin: derived — from [mutopia-the-holly-and-the-ivy](#mutopia-the-holly-and-the-ivy) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain
@@ -513,7 +513,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for the Mutopia SATB carols added 2026-10-25**
 
-- Files: `spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json`, `spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*` (48 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json`, `spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*` (56 file(s))
 - Origin: derived — from [mutopia-o-come-all-ye-faithful](#mutopia-o-come-all-ye-faithful), [mutopia-hark-the-herald-angels-sing](#mutopia-hark-the-herald-angels-sing), [mutopia-the-first-noel](#mutopia-the-first-noel), [mutopia-o-little-town-of-bethlehem](#mutopia-o-little-town-of-bethlehem), [mutopia-what-child-is-this](#mutopia-what-child-is-this), [mutopia-away-in-a-manger](#mutopia-away-in-a-manger), [mutopia-o-come-o-come-emmanuel](#mutopia-o-come-o-come-emmanuel), [mutopia-in-the-bleak-midwinter](#mutopia-in-the-bleak-midwinter) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project, placed in the public domain (per-song ids in the source entries)

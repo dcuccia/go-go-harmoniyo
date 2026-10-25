@@ -12,7 +12,7 @@ import type { Sensitivity } from '../../s1-phone-bell/src/core/ring-detector.ts'
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type LobbyParts, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { ARRANGEMENTS, buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Arrangement, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { partCards, type PartCard } from './parts';
 import { KEYBOARD, Seating, seededRng, TV } from './seating';
 import { SeatingView, type PlayerView } from './seating-view';
@@ -112,12 +112,19 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
-  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[] }[];
+  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>> }[];
 }
 let index: SongIndex | null = null;
 const chartCache = new Map<string, S5Chart>();
 let songId = params.get('song') ?? 'jingle-bells';
 let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
+/** Song length: full (intro, verses that develop, coda; charts/<id>.json) or short (once; charts/short/<id>.json). */
+type SongForm = 'full' | 'short';
+let songForm: SongForm = params.get('form') === 'short' ? 'short' : 'full';
+/** How parts are split: balanced roles (default), chord split, or by range (S5 0.2). */
+let arrangement: Arrangement = (ARRANGEMENTS as readonly string[]).includes(params.get('parts') ?? '') ? (params.get('parts') as Arrangement) : 'balanced';
+const chartKey = (id: string = songId): string => `${songForm}:${id}`;
+const songDuration = (s: SongIndex['songs'][number]): number => s.forms?.[songForm]?.durationSec ?? s.durationSec;
 let ringerCount = num('ringers', 0);
 let ringersAuto = !params.has('ringers');
 /** Seating chart: part index → phone deviceId | KEYBOARD | TV (persists across songs). */
@@ -149,13 +156,14 @@ const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name
 const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
 
 async function loadChart(id: string): Promise<S5Chart> {
-  let c = chartCache.get(id);
+  let c = chartCache.get(chartKey(id));
   if (!c) {
-    const res = await fetch(`charts/${id}.json`);
-    if (!res.ok) throw new Error(`charts/${id}.json: ${res.status} — run "npm run charts"`);
+    const url = `charts/${songForm === 'short' ? 'short/' : ''}${id}.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${url}: ${res.status} — run "npm run charts"`);
     c = (await res.json()) as S5Chart;
-    if (!isChartFormat(c.format)) throw new Error(`charts/${id}.json: unknown chart format "${c.format}"`);
-    chartCache.set(id, c);
+    if (!isChartFormat(c.format)) throw new Error(`${url}: unknown chart format "${c.format}"`);
+    chartCache.set(chartKey(id), c);
   }
   return c;
 }
@@ -163,7 +171,7 @@ async function loadChart(id: string): Promise<S5Chart> {
 /** The chart at the practice speed (cached per song and speed). */
 const scaledCache = new Map<string, S5Chart>();
 async function songChart(id: string): Promise<S5Chart> {
-  const key = `${id}@${speed}`;
+  const key = `${chartKey(id)}@${speed}`;
   let c = scaledCache.get(key);
   if (!c) {
     c = scaleChart(await loadChart(id), speed);
@@ -172,9 +180,9 @@ async function songChart(id: string): Promise<S5Chart> {
   return c;
 }
 /** Current song at the current speed, once loaded. */
-const currentChart = (): S5Chart | undefined => scaledCache.get(`${songId}@${speed}`);
+const currentChart = (): S5Chart | undefined => scaledCache.get(`${chartKey()}@${speed}`);
 /** Song label for the phones: title, tier and (when slowed down) the practice speed. */
-const songLabel = (): string => `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
+const songLabel = (): string => `${chartCache.get(chartKey())?.song.title ?? songId} (${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
@@ -199,7 +207,7 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   if (!index) return;
   const joiners = syncPhones();
   const s5 = await songChart(songId);
-  const part = findPart(s5, difficulty, ringerCount);
+  const part = findPart(s5, difficulty, ringerCount, arrangement);
   if (!part) {
     joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
     $('lobby-msg').textContent = `No ${difficulty} part for ${ringerCount} ringers in ${s5.song.title}.`;
@@ -347,14 +355,16 @@ function playerViews(): PlayerView[] {
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
   const selSong = $<HTMLSelectElement>('sel-song');
-  const songsKey = `${index?.songs.length}@${speed}`;
+  const songsKey = `${index?.songs.length}@${speed}:${songForm}`;
   if (index && selSong.dataset.key !== songsKey && document.activeElement !== selSong) {
     selSong.dataset.key = songsKey;
-    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(s.durationSec / speed)} s, ${s.license ?? '?'})</option>`).join('');
+    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(songDuration(s) / speed)} s, ${s.license ?? '?'})</option>`).join('');
   }
   setValue(selSong, songId);
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
   setValue($<HTMLSelectElement>('sel-ringers'), String(ringerCount));
+  setValue($<HTMLSelectElement>('sel-parts'), arrangement);
+  setValue($<HTMLSelectElement>('sel-form'), songForm);
   setValue($<HTMLSelectElement>('sel-sound'), soundMode);
   setChecked($<HTMLInputElement>('chk-backing'), backingSettings.enabled);
   setValue($<HTMLInputElement>('rng-backing'), String(Math.round(backingSettings.volume * 100)));
@@ -369,10 +379,10 @@ function renderLobby(): void {
 
   view.update(cards, seating.seats, playerViews());
   const s5 = currentChart();
-  const part = s5 ? findPart(s5, difficulty, ringerCount) : undefined;
+  const part = s5 ? findPart(s5, difficulty, ringerCount, arrangement) : undefined;
   if (part) {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
-    $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''} · chart profile ${index?.profile}`;
+    $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
   $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
   const seated = seating.players.filter(isPhone);
@@ -431,7 +441,7 @@ function renderNext(): void {
 function renderSpeed(): void {
   setValue($<HTMLInputElement>('rng-speed'), String(speedPercent(speed)));
   $('speed-val').textContent = `${speedPercent(speed)}%`;
-  const dur = index?.songs.find((s) => s.id === songId)?.durationSec;
+  const dur = ((s) => (s ? songDuration(s) : undefined))(index?.songs.find((s) => s.id === songId));
   $('speed-info').textContent = speed < 1 ? `Slower for learning: ${dur ? `${Math.round(dur / speed)} s instead of ${Math.round(dur)} s; ` : ''}bells, backing and count-in slow down too, timing is judged the same.` : '';
 }
 
@@ -487,6 +497,14 @@ $<HTMLSelectElement>('sel-song').onchange = (e) => {
 };
 $<HTMLSelectElement>('sel-diff').onchange = (e) => {
   difficulty = (e.target as HTMLSelectElement).value as Difficulty;
+  void rebuild();
+};
+$<HTMLSelectElement>('sel-parts').onchange = (e) => {
+  arrangement = (e.target as HTMLSelectElement).value as Arrangement;
+  void rebuild();
+};
+$<HTMLSelectElement>('sel-form').onchange = (e) => {
+  songForm = (e.target as HTMLSelectElement).value as SongForm;
   void rebuild();
 };
 $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
@@ -643,7 +661,7 @@ async function start(mode: Mode): Promise<void> {
 
   const hostRingSound = soundMode !== 'device';
   const s5 = currentChart()!;
-  const part = findPart(s5, difficulty, ringerCount)!;
+  const part = findPart(s5, difficulty, ringerCount, arrangement)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
@@ -815,6 +833,8 @@ function finish(r: SessionResult): void {
     ...r,
     song: songId,
     difficulty,
+    form: songForm,
+    arrangement,
     ringers: ringerCount,
     /** Practice speed (1 = written tempo); song times in this result are at this speed. */
     speed: roundSpeed,

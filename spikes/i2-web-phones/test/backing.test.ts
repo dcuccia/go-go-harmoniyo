@@ -4,6 +4,7 @@ import { exclusionsFrom, FERMATA, generateBacking, resolveStyle, scaleEvents, ST
 import { RIT_RATIO } from '../src/backing/flourishes';
 import { phraseAt, phrases } from '../src/backing/phrases';
 import { partBellNotes, type S5Chart } from '../src/team-chart';
+import { scaleChart } from '../src/speed';
 
 const C = (time: number, durSec: number, symbol: string, root: number, tones: number[]): S5Chord => ({ tick: 0, time, dur: 1, durSec, symbol, root, bass: root, tones });
 
@@ -284,5 +285,54 @@ describe.skipIf(songs.length === 0)('generated carol charts (run "npm run charts
       const bassOf = (p: typeof easy): number => of(generateBacking(tl!, { exclusions: exclusionsFrom(partBellNotes(c, p)) }), 'bass').length;
       expect(bassOf(hard)).toBeLessThanOrEqual(bassOf(easy));
     }
+  });
+});
+
+describe('song form (chart 0.3)', () => {
+  /** 8 bars: bars 1–2 intro (energy 0.45), 3–6 verse (0.8), 7–8 a verse up a step (1). */
+  function formChart(): HarmonyChart & { form: { sections: { energy: number; label: string; time: number; durSec: number }[] } } {
+    const c = chart({ style: 'march', bars: 8 });
+    const sectionOf = (bar: number): number => (bar <= 2 ? 0 : bar <= 6 ? 1 : 2);
+    c.harmony!.beats.forEach((b) => (b.section = sectionOf(b.bar)));
+    // Last two bars a whole step up (key change): D, A7.
+    c.harmony!.chords[6] = C(12, 2, 'D', 2, [2, 6, 9]);
+    c.harmony!.chords[7] = C(14, 2, 'A7', 9, [9, 1, 4, 7]);
+    return { ...c, form: { sections: [{ energy: 0.45, label: 'Intro', time: 0, durSec: 4 }, { energy: 0.8, label: 'Verse 1', time: 4, durSec: 8 }, { energy: 1, label: 'Verse 2', time: 12, durSec: 4 }] } };
+  }
+
+  it('the groove builds with the sections: no kick or snare in the intro, softer percussion in lighter sections', () => {
+    const tl = backingTimeline(formChart())!;
+    expect(tl.beats.map((b) => b.energy).slice(0, 9)).toEqual([0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.8]);
+    const ev = generateBacking(tl, { seed: 'x' });
+    expect([...of(ev, 'kick'), ...of(ev, 'snare')].every((e) => e.time >= 4)).toBe(true);
+    expect(of(ev, 'sleigh').some((e) => e.time < 4)).toBe(true);
+    const mean = (xs: BackingEvent[]): number => xs.reduce((s, e) => s + e.vel, 0) / xs.length;
+    expect(mean(of(ev, 'sleigh').filter((e) => e.time < 4))).toBeLessThan(mean(of(ev, 'sleigh').filter((e) => e.time >= 12)));
+    // Without a form every beat is at full energy (pre-0.3 charts sound as before).
+    const plain = chart({ style: 'march' });
+    expect(backingTimeline(plain)!.beats.every((b) => b.energy === 1)).toBe(true);
+  });
+
+  it('follows a key change: bass and pad use the transposed chords', () => {
+    const ev = generateBacking(backingTimeline(formChart())!, { seed: 'x' });
+    const lastBass = of(ev, 'bass').filter((e) => e.time >= 12 && e.time < 14);
+    expect(lastBass.length).toBeGreaterThan(0);
+    expect(lastBass[0].midi! % 12).toBe(2); // D
+    const pad = of(ev, 'pad').find((e) => e.time >= 14)!;
+    expect(new Set(pad.midis!.map((m) => m % 12))).toEqual(new Set([9, 1, 4, 7]));
+  });
+
+  it('at practice speed the whole form stretches: events at 2× the time, sections included', () => {
+    const c = formChart();
+    const slow = scaleChart(c, 0.5);
+    expect(slow.form.sections.map((s) => [s.time, s.durSec])).toEqual([[0, 8], [8, 16], [24, 8]]);
+    const a = generateBacking(backingTimeline(c)!, { seed: 'x' });
+    const b = generateBacking(backingTimeline(slow)!, { seed: 'x' });
+    expect(b.length).toBe(a.length);
+    b.forEach((e, i) => {
+      expect(e.inst).toBe(a[i].inst);
+      expect(e.time).toBeCloseTo(a[i].time * 2, 3);
+      expect(e.vel).toBeCloseTo(a[i].vel, 6);
+    });
   });
 });

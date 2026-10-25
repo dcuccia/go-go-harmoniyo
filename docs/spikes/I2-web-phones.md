@@ -101,6 +101,19 @@ Evidence: unit tests (`test/backing.test.ts`, `test/sfx.test.ts`, S1 `test/detec
 OfflineAudioContext levels, onsets on their scheduled sample, ending decays to silence, 0.75×
 practice speed on-sample), `npm run sim:fast` in S1, and the gating timing E2E.
 
+### Balanced parts, longer songs, super easy (follow-up, 2026-10-25)
+
+After a 4-player session (parts unbalanced, songs too short, Easy too steep) the charts moved to
+S5 format 0.3 ([S5 report follow-up](S5-report.md#follow-up-2026-10-25-song-form-balanced-parts-super-easy-format-03)):
+the lobby gains **Parts** (Balanced / Chord split / By range), **Length** (Full ≈ 2–3 min /
+Short) and a **Super easy** tier. Part cards take their names from the chart's roles; super easy
+and any descant nobody holds are played softly by the TV from the part's `guide`. The backing
+follows the form: each beat's section energy drops kick and snare in the intro and quiet verses
+and builds to the last verse, and key changes come from the (transposed) chords. Phone charts
+skip the key change by default (it adds bells beyond 4 per phone). The timing E2E plays the
+short form (as before) plus one full-form super-easy run with 4 phones; charts at practice speed
+stretch the form like every other time.
+
 ### Alignment with I1 (YARG fork, PR #8)
 
 I1 changed the same S1 controller. I2 takes I1's controller/HGP changes **verbatim** (optional

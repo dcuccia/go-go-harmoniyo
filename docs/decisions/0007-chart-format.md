@@ -41,6 +41,13 @@ license register; the pipeline generates charts. RB/CH-style `.mid` is an **expo
   also accept the earlier id `handbell-hero.chart`.
 - v0.2.0 (2026-10-23) adds an optional `harmony` block (chord symbols, beat grid, backing
   style) for game-side backing tracks; additive, so v0.1 readers and charts keep working.
+- v0.3.0 (2026-10-25) adds, all optional: a `form` block (intro / verses / interlude / coda
+  sections with key and energy; beats carry their `section`), part `arrangement` (`balanced`,
+  `chord-split`, `by-range` = the old behaviour when absent), ringer `role` and `name`, the
+  `super-easy` tier with a host-played `guide`, and the `descant` note role. Every time stays a
+  `time`/`…Sec` field so readers can rescale it (practice speed). 0.1/0.2 charts stay valid;
+  0.2 readers ignore the new fields but would offer the extra parts in their lists
+  ([S5 README](../../spikes/s5-chart-pipeline/README.md#song-form-balanced-parts-and-super-easy-chart-format-03)).
 
 ## Owner decision (2026-10-25)
 

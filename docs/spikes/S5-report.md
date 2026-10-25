@@ -264,7 +264,44 @@ Requirements:
    or simplify the melody on easy. Not implemented (the pipeline reports "over capacity").
 5. **UI:** each zone shows the bell's note name and color matching the highway lane.
 
-## Limitations and follow-ups
+## Follow-up 2026-10-25: song form, balanced parts, super easy (format 0.3)
+
+Owner feedback from a 4-player I2 session: unbalanced parts ("some players would get one bass
+note, and some would get four"; a bass ringer's second bell should be another bass bell), songs
+too short to get one's bearings, and Easy still steep for first-timers. Changes (details in the
+[S5 README](../../spikes/s5-chart-pipeline/README.md#song-form-balanced-parts-and-super-easy-chart-format-03),
+numbers in [metrics.md](../../spikes/s5-chart-pipeline/results/metrics.md)):
+
+- **Role-aware, balanced parts** (default arrangement `balanced`): Bass / Harmony / Melody (split
+  by range) / optional Descant, each in its own pitch window, so every ringer's bells are one role
+  and one contiguous region (accidentals with their natural). SATB sources keep their real bass
+  and alto/tenor voices; lead sheets and melody-only files realize them from the chords.
+  Accompaniment density is chosen per part to even out loads within the tier's range. Optional
+  `chord-split` (up to 3 ringers share a 1-3-5 chord, one tone each) and the old `by-range`.
+- **Longer songs that develop**: intro (last phrase) · 2–6 verses (light → fuller → descant /
+  quiet → finale) · interlude + key change up a step (3+ verses) · coda with ritardando and a held
+  last bar. All 16 songs land at 131–171 s (were 20–64 s). `short` keeps the song once.
+- **Super easy**: the tune's downbeats and long notes, ≥ 1 s apart, ≤ 3 bells per ringer; the host
+  plays the rest of the tune softly (`guide`).
+
+Fairness, phone profile `phone-4zone` with 4 ringers, mean over the 16 songs (before = 0.2
+by-range on the song once; after = balanced on the full form). Fairness = Jain's index on each
+ringer's load (strikes + ½ bell changes):
+
+| Tier | Fairness before → after | Mixed-role ringers (of 64) | One-bell ringers (of 64) |
+|---|---|---|---|
+| super easy | 0.89 → 0.92 | 0 → 0 | 25 → 15 |
+| easy | 0.90 → 0.91 | 0 → 0 | 16 → 3 |
+| medium | 0.91 → 0.90 | 13 → 0 | 0 → 0 |
+| hard | 0.93 → 0.87 | 20 → 0 | 0 → 0 |
+
+Reading: load fairness stays about where it was (by-range already optimized strike balance, but
+by mixing roles), while every ringer now plays one role in one region and one-bell parts mostly
+disappear. Hard loses some fairness because the tune's split is fixed by its pitches: contiguous
+melody regions cannot balance a tune that sits on a few notes (Jingle Bells' B4). The key change
+adds 1–2 bells to most parts, more than a 4-bell phone holds, so the I2 phone build turns it off
+by default (`npm run charts -- --key-change` to try it).
+
 
 - Melody encodings need a human proofread; lead-sheet harmony is simple (root bass, 3rd/5th
   pads) and occasionally clashes with passing tones — fine for a game, not for publication.
