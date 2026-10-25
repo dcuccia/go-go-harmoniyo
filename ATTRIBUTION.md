@@ -55,7 +55,7 @@ repository "MIT" in a way that hides them.
 
 | Asset | Origin | License | Files | Review |
 |---|---|---|---|---|
-| [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 11 | approved (legacy) |
+| [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 14 | approved (legacy) |
 | [Pitch-class palette swatch sheet with colour-vision simulations (visual identity doc)](#pitch-class-palette-sheet) | original | CC-BY-4.0 | 1 | pending |
 | [Jingle Bells (lead sheet, ABC)](#s5-jingle-bells-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [Joy to the World (lead sheet, ABC)](#s5-joy-to-the-world-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
@@ -90,13 +90,13 @@ repository "MIT" in a way that hides them.
 
 **Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)**
 
-- Files: `docs/spikes/media/*`, `docs/spikes/I1-data/*.png`, `spikes/s1-phone-bell/results/*.png` (11 file(s))
+- Files: `docs/spikes/media/*`, `docs/spikes/I1-data/*.png`, `spikes/s1-phone-bell/results/*.png` (14 file(s))
 - Origin: original
 - Authors: David Cuccia and Go Go HarmoniYo contributors
 - Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
-- Review: approved by @dcuccia (owner confirmed CC BY 4.0 for screenshots of our own UI) on 2026-10-23. IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures showed green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). 2026-10-23, #12: s4-autoplay.gif, s4-ultra-4k.png, s4-low-1080p.png, i2-4-ringers-play.png, i2-4-ringers-lobby.png, i2-2-phones-plus-host-play.png and i2-phone-controller.png re-captured with the pitch-class palette (same scripts: s4-web-host/scripts/bench.mjs + capture-gif.mjs, i2-web-phones/scripts/e2e.mjs --shots + controller-check.mjs --shots). I1-data/controller-yarg-lanes.png keeps YARG's lane colours (ADR-0008 interop exception); spikes/s1-phone-bell/results/zones-pixel-viewport.png predates #12 (S1 hue-wheel colours, not a fret order; hand capture on a phone). 2026-10-24, seating chart: i2-seating-lobby.png (TV lobby) and i2-phone-part-picker.png (S1 phone page, Pick your part) added under the same CC BY 4.0 decision for screenshots of our own UI, captured by spikes/i2-web-phones/scripts/seating-e2e.mjs --shots (pitch-class palette, system fonts and emoji only).
+- Review: approved by @dcuccia (owner confirmed CC BY 4.0 for screenshots of our own UI) on 2026-10-23. IP audit 2026-10-23: captured by the spikes' Playwright scripts (or by hand) from the project's own procedural UI; no third-party art, logos or fonts embedded (system UI fonts only). The S4/I1/I2 captures showed green/red/yellow/blue/orange lanes close to Guitar Hero's fret colours (issue #12). 2026-10-23, #12: s4-autoplay.gif, s4-ultra-4k.png, s4-low-1080p.png, i2-4-ringers-play.png, i2-4-ringers-lobby.png, i2-2-phones-plus-host-play.png and i2-phone-controller.png re-captured with the pitch-class palette (same scripts: s4-web-host/scripts/bench.mjs + capture-gif.mjs, i2-web-phones/scripts/e2e.mjs --shots + controller-check.mjs --shots). I1-data/controller-yarg-lanes.png keeps YARG's lane colours (ADR-0008 interop exception); spikes/s1-phone-bell/results/zones-pixel-viewport.png predates #12 (S1 hue-wheel colours, not a fret order; hand capture on a phone). 2026-10-24, seating chart: i2-seating-lobby.png (TV lobby) and i2-phone-part-picker.png (S1 phone page, Pick your part) added under the same CC BY 4.0 decision for screenshots of our own UI, captured by spikes/i2-web-phones/scripts/seating-e2e.mjs --shots (pitch-class palette, system fonts and emoji only). 2026-10-25, drop-in joining + practice speed: i2-ingame-join-qr.png (TV during a song: corner join QR, +1 waiting, 50% speed badge), i2-results-join-qr.png (results screen with the corner QR) and i2-phone-waiting.png (S1 phone page, You're in!) added under the same CC BY 4.0 decision, captured by spikes/i2-web-phones/scripts/dropin-e2e.mjs --shots (the QR encodes a private LAN test address; pitch-class palette, system fonts and emoji only).
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
 
 ### pitch-class-palette-sheet

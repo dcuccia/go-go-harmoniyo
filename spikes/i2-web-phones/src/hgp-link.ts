@@ -22,6 +22,8 @@ export interface LobbyParts {
   phase: 'lobby' | 'play';
   song?: string;
   parts: PartCard[];
+  /** Phones that joined during a round and get a part at the next one (each phone sees `next`). */
+  waiting?: string[];
 }
 
 export interface HostInfo {

@@ -228,7 +228,8 @@ export interface PartCard {
 /**
  * Lobby state from a game host (I2 seating chart), relayed to every phone. The host fills in `you`
  * (index of this device's part, -1 = not in a part) and `ready` (this device's own Ready state).
- * `phase: "play"` hides the part picker while a song runs.
+ * `phase: "play"` hides the part picker while a song runs. `next` (from the game's `waiting` list):
+ * this device joined during a round and gets a part when the next one starts (drop-in joining).
  */
 export interface Parts {
   type: 'parts';
@@ -237,6 +238,7 @@ export interface Parts {
   parts: PartCard[];
   you: number;
   ready: boolean;
+  next?: boolean;
 }
 
 export function isObject(x: unknown): x is Record<string, unknown> {
