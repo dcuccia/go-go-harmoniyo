@@ -263,6 +263,14 @@ audience reactions, festive themes (holiday theme for M5).
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
   - Aural juice (I2): a procedural festive backing track (see E05) turns melody-only Easy into a
     fuller song; lobby has Backing on/off + volume and a Count-in toggle (defaults: on, 50 %).
+  - Owner feedback (4-player session): *"more sophisticated backing tracks and special sound
+    effects for feedback on performance"*. The backing now reads 4-bar phrases (fills, crash,
+    sleigh-bell rolls, glockenspiel glissandos, bass variations, celesta, strings lift) and ends
+    with a ritardando tag over a fermata. Performance SFX, all synthesised: streak sparkles,
+    multiplier whoosh, a soft miss "boop", a perfect-phrase fanfare on the current chord (a first
+    taste of E06's "team-wide perfect phrase") and accuracy-scaled applause; 10–25 dB under a
+    bell and ducked while bells ring; lobby on/off + volume. Open: does the miss cue feel kind
+    to kids in practice; should applause be per ringer; recorded (CC0) crowd sounds later?
     Next ideas: sleigh-bell swells on streaks, a cymbal/bell tree on full-team perfect phrases,
     the backing thinning out on misses (classic "band drops out") — all procedural.
 

@@ -24,6 +24,9 @@ import { backingTimeline } from './backing/timeline';
 import { describe as describeBacking } from './backing/patterns';
 import { clampSpeed, DEFAULT_SPEED, parseSpeedPercent, scaleChart, speedNote, speedPercent } from './speed';
 import { JoinQueue, waitingLabel } from './join-queue';
+import { beatAt } from './backing/phrases';
+import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
+import { SfxSynth } from './sfx/synth';
 
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -57,6 +60,26 @@ const cornerJoin = {
   corner: ['tl', 'tr', 'bl', 'br'].includes(params.get('joinQrCorner') ?? '') ? params.get('joinQrCorner')! : 'tl',
   size: num('joinQrSize', 0),
 };
+// ── performance sound effects (lobby; saved) ───────────────────────────────
+const SFX_KEY = 'i2.sfx';
+const sfxSettings: SfxSettings = { ...DEFAULT_SFX, ...JSON.parse(localStorage.getItem(SFX_KEY) ?? '{}') };
+if (params.has('sfx')) sfxSettings.enabled = flag('sfx', true);
+if (params.has('sfxVol')) sfxSettings.volume = Math.max(0, Math.min(1, num('sfxVol', 50) / 100));
+const saveSfx = (): void => localStorage.setItem(SFX_KEY, JSON.stringify(sfxSettings));
+let sfx: SfxSynth | null = null;
+let director: PerformanceDirector | null = null;
+/** SFX bus, created once on the game's AudioContext; a little hall reverb like the backing. */
+function ensureSfx(): SfxSynth {
+  if (!sfx) {
+    sfx = new SfxSynth(audio.ctx);
+    audio.connect(sfx.output, 0.15);
+  }
+  sfx.setVolume(sfxSettings.enabled ? sfxSettings.volume : 0, audio.ctx.currentTime);
+  return sfx;
+}
+/** SFX start a beat-let after the ring that triggered them, so the bell's attack is heard first. */
+const SFX_DELAY = 0.08;
+
 // ── ring sensitivity per phone (lobby; saved): Normal or Quick, sent in HGP assign.ring ──
 const SENS_KEY = 'i2.sens';
 const phoneSens: Record<string, Sensitivity> = JSON.parse(localStorage.getItem(SENS_KEY) ?? '{}');
@@ -339,6 +362,10 @@ function renderLobby(): void {
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
   setChecked($<HTMLInputElement>('chk-countin'), backingSettings.countIn);
   renderSpeed();
+  setChecked($<HTMLInputElement>('chk-sfx'), sfxSettings.enabled);
+  setValue($<HTMLInputElement>('rng-sfx'), String(Math.round(sfxSettings.volume * 100)));
+  $<HTMLInputElement>('rng-sfx').disabled = !sfxSettings.enabled;
+  $('sfx-vol').textContent = `${Math.round(sfxSettings.volume * 100)}%`;
 
   view.update(cards, seating.seats, playerViews());
   const s5 = currentChart();
@@ -492,6 +519,17 @@ $<HTMLInputElement>('rng-speed').oninput = (e) => {
 };
 // Rebuild (scaled chart, highways, part meters, phone labels) when the slider is let go.
 $<HTMLInputElement>('rng-speed').onchange = () => void rebuild();
+$<HTMLInputElement>('chk-sfx').onchange = (e) => {
+  sfxSettings.enabled = (e.target as HTMLInputElement).checked;
+  saveSfx();
+  if (sfx) ensureSfx();
+  renderLobby();
+};
+$<HTMLInputElement>('rng-sfx').oninput = (e) => {
+  sfxSettings.volume = Number((e.target as HTMLInputElement).value) / 100;
+  saveSfx();
+  $('sfx-vol').textContent = `${Math.round(sfxSettings.volume * 100)}%`;
+};
 // Per-phone ring sensitivity (Normal ⇄ Quick): saved on this PC, applied at once via HGP assign.ring.
 $('phones').addEventListener('click', (e) => {
   const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-sens]');
@@ -584,6 +622,8 @@ async function start(mode: Mode): Promise<void> {
   session = null;
   backing?.stop();
   backing = null;
+  sfx?.hush();
+  director = null;
   playing = false;
   await rebuild(mode);
   if (!team) return;
@@ -608,6 +648,11 @@ async function start(mode: Mode): Promise<void> {
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
   players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
+  // Performance SFX: streaks, multiplier, misses, perfect phrases (phrases from the backing's
+  // chord timeline), applause at the end. Play mode only.
+  const fx = mode === 'play' && sfxSettings.enabled ? ensureSfx() : null;
+  director = fx ? new PerformanceDirector({ phrases: backing.phrases, noteTimes: t.chart.notes.map((n) => n.time) }) : null;
+  const bt = backing;
   teamHud.clearStats();
   s.onJudgement = (r, e) => {
     const ri = t.laneRinger[r.lane];
@@ -623,6 +668,16 @@ async function start(mode: Mode): Promise<void> {
       }
       teamHud.judgement(ri, r.grade, r.offset * 1000);
     } else p.strays++;
+    if (fx && director) {
+      const now = audio.ctx.currentTime;
+      if (e) fx.duck(now); // a bell rings (on the phone or here): SFX step back
+      const st = s.judge.state;
+      const cues = director.judge(isJudgement(r) ? r.noteId : undefined, isJudgement(r) ? r.grade : 'stray', st.streak, st.multiplier, performance.now());
+      if (cues.length) {
+        const beat = bt.timeline ? beatAt(bt.timeline, s.songTimeAt(performance.now()) * bt.speed) : undefined;
+        for (const cue of cues) fx.play(cue, now + SFX_DELAY, { chord: beat?.chord?.tones, beatSec: beat ? beat.dur / bt.speed : undefined });
+      }
+    }
     if (e) timing.rings.push({ p: ri, perf: round(e.hostTimeMs, 1), offMs: isJudgement(r) ? round(r.offset * 1000, 1) : null, latMs: round(e.receivedAtMs - e.hostTimeMs, 1) });
     teamHud.stats(ri, p);
   };
@@ -735,6 +790,7 @@ function summarize(xs: number[]): { n: number; mean: number; p50: number; p95abs
 function finish(r: SessionResult): void {
   playing = false;
   clearCues();
+  if (r.mode === 'play' && director && sfx) sfx.play(director.finish(r.accuracy, performance.now()), audio.ctx.currentTime + 0.3);
   if (r.mode === 'play' && team) {
     // Accuracy history for ⚖️ Balance (this page session only).
     players.forEach((p, i) => {
@@ -767,6 +823,7 @@ function finish(r: SessionResult): void {
     backing: backing
       ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
       : null,
+    sfx: { ...sfxSettings, cues: director?.counts() ?? null },
     players: playerRows,
     autoRingers: team?.autoRingers,
     hgp: { input, hostClock: link.sync.estimate, joinUrl: link.info.joinUrl },
@@ -807,6 +864,7 @@ function toLobby(): void {
   playing = false;
   backing?.stop();
   backing = null;
+  sfx?.hush();
   clearCues();
   hud.show(false);
   $('results').classList.add('hidden');

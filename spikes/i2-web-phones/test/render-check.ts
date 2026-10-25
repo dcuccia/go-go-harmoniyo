@@ -1,7 +1,11 @@
-// Offline render sanity check for the procedural backing (runs in a real browser: Node has no
-// Web Audio). Driven by scripts/backing-render-check.mjs; results land on window.__render.
+// Offline render sanity check for the procedural backing and the performance SFX (runs in a real
+// browser: Node has no Web Audio). Driven by scripts/backing-render-check.mjs; results land on
+// window.__render.
 import { renderBell } from '../../s4-web-host/src/audio/bell';
 import { BackingTrack, type Mixer } from '../src/backing/track';
+import type { SfxCue } from '../src/sfx/director';
+import { SfxSynth } from '../src/sfx/synth';
+import { scaleChart } from '../src/speed';
 import { findPart, partBellNotes, type S5Chart } from '../src/team-chart';
 
 const SR = 48000;
@@ -22,6 +26,20 @@ interface Row {
   firstDownbeatOnsetErrMs: number;
   silentBeforeStart: boolean;
   silentAfterStop: boolean;
+  /** Ending: ritardando tag + fermata, rendered from 2 s before the final downbeat. */
+  ending: { peak: number; tagNotes: number; lastDingOnsetErrMs: number; tailRmsDb: number; seconds: number };
+  /** Practice speed 0.75: first groove downbeat onset vs its stretched time. */
+  slowDownbeatOnsetErrMs: number;
+}
+
+interface SfxRow {
+  cue: string;
+  peak: number;
+  rmsDb: number;
+  /** RMS over the effect vs one bell (G5, gain 0.9) over the same span. */
+  vsBellDb: number;
+  onsetErrMs: number;
+  lengthSec: number;
 }
 
 const db = (x: number): number => Math.round(20 * Math.log10(Math.max(1e-9, x)) * 10) / 10;
@@ -138,6 +156,45 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
   await stopped;
   const tail = rms([sbuf.getChannelData(0)], Math.floor(0.75 * SR), 2 * SR);
 
+  // 6) Ending: the ritardando tag and fermata, from 2 s before the final downbeat.
+  const tl = track.timeline!;
+  const finalBar = tl.beats[tl.beats.length - 1].bar;
+  const down = tl.beats.find((b) => b.bar === finalBar && b.beat === 0)!.time;
+  const glocks = track.events.filter((e) => e.inst === 'glock' && e.time > down);
+  const lastDing = glocks[glocks.length - 1]?.time ?? down;
+  const from = down - 2;
+  const endSec = lastDing - from + 4;
+  const ectx = new OfflineAudioContext(1, Math.ceil(SR * endSec), SR);
+  const eTrack = new BackingTrack({ ctx: ectx, connect: (n) => (n.connect(ectx.destination), () => n.disconnect()) }, c, bellNotes, { enabled: true, volume: 0.5, countIn: false });
+  for (const e of eTrack.scheduled()) if (e.time >= from) e.play(e.time - from);
+  const ebuf = (await ectx.startRendering()).getChannelData(0);
+  const ding = lastDing - from;
+  const ending = {
+    peak: Math.round(peakIn(ebuf, 0, endSec) * 1000) / 1000,
+    tagNotes: glocks.length,
+    lastDingOnsetErrMs: NaN,
+    tailRmsDb: db(rms([ebuf], Math.floor((endSec - 0.5) * SR), Math.floor(endSec * SR))),
+    seconds: Math.round(endSec * 10) / 10,
+  };
+
+  // The closing ding alone (the fermata is sounding under it): onset on its scheduled sample.
+  const dctx = new OfflineAudioContext(1, Math.ceil(SR * (ding + 1)), SR);
+  const dTrack = new BackingTrack({ ctx: dctx, connect: (n) => (n.connect(dctx.destination), () => n.disconnect()) }, c, bellNotes, { enabled: true, volume: 0.5, countIn: false });
+  const dSched = dTrack.scheduled(); // count-in off: index i is events[i]
+  dTrack.events.forEach((e, i) => e.inst === 'glock' && e.time === lastDing && dSched[i].play(ding));
+  const dbuf = (await dctx.startRendering()).getChannelData(0);
+  ending.lastDingOnsetErrMs = errMs(onset(dbuf, ding, 0.05, ONSET), ding);
+
+  // 7) Practice speed 0.75: the stretched groove's first downbeat still lands on its sample.
+  const pctx = new OfflineAudioContext(1, Math.ceil(SR * 6), SR);
+  // The game stretches the chart itself (src/speed.ts); the backing is generated from that.
+  const slow = scaleChart(c, 0.75);
+  const pTrack = new BackingTrack({ ctx: pctx, connect: (n) => (n.connect(pctx.destination), () => n.disconnect()) }, slow, partBellNotes(slow, findPart(slow, 'easy', 1) ?? slow.parts[0]), { enabled: true, volume: 0.5, countIn: false });
+  for (const e of pTrack.scheduled()) if (pTrack.leadIn + e.time < 6) e.play(pTrack.leadIn + e.time);
+  const pbuf = (await pctx.startRendering()).getChannelData(0);
+  const pFirst = pTrack.leadIn + pTrack.events[0].time;
+  const slowDownbeatOnsetErrMs = errMs(onset(pbuf, pFirst, 0.1, ONSET), pFirst);
+
   return {
     song: id,
     style: track.style?.id ?? null,
@@ -154,14 +211,82 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
     firstDownbeatOnsetErrMs,
     silentBeforeStart: silentBeforeCountIn && silentBeforeGroove,
     silentAfterStop: tail < 1e-4,
+    ending,
+    slowDownbeatOnsetErrMs,
   };
+}
+
+/** One bell at autoplay gain, the yardstick for SFX levels. */
+async function bellRef(seconds: number): Promise<Float32Array> {
+  const ctx = new OfflineAudioContext(1, Math.ceil(SR * seconds), SR);
+  const data = renderBell(SR, 440 * Math.pow(2, (79 - 69) / 12));
+  const b = ctx.createBuffer(1, data.length, SR);
+  b.copyToChannel(data, 0);
+  const src = ctx.createBufferSource();
+  src.buffer = b;
+  const g = ctx.createGain();
+  g.gain.value = 0.9;
+  src.connect(g).connect(ctx.destination);
+  src.start(0);
+  return (await ctx.startRendering()).getChannelData(0);
+}
+
+const SFX_AT = 0.5;
+
+async function renderSfx(cue: SfxCue, label: string, bell: Float32Array, duckAt?: number): Promise<SfxRow & { buf: Float32Array }> {
+  const ctx = new OfflineAudioContext(1, SR * 6, SR);
+  const s = new SfxSynth(ctx);
+  s.output.connect(ctx.destination);
+  s.setVolume(0.5);
+  if (duckAt !== undefined) s.duck(duckAt);
+  const len = s.play(cue, SFX_AT, { chord: [7, 11, 2], beatSec: 0.5 });
+  const buf = (await ctx.startRendering()).getChannelData(0);
+  const a = Math.floor(SFX_AT * SR);
+  const b = Math.floor((SFX_AT + len) * SR);
+  const r = rms([buf], a, b);
+  const br = rms([bell], 0, b - a);
+  return {
+    cue: label,
+    peak: Math.round(peakIn(buf, 0, 6) * 1000) / 1000,
+    rmsDb: db(r),
+    vsBellDb: db(r / br),
+    onsetErrMs: errMs(onset(buf, SFX_AT, 0.05, ONSET), SFX_AT),
+    lengthSec: Math.round(len * 100) / 100,
+    buf,
+  };
+}
+
+async function sfxChecks(): Promise<{ rows: SfxRow[]; duckDb: number; silentBefore: boolean }> {
+  const bell = await bellRef(6);
+  const cues: [SfxCue, string][] = [
+    [{ kind: 'streak', value: 10 }, 'streak 10 (sparkle)'],
+    [{ kind: 'streak', value: 50 }, 'streak 50 (sparkle + chime)'],
+    [{ kind: 'multiplier', value: 2 }, 'multiplier ×2 (whoosh)'],
+    [{ kind: 'miss', value: 0 }, 'miss (soft boop)'],
+    [{ kind: 'phrase', value: 8, phrase: 0 }, 'perfect phrase (fanfare, G major)'],
+    [{ kind: 'applause', value: 0.3 }, 'applause, 30 % accuracy'],
+    [{ kind: 'applause', value: 0.95 }, 'applause + cheers, 95 %'],
+  ];
+  const rows: SfxRow[] = [];
+  let silentBefore = true;
+  for (const [cue, label] of cues) {
+    const { buf, ...row } = await renderSfx(cue, label, bell);
+    silentBefore &&= peakIn(buf, 0, SFX_AT - 0.001) < ONSET;
+    rows.push(row);
+  }
+  // Ducking: the same sparkle with a bell ringing 80 ms before it (as in play) vs alone.
+  const plain = await renderSfx({ kind: 'streak', value: 10 }, '', bell);
+  const ducked = await renderSfx({ kind: 'streak', value: 10 }, '', bell, SFX_AT - 0.08);
+  const win = (x: Float32Array) => rms([x], Math.floor(SFX_AT * SR), Math.floor((SFX_AT + 0.12) * SR));
+  return { rows, duckDb: db(win(ducked.buf) / win(plain.buf)), silentBefore };
 }
 
 async function main(): Promise<void> {
   const songs = (new URLSearchParams(location.search).get('songs') ?? 'jingle-bells,joy-to-the-world,we-wish-you-a-merry-christmas,silent-night').split(',');
   const rows: Row[] = [];
   for (const s of songs) rows.push(await renderOne(s, 20));
-  (window as unknown as { __render: unknown }).__render = { sampleRate: SR, userAgent: navigator.userAgent, rows };
+  const sfx = await sfxChecks();
+  (window as unknown as { __render: unknown }).__render = { sampleRate: SR, userAgent: navigator.userAgent, rows, sfx };
   document.title = 'RENDER_DONE';
 }
 
