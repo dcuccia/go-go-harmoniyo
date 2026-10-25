@@ -249,7 +249,7 @@
           "index": 0,
           "label": "D4–A4",
           "bells": ["D4","E4","F#4","G4","A4"],
-          "stats": {"strikes":32,"bells":5,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":13,"violations":0}
+          "stats": {"strikes":36,"bells":5,"strikesPerMinute":33.75,"maxSimultaneous":1,"minGapSec":0.25,"swaps":15,"violations":0}
         },
         {
           "index": 1,
@@ -261,18 +261,18 @@
           "index": 2,
           "label": "C5–E5",
           "bells": ["C5","D5","E5"],
-          "stats": {"strikes":32,"bells":3,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
+          "stats": {"strikes":28,"bells":3,"strikesPerMinute":26.25,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
         }
       ],
       "notes": [
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":1,"role":"melody"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":0,"role":"melody"},
         {"tick":1440,"time":1.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
         {"tick":1920,"time":2,"dur":1440,"durSec":1.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":1,"role":"melody"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":0,"role":"melody"},
         {"tick":5280,"time":5.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
@@ -287,12 +287,12 @@
         {"tick":12480,"time":13,"dur":480,"durSec":0.5,"bell":"C5","ringer":2,"role":"melody"},
         {"tick":12960,"time":13.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":0,"role":"melody"},
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":1,"role":"melody"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":1,"role":"melody"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":0,"role":"melody"},
         {"tick":16800,"time":17.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":1,"role":"melody"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":0,"role":"melody"},
         {"tick":20640,"time":21.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
@@ -368,7 +368,7 @@
         "distinctBells": 9,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 0,
-        "loadBalance": 1.031,
+        "loadBalance": 1.286,
         "maxBellsPerRinger": 5,
         "idleRingers": 0
       }
@@ -388,18 +388,18 @@
           "index": 1,
           "label": "D3–A4",
           "bells": ["D3","D4","E4","F#4","G4","A4"],
-          "stats": {"strikes":42,"bells":6,"strikesPerMinute":39.375,"maxSimultaneous":2,"minGapSec":0.25,"swaps":21,"violations":0}
+          "stats": {"strikes":46,"bells":6,"strikesPerMinute":43.125,"maxSimultaneous":2,"minGapSec":0.25,"swaps":23,"violations":0}
         },
         {
           "index": 2,
           "label": "B4–E5",
           "bells": ["B4","C5","D5","E5"],
-          "stats": {"strikes":65,"bells":4,"strikesPerMinute":60.938,"maxSimultaneous":1,"minGapSec":0.25,"swaps":16,"violations":1}
+          "stats": {"strikes":61,"bells":4,"strikesPerMinute":57.188,"maxSimultaneous":1,"minGapSec":0.25,"swaps":13,"violations":1}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
@@ -410,7 +410,7 @@
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
@@ -437,7 +437,7 @@
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
@@ -446,7 +446,7 @@
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
@@ -565,7 +565,7 @@
         "distinctBells": 13,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 1,
-        "loadBalance": 1.548,
+        "loadBalance": 1.326,
         "maxBellsPerRinger": 6,
         "idleRingers": 0
       }
@@ -591,14 +591,13 @@
           "index": 2,
           "label": "G4–E5",
           "bells": ["G4","A4","B4","C5","D5","E5"],
-          "stats": {"strikes":87,"bells":6,"strikesPerMinute":81.563,"maxSimultaneous":1,"minGapSec":0.25,"swaps":45,"violations":3}
+          "stats": {"strikes":83,"bells":6,"strikesPerMinute":77.813,"maxSimultaneous":1,"minGapSec":0.25,"swaps":40,"violations":3}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -614,8 +613,7 @@
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -660,8 +658,7 @@
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -675,8 +672,7 @@
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":2,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -874,7 +870,7 @@
         {"tick":60480,"time":63,"dur":960,"durSec":1,"bell":"D4","ringer":1,"role":"inner"}
       ],
       "metrics": {
-        "strikes": 277,
+        "strikes": 273,
         "distinctBells": 18,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 3,
@@ -890,15 +886,15 @@
       "ringers": [
         {
           "index": 0,
-          "label": "D4–G4",
-          "bells": ["D4","E4","F#4","G4"],
-          "stats": {"strikes":18,"bells":4,"strikesPerMinute":16.875,"maxSimultaneous":1,"minGapSec":0.25,"swaps":5,"violations":0}
+          "label": "D4–F4",
+          "bells": ["D4","E4","F#4"],
+          "stats": {"strikes":14,"bells":3,"strikesPerMinute":13.125,"maxSimultaneous":1,"minGapSec":0.25,"swaps":3,"violations":0}
         },
         {
           "index": 1,
-          "label": "A4",
-          "bells": ["A4"],
-          "stats": {"strikes":14,"bells":1,"strikesPerMinute":13.125,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
+          "label": "G4–A4",
+          "bells": ["G4","A4"],
+          "stats": {"strikes":22,"bells":2,"strikesPerMinute":20.625,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
         },
         {
           "index": 2,
@@ -910,21 +906,21 @@
           "index": 3,
           "label": "C5–E5",
           "bells": ["C5","D5","E5"],
-          "stats": {"strikes":32,"bells":3,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
+          "stats": {"strikes":28,"bells":3,"strikesPerMinute":26.25,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
         }
       ],
       "notes": [
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":1440,"time":1.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":1440,"time":1.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":1920,"time":2,"dur":1440,"durSec":1.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":5280,"time":5.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":5280,"time":5.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":5760,"time":6,"dur":1920,"durSec":2,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":7680,"time":8,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":8160,"time":8.5,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -936,15 +932,15 @@
         {"tick":12480,"time":13,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":12960,"time":13.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":16800,"time":17.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":16800,"time":17.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":20640,"time":21.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":20640,"time":21.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":21120,"time":22,"dur":1440,"durSec":1.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":22560,"time":23.5,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":23040,"time":24,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
@@ -959,7 +955,7 @@
         {"tick":27360,"time":28.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
         {"tick":27840,"time":29,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":28320,"time":29.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":28800,"time":30,"dur":1920,"durSec":2,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":28800,"time":30,"dur":1920,"durSec":2,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":30720,"time":32,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":31200,"time":32.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":31680,"time":33,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
@@ -968,7 +964,7 @@
         {"tick":33600,"time":35,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":34560,"time":36,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":35040,"time":36.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
-        {"tick":35520,"time":37,"dur":720,"durSec":0.75,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":35520,"time":37,"dur":720,"durSec":0.75,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":36240,"time":37.75,"dur":240,"durSec":0.25,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":36480,"time":38,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":38400,"time":40,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -994,7 +990,7 @@
         {"tick":48960,"time":51,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":49920,"time":52,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":50400,"time":52.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
-        {"tick":50880,"time":53,"dur":720,"durSec":0.75,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":50880,"time":53,"dur":720,"durSec":0.75,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":51600,"time":53.75,"dur":240,"durSec":0.25,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":51840,"time":54,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":53760,"time":56,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -1010,7 +1006,7 @@
         {"tick":58080,"time":60.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
         {"tick":58560,"time":61,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":59040,"time":61.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":59520,"time":62,"dur":1920,"durSec":2,"bell":"G4","ringer":0,"role":"melody"}
+        {"tick":59520,"time":62,"dur":1920,"durSec":2,"bell":"G4","ringer":1,"role":"melody"}
       ],
       "metrics": {
         "strikes": 97,
@@ -1018,7 +1014,7 @@
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 0,
         "loadBalance": 2.357,
-        "maxBellsPerRinger": 4,
+        "maxBellsPerRinger": 3,
         "idleRingers": 0
       }
     },
@@ -1037,7 +1033,7 @@
           "index": 1,
           "label": "C3–G4",
           "bells": ["C3","D3","D4","E4","F#4","G4"],
-          "stats": {"strikes":38,"bells":6,"strikesPerMinute":35.625,"maxSimultaneous":2,"minGapSec":0.25,"swaps":16,"violations":0}
+          "stats": {"strikes":42,"bells":6,"strikesPerMinute":39.375,"maxSimultaneous":2,"minGapSec":0.25,"swaps":16,"violations":0}
         },
         {
           "index": 2,
@@ -1049,12 +1045,12 @@
           "index": 3,
           "label": "C5–E5",
           "bells": ["C5","D5","E5"],
-          "stats": {"strikes":32,"bells":3,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
+          "stats": {"strikes":28,"bells":3,"strikesPerMinute":26.25,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1065,7 +1061,7 @@
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1092,7 +1088,7 @@
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1101,7 +1097,7 @@
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1220,7 +1216,7 @@
         "distinctBells": 13,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 0,
-        "loadBalance": 1.469,
+        "loadBalance": 1.679,
         "maxBellsPerRinger": 6,
         "idleRingers": 0
       }
@@ -1252,14 +1248,13 @@
           "index": 3,
           "label": "A4–E5",
           "bells": ["A4","B4","C5","D5","E5"],
-          "stats": {"strikes":79,"bells":5,"strikesPerMinute":74.063,"maxSimultaneous":1,"minGapSec":0.25,"swaps":37,"violations":3}
+          "stats": {"strikes":75,"bells":5,"strikesPerMinute":70.313,"maxSimultaneous":1,"minGapSec":0.25,"swaps":28,"violations":3}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -1275,8 +1270,7 @@
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -1321,8 +1315,7 @@
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -1336,8 +1329,7 @@
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":3,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -1535,11 +1527,11 @@
         {"tick":60480,"time":63,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"}
       ],
       "metrics": {
-        "strikes": 277,
+        "strikes": 273,
         "distinctBells": 18,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 3,
-        "loadBalance": 1.234,
+        "loadBalance": 1.172,
         "maxBellsPerRinger": 5,
         "idleRingers": 0
       }
@@ -1551,15 +1543,15 @@
       "ringers": [
         {
           "index": 0,
-          "label": "D4–G4",
-          "bells": ["D4","E4","F#4","G4"],
-          "stats": {"strikes":18,"bells":4,"strikesPerMinute":16.875,"maxSimultaneous":1,"minGapSec":0.25,"swaps":5,"violations":0}
+          "label": "D4–F4",
+          "bells": ["D4","E4","F#4"],
+          "stats": {"strikes":14,"bells":3,"strikesPerMinute":13.125,"maxSimultaneous":1,"minGapSec":0.25,"swaps":3,"violations":0}
         },
         {
           "index": 1,
-          "label": "A4",
-          "bells": ["A4"],
-          "stats": {"strikes":14,"bells":1,"strikesPerMinute":13.125,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
+          "label": "G4–A4",
+          "bells": ["G4","A4"],
+          "stats": {"strikes":22,"bells":2,"strikesPerMinute":20.625,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
         },
         {
           "index": 2,
@@ -1577,21 +1569,21 @@
           "index": 4,
           "label": "D5–E5",
           "bells": ["D5","E5"],
-          "stats": {"strikes":17,"bells":2,"strikesPerMinute":15.938,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
+          "stats": {"strikes":13,"bells":2,"strikesPerMinute":12.188,"maxSimultaneous":1,"minGapSec":0.5,"swaps":0,"violations":0}
         }
       ],
       "notes": [
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":1440,"time":1.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":1440,"time":1.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":1920,"time":2,"dur":1440,"durSec":1.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":5280,"time":5.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":5280,"time":5.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":5760,"time":6,"dur":1920,"durSec":2,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":7680,"time":8,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":8160,"time":8.5,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -1603,15 +1595,15 @@
         {"tick":12480,"time":13,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":12960,"time":13.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":16800,"time":17.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":16800,"time":17.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":0,"role":"melody"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":0,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":20640,"time":21.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":20640,"time":21.5,"dur":480,"durSec":0.5,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":21120,"time":22,"dur":1440,"durSec":1.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":22560,"time":23.5,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
         {"tick":23040,"time":24,"dur":480,"durSec":0.5,"bell":"E4","ringer":0,"role":"melody"},
@@ -1626,7 +1618,7 @@
         {"tick":27360,"time":28.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
         {"tick":27840,"time":29,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":28320,"time":29.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":28800,"time":30,"dur":1920,"durSec":2,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":28800,"time":30,"dur":1920,"durSec":2,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":30720,"time":32,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":31200,"time":32.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":31680,"time":33,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
@@ -1635,7 +1627,7 @@
         {"tick":33600,"time":35,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":34560,"time":36,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":35040,"time":36.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
-        {"tick":35520,"time":37,"dur":720,"durSec":0.75,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":35520,"time":37,"dur":720,"durSec":0.75,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":36240,"time":37.75,"dur":240,"durSec":0.25,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":36480,"time":38,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":38400,"time":40,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -1661,7 +1653,7 @@
         {"tick":48960,"time":51,"dur":960,"durSec":1,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":49920,"time":52,"dur":480,"durSec":0.5,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":50400,"time":52.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
-        {"tick":50880,"time":53,"dur":720,"durSec":0.75,"bell":"G4","ringer":0,"role":"melody"},
+        {"tick":50880,"time":53,"dur":720,"durSec":0.75,"bell":"G4","ringer":1,"role":"melody"},
         {"tick":51600,"time":53.75,"dur":240,"durSec":0.25,"bell":"A4","ringer":1,"role":"melody"},
         {"tick":51840,"time":54,"dur":1920,"durSec":2,"bell":"B4","ringer":2,"role":"melody"},
         {"tick":53760,"time":56,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
@@ -1677,15 +1669,15 @@
         {"tick":58080,"time":60.5,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
         {"tick":58560,"time":61,"dur":480,"durSec":0.5,"bell":"C5","ringer":3,"role":"melody"},
         {"tick":59040,"time":61.5,"dur":480,"durSec":0.5,"bell":"A4","ringer":1,"role":"melody"},
-        {"tick":59520,"time":62,"dur":1920,"durSec":2,"bell":"G4","ringer":0,"role":"melody"}
+        {"tick":59520,"time":62,"dur":1920,"durSec":2,"bell":"G4","ringer":1,"role":"melody"}
       ],
       "metrics": {
         "strikes": 97,
         "distinctBells": 9,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 0,
-        "loadBalance": 2.357,
-        "maxBellsPerRinger": 4,
+        "loadBalance": 2.538,
+        "maxBellsPerRinger": 3,
         "idleRingers": 0
       }
     },
@@ -1704,7 +1696,7 @@
           "index": 1,
           "label": "A2–D4",
           "bells": ["A2","C3","D3","D4"],
-          "stats": {"strikes":28,"bells":4,"strikesPerMinute":26.25,"maxSimultaneous":1,"minGapSec":0.25,"swaps":8,"violations":0}
+          "stats": {"strikes":32,"bells":4,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":8,"violations":0}
         },
         {
           "index": 2,
@@ -1722,12 +1714,12 @@
           "index": 4,
           "label": "C5–E5",
           "bells": ["C5","D5","E5"],
-          "stats": {"strikes":32,"bells":3,"strikesPerMinute":30,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
+          "stats": {"strikes":28,"bells":3,"strikesPerMinute":26.25,"maxSimultaneous":1,"minGapSec":0.25,"swaps":2,"violations":0}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1738,7 +1730,7 @@
         {"tick":3360,"time":3.5,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1765,7 +1757,7 @@
         {"tick":13440,"time":14,"dur":1920,"durSec":2,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1774,7 +1766,7 @@
         {"tick":17280,"time":18,"dur":1920,"durSec":2,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":1,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":3,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":480,"durSec":0.5,"bell":"A4","ringer":2,"role":"melody"},
@@ -1931,14 +1923,13 @@
           "index": 4,
           "label": "B4–E5",
           "bells": ["B4","C5","D5","E5"],
-          "stats": {"strikes":65,"bells":4,"strikesPerMinute":60.938,"maxSimultaneous":1,"minGapSec":0.25,"swaps":16,"violations":1}
+          "stats": {"strikes":61,"bells":4,"strikesPerMinute":57.188,"maxSimultaneous":1,"minGapSec":0.25,"swaps":13,"violations":1}
         }
       ],
       "notes": [
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":0,"time":0,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":0,"time":0,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":480,"time":0.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":4,"role":"melody"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":960,"time":1,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -1954,8 +1945,7 @@
         {"tick":3600,"time":3.75,"dur":240,"durSec":0.25,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":3840,"time":4,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":3840,"time":4,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":4320,"time":4.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":4,"role":"melody"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":4800,"time":5,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -2000,8 +1990,7 @@
         {"tick":14400,"time":15,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":15360,"time":16,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":15360,"time":16,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":15840,"time":16.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":4,"role":"melody"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":16320,"time":17,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -2015,8 +2004,7 @@
         {"tick":18240,"time":19,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
-        {"tick":19200,"time":20,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"},
-        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D5","ringer":4,"role":"melody"},
+        {"tick":19200,"time":20,"dur":480,"durSec":0.5,"bell":"D4","ringer":2,"role":"melody"},
         {"tick":19680,"time":20.5,"dur":480,"durSec":0.5,"bell":"B4","ringer":4,"role":"melody"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"G2","ringer":0,"role":"bass"},
         {"tick":20160,"time":21,"dur":960,"durSec":1,"bell":"B3","ringer":1,"role":"inner"},
@@ -2214,11 +2202,11 @@
         {"tick":60480,"time":63,"dur":960,"durSec":1,"bell":"D4","ringer":2,"role":"inner"}
       ],
       "metrics": {
-        "strikes": 277,
+        "strikes": 273,
         "distinctBells": 18,
         "droppedForPlayability": {"total":0,"bass":0,"inner":0},
         "remainingViolations": 1,
-        "loadBalance": 1.548,
+        "loadBalance": 1.524,
         "maxBellsPerRinger": 4,
         "idleRingers": 0
       }

@@ -50,7 +50,7 @@ Phones join by QR code with no install.
 - **Sound.** Move from the synth to **real recorded handbell samples** with recorded
   per-file licenses (E05).
 - **Content.** Public-domain carols plus **MIDI import**, via the S5 pipeline and chart JSON
-  ([ADR-0007](0007-chart-format.md), Proposed).
+  ([ADR-0007](0007-chart-format.md), Accepted 2026-10-25).
 - **Peripherals.** Phones are the zero-cost default. **Digital handbells are a premium
   peripheral.** For bells, prefer an **ESP-NOW → USB gateway dongle**
   ([connectivity research](../research/connectivity-and-deployment.md)). For phones, use WSS

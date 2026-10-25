@@ -14,7 +14,8 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | S3 | YARG handbell mode | E03, E10 | **Done** — Phase A + B ([report](S3-report.md#phase-b-results)); fork [`dcuccia/YARG@handbell-spike`](https://github.com/dcuccia/YARG/tree/handbell-spike), snapshot tag `handbell-spike-2026-10-23` | [`spike/s3-yarg-desk-study`](https://github.com/dcuccia/go-go-harmoniyo/tree/spike/s3-yarg-desk-study), [`spike/s3-yarg-phase-b`](https://github.com/dcuccia/go-go-harmoniyo/tree/spike/s3-yarg-phase-b) | Optional: play-test on the TV with `-hgp -hgp-keyboard` — see [next steps](S3-report.md#phase-b-next-steps-owner-at-the-pc) |
 | S4 | Web-native host prototype | E03, E05, E07 | **Done** — [report](S4-report.md) | [`spike/s4-web-host`](https://github.com/dcuccia/go-go-harmoniyo/tree/spike/s4-web-host) | Look at it on the TV; run Calibrate there; enable Pages if wanted |
 | S5 | Carol chart pipeline | E04, E06 | **Done** — [report](S5-report.md) | [`spike/s5-chart-pipeline`](https://github.com/dcuccia/go-go-harmoniyo/tree/spike/s5-chart-pipeline) | Proofread the 5 self-encoded carols; review [ADR-0007](../decisions/0007-chart-format.md) |
-| S6 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset | E03 | Not run (optional; not needed after [ADR-0004](../decisions/0004-host-strategy.md)) | — | — |
+| S6 | AI-assisted arranging on the home AI node (qwen3:8b, Anticipatory Music Transformer) | E04, E05 | **Done** — [report](S6-report.md): qwen3:8b arranging is a "no"; AMT license-clean and containerized, GPU run pending. Ran on a local stand-in (no node token) | — | Blind listen done and [ADR-0011](../decisions/0011-ai-assisted-arranging.md) Accepted (2026-10-25). Still: set node token + CA and re-run; GPU AMT run; resemblance review before promoting any candidate |
+| S7 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset (was S6 until 2026-10-24) | E03 | Not run (optional; not needed after [ADR-0004](../decisions/0004-host-strategy.md)) | — | — |
 | I1 | Integration: phones → YARG fork | E01, E03 | **Done** — sidecar + fork bridge; simulated phones verified against the built YARG ([report](I1-yarg-phones.md)) | [`integration/i1-yarg-phones`](https://github.com/dcuccia/go-go-harmoniyo/tree/integration/i1-yarg-phones) | Play one carol with real phones — [owner runbook](I1-yarg-phones.md#owner-runbook-phones--yarg) |
 | I2 | Integration: phones → web host (S1 + S4 + S5) | E02, E03, E06 | **Done** — verified with simulated phones ([report](I2-web-phones.md)); the alpha path per ADR-0004 | [`integration/i2-web-phones`](https://github.com/dcuccia/go-go-harmoniyo/tree/integration/i2-web-phones) | Play it on the TV with real phones: [runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes) |
 
@@ -143,7 +144,29 @@ would require.
 
 ---
 
-## S6 — Other .NET hosts (optional)
+## S6 — AI-assisted arranging
+
+**Question:** Can the household AI compute node (cuccia-infra contract v0) help arrange carols
+for handbells — chord symbols, descants, intros/endings, accompaniment — well enough and
+license-cleanly enough to be worth a product feature?
+
+**Do:** under `spikes/s6-ai-arranging/`: a small TS client (health, `/v1` chat with retries,
+job submit/poll) with offline mocks; qwen3:8b experiments with prompt templates in the repo and
+outputs validated by the S5 ABC parser plus music-theory checks (key, range, beats per bar,
+playability via S5 assignment): (a) chord inference/proofreading for the 3 Mutopia carols,
+(b) a descant and a 2–4 bar intro + ending for 2 carols; measure validity, retries, latency and a
+consonance score; keep the best as candidate charts (never replacing originals; CC0 AI assets
+with provenance, review pending). Then the Anticipatory Music Transformer: verify code/weights
+licenses (stop if incompatible with ADR-0008), Dockerfile with weights baked in, CLI
+`/inputs/melody.mid` → `/outputs/accompaniment.mid`, CPU smoke test, draft the workload
+manifest (owner publishes). Render procedural vs LLM vs AMT previews for a blind listen.
+
+**Report must answer:** what worked; quality (validity, consonance, listening); latency;
+licensing; infra follow-ups and owner actions.
+
+---
+
+## S7 — Other .NET hosts (optional; numbered S6 until 2026-10-24)
 
 **Question:** Do cross-platform .NET UI stacks give a better path than Unity or pure web?
 

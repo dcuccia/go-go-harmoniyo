@@ -42,7 +42,7 @@ The boundaries between components, and to anything not written in TypeScript, ar
    `hgp0` bridge (I1) and future ESP32-S3 firmware are other-language implementations.
 2. **Chart JSON**: the S5 schema
    ([`chart.schema.json`](../../spikes/s5-chart-pipeline/schema/chart.schema.json)). Format
-   details stay in [ADR-0007](0007-chart-format.md) (Proposed).
+   details stay in [ADR-0007](0007-chart-format.md) (Accepted 2026-10-25).
 
 Each contract ships **golden test vectors**: checked-in input files and expected outputs that
 every implementation must pass in CI.

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-24",
+  "image": "go-go-harmoniyo-amt:cpu-small (local build, TORCH_INDEX=cpu, music-small-800k)",
+  "image_id": "sha256:978a2c1a243f7d5e2d6e9915757a9ed455c6910d87631d95163ddd96189fa4ef",
+  "image_size_bytes": 2576475041,
+  "docker_run": "docker run --rm --network none --read-only --tmpfs /tmp:size=2g --cap-drop ALL --security-opt no-new-privileges --memory 8g --cpus 4 --pids-limit 512 -v <in>:/inputs:ro -v <out>:/outputs go-go-harmoniyo-amt:cpu-small",
+  "host": "Windows 11 laptop, Docker Desktop 29.9.2 (WSL2), 22 logical CPUs, no GPU passthrough",
+  "input": "results/amt/the-holly-and-the-ivy/melody.mid, args {\"seed\":7,\"end_seconds\":8}",
+  "outputs": [
+    "accompaniment.mid (858 B)",
+    "combined.mid (1323 B)",
+    "report.json"
+  ],
+  "wall_seconds": 1107,
+  "note": "First attempt (torch used all 22 visible cores under a 4-CPU quota) was stopped after 75 min; amt_accompany.py now sizes torch threads from cgroup cpu.max.",
+  "report": {
+    "model_dir": "/opt/models/music-small-800k",
+    "device": "cpu",
+    "threads": 4,
+    "torch": "2.6.0+cpu",
+    "cuda_device": null,
+    "max_vram_mib": null,
+    "args": {
+      "top_p": 0.95,
+      "seed": 7,
+      "end_seconds": 8,
+      "history_seconds": 0,
+      "drop_drums": true,
+      "keep_programs": null,
+      "device": null
+    },
+    "melody_seconds": 23.0,
+    "generated_until_seconds": 8.0,
+    "melody_events": 59,
+    "accompaniment_events": 85,
+    "accompaniment_instruments": {
+      "32": 1,
+      "4": 19,
+      "24": 17,
+      "48": 3,
+      "118": 2,
+      "42": 6,
+      "38": 2,
+      "0": 4,
+      "88": 4,
+      "61": 3,
+      "71": 1,
+      "25": 15,
+      "57": 4,
+      "75": 4
+    },
+    "seconds": {
+      "load": 23.79,
+      "generate": 1071.02,
+      "total": 1094.97
+    },
+    "time_resolution": 100
+  }
+}

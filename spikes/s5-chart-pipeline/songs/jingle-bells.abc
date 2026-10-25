@@ -5,15 +5,16 @@ O:United States
 S:Public-domain melody (published 1857); encoded from the traditional tune, not copied from any edition
 Z:Encoded for handbell-hero by GitHub Copilot (agent), 2026-10-22. Chord symbols added by the encoder.
 N:Verse 1 + refrain. Lead sheet: melody + chord symbols; the pipeline realizes bass and harmony.
+N:2026-10-25 (#30): verse phrases 'Dashing through the snow' / 'one-horse open sleigh' / 'Bells on bob-tail ring' / 'making spirits bright' start on the low D (D4) and rise to B4; they were an octave too high (D5).
 %%hh-id jingle-bells
 %%hh-license CC0-1.0
 L:1/4
 M:4/4
 Q:1/4=120
 K:G
-"G"d B A G | "G"D3 D/D/ | "G"d B A G | "C"E4 |
+"G"D B A G | "G"D3 D/D/ | "G"D B A G | "C"E4 |
 "Am"E c B A | "D"F4 | "D7"d d c A | "G"B4 |
-"G"d B A G | "G"D4 | "G"d B A G | "C"E3 E |
+"G"D B A G | "G"D4 | "G"D B A G | "C"E3 E |
 "C"E c B A | "G"d d d d | "D7"e d c A | "G"G4 |
 "G"B B B2 | B B B2 | B d G3/2 A/ | B4 |
 "C"c c c3/2 c/ | "G"c B B B/B/ | "A7"B A A B | "D7"A2 d2 |

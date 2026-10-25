@@ -7,9 +7,9 @@ Dates are targets, not promises. Plan written 2026-10-22; status updated 2026-10
 | # | Milestone | Status |
 |---|---|---|
 | M0 | Planning | **Done** |
-| M1 | Spikes | **Done.** S1–S5 plus integrations I1 (phones → YARG fork) and I2 (phones → web host) are merged; S6 not run. Code is preserved at tags `spike/*` and `integration/*` ([spikes index](spikes/README.md)) |
-| M2 | Decision gate | **Done.** Accepted: [ADR-0004](decisions/0004-host-strategy.md) (web-first host on an engine we own; YARG fork as a community/experimental track) and [ADR-0005](decisions/0005-shared-core-language.md) (TypeScript core; HGP + chart JSON as language-neutral contracts with golden test vectors). [ADR-0006](decisions/0006-phone-host-transport.md) (transport) and [ADR-0007](decisions/0007-chart-format.md) (chart format) are still Proposed. The alpha follows both as proposed, and the owner's sign-off is tracked in [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32) |
-| M3 | Alpha (Nov 15) | **In progress. Plan: [v0.1-alpha plan](plan/v0.1-alpha.md)** (scope, exit criteria, test plan, release checklist), milestone [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/milestone/1). Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)), shipped from `spikes/` and graduated after the tag per [ADR-0010](decisions/0010-product-layout.md) (Proposed). Machine setup: [tools/setup](../tools/setup/README.md) |
+| M1 | Spikes | **Done.** S1–S5 plus integrations I1 (phones → YARG fork) and I2 (phones → web host) are merged; S7 (other .NET hosts, formerly S6) not run. S6 (AI-assisted arranging) ran after M1 ([report](spikes/S6-report.md)). Code is preserved at tags `spike/*` and `integration/*` ([spikes index](spikes/README.md)) |
+| M2 | Decision gate | **Done.** Accepted: [ADR-0004](decisions/0004-host-strategy.md) (web-first host on an engine we own; YARG fork as a community/experimental track) and [ADR-0005](decisions/0005-shared-core-language.md) (TypeScript core; HGP + chart JSON as language-neutral contracts with golden test vectors). [ADR-0006](decisions/0006-phone-host-transport.md) (transport) and [ADR-0007](decisions/0007-chart-format.md) (chart format) were Accepted on 2026-10-25 ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)), as the alpha already follows them |
+| M3 | Alpha (Nov 15) | **In progress. Plan: [v0.1-alpha plan](plan/v0.1-alpha.md)** (scope, exit criteria, test plan, release checklist), milestone [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/milestone/1). Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)), shipped from `spikes/` and graduated after the tag per [ADR-0010](decisions/0010-product-layout.md) (Accepted 2026-10-25, option A). Owner decisions of 2026-10-25: [plan §8](plan/v0.1-alpha.md#8-owner-decisions). Machine setup: [tools/setup](../tools/setup/README.md) |
 | M4–M6 | Holiday (Dec 18) | Planned in the same [plan](plan/v0.1-alpha.md#holiday-v020-dec-18--in), milestone [v0.2 holiday](https://github.com/dcuccia/go-go-harmoniyo/milestone/2) |
 
 The former top alpha bug, [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10) (real
@@ -37,7 +37,7 @@ lane; the room rings it together and the game celebrates streaks and team accura
 | # | Milestone | Target | Exit criteria |
 |---|---|---|---|
 | M0 | Planning | Oct 22–25 | Repo, epics, spike briefs, ADR-0001..0003 merged |
-| M1 | Spikes | Oct 22 – Oct 30 | S1–S5 reports merged (S6 optional) |
+| M1 | Spikes | Oct 22 – Oct 30 | S1–S5 reports merged (S7, formerly S6, optional) |
 | M2 | **Decision gate** | Oct 31 – Nov 1 | Owner accepts ADRs for: host engine, shared-core language, controller transport, chart format |
 | M3 | **Alpha release** | Nov 15 | Playable end-to-end on the owner's PC + Pixel phones: ≥2 carols, 2+ phones as bells, per-ringer lanes, timing judgement, team score. Tagged `v0.1.0-alpha` |
 | M4 | Holiday MVP build + beta | Nov 16 – Dec 6 | ≥5 carols, 3–5 phones incl. iPhone, difficulty levels, polish/juice, holiday theme |
@@ -88,11 +88,11 @@ Out: online play, accounts, custom hardware, microphone scoring, licensed music.
 
 | Decision | Evidence from | Outcome |
 |---|---|---|
-| Host engine: YARG fork vs web-native vs other | S2, S3, S4, I1, I2 (S6 not run) | [ADR-0004](decisions/0004-host-strategy.md) **Accepted**: web-first; YARG fork as a community track |
+| Host engine: YARG fork vs web-native vs other | S2, S3, S4, I1, I2 (S7 not run) | [ADR-0004](decisions/0004-host-strategy.md) **Accepted**: web-first; YARG fork as a community track |
 | Shared-core language (C# vs TypeScript) | S2, S4 | [ADR-0005](decisions/0005-shared-core-language.md) **Accepted**: TypeScript + language-neutral contracts |
-| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) Proposed; the alpha follows it ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
-| Chart / arrangement format | S5, S2 | [ADR-0007](decisions/0007-chart-format.md) Proposed; the alpha follows it ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
-| Product code layout (follow-up to ADR-0004/0005) | I2 | [ADR-0010](decisions/0010-product-layout.md) Proposed ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
+| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) **Accepted** (2026-10-25): WSS on the LAN with a self-signed certificate, `--tunnel` fallback |
+| Chart / arrangement format | S5, S2 | [ADR-0007](decisions/0007-chart-format.md) **Accepted** (2026-10-25): S5 chart JSON |
+| Product code layout (follow-up to ADR-0004/0005) | I2 | [ADR-0010](decisions/0010-product-layout.md) **Accepted** (2026-10-25), option A: ship the alpha from `spikes/`, graduate Nov 16–24 |
 
 Evaluation criteria for the host engine, in priority order:
 1. Engagement / visual + audio quality

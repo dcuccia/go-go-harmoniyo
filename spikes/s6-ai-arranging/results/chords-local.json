@@ -1,0 +1,2864 @@
+{
+ "summary": {
+  "mode": "local",
+  "date": "2026-10-24T22:50:03.259Z",
+  "calls": 36,
+  "outputs": 24,
+  "validFinal": 20,
+  "validFirstTry": 17,
+  "latencyMs": {
+   "median": 7100,
+   "p90": 11096,
+   "max": 12155
+  }
+ },
+ "best": {
+  "the-holly-and-the-ivy": {
+   "label": "qwen3 proofread T=0 seed 1",
+   "objective": 0.928,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ]
+   ]
+  },
+  "good-king-wenceslas": {
+   "label": "qwen3 proofread T=0.7 seed 21",
+   "objective": 0.971,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "A"
+    ],
+    [
+     "A",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "C#7",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "Ab7"
+    ],
+    [
+     "A",
+     "Bm"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  "it-came-upon-the-midnight-clear": {
+   "label": "qwen3 proofread T=0 seed 1",
+   "objective": 0.962,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "D"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  }
+ },
+ "rows": [
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "S5 inferred from melody only",
+   "kind": "baseline",
+   "ok": true,
+   "fitAll": 0.833,
+   "fitStrong": 0.933,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1,
+   "vsReference": null,
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 48
+   },
+   "objective": 0.928,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 infer T=0 seed 1",
+   "kind": "infer",
+   "temperature": 0,
+   "seed": 1,
+   "ok": false,
+   "attempts": 3,
+   "firstTryOk": false,
+   "latencyMs": [
+    9656,
+    7560,
+    8078
+   ],
+   "completionTokens": [
+    182,
+    188,
+    182
+   ],
+   "errors": [
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ],
+   "firstErrors": [
+    "bar 2: 2 chords do not divide 3 beats",
+    "bar 6: 4 chords do not divide 3 beats",
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 9: 2 chords do not divide 3 beats",
+    "bar 14: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 infer T=0.7 seed 11",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 3,
+   "firstTryOk": false,
+   "latencyMs": [
+    6271,
+    7742,
+    10706
+   ],
+   "completionTokens": [
+    182,
+    188,
+    170
+   ],
+   "errors": [],
+   "firstErrors": [
+    "bar 2: 2 chords do not divide 3 beats",
+    "bar 6: 4 chords do not divide 3 beats",
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 9: 2 chords do not divide 3 beats",
+    "bar 14: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ],
+   "fitAll": 0.5,
+   "fitStrong": 0.8,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 2.82,
+   "vsReference": null,
+   "vsCurrent": {
+    "root": 0.271,
+    "exact": 0.271,
+    "beats": 48
+   },
+   "objective": 0.569,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "F",
+     "C",
+     "G"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "C",
+     "G",
+     "F"
+    ],
+    [
+     "F",
+     "C"
+    ]
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 infer T=0.7 seed 21",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": false,
+   "attempts": 3,
+   "firstTryOk": false,
+   "latencyMs": [
+    11096,
+    12155,
+    7852
+   ],
+   "completionTokens": [
+    182,
+    182,
+    182
+   ],
+   "errors": [
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ],
+   "firstErrors": [
+    "bar 2: 2 chords do not divide 3 beats",
+    "bar 6: 4 chords do not divide 3 beats",
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 9: 2 chords do not divide 3 beats",
+    "bar 14: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 infer T=0.7 seed 31",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 31,
+   "ok": false,
+   "attempts": 3,
+   "firstTryOk": false,
+   "latencyMs": [
+    6669,
+    6907,
+    6743
+   ],
+   "completionTokens": [
+    182,
+    182,
+    182
+   ],
+   "errors": [
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ],
+   "firstErrors": [
+    "bar 2: 2 chords do not divide 3 beats",
+    "bar 6: 4 chords do not divide 3 beats",
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 9: 2 chords do not divide 3 beats",
+    "bar 14: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 infer T=0.7 seed 41",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 41,
+   "ok": false,
+   "attempts": 3,
+   "firstTryOk": false,
+   "latencyMs": [
+    6241,
+    6958,
+    6876
+   ],
+   "completionTokens": [
+    179,
+    185,
+    179
+   ],
+   "errors": [
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ],
+   "firstErrors": [
+    "bar 2: 2 chords do not divide 3 beats",
+    "bar 6: 4 chords do not divide 3 beats",
+    "bar 7: 4 chords do not divide 3 beats",
+    "bar 8: 4 chords do not divide 3 beats",
+    "bar 9: 2 chords do not divide 3 beats",
+    "bar 14: 4 chords do not divide 3 beats",
+    "bar 15: 4 chords do not divide 3 beats",
+    "bar 16: 4 chords do not divide 3 beats"
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 proofread T=0 seed 1",
+   "kind": "proofread",
+   "temperature": 0,
+   "seed": 1,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    3787
+   ],
+   "completionTokens": [
+    80
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.833,
+   "fitStrong": 0.933,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1,
+   "vsReference": null,
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 48
+   },
+   "objective": 0.928,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 proofread T=0.7 seed 11",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    2751
+   ],
+   "completionTokens": [
+    80
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.833,
+   "fitStrong": 0.933,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1,
+   "vsReference": null,
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 48
+   },
+   "objective": 0.928,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "the-holly-and-the-ivy",
+   "label": "qwen3 proofread T=0.7 seed 21",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    2798
+   ],
+   "completionTokens": [
+    80
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.833,
+   "fitStrong": 0.933,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1,
+   "vsReference": null,
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 48
+   },
+   "objective": 0.928,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "C"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ],
+    [
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "S5 inferred from melody only",
+   "kind": "baseline",
+   "ok": true,
+   "fitAll": 0.971,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.65,
+   "vsReference": {
+    "root": 0.441,
+    "exact": 0.441,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.441,
+    "exact": 0.441,
+    "beats": 68
+   },
+   "objective": 0.985,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "C#7",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "Ab7"
+    ],
+    [
+     "A",
+     "Bm"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "S5 inferred from SATB (reference)",
+   "kind": "baseline",
+   "ok": true,
+   "fitAll": 0.794,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.47,
+   "vsReference": {
+    "root": 1,
+    "exact": 1,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 68
+   },
+   "objective": 0.949,
+   "chords": [
+    [
+     "A",
+     "F#m"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "D"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A",
+     "F#m"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "D"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A",
+     "F#m"
+    ],
+    [
+     "D"
+    ],
+    [
+     "A"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "F#m",
+     "E"
+    ],
+    [
+     "A"
+    ],
+    [
+     "F#m",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 infer T=0 seed 1",
+   "kind": "infer",
+   "temperature": 0,
+   "seed": 1,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    7351
+   ],
+   "completionTokens": [
+    185
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.662,
+   "fitStrong": 0.646,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 3.12,
+   "vsReference": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "objective": 0.525,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 infer T=0.7 seed 11",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    6840
+   ],
+   "completionTokens": [
+    185
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.662,
+   "fitStrong": 0.646,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 3.12,
+   "vsReference": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "objective": 0.525,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 infer T=0.7 seed 21",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": true,
+   "attempts": 2,
+   "firstTryOk": false,
+   "latencyMs": [
+    8744,
+    7115
+   ],
+   "completionTokens": [
+    185,
+    188
+   ],
+   "errors": [],
+   "firstErrors": [
+    "bar 16: 3 chords do not divide 4 beats"
+   ],
+   "fitAll": 0.662,
+   "fitStrong": 0.646,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 3.18,
+   "vsReference": {
+    "root": 0.382,
+    "exact": 0.382,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.382,
+    "exact": 0.382,
+    "beats": 68
+   },
+   "objective": 0.672,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "E"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 infer T=0.7 seed 31",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 31,
+   "ok": true,
+   "attempts": 2,
+   "firstTryOk": false,
+   "latencyMs": [
+    7219,
+    7100
+   ],
+   "completionTokens": [
+    185,
+    191
+   ],
+   "errors": [],
+   "firstErrors": [
+    "bar 6: 3 chords do not divide 4 beats",
+    "bar 16: 3 chords do not divide 4 beats"
+   ],
+   "fitAll": 0.662,
+   "fitStrong": 0.625,
+   "diatonic": 0.933,
+   "endsTonic": false,
+   "chordsPerBar": 3.12,
+   "vsReference": {
+    "root": 0.324,
+    "exact": 0.324,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.324,
+    "exact": 0.324,
+    "beats": 68
+   },
+   "objective": 0.506,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "A",
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "A",
+     "E",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "D",
+     "C",
+     "B"
+    ],
+    [
+     "C",
+     "B",
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "E",
+     "E",
+     "A",
+     "B"
+    ],
+    [
+     "A",
+     "A",
+     "B",
+     "E"
+    ],
+    [
+     "E",
+     "D",
+     "C",
+     "B"
+    ],
+    [
+     "A",
+     "D",
+     "E",
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 infer T=0.7 seed 41",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 41,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    6707
+   ],
+   "completionTokens": [
+    185
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.588,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 3.12,
+   "vsReference": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "objective": 0.516,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "A",
+     "E",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "E",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "E",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "E",
+     "D"
+    ],
+    [
+     "A",
+     "D",
+     "A",
+     "D"
+    ],
+    [
+     "A",
+     "D"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 proofread T=0 seed 1",
+   "kind": "proofread",
+   "temperature": 0,
+   "seed": 1,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    11294
+   ],
+   "completionTokens": [
+    300
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.941,
+   "fitStrong": 0.958,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.65,
+   "vsReference": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "objective": 0.959,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "C#7",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "Ab7"
+    ],
+    [
+     "A",
+     "Bm"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 proofread T=0.7 seed 11",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    10562
+   ],
+   "completionTokens": [
+    301
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.941,
+   "fitStrong": 0.958,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.65,
+   "vsReference": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.412,
+    "exact": 0.412,
+    "beats": 68
+   },
+   "objective": 0.959,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E"
+    ],
+    [
+     "A",
+     "E"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "C#7",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "Ab7"
+    ],
+    [
+     "A",
+     "Bm"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "good-king-wenceslas",
+   "label": "qwen3 proofread T=0.7 seed 21",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    10806
+   ],
+   "completionTokens": [
+    310
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.941,
+   "fitStrong": 0.979,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.59,
+   "vsReference": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "vsCurrent": {
+    "root": 0.353,
+    "exact": 0.353,
+    "beats": 68
+   },
+   "objective": 0.971,
+   "chords": [
+    [
+     "A"
+    ],
+    [
+     "A",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "A"
+    ],
+    [
+     "A",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "C#7",
+     "A"
+    ],
+    [
+     "F#7",
+     "Ab7"
+    ],
+    [
+     "A"
+    ],
+    [
+     "E",
+     "Ab7"
+    ],
+    [
+     "A",
+     "Bm"
+    ],
+    [
+     "E7",
+     "C#7"
+    ],
+    [
+     "A",
+     "D"
+    ],
+    [
+     "A"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "S5 inferred from melody only",
+   "kind": "baseline",
+   "ok": true,
+   "fitAll": 0.854,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.59,
+   "vsReference": {
+    "root": 0.406,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.406,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.959,
+   "chords": [
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "Cm",
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "D"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "S5 inferred from SATB (reference)",
+   "kind": "baseline",
+   "ok": true,
+   "fitAll": 0.813,
+   "fitStrong": 0.947,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.41,
+   "vsReference": {
+    "root": 1,
+    "exact": 1,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 1,
+    "exact": 1,
+    "beats": 32
+   },
+   "objective": 0.929,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "Eb"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Eb",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Bb",
+     "Eb"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Eb",
+     "F7"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm"
+    ],
+    [
+     "Gm"
+    ],
+    [
+     "F",
+     "C7"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Bb",
+     "Eb"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Eb",
+     "F7"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 infer T=0 seed 1",
+   "kind": "infer",
+   "temperature": 0,
+   "seed": 1,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    6292
+   ],
+   "completionTokens": [
+    142
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.531,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 1.94,
+   "vsReference": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.561,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 infer T=0.7 seed 11",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    4987
+   ],
+   "completionTokens": [
+    142
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.531,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 1.94,
+   "vsReference": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.561,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 infer T=0.7 seed 21",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    4992
+   ],
+   "completionTokens": [
+    142
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.531,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 1.94,
+   "vsReference": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.561,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 infer T=0.7 seed 31",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 31,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    5012
+   ],
+   "completionTokens": [
+    142
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.531,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 1.94,
+   "vsReference": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.561,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 infer T=0.7 seed 41",
+   "kind": "infer",
+   "temperature": 0.7,
+   "seed": 41,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    4996
+   ],
+   "completionTokens": [
+    142
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.531,
+   "fitStrong": 0.667,
+   "diatonic": 1,
+   "endsTonic": false,
+   "chordsPerBar": 1.94,
+   "vsReference": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.375,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.561,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ],
+    [
+     "Bb",
+     "F"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 proofread T=0 seed 1",
+   "kind": "proofread",
+   "temperature": 0,
+   "seed": 1,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    8941
+   ],
+   "completionTokens": [
+    217
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.854,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.53,
+   "vsReference": {
+    "root": 0.438,
+    "exact": 0.344,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.438,
+    "exact": 0.344,
+    "beats": 32
+   },
+   "objective": 0.962,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "D"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 proofread T=0.7 seed 11",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 11,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    7921
+   ],
+   "completionTokens": [
+    223
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.854,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.53,
+   "vsReference": {
+    "root": 0.438,
+    "exact": 0.344,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.438,
+    "exact": 0.344,
+    "beats": 32
+   },
+   "objective": 0.962,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "D"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  },
+  {
+   "song": "it-came-upon-the-midnight-clear",
+   "label": "qwen3 proofread T=0.7 seed 21",
+   "kind": "proofread",
+   "temperature": 0.7,
+   "seed": 21,
+   "ok": true,
+   "attempts": 1,
+   "firstTryOk": true,
+   "latencyMs": [
+    11412
+   ],
+   "completionTokens": [
+    320
+   ],
+   "errors": [],
+   "firstErrors": [],
+   "fitAll": 0.854,
+   "fitStrong": 1,
+   "diatonic": 1,
+   "endsTonic": true,
+   "chordsPerBar": 1.59,
+   "vsReference": {
+    "root": 0.406,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "vsCurrent": {
+    "root": 0.406,
+    "exact": 0.313,
+    "beats": 32
+   },
+   "objective": 0.959,
+   "chords": [
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "C",
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ],
+    [
+     "Dm",
+     "D"
+    ],
+    [
+     "Gm",
+     "Bb"
+    ],
+    [
+     "F",
+     "Gm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Dm",
+     "Cm"
+    ],
+    [
+     "F"
+    ],
+    [
+     "Gm",
+     "F"
+    ],
+    [
+     "Bb"
+    ]
+   ]
+  }
+ ]
+}
