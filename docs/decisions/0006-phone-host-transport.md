@@ -1,6 +1,6 @@
 # 0006 — Phone ↔ host transport
 
-- Status: Proposed
+- Status: Accepted (owner, 2026-10-25; [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32))
 - Date: 2026-10-23
 - Deciders: @dcuccia (owner); proposed by the S1 spike session
 
@@ -25,7 +25,7 @@ so transport latency affects feedback but not scoring. See the
 
 ## Decision
 
-Proposed:
+Accepted (owner, 2026-10-25):
 1. **Alpha:** (a1) WSS on the LAN with a self-signed certificate as the default, and (c) the
    cloud tunnel as a one-flag fallback (`--tunnel`). HGP over WebSocket is mandatory for every
    host (`/hgp`); the WebRTC data channel stays optional.
@@ -40,6 +40,15 @@ Proposed:
 - The runbook must explain the one-time certificate warning (with screenshots for iOS/Android).
 - Timing judgements must allow an arrival lookahead (~200 ms worst case on Wi-Fi power-save),
   which matters most for the relay.
+
+## Owner decision (2026-10-25)
+
+Accepted as proposed ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)). Point 2 is
+settled for the holiday release by [#35](https://github.com/dcuccia/go-go-harmoniyo/issues/35):
+keep the **self-signed certificate as the default**, with the **cloud tunnel (`--tunnel`) as the
+one-flag fallback** for guests. A publicly trusted certificate (a2) comes later, once a domain
+exists ([#45](https://github.com/dcuccia/go-go-harmoniyo/issues/45)). The TV page help (#26) and the
+how-to-play page (#38) cover both paths.
 
 ## Evidence
 

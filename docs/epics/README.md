@@ -34,7 +34,7 @@ drive any host.
   - S1 (emulated, physical pending): LAN sync error ≈ 1 ms p95; the ~60 Hz sensor rate dominates
     (≈ 8 ms per-device p95; two-phone p95 ≈ 15 ms), so the 15 ms target should apply per device.
     Per-device latency → input-offset calibration (median strike − beat in a metronome run).
-    Transport: ADR-0006 (Proposed). Draft spec: [hgp-v0.md](../protocol/hgp-v0.md).
+    Transport: ADR-0006 (Accepted 2026-10-25). Draft spec: [hgp-v0.md](../protocol/hgp-v0.md).
   - Hosts must hold a note's verdict for an arrival lookahead (Wi-Fi power-save spikes ~200 ms).
 - Spikes: S1. Spec lives in [docs/protocol/](../protocol/README.md).
 
@@ -46,8 +46,15 @@ drive any host.
 - **Former top alpha bug, [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10) (resolved
   2026-10-23).** Real Pixel rings didn't register. The causes were a guest Wi-Fi that couldn't
   reach the PC (fixed with `--tunnel`, see [#19](https://github.com/dcuccia/go-go-harmoniyo/pull/19)) and a UX misunderstanding: zones *select* a bell
-  and the swing rings it. Swing detection works on a real Pixel. Tap-to-ring is under discussion
-  in [#20](https://github.com/dcuccia/go-go-harmoniyo/issues/20). iPhone work for the holiday:
+  and the swing rings it. Swing detection works on a real Pixel.
+- **Decided (owner, 2026-10-25), input mode ([#20](https://github.com/dcuccia/go-go-harmoniyo/issues/20)):**
+  a per-phone setting. *Swing* (touch selects a zone, a swing rings it) is the default for
+  ensembles; *Tap* (tapping a zone rings it) is for solo play, fast passages and accessibility.
+  Built for v0.2 after the S1 fast-ring work lands.
+- **Decided (owner, 2026-10-25), guest join ([#35](https://github.com/dcuccia/go-go-harmoniyo/issues/35)):**
+  the self-signed certificate stays the default with `--tunnel` as the fallback; a trusted
+  certificate comes later, once a domain exists.
+- iPhone work for the holiday:
   [#31](https://github.com/dcuccia/go-go-harmoniyo/issues/31) and
   [#34](https://github.com/dcuccia/go-go-harmoniyo/issues/34) (see the
   [alpha plan](../plan/v0.1-alpha.md)).
@@ -84,9 +91,12 @@ drive any host.
     with HGP + chart JSON as language-neutral contracts tested by golden vectors.
   - The alpha path is the I2 host.
 - Open: frame pacing on low-end classroom hardware; audio clock accuracy in browsers
-  (`AudioContext.outputLatency`); product code layout ([ADR-0010](../decisions/0010-product-layout.md),
-  Proposed: npm workspaces with `packages/`, `apps/`, `content/` and `contracts/`, graduated after
-  the alpha).
+  (`AudioContext.outputLatency`).
+- Decided (owner, 2026-10-25): product code layout ([ADR-0010](../decisions/0010-product-layout.md),
+  Accepted, option A): npm workspaces with `packages/`, `apps/`, `content/` and `contracts/`; the
+  alpha ships from `spikes/i2-web-phones` and graduates Nov 16–24. The TV page's default port is
+  18900 (loopback only), with automatic fallback to the next free port
+  ([#53](https://github.com/dcuccia/go-go-harmoniyo/issues/53)).
 - Learned (S3 Phase A): a YARG "thin fork" reuses Five-Lane Keys for up to 5 ringers × 5 bells,
   with band score and practice mode for free; ~13–20 agent-days to holiday MVP. Host is desktop
   only (Win x64/macOS/Linux x86_64; no browser/ChromeOS/ARM). YARG's engine clamps late-arriving
@@ -125,7 +135,7 @@ drive any host.
     headless on the owner's laptop; one shared-lane-group highway was not tried. Phone rings
     reach the game page through the S1 Node host (dashboard WebSocket relay, ~35 ms p50 in
     simulation); a production host would embed the HGP server or run it as a sidecar.
-- Spikes: S2, S3, S4, (S6).
+- Spikes: S2, S3, S4, (S7, formerly S6).
 
 ## E04 Songs, charts & arrangement pipeline
 
@@ -145,7 +155,7 @@ difficulties.
   - S2: YARG.Core parses RB-style `PART REAL_KEYS_X` MIDI and `.chart` in-memory (browser too);
     Pro Keys tracks can carry handbell parts within a 25-semitone window (C3–C5 as written).
 - Learned (S5, see [report](../spikes/S5-report.md)): engine-neutral JSON proposed as source of truth
-  ([ADR-0007](../decisions/0007-chart-format.md), Proposed), RB/CH `.mid` as export; corpus of 8
+  ([ADR-0007](../decisions/0007-chart-format.md), Accepted 2026-10-25), RB/CH `.mid` as export; corpus of 8
   carols (5 self-encoded CC0 lead sheets + 3 Mutopia public-domain MIDI). 4 ringers is the
   sweet spot. Still open: easy-tier load fairness (melody pitch histograms are peaked — allow
   non-contiguous bells on easy?), hard-tier melody concentrating on one ringer, pitch-set
@@ -154,14 +164,41 @@ difficulties.
 - Chart format 0.2 (S5, for the I2 backing track): optional `harmony` block — chord symbols,
   beat grid (tempo/meter changes resolved to seconds) and a backing style per song. Mutopia
   scores without chord symbols get chords inferred from their notes (unproofread).
-- Spikes: S5.
+- Learned (S6, AI-assisted arranging; [report](../spikes/S6-report.md), [ADR-0011](../decisions/0011-ai-assisted-arranging.md) Accepted 2026-10-25):
+  - qwen3:8b (8B general LLM) is not a usable arranger: melody-only chord inference is worse than
+    S5's matcher (chord-tone fit 0.53–0.66 vs 0.83–0.97), proofreading returns its input, and
+    descants are degenerate (tune copied a 3rd up, or a looped example). 7 of 24 descant/intro
+    outputs pass bar/range checks after repairs; intros/endings fail in 3/4.
+  - Validate-then-keep works: S6's ABC writer/validators (bar lengths, range, chord-tone fit,
+    parallels, variety, playability) catch every bad output and are reusable for human edits.
+  - Generated material only enters as a register `candidate` (CC0, provenance, review pending);
+    originals are never replaced.
+  - Open: harmony for melody-only songs (The Holly and the Ivy) needs a harmonized source, not an
+    LLM; a better rule-based descant (passing tones, contrary motion) is the cheap next step;
+    would a larger or music-specific model change the answer?
+  - Owner blind listening (2026-10-25): only *Deck the Halls* B sounded "decent". B was the
+    qwen3:8b candidate, whose AI parts were only the intro and ending (the rest procedural), so
+    the value came from song form, not AI harmony. No *Holly and the Ivy* clip (AMT, LLM or
+    procedural) sounded like a realistic arrangement: the source is melody-only with inferred
+    chords. Real SATB sources come first; rule-based intros/endings are a cheap next step.
+- **Decided (owner, 2026-10-25), part balancing:** role-aware (melody, bass, harmony) with a
+  balanced load per ringer, plus a chord-split option.
+- **"Real arrangements" policy (owner, 2026-10-25):** public-domain hymnal SATB harmonizations
+  are usable (the edition or file must also be free to use, ADR-0008). Published modern handbell
+  and choral arrangements need publisher licensing (a possible future partnership, not holiday
+  scope). Follow-up: search for public-domain (pre-1929) handbell/chime arrangements
+  ([#59](https://github.com/dcuccia/go-go-harmoniyo/issues/59)).
+- Spikes: S5, S6.
 
 ## E05 Bell audio
 
 **Goal:** a beautiful, license-clean bell sound with low latency.
 - MVP: modal/additive synthesis (handbells are tuned with a strong 12th partial) or CC0 /
   self-recorded samples; backing track optional.
-- Open: sound on host vs phone vs both; owner-recorded handbell samples?; latency budget.
+- **Decided (owner, 2026-10-25, [#40](https://github.com/dcuccia/go-go-harmoniyo/issues/40)):** a
+  tuned synth for the holiday release (phones and TV). Recorded family handbells are optional,
+  only if the owner records them by about Dec 1 (CC BY 4.0, in the asset register).
+- Open: sound on host vs phone vs both; latency budget.
   - Direction (ADR-0004): move to **real recorded handbell samples**, with a per-file
     license.
   - S1: recommends sound on the phone (TV/HDMI/Bluetooth audio adds 50–150+ ms on the host).
@@ -177,6 +214,12 @@ difficulties.
     mix ≈ 12–14 dB under the bells. Open: does a synth groove under phone bells feel right in a
     living room, or does it need recorded loops/stems; a real ducking/limiter stage; per-song
     hand-tuned patterns (intros, endings, fills); whether phones should play a quiet click.
+  - S6 (AI accompaniment): the Anticipatory Music Transformer (Apache-2.0 code and weights) runs
+    as a sandboxed node container (weights baked in, no network). The small model on CPU wrote
+    orchestral scatter: 14–15 instruments, chord fit 0.30–0.40, 33–38 % clashes with the tune;
+    slow without a KV cache (~14 min per carol on CPU). Open: the medium model on the node GPU,
+    restricted to 1–3 instruments. In the owner's blind listen (2026-10-25) the small CPU model's
+    clips were not preferred for either song ([previews](../../spikes/s6-ai-arranging/previews/README.md)).
 
 ## E06 Gameplay, scoring & team play
 
@@ -185,6 +228,9 @@ difficulties.
   multiplier, difficulty levels, practice mode (slow-down, loop section), results screen.
 - Later: "star power" analogue (e.g. team-wide perfect phrase), damp scoring, sight-reading
   mode, achievements, replays.
+- **Decided (owner, 2026-10-25):** tempo for beginners is a **practice-speed slider plus a
+  *Super easy* tier**. A phone that joins mid-song is **queued for the next song**; a live
+  takeover of a part the TV is playing comes later.
 - Open: how unforgiving to be with kids vs experienced ringers; scoring missed damps.
   - S2: YARG's per-player combo multiplier penalizes split parts (same perfect play: 23,160 as
     one player vs 15,360 over 4 ringers); team play needs a team/band multiplier. With ±70 ms

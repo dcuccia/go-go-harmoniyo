@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-24T22:36:52.742Z",
+  "mode": "live",
+  "node": "http://dcuccia-north.local:8790 (token: MISSING)",
+  "health": {
+    "ok": false,
+    "latencyMs": 2848,
+    "error": "ENOTFOUND"
+  },
+  "ok": false,
+  "error": "node unreachable (asleep, off-LAN, or down)"
+}

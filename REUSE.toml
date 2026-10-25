@@ -85,6 +85,87 @@ precedence = "override"
 SPDX-FileCopyrightText = "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain"
 SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
 
+# Mutopia SATB hymn settings added 2026-10-25 (unmodified) and the charts/exports generated from them.
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/adeste_fideles.*",
+  "spikes/s5-chart-pipeline/charts/o-come-all-ye-faithful.json",
+  "spikes/s5-chart-pipeline/exports/o-come-all-ye-faithful/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/mendelssohn.*",
+  "spikes/s5-chart-pipeline/charts/hark-the-herald-angels-sing.json",
+  "spikes/s5-chart-pipeline/exports/hark-the-herald-angels-sing/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/first_noel.*",
+  "spikes/s5-chart-pipeline/charts/the-first-noel.json",
+  "spikes/s5-chart-pipeline/exports/the-first-noel/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/st_louis.*",
+  "spikes/s5-chart-pipeline/charts/o-little-town-of-bethlehem.json",
+  "spikes/s5-chart-pipeline/exports/o-little-town-of-bethlehem/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/greensleeves.*",
+  "spikes/s5-chart-pipeline/charts/what-child-is-this.json",
+  "spikes/s5-chart-pipeline/exports/what-child-is-this/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/mueller.*",
+  "spikes/s5-chart-pipeline/charts/away-in-a-manger.json",
+  "spikes/s5-chart-pipeline/exports/away-in-a-manger/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/veniemma.*",
+  "spikes/s5-chart-pipeline/charts/o-come-o-come-emmanuel.json",
+  "spikes/s5-chart-pipeline/exports/o-come-o-come-emmanuel/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/sources/mutopia/cranham.*",
+  "spikes/s5-chart-pipeline/charts/in-the-bleak-midwinter.json",
+  "spikes/s5-chart-pipeline/exports/in-the-bleak-midwinter/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
+
 # ADR-0008 exception EX-005: a patch against YARG.Core (LGPL-3.0-or-later). Not MIT.
 [[annotations]]
 path = "spikes/s2-yarg-core/patches/**"
@@ -94,6 +175,28 @@ SPDX-FileCopyrightText = [
   "2026 David Cuccia and Go Go HarmoniYo contributors (patch)",
 ]
 SPDX-License-Identifier = "LGPL-3.0-or-later"
+
+# S6 AI candidates (ADR-0010, Proposed): candidate lead sheets, their charts, AMT accompaniments
+# and the blind-listening previews. AI-generated or derived from public-domain/CC0 sources: CC0 1.0.
+[[annotations]]
+path = [
+  "spikes/s6-ai-arranging/candidates/*.abc",
+  "spikes/s6-ai-arranging/charts/*.json",
+  "spikes/s6-ai-arranging/results/amt/*/accompaniment.mid",
+  "spikes/s6-ai-arranging/results/amt/*/combined.mid",
+  "spikes/s6-ai-arranging/results/amt/deck-the-halls/melody.mid",
+  "spikes/s6-ai-arranging/previews/*.ogg",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Go Go HarmoniYo contributors (AI-assisted or generated; dedicated to the public domain)"
+SPDX-License-Identifier = "CC0-1.0"
+
+# S6 AMT input exported from the Mutopia MIDI: public domain.
+[[annotations]]
+path = "spikes/s6-ai-arranging/results/amt/the-holly-and-the-ivy/melody.mid"
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
 
 # Brand-option exploration (docs/design/brand-options): procedural SVGs and PNG previews, CC BY 4.0.
 # The wordmarks are outlines of the OFL fonts below; logos made with OFL fonts are our own work

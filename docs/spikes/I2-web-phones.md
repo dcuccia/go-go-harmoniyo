@@ -39,7 +39,7 @@ so C5 has the same colour on every highway and phone; F♯4 shows the sharp/flat
 |---|---|
 | Game receives HGP rings | The game page connects to the S1 Node host on the same PC as a `dashboard` client (`ws://127.0.0.1:8080/hgp`), runs S1's `ClockSync` against the host clock, and receives every gesture relayed with its `th` (source time on the host clock). `HgpInputSource` (an S4 `InputSource`) maps `th` → page `performance.now()` → song time. Unsynced rings are dropped, never judged by arrival. |
 | Multiple ringers on one screen | `MultiHighway`: 1–4 S4 `HighwayRenderer`s side by side (one canvas/WebGL context each, created once and reused), presented to S4's unchanged `Session` as one renderer over the team chart's global lanes. All highways are framed for 4 lanes so strike lines line up; name/stats in a footer band. |
-| S5 charts, song/difficulty/ringers | `npm run charts` runs S5's pipeline (`loadSong` + `buildChart`) with the `phone-4zone` profile for 1–4 ringers (8 carols × 3 tiers × 4 counts). `buildTeamChart` turns a part into one S4 chart + per-ringer sub-charts. |
+| S5 charts, song/difficulty/ringers | `npm run charts` runs S5's pipeline (`loadSong` + `buildChart`) with the `phone-4zone` profile for 1–4 ringers (16 carols × 3 tiers × 4 counts; the song list is generated from S5's `songs/manifest.json`). `buildTeamChart` turns a part into one S4 chart + per-ringer sub-charts. |
 | Bell assignment to phones | New S1 host command `assign-bells` (explicit `bells[]` + optional `ringer` label) → HGP `assign` with `select: "zones"`. Sounding pitch = written + 12 (handbells sound an octave up; `?octave=0` to disable). |
 | Team score / phone sound | S4 `Judge` over all lanes = team score/streak/multiplier; per-ringer stats via a new `Session.onJudgement` hook. Phones ring locally (`sound: device`, S1's recommendation); "Phones + TV" / "TV only" switch in the lobby. |
 | QR join on the game screen | The S1 host serves the built game at `/game/` (new `--game` flag) so the page loads `/qr.svg` and the join URL same-origin. |
@@ -188,7 +188,13 @@ and ±7–15 ms for the pooled team. The old fixed thresholds (≥ 80 % hits, ±
 - Real phones: S1's physical tests (detection %, false rings) haven't been run; the first TV
   playthrough doubles as that test. Phones must be calibrated (6 rings) before play.
 - Wrong-zone rings count as stray rings (the expected note becomes a miss); no damp/LV scoring.
-- No count-in clicks or backing track beyond host-rung parts; no practice/slow-down mode.
+- Count-in and a procedural backing track have since been added (see the spike README). Practice
+  speed (50–100 %, owner feedback 2026-10-25: "even Easy is a steep learning curve") stretches the
+  chart so everything slows down together while judging windows stay in real time; the e2e plays a
+  song at 50 % with the same offset tolerances. No loop-a-section mode yet.
+- Drop-in joining (owner feedback 2026-10-25): a corner QR stays on screen during songs and results;
+  phones that join mid-song wait and get the first TV-played part at the next round. Follow-up:
+  live takeover of a TV part mid-song (needs a cue/highway handover inside a round).
 - A/V offset is global; per-phone latency offsets (HGP v1) would help mixed iOS/Android groups.
 - `cues` are sent once at song start (a phone that reconnects mid-song loses its glow).
 - Charts: S5's assignment is not phone-aware enough for 1–2 ringers; consider a "max 4 bells"

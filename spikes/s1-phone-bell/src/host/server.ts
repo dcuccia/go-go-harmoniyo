@@ -264,7 +264,7 @@ const dashboards = new Set<WebSocket>();
 const gestures: LoggedGesture[] = [];
 let soundMode: SoundMode = 'device';
 /** Last lobby state from the game (HGP `parts`), re-sent to phones that join later. */
-let lobby: { phase: 'lobby' | 'play'; song?: string; parts: PartCard[] } | null = null;
+let lobby: { phase: 'lobby' | 'play'; song?: string; parts: PartCard[]; waiting: string[] } | null = null;
 
 interface RunningTest {
   id: string;
@@ -401,7 +401,7 @@ function statusKey(st: Record<string, unknown>): string {
 function sendParts(d: Device): void {
   if (!lobby || !d.ws || d.kind === 'dashboard' || d.kind === 'meter') return;
   const you = lobby.parts.findIndex((p) => p.player?.kind === 'phone' && p.player.id === d.id);
-  send(d.ws, { type: 'parts', phase: lobby.phase, song: lobby.song, parts: lobby.parts, you, ready: d.ready });
+  send(d.ws, { type: 'parts', phase: lobby.phase, song: lobby.song, parts: lobby.parts, you, ready: d.ready, next: lobby.waiting.includes(d.id) });
 }
 
 let bellsPerPhone = 1;
@@ -622,11 +622,12 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
     }
     case 'parts': {
       // Lobby state from the game (I2 seating chart) → every phone (HGP `parts`). Starting a song
-      // clears everyone's Ready.
+      // clears everyone's Ready. `waiting`: phones that joined mid-round (each gets `next: true`).
       const phase = m.phase === 'play' ? 'play' : 'lobby';
       if (phase === 'play' && lobby?.phase !== 'play') for (const d of devices.values()) d.ready = false;
       const parts = Array.isArray(m.parts) ? (m.parts as PartCard[]).filter((p) => p && typeof p.name === 'string').slice(0, 8) : [];
-      lobby = { phase, song: typeof m.song === 'string' ? m.song : undefined, parts };
+      const waiting = Array.isArray(m.waiting) ? m.waiting.filter((x): x is string => typeof x === 'string') : [];
+      lobby = { phase, song: typeof m.song === 'string' ? m.song : undefined, parts, waiting };
       for (const d of devices.values()) sendParts(d);
       break;
     }

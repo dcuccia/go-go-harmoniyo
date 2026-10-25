@@ -4,6 +4,7 @@ C:Traditional Welsh ("Nos Galan", 16th c.); English words Thomas Oliphant (1862)
 S:Public-domain traditional melody; encoded from the traditional tune, not copied from any edition
 Z:Encoded for handbell-hero by GitHub Copilot (agent), 2026-10-22. Chord symbols added by the encoder.
 N:One verse. Lead sheet: melody + chord symbols; the pipeline realizes bass and harmony.
+N:2026-10-25 (#30): 'Fa la la la la la' in bar 11 tonicizes C, so its second note is B natural (was B flat); chords for bars 11-12 now C, G7, C.
 %%hh-id deck-the-halls
 %%hh-license CC0-1.0
 L:1/8
@@ -12,5 +13,5 @@ Q:1/4=116
 K:F
 "F"c3 B A2 "C"G2 | "F"F2 "C"G2 "F"A2 F2 | "C7"G A B G "F"A3 G | "F"F2 "C7"E2 "F"F4 |
 "F"c3 B A2 "C"G2 | "F"F2 "C"G2 "F"A2 F2 | "C7"G A B G "F"A3 G | "F"F2 "C7"E2 "F"F4 |
-"C"G3 A "C7"B2 G2 | "F"A3 B c2 "C"G2 | "F"A B c2 "Bb"d "C"e "F"f2 | "C"e2 d2 c4 |
+"C"G3 A "C7"B2 G2 | "F"A3 B c2 "C"G2 | "C"A =B c2 "G7"d e f2 | "C"e2 "G7"d2 "C"c4 |
 "F"c3 B A2 "C"G2 | "F"F2 "C"G2 "F"A2 F2 | "Bb"d d d d "F"c3 "C7"B | "F"A2 "C7"G2 "F"F4 |]

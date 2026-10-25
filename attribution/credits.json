@@ -93,6 +93,94 @@
             "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
           },
           "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644"
+        },
+        {
+          "id": "mutopia-o-come-all-ye-faithful",
+          "title": "O Come, All Ye Faithful (tune ADESTE FIDELES), Mutopia edition (SATB)",
+          "credit": "O Come, All Ye Faithful (tune ADESTE FIDELES) by John Francis Wade (c. 1743). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220"
+        },
+        {
+          "id": "mutopia-hark-the-herald-angels-sing",
+          "title": "Hark! The Herald Angels Sing (tune MENDELSSOHN), Mutopia edition (SATB)",
+          "credit": "Hark! The Herald Angels Sing (tune MENDELSSOHN) by Felix Mendelssohn (1840), words by Charles Wesley (1739). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1261) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1261"
+        },
+        {
+          "id": "mutopia-the-first-noel",
+          "title": "The First Noel, Mutopia edition (SATB)",
+          "credit": "The First Noel, traditional English (first published 1833). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1243) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1243"
+        },
+        {
+          "id": "mutopia-o-little-town-of-bethlehem",
+          "title": "O Little Town of Bethlehem (tune ST. LOUIS), Mutopia edition (SATB)",
+          "credit": "O Little Town of Bethlehem (tune ST. LOUIS) by Lewis H. Redner (1868), words by Phillips Brooks (1868). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1292) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1292"
+        },
+        {
+          "id": "mutopia-what-child-is-this",
+          "title": "What Child Is This (tune GREENSLEEVES), Mutopia edition (SATB)",
+          "credit": "What Child Is This (tune GREENSLEEVES), traditional English melody, words by William Chatterton Dix (1865). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2014/03/30-1247) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1247"
+        },
+        {
+          "id": "mutopia-away-in-a-manger",
+          "title": "Away in a Manger (tune MUELLER), Mutopia edition (SATB)",
+          "credit": "Away in a Manger (tune MUELLER) by James Ramsey Murray (1887). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1264) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1264"
+        },
+        {
+          "id": "mutopia-o-come-o-come-emmanuel",
+          "title": "O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)",
+          "credit": "O Come, O Come, Emmanuel (tune VENI EMMANUEL), 15th-century French melody arranged by Thomas Helmore (1856). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/02/19-1300) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1300"
+        },
+        {
+          "id": "mutopia-in-the-bleak-midwinter",
+          "title": "In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)",
+          "credit": "In the Bleak Midwinter (tune CRANHAM) by Gustav Holst (1906), words by Christina Rossetti (1872). SATB hymn setting typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233) from www.cyberhymnal.org, public domain.",
+          "license": {
+            "id": "LicenseRef-Mutopia-PublicDomain",
+            "name": "Public domain (Mutopia Project dedication)",
+            "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
+          },
+          "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233"
         }
       ]
     }

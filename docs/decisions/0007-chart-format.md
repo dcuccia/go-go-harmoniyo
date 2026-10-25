@@ -1,6 +1,6 @@
 # 0007 — Chart format
 
-- Status: Proposed
+- Status: Accepted (owner, 2026-10-25; [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32))
 - Date: 2026-10-23
 - Deciders: @dcuccia (owner); proposed by the S5 spike session (agent)
 
@@ -22,7 +22,7 @@ several difficulty tiers.
 | RB3 Pro Keys `.mid` | Keeps real pitches | One player, 25-key window, ≤ 4 simultaneous notes |
 | MusicXML as the chart | Standard notation interchange | No ringer assignment/difficulty/profile concepts; verbose; heavy to parse at runtime |
 
-## Decision (proposed)
+## Decision
 
 Adopt the S5 engine-neutral JSON format v0.1 (`spikes/s5-chart-pipeline/schema/chart.schema.json`)
 as the source of truth for charts. Source music stays in MIDI/MusicXML/ABC with a per-file
@@ -41,6 +41,12 @@ license register; the pipeline generates charts. RB/CH-style `.mid` is an **expo
   also accept the earlier id `handbell-hero.chart`.
 - v0.2.0 (2026-10-23) adds an optional `harmony` block (chord symbols, beat grid, backing
   style) for game-side backing tracks; additive, so v0.1 readers and charts keep working.
+
+## Owner decision (2026-10-25)
+
+Accepted as proposed ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)): the S5 chart
+JSON, now v0.2.0 with the optional `harmony` block, is the chart contract. It is what I2 plays
+today.
 
 ## Evidence
 

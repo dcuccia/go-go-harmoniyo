@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-24T02:20:50.521Z",
+  "at": "2026-10-25T22:37:00.358Z",
   "ok": true,
   "checks": [
     {
@@ -25,7 +25,7 @@
     {
       "name": "picker stays open, focused and is the same node across device broadcasts",
       "ok": true,
-      "detail": "{\"broadcasts\":4,\"picker\":true,\"expanded\":\"true\",\"song\":true,\"parts\":true,\"readyChip\":true}"
+      "detail": "{\"broadcasts\":5,\"picker\":true,\"expanded\":\"true\",\"song\":true,\"parts\":true,\"readyChip\":true}"
     },
     {
       "name": "song dropdown and part cards are patched in place, not replaced",
