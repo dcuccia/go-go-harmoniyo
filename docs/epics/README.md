@@ -122,7 +122,7 @@ drive any host.
     headless on the owner's laptop; one shared-lane-group highway was not tried. Phone rings
     reach the game page through the S1 Node host (dashboard WebSocket relay, ~35 ms p50 in
     simulation); a production host would embed the HGP server or run it as a sidecar.
-- Spikes: S2, S3, S4, (S6).
+- Spikes: S2, S3, S4, (S7, formerly S6).
 
 ## E04 Songs, charts & arrangement pipeline
 
@@ -151,7 +151,19 @@ difficulties.
 - Chart format 0.2 (S5, for the I2 backing track): optional `harmony` block — chord symbols,
   beat grid (tempo/meter changes resolved to seconds) and a backing style per song. Mutopia
   scores without chord symbols get chords inferred from their notes (unproofread).
-- Spikes: S5.
+- Learned (S6, AI-assisted arranging; [report](../spikes/S6-report.md), [ADR-0010](../decisions/0010-ai-assisted-arranging.md) Proposed):
+  - qwen3:8b (8B general LLM) is not a usable arranger: melody-only chord inference is worse than
+    S5's matcher (chord-tone fit 0.53–0.66 vs 0.83–0.97), proofreading returns its input, and
+    descants are degenerate (tune copied a 3rd up, or a looped example). 7 of 24 descant/intro
+    outputs pass bar/range checks after repairs; intros/endings fail in 3/4.
+  - Validate-then-keep works: S6's ABC writer/validators (bar lengths, range, chord-tone fit,
+    parallels, variety, playability) catch every bad output and are reusable for human edits.
+  - Generated material only enters as a register `candidate` (CC0, provenance, review pending);
+    originals are never replaced.
+  - Open: harmony for melody-only songs (The Holly and the Ivy) needs a harmonized source, not an
+    LLM; a better rule-based descant (passing tones, contrary motion) is the cheap next step;
+    would a larger or music-specific model change the answer?
+- Spikes: S5, S6.
 
 ## E05 Bell audio
 
@@ -174,6 +186,12 @@ difficulties.
     mix ≈ 12–14 dB under the bells. Open: does a synth groove under phone bells feel right in a
     living room, or does it need recorded loops/stems; a real ducking/limiter stage; per-song
     hand-tuned patterns (intros, endings, fills); whether phones should play a quiet click.
+  - S6 (AI accompaniment): the Anticipatory Music Transformer (Apache-2.0 code and weights) runs
+    as a sandboxed node container (weights baked in, no network). The small model on CPU wrote
+    orchestral scatter: 14–15 instruments, chord fit 0.30–0.40, 33–38 % clashes with the tune;
+    slow without a KV cache (~14 min per carol on CPU). Open: the medium model on the node GPU,
+    restricted to 1–3 instruments, versus the procedural backing in the owner's blind listen
+    ([previews](../../spikes/s6-ai-arranging/previews/README.md)).
 
 ## E06 Gameplay, scoring & team play
 

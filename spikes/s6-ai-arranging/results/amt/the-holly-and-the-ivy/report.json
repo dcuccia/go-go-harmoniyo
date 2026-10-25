@@ -1,0 +1,45 @@
+{
+  "model_dir": "C:\\Users\\david.cuccia\\.copilot\\session-state\\280523c5-38ea-401b-94db-6e42d0a231ef\\files\\amt\\hf\\hub\\models--stanford-crfm--music-small-800k\\snapshots\\fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5",
+  "device": "cpu",
+  "torch": "2.6.0+cpu",
+  "cuda_device": null,
+  "max_vram_mib": null,
+  "args": {
+    "top_p": 0.95,
+    "seed": 1,
+    "end_seconds": null,
+    "history_seconds": 0,
+    "drop_drums": true,
+    "keep_programs": null,
+    "device": null
+  },
+  "melody_seconds": 23,
+  "generated_until_seconds": 24,
+  "melody_events": 59,
+  "accompaniment_events": 118,
+  "accompaniment_instruments": {
+    "0": 7,
+    "2": 8,
+    "4": 12,
+    "36": 1,
+    "46": 10,
+    "47": 1,
+    "48": 18,
+    "57": 9,
+    "65": 4,
+    "67": 2,
+    "69": 3,
+    "72": 18,
+    "73": 23,
+    "74": 1,
+    "84": 1
+  },
+  "seconds": {
+    "load": 82.17,
+    "generate": 823.69,
+    "total": 906.12
+  },
+  "time_resolution": 100,
+  "wallMs": 910992,
+  "mode": "local"
+}

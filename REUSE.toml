@@ -94,3 +94,25 @@ SPDX-FileCopyrightText = [
   "2026 David Cuccia and Go Go HarmoniYo contributors (patch)",
 ]
 SPDX-License-Identifier = "LGPL-3.0-or-later"
+
+# S6 AI candidates (ADR-0010, Proposed): candidate lead sheets, their charts, AMT accompaniments
+# and the blind-listening previews. AI-generated or derived from public-domain/CC0 sources: CC0 1.0.
+[[annotations]]
+path = [
+  "spikes/s6-ai-arranging/candidates/*.abc",
+  "spikes/s6-ai-arranging/charts/*.json",
+  "spikes/s6-ai-arranging/results/amt/*/accompaniment.mid",
+  "spikes/s6-ai-arranging/results/amt/*/combined.mid",
+  "spikes/s6-ai-arranging/results/amt/deck-the-halls/melody.mid",
+  "spikes/s6-ai-arranging/previews/*.ogg",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Go Go HarmoniYo contributors (AI-assisted or generated; dedicated to the public domain)"
+SPDX-License-Identifier = "CC0-1.0"
+
+# S6 AMT input exported from the Mutopia MIDI: public domain.
+[[annotations]]
+path = "spikes/s6-ai-arranging/results/amt/the-holly-and-the-ivy/melody.mid"
+precedence = "override"
+SPDX-FileCopyrightText = "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain"
+SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"

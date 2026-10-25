@@ -39,6 +39,9 @@ repository "MIT" in a way that hides them.
 - It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain. License: Public domain (Mutopia Project dedication).
 - Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain. License: Public domain (Mutopia Project dedication).
 - The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain. License: Public domain (Mutopia Project dedication).
+- AI-assisted candidate arrangements (qwen3:8b) of public-domain carols for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- AI-generated accompaniment (Anticipatory Music Transformer, Apache-2.0) for public-domain carols, Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Synthesized previews of public-domain carols, partly AI-arranged, Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 
 ## Asset inventory
 
@@ -59,6 +62,12 @@ repository "MIT" in a way that hides them.
 | [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
 | [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
 | [S5 charts and exports for 'The Holly and the Ivy'](#s5-charts-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
+| [S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)](#s6-candidate-lead-sheets) | ai-generated | CC0-1.0 | 2 | pending |
+| [S6 candidate charts (chart format 0.2.0)](#s6-candidate-charts) | derived | CC0-1.0 | 2 | pending |
+| [Deck the Halls melody MIDI (AMT input)](#s6-amt-melody-deck-the-halls) | derived | CC0-1.0 | 1 | approved |
+| [The Holly and the Ivy melody MIDI (AMT input)](#s6-amt-melody-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 1 | approved |
+| [S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)](#s6-amt-accompaniments) | ai-generated | CC0-1.0 | 4 | pending |
+| [S6 blind-listening previews (procedural vs qwen3:8b vs AMT)](#s6-blind-listening-previews) | ai-generated | CC0-1.0 | 6 | pending |
 
 ### project-ui-captures
 
@@ -272,6 +281,81 @@ repository "MIT" in a way that hides them.
 - Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
 
+### s6-candidate-lead-sheets
+
+**S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)**
+
+- Files: `spikes/s6-ai-arranging/candidates/deck-the-halls-s6.abc`, `spikes/s6-ai-arranging/candidates/the-holly-and-the-ivy-s6.abc` (2 file(s))
+- Origin: ai-generated
+- Authors: Traditional tunes (public domain) via the S5 lead sheet (Deck the Halls) and the Mutopia Project typesetting by Geoffrey Lehr (The Holly and the Ivy); qwen3:8b output selected by the Go Go HarmoniYo S6 agent session
+- Copyright: Tunes public domain; AI-generated parts and encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Deck the Halls: 4-bar intro and 2-bar ending by qwen3:8b around the S5 lead sheet. The Holly and the Ivy: Mutopia melody, S5-inferred chords (qwen3:8b proofreading kept them unchanged) and a qwen3:8b descant (voice 2). Assembled by scripts/build-candidates.ts.
+- AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json)); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line; resemblance review: pending, pending
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+
+### s6-candidate-charts
+
+**S6 candidate charts (chart format 0.2.0)**
+
+- Files: `spikes/s6-ai-arranging/charts/deck-the-halls-s6.json`, `spikes/s6-ai-arranging/charts/the-holly-and-the-ivy-s6.json` (2 file(s))
+- Origin: derived — from [s6-candidate-lead-sheets](#s6-candidate-lead-sheets) via `node spikes/s6-ai-arranging/scripts/build-candidates.ts`
+- Authors: Generated by spikes/s6-ai-arranging/scripts/build-candidates.ts with the S5 chart pipeline
+- Copyright: 2026 Go Go HarmoniYo contributors (generated; dedicated to the public domain)
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Built from the candidate lead sheets: bass/inner bells realized by S5 from the chord symbols, descant as inner bells; 3/4/5 ringers × 3 tiers.
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+
+### s6-amt-melody-deck-the-halls
+
+**Deck the Halls melody MIDI (AMT input)**
+
+- Files: `spikes/s6-ai-arranging/results/amt/deck-the-halls/melody.mid` (1 file(s))
+- Origin: derived — from [s5-deck-the-halls-abc](#s5-deck-the-halls-abc) via `node spikes/s6-ai-arranging/scripts/amt-run.ts`
+- Authors: Generated by spikes/s6-ai-arranging/scripts/amt-run.ts from the S5 lead sheet
+- Copyright: Melody public domain; file 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Melody notes of the S5 lead sheet written as a one-track MIDI file (GM program 0).
+- Review: approved. Mechanical export of a registered CC0 lead sheet.
+
+### s6-amt-melody-the-holly-and-the-ivy
+
+**The Holly and the Ivy melody MIDI (AMT input)**
+
+- Files: `spikes/s6-ai-arranging/results/amt/the-holly-and-the-ivy/melody.mid` (1 file(s))
+- Origin: derived — from [mutopia-the-holly-and-the-ivy](#mutopia-the-holly-and-the-ivy) via `node spikes/s6-ai-arranging/scripts/amt-run.ts`
+- Authors: Geoffrey Lehr for the Mutopia Project (typesetting, public domain); Generated by spikes/s6-ai-arranging/scripts/amt-run.ts
+- Copyright: Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain
+- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
+- Modifications: Melody notes of the Mutopia MIDI re-written as a one-track MIDI file (GM program 0).
+- Review: approved. Mechanical export of a registered public-domain file.
+
+### s6-amt-accompaniments
+
+**S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)**
+
+- Files: `spikes/s6-ai-arranging/results/amt/deck-the-halls/accompaniment.mid`, `spikes/s6-ai-arranging/results/amt/deck-the-halls/combined.mid`, `spikes/s6-ai-arranging/results/amt/the-holly-and-the-ivy/accompaniment.mid`, `spikes/s6-ai-arranging/results/amt/the-holly-and-the-ivy/combined.mid` (4 file(s))
+- Origin: ai-generated
+- Authors: Anticipatory Music Transformer (stanford-crfm/music-small-800k) output, run by the Go Go HarmoniYo S6 agent session
+- Copyright: AI-generated; dedicated to the public domain (combined.mid also contains the public-domain melody)
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Drum notes dropped; otherwise as generated.
+- AI provenance: Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+
+### s6-blind-listening-previews
+
+**S6 blind-listening previews (procedural vs qwen3:8b vs AMT)**
+
+- Files: `spikes/s6-ai-arranging/previews/deck-the-halls-A.ogg`, `spikes/s6-ai-arranging/previews/deck-the-halls-B.ogg`, `spikes/s6-ai-arranging/previews/deck-the-halls-C.ogg`, `spikes/s6-ai-arranging/previews/the-holly-and-the-ivy-A.ogg`, `spikes/s6-ai-arranging/previews/the-holly-and-the-ivy-B.ogg`, `spikes/s6-ai-arranging/previews/the-holly-and-the-ivy-C.ogg` (6 file(s))
+- Origin: ai-generated
+- Authors: Rendered by spikes/s6-ai-arranging/scripts/render-previews.ts with the S4 bell synth and the I2 backing synth (no samples)
+- Copyright: 2026 Go Go HarmoniYo contributors; contains AI-generated material; dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: One set covers all clips so the register does not reveal which letter is AI: per song one procedural render (S5 chart + I2 backing), one qwen3:8b candidate render and one AMT render (the key is in previews/answer-key.json). The procedural clips contain no AI material.
+- AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); and Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf; stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json); pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE ; https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line. AMT: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+
 ## Open items
 
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -280,6 +364,9 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-we-wish-you-a-merry-christmas-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-musicxml-test-fixture: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
+- s6-candidate-lead-sheets: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
+- s6-amt-accompaniments: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
+- s6-blind-listening-previews: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
 - pitch-class-palette-sheet: review pending (Rendered by tools/design/palette-check.mjs --sheet (headless Chrome) from docs/design/pitch-class-palette.json: coloured circles with note names, system UI font, no third-party content. Owner to confirm CC BY 4.0 like the UI captures (#12).)
 - s5-jingle-bells-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-joy-to-the-world-abc: review pending (Proofread against a public-domain edition (S5 report).)
@@ -287,6 +374,10 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-we-wish-you-a-merry-christmas-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-musicxml-test-fixture: review pending (A few hand-written test measures, not a song.)
+- s6-candidate-lead-sheets: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
+- s6-candidate-charts: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
+- s6-amt-accompaniments: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
+- s6-blind-listening-previews: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
 
 ## Required record for each new asset
 
