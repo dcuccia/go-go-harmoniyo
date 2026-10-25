@@ -13,7 +13,8 @@ export const MIN_NODE = 22;
 // The TV page port is loopback-only (phones use the HTTPS port or the tunnel), so its number has no
 // network or certificate meaning. 8080 is what Docker, WSL, dev servers and proxies grab first
 // (#53), so the default is a rarely used port instead, away from the test scripts' ports (e2e
-// 18080+ and 18443+, controller-check 18300/18663, seating-e2e 18500/18863, webkit 18700/19063).
+// 18080+ and 18443+, controller-check 18300/18663, seating-e2e 18500/18863, dropin-e2e 18600/18963,
+// webkit 18700/19063).
 // If it is busy anyway, npm start moves to the next free port (unless --http-port was given).
 export const DEFAULT_HTTP_PORT = 18900;
 export const DEFAULT_HTTPS_PORT = 8443;

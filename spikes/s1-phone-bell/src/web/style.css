@@ -321,3 +321,25 @@ fieldset {
   margin-top: 0.5em;
 }
 
+/* Drop-in: joined mid-song, waiting for the next one */
+#waiting {
+  margin: 0 auto 0.6em;
+  max-width: 34em;
+  padding: 0.8em 1em;
+  border-radius: 0.8em;
+  border: 2px solid #ffd23f;
+  background: #2a2614;
+  text-align: center;
+}
+#waiting h2 {
+  margin: 0 0 0.2em;
+  font-size: 1.3em;
+}
+#waiting p {
+  margin: 0.2em 0;
+}
+#lobby-next {
+  margin: 0 0 0.3em;
+  color: #ffd23f;
+}
+

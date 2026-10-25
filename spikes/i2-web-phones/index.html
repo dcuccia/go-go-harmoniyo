@@ -20,6 +20,7 @@
       <div id="title-box">
         <div id="song-title"></div>
         <div id="progress"><div id="progress-fill"></div></div>
+        <div id="speed-badge" class="hidden"></div>
         <div id="host-note"></div>
       </div>
       <div id="judge-box"><div id="judgement"></div><div id="judgement-ms"></div></div>
@@ -81,6 +82,12 @@
               <input type="checkbox" id="chk-countin" /> Count-in
             </label>
           </div>
+          <div class="row backing-row speed-row">
+            <label title="Play the song slower to learn it: bells, highways, backing and count-in all slow down; timing is judged the same">
+              Practice speed <input type="range" id="rng-speed" min="50" max="100" step="5" /> <b id="speed-val"></b>
+            </label>
+            <span id="speed-info" class="dim"></span>
+          </div>
           <div class="seat-bar">
             <h3>Who plays what</h3>
             <span id="seat-tools">
@@ -128,6 +135,14 @@
         </div>
       </div>
     </div>
+
+    <!-- Always-visible join QR during the song and on the results screen (drop-in joining). -->
+    <aside id="corner-join" class="hidden" aria-label="Join with your phone">
+      <img id="corner-qr" alt="QR code to join with a phone" />
+      <div id="corner-url"></div>
+      <div id="corner-hint"></div>
+      <div id="corner-wait" class="hidden"><b></b> <span></span></div>
+    </aside>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

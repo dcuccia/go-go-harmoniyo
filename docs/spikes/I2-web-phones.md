@@ -188,7 +188,13 @@ and ±7–15 ms for the pooled team. The old fixed thresholds (≥ 80 % hits, ±
 - Real phones: S1's physical tests (detection %, false rings) haven't been run; the first TV
   playthrough doubles as that test. Phones must be calibrated (6 rings) before play.
 - Wrong-zone rings count as stray rings (the expected note becomes a miss); no damp/LV scoring.
-- No count-in clicks or backing track beyond host-rung parts; no practice/slow-down mode.
+- Count-in and a procedural backing track have since been added (see the spike README). Practice
+  speed (50–100 %, owner feedback 2026-10-25: "even Easy is a steep learning curve") stretches the
+  chart so everything slows down together while judging windows stay in real time; the e2e plays a
+  song at 50 % with the same offset tolerances. No loop-a-section mode yet.
+- Drop-in joining (owner feedback 2026-10-25): a corner QR stays on screen during songs and results;
+  phones that join mid-song wait and get the first TV-played part at the next round. Follow-up:
+  live takeover of a TV part mid-song (needs a cue/highway handover inside a round).
 - A/V offset is global; per-phone latency offsets (HGP v1) would help mixed iOS/Android groups.
 - `cues` are sent once at song start (a phone that reconnects mid-song loses its glow).
 - Charts: S5's assignment is not phone-aware enough for 1–2 ringers; consider a "max 4 bells"

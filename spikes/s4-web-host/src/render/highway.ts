@@ -195,6 +195,13 @@ export class HighwayRenderer {
     this.resize();
   }
 
+  /** Scroll speed (world units per song second) and how many seconds ahead notes appear. */
+  setScroll(speed: number, lookAhead: number): void {
+    this.speed = speed;
+    this.lookAhead = lookAhead;
+    this.highwayMat.uniforms.uSpeed.value = speed;
+  }
+
   setChart(chart: Chart): void {
     this.laneCount = chart.lanes.length;
     // Colour follows the bell's pitch class, never its lane index.

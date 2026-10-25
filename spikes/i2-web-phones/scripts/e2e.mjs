@@ -9,7 +9,7 @@
 // one the phones were cued with), audio clock re-anchorings, host clock-sync jumps, long frames,
 // ring arrival latency, strays, and each simulated phone's ring plan and clock-sync health.
 import { spawn } from 'node:child_process';
-import { appendFileSync, copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { constants, setPriority } from 'node:os';
 import { Worker } from 'node:worker_threads';
 import { dirname, join } from 'node:path';
@@ -46,6 +46,8 @@ const scenarios = [
   { name: 'jingle-bells-medium-4', song: 'jingle-bells', diff: 'medium', ringers: 4, phones: ['Alice', 'Bob', 'Cara', 'Dan'], shot: 'i2-4-ringers' },
   { name: 'joy-easy-2-with-host', song: 'joy-to-the-world', diff: 'easy', ringers: 3, phones: ['Alice', 'Bob'], hostRingers: 1, shot: 'i2-2-phones-plus-host' },
   { name: 'silent-night-late60', song: 'silent-night', diff: 'easy', ringers: 3, phones: ['Alice', 'Bob', 'Cara'], late: 60 },
+  // Practice speed 50 %: the song takes twice as long; rings are still judged in real time.
+  { name: 'holly-easy-2-speed50', song: 'the-holly-and-the-ivy', diff: 'easy', ringers: 2, phones: ['Alice', 'Bob'], speed: 50 },
 ].filter((s) => !only || only.split(',').includes(s.name));
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -155,7 +157,7 @@ for (let run = 1; run <= repeat; run++) {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-    const url = `http://127.0.0.1:${port}/game/?song=${sc.song}&diff=${sc.diff}&ringers=${sc.ringers}&waitPhones=${sc.phones.length}&start=play${qs}${sc.shot && shots ? '&startDelay=4000' : ''}`;
+    const url = `http://127.0.0.1:${port}/game/?song=${sc.song}&diff=${sc.diff}&ringers=${sc.ringers}&waitPhones=${sc.phones.length}&start=play${sc.speed ? `&speed=${sc.speed}` : ''}${qs}${sc.shot && shots ? '&startDelay=4000' : ''}`;
     await page.goto(url);
     if (shots && sc.shot) {
       await page.waitForFunction((n) => document.querySelectorAll('#phones li:not(.off):not(.dim)').length >= n, sc.phones.length, { timeout: 20000 });
@@ -208,6 +210,15 @@ for (let run = 1; run <= repeat; run++) {
     const teamTol = meanTolMs(n, 6);
     if (!(Math.abs(teamMean - late) <= teamTol)) fails.push(`team mean offset ${teamMean.toFixed(1)} ms over ${n} rings, expected ${late} ± ${teamTol.toFixed(1)}`);
     if (r.hgp.input.unsynced > 0) fails.push(`unsynced rings: ${r.hgp.input.unsynced}`);
+    const wantSpeed = (sc.speed ?? 100) / 100;
+    if (r.speed !== wantSpeed) fails.push(`practice speed ${r.speed}, expected ${wantSpeed}`);
+    if (sc.speed) {
+      // The chart is stretched (song length = written length / speed) and so is the time the round took.
+      const written = JSON.parse(readFileSync(join(root, 'public', 'charts', `${sc.song}.json`), 'utf8')).timing.durationSec;
+      const want = written / wantSpeed;
+      if (!(r.chartDurationSec >= want - 0.01 && r.chartDurationSec <= want + 1 / wantSpeed)) fails.push(`stretched song ${r.chartDurationSec} s, expected ${want.toFixed(1)} s (${written} s at ${sc.speed} %)`);
+      if (!(wallS > want)) fails.push(`round took ${wallS.toFixed(1)} s, shorter than the ${want.toFixed(1)} s stretched song`);
+    }
     if (errors.length) fails.push(`page errors: ${errors.join(' | ')}`);
     const timing = timingSummary(r, sims);
     const { timing: _raw, ...rest } = r;

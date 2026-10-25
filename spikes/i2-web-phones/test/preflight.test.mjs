@@ -40,9 +40,10 @@ describe('parseStartArgs', () => {
   it('keeps the default TV port away from 8080 and the test scripts\' ports (#53)', () => {
     const { httpPort } = parseStartArgs([]);
     expect(httpPort).not.toBe(8080);
-    // e2e 18080+ / 18443+, controller-check 18300/18663, seating-e2e 18500/18863, webkit 18700/19063;
+    // e2e 18080+ / 18443+, controller-check 18300/18663, seating-e2e 18500/18863, dropin-e2e 18600/18963,
+    // webkit 18700/19063;
     // the fallback scans the next 49 ports.
-    const taken = [[18080, 18099], [18443, 18462], [18300, 18300], [18663, 18663], [18500, 18500], [18863, 18863], [18700, 18700], [19063, 19063]];
+    const taken = [[18080, 18099], [18443, 18462], [18300, 18300], [18663, 18663], [18500, 18500], [18863, 18863], [18600, 18600], [18963, 18963], [18700, 18700], [19063, 19063]];
     for (const [lo, hi] of taken) expect(httpPort + 49 < lo || httpPort > hi).toBe(true);
   });
 });

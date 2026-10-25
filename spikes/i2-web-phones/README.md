@@ -65,17 +65,34 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
    its beat). Both settings are saved on this PC.
+   **Practice speed** (50–100 % in 5 % steps, default 100 %) slows the whole song down for
+   first-time players: highways, the phones' next-zone glow, the backing groove and the count-in
+   all follow, and the song list shows each song's length at that speed. Timing is judged the same
+   in real time (a ring 40 ms late is as late at 50 % as at 100 %). The HUD, the results and the
+   phones show the speed when it isn't 100 %. It is remembered until the browser closes (or
+   `?speed=50` in the URL). It works with any difficulty: try **Easy at 60–70 %** for a first round.
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
    Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
 7. Results show the team score and a row per ringer (hits, misses, timing). **Again**,
    **🔁 Rotate + Again** (everyone moves one part) or **Lobby**. Phones can pick parts on the
    results screen too; changes apply to the next round. Esc returns to the lobby any time.
+8. **Joining mid-game:** during a song and on the results screen a small QR code and the join
+   address stay in the top-left corner of the TV. Someone who scans it while a song plays sees
+   **You're in!** on their phone (a part comes when the next song starts) and the TV shows
+   **+1 waiting** with their name. When the next round starts (Again, 🔁 Rotate + Again, or a new
+   song from the lobby) they get the first part the TV is playing (or their old part if they
+   rejoin); on the results screen they can also pick a part themselves. Nobody's part changes
+   mid-song. The corner QR hides in the lobby (the big one is there), while `--tunnel` is still
+   getting its address, and if the phone host stops. `?joinQr=0` turns it off,
+   `?joinQrCorner=tr|bl|br` moves it, `?joinQrSize=200` sets its size in pixels.
 
 **With 2+ phones, please try:** take the part the TV is playing from a phone; swap two phones
 from a phone (*Swap with …?*) and by dragging on the TV; open a part's chooser on the TV and keep
 it open while someone presses Ready (it must stay open); 🔁 Rotate + Again after a round; turn
-one phone's screen off for a few seconds (the TV takes its part) and back on (it gets it back).
+one phone's screen off for a few seconds (the TV takes its part) and back on (it gets it back);
+a first round at **60 % practice speed**; and have someone scan the **corner QR during a song**
+(their phone says *You're in!*, the TV *+1 waiting*; press **Again** and they play the TV's part).
 
 Tips: if hits feel consistently early/late on the TV, use ←/→ (A/V offset, 5 ms steps;
 Shift = 20 ms) — it is saved. `` ` `` shows timing stats (clock sync, ring→TV latency).
@@ -149,11 +166,12 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | Command | What |
 |---|---|
 | `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`; the S1 host's own default stays 8080). For a game started with `npm start` (port 18900), add `?hgp=ws://127.0.0.1:18900/hgp`. |
-| `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
+| `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; drop-in join queue: mid-song joiners wait and are seated first come first served; practice speed: 5 % steps, chart/tempo/beat-grid stretching, judging windows in real time, backing and count-in follow, slow-motion scroll, every generated tier; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
 | `npm start -- --check` | Start-up checks only (same as `npm run preflight` at the repo root). `npm start -- --help` lists the options. |
 | `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
-| `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a game you are running (`npm start`, port 18900) or an S1 host on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
+| `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Five scenarios, one at 50 % practice speed (the stretched song, rings still judged in real time against the same offset tolerances). Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a game you are running (`npm start`, port 18900) or an S1 host on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
 | `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
+| `npm run e2e:dropin` | Drop-in + practice speed end-to-end (port 18600): the lobby speed control (5 % steps, kept across a reload), Alice plays at 50 % (HUD badge, phone label, stretched song, results line), Bob joins mid-song from a phone page (*You're in!*, TV corner QR + *+1 waiting*, seats unchanged), results (*Joining: Bob*, he can pick a part), **Again** seats him in the TV's part, the corner QR hides in the lobby and with `?joinQr=0`. Writes `results/dropin-e2e.json`; `-- --shots` captures `i2-ingame-join-qr.png`, `i2-results-join-qr.png` and `i2-phone-waiting.png`. |
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample, silence after stop. Writes `results/backing-render.md`. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `node scripts/webkit-controller-check.mjs` | WebKit smoke test (#27): S1's phone page in Playwright **WebKit** with an iPhone profile (`--device="iPhone 15"`) over HTTPS with the self-signed certificate, TV page in Chrome. Tap to start (stubbed `DeviceMotionEvent.requestPermission`), Web Audio unlock, joining and *Pick your part*, zones and the next-zone glow, and synthetic `devicemotion` rings (calibration, lobby practice, then the song's notes) reaching the host. Needs `npm run build` and, once, `npx playwright-core install webkit` (Linux: `--with-deps`; use `playwright-core`, already a dev dependency, so the browser matches its version). Writes `results/webkit-controller-check.{json,md}`, including what emulation can't show. An early signal, not a substitute for a real iPhone. |
@@ -161,7 +179,7 @@ before, with no backing (the count-in then uses the first tempo and meter).
 
 CI ([`.github/workflows/i2-web-phones.yml`](../../.github/workflows/i2-web-phones.yml)) runs on changes to
 this folder, S1, S4, S5, `spikes/shared` or the palette: `npm ci`, `typecheck`, `test`, `build`, the
-S4 and S5 unit tests and `e2e:seating`, plus `npm run e2e` in its own job (all gating; the timing
+S4 and S5 unit tests, `e2e:seating` and `e2e:dropin`, plus `npm run e2e` in its own job (all gating; the timing
 e2e has gated since [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18)); the WebKit smoke
 test runs in an informational job (results in the job summary).
 
@@ -169,7 +187,30 @@ URL parameters on the game page: `song`, `diff`, `ringers`, `sound` (`device`·`
 `start=play|autoplay` + `waitPhones=N` (kiosk/E2E autostart; waits for a tight host clock sync and a settled audio clock), `hgp=ws://host:port/hgp`, `missGrace` (ms a note waits for an in-flight phone ring before it is a miss; default 250, stretched to recent ring latency),
 `octave=0` (play written pitch instead of handbell sounding pitch), `bloom=0`, `particles=0`,
 `dpr`, `vis`/`inp` (offsets, ms), `stats=1`, `backing=0|1`, `backingVol=0–100`, `countin=0|1`,
-`seed=N` (deterministic 🎲 Shuffle / ⚖️ Balance, for tests).
+`speed=50–100` (practice speed, %), `joinQr=0` (no corner QR during play), `joinQrCorner=tl|tr|bl|br`,
+`joinQrSize=px`, `seed=N` (deterministic 🎲 Shuffle / ⚖️ Balance, for tests).
+
+### Drop-in joining and practice speed: how they work
+
+**Drop-in.** `src/join-queue.ts` (pure, unit-tested) notes phones that *arrive* while a round is
+on screen (song or results) and are not in it; phones already in the round (a screen that went off
+and back on) and phones that chose to sit out are not queued. The game sends the queue to the S1
+host with `parts` (`waiting`); the host tells each of those phones `next: true` and the controller
+shows *You're in!* during the song (and a hint above *Pick your part* on the results screen). When
+the next round is set up, the queue is seated first, in join order, with the seating chart's
+normal rules (`Seating.join`: home part if the TV plays it, else the first TV-played part); if
+there is no free part they go to the bench like a late joiner in the lobby. Follow-up, not built:
+taking over a TV-played part in the middle of a song (needs cues and a highway handover mid-round).
+
+**Practice speed.** `src/speed.ts` stretches the S5 chart once: every song time and duration
+(`time` and `…Sec` fields, the schema's seconds) × 1/speed and every tempo × speed; ticks, beats,
+bars, pitches and parts are unchanged. Everything downstream already reads song seconds from that
+chart — team chart and highways, the judge, the phones' cues, the backing groove and count-in (from
+the stretched beat grid), the miss sweep — so it all slows down together and the judging windows
+(± 45/90/140 ms) stay the same in real time. The highways scroll at speed × their normal rate and
+show notes 1/speed earlier, so the picture looks the same in slow motion
+(`HighwayRenderer.setScroll`). Bell pitches and the synthesised backing are not resampled. Difficulty
+tiers are independent: speed applies to whichever part the lobby picks.
 
 ### Seating chart: how it works
 
@@ -196,6 +237,7 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
   in `devices`), dashboard command `parts` → HGP `parts` to every phone (also on join); device list
   broadcast on change + 3 s heartbeat instead of every second. Controller: **Pick your part** list,
   *Swap with …?*, **I'm ready**, *Sit out*. `tools/sim-phones.ts --claim N --ready`.
+  Drop-in: `parts.waiting` from the game → `next` per phone; controller **You're in!** screen.
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
   `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
   come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
@@ -203,6 +245,7 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
   For the backing: `Session` options `extraEvents` (extra audio events on the chart's
   AudioContext timeline, negative times allowed for a count-in) and `leadIn`;
   `AudioEngine.connect(node, reverb)` mixes an external bus in with the bells.
+  For practice speed: `HighwayRenderer.setScroll(speed, lookAhead)` (scroll rate + shader uniform).
 - **S5**: charts carry an optional `harmony` block (format 0.2.0: chords, beat grid, backing
   style; chords inferred where the source has no chord symbols); see the S5 README.
 
