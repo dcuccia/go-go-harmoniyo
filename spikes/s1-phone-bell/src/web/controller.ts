@@ -5,6 +5,8 @@ import { learnAxis, RingDetector, type MotionSample, type StrikeEvent, type Vec3
 import { bell as playBell, click, perfToCtx, testBeep, unlockAudio } from './audio.ts';
 import { deviceId, HgpClient } from './hgp-client.ts';
 import { MotionSource } from './motion.ts';
+import { TabGuard } from './tab-guard.ts';
+import { takeoverScreen } from './takeover.ts';
 
 const q = new URLSearchParams(location.search);
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -44,11 +46,34 @@ const savedAxis = localStorage.getItem(AXIS_KEY);
 const ring = new RingDetector({ ...detectorOverrides, axis: savedAxis ? (JSON.parse(savedAxis) as Vec3) : null });
 const impact = new ImpactDetector();
 const motion = new MotionSource();
+/** One controller tab per phone (the deviceId is shared by every tab of this browser). */
+const tabGuard = new TabGuard('go-go-harmoniyo/controller');
 const client = new HgpClient({
   kind: 'phone',
   deviceId: deviceId(),
   name: localStorage.getItem(NAME_KEY) ?? 'phone',
-  hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true },
+  hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true, tab: tabGuard.tab },
+});
+
+// ── one tab per phone: "connected in another tab — [Use this tab]" ──────────
+let started = false;
+const takeover = takeoverScreen(() => void useThisTab());
+async function useThisTab(): Promise<void> {
+  if (!started) return start(true);
+  await tabGuard.acquire(true);
+  client.takeover();
+}
+tabGuard.onLost = () => {
+  // The user took over in another tab: stand by (the host also tells us `replaced`).
+  client.goStandby('another tab took over');
+  takeover.show('replaced');
+};
+client.onReplaced = () => {
+  tabGuard.release();
+  takeover.show('replaced');
+};
+void tabGuard.otherActive().then((other) => {
+  if (other && !started) takeover.show('other-tab');
 });
 
 // ── UI ──────────────────────────────────────────────────────────────────────
@@ -443,19 +468,37 @@ async function requestWakeLock(): Promise<void> {
   }
 }
 
-async function start(): Promise<void> {
+let starting = false;
+async function start(takeoverTab = false): Promise<void> {
+  if (started || starting) return; // a double tap must not open a second connection
+  starting = true;
+  try {
+    await startController(takeoverTab);
+  } finally {
+    starting = false;
+  }
+}
+
+async function startController(takeoverTab: boolean): Promise<void> {
   const name = ($('name') as HTMLInputElement).value.trim() || 'phone';
   localStorage.setItem(NAME_KEY, name);
   // Both must be *called* synchronously inside the tap handler (iOS user-activation rules).
   const permP = MotionSource.requestPermission().catch((e: unknown) => `error: ${String(e)}`);
   const audioP = unlockAudio().catch((e: unknown) => ({ state: `error: ${String(e)}`, audioSession: '?', baseLatency: NaN, outputLatency: NaN }));
+  // Another tab of this phone is playing (e.g. the TV's QR scanned again): let it keep playing.
+  if (!(await tabGuard.acquire(takeoverTab))) {
+    takeover.show('other-tab');
+    return;
+  }
   const perm = await permP;
   const audioInfo = await audioP;
   await requestWakeLock();
   const api = await motion.start(q.get('api') === 'generic' ? 'generic' : 'auto', Number(q.get('hz') ?? 60));
   motion.onSample = onSample;
   client.setName(name);
-  client.connect();
+  if (takeoverTab) client.takeover();
+  else client.connect();
+  started = true;
   $('start-screen').hidden = true;
   $('main').hidden = false;
   recording = q.get('record') === '1';

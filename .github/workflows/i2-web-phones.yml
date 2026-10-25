@@ -70,6 +70,8 @@ jobs:
         run: npm run e2e:seating --ignore-scripts
       - name: Drop-in + practice speed e2e (join mid-song → seated next round; corner QR; speed control)
         run: npm run e2e:dropin --ignore-scripts
+      - name: Reconnect/takeover e2e (two tabs of one phone: no ping-pong; Use this tab; QR re-scan mid-song)
+        run: npm run e2e:takeover --ignore-scripts
       - if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -77,6 +79,7 @@ jobs:
           path: |
             spikes/i2-web-phones/results/seating-e2e.json
             spikes/i2-web-phones/results/dropin-e2e.json
+            spikes/i2-web-phones/results/takeover-e2e.json
           if-no-files-found: ignore
 
   # Gating since #18: misses wait for in-flight rings (source-timestamp judging survives slow frames

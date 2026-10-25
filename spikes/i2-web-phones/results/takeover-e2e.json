@@ -1,0 +1,197 @@
+{
+  "at": "2026-10-25T23:15:02.012Z",
+  "ok": true,
+  "evidence": {
+    "takeover": {
+      "hello": 2,
+      "takeoverHello": 1,
+      "replaced": 1,
+      "disconnect": 0,
+      "deviceBroadcasts6s": 2
+    },
+    "rescan": {
+      "hello": 3,
+      "replaced": 2,
+      "disconnect": 0,
+      "gestures": 4
+    },
+    "noCoordination": {
+      "hello": 2,
+      "replaced": 1,
+      "disconnect": 0,
+      "windowMs": 8012
+    },
+    "fallback": {
+      "hello": 2,
+      "replaced": 1,
+      "disconnect": 0
+    }
+  },
+  "checks": [
+    {
+      "name": "Alice is seated",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab A connected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab B (same phone) shows \"connected in another tab\" on load",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab B offers \"Use this tab\" and explains the other tab keeps playing",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab B did not connect (host saw one hello, no replacement)",
+      "ok": true,
+      "detail": "{\"hello\":1,\"replaced\":0}"
+    },
+    {
+      "name": "tab A is still connected and not in standby",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab B takes over (connected, bell screen)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab A shows the takeover screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab A says another tab took over",
+      "ok": true,
+      "detail": "Another tab on this phone took over as the bell, so this one stopped."
+    },
+    {
+      "name": "one takeover, then stable for 6 s (no ping-pong)",
+      "ok": true,
+      "detail": "{\"hello\":2,\"takeoverHello\":1,\"replaced\":1,\"disconnect\":0,\"deviceBroadcasts6s\":2}"
+    },
+    {
+      "name": "tab A stays off (no auto-reconnect)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the TV never saw Alice offline",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "device broadcasts to the TV stay calm (heartbeat-level, ≤ 5 in 6 s)",
+      "ok": true,
+      "detail": "2"
+    },
+    {
+      "name": "Alice keeps her seat",
+      "ok": true,
+      "detail": "Alice / tv"
+    },
+    {
+      "name": "tab A takes back over",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "tab B stands by",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "switching back is one more takeover",
+      "ok": true,
+      "detail": "{\"hello\":3,\"replaced\":2}"
+    },
+    {
+      "name": "round starts",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "re-scan mid-song: the new tab shows the takeover screen",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "re-scan mid-song: no new connection, no replacement",
+      "ok": true,
+      "detail": "{\"hello\":3,\"replaced\":2,\"disconnect\":0,\"gestures\":4}"
+    },
+    {
+      "name": "the playing tab stays connected and its rings reach the host",
+      "ok": true,
+      "detail": "4 gestures"
+    },
+    {
+      "name": "the TV keeps the round as it was",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "separate profiles cannot see each other (no takeover screen on load)",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "Bob profile 1 connected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the older page stands by when the newer one connects",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "no ping-pong: one replacement, then stable for 8 s",
+      "ok": true,
+      "detail": "{\"hello\":2,\"replaced\":1,\"disconnect\":0,\"windowMs\":8012}"
+    },
+    {
+      "name": "newest page wins and stays connected; the old one stays off",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fallback: navigator.locks is gone",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fallback: tab 1 connected",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fallback: tab 2 shows the takeover screen without connecting",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fallback: Use this tab → tab 1 stands by",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "fallback: one takeover, then stable for 5 s",
+      "ok": true,
+      "detail": "{\"hello\":2,\"replaced\":1,\"disconnect\":0}"
+    },
+    {
+      "name": "no page errors",
+      "ok": true,
+      "detail": ""
+    }
+  ]
+}
