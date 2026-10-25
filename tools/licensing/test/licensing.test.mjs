@@ -57,6 +57,8 @@ test('schema: AI-generated assets need the full provenance block', () => {
 
 test('schema: unknown fields and bad hashes are rejected', () => {
   assert.match(validate(schema, clone({ colour: 'red' })).join('\n'), /unexpected property "colour"/);
+  assert.deepEqual(validate(schema, clone({ candidate: true })), []);
+  assert.match(validate(schema, clone({ candidate: 'yes' })).join('\n'), /candidate/);
   const bad = clone({});
   bad.assets[0].source.files[0].sha256 = 'abc';
   assert.match(validate(schema, bad).join('\n'), /does not match/);

@@ -1,0 +1,15 @@
+{
+  "$comment": "Blind-listening key: do not open before listening (see README.md).",
+  "key": {
+    "deck-the-halls": {
+      "A": "amt: S5 melody bells (easy, 4 ringers) + AMT accompaniment (music-small-800k, local run) through the I2 bass/pad voices",
+      "B": "llm: S6 qwen3:8b candidate chart (hard, 4 ringers; AI parts: intro and ending; bass/inner realized by S5 from the chords) + I2 procedural backing from its chords",
+      "C": "procedural: S5 chart (hard, 4 ringers) + I2 procedural backing from the S5 chords"
+    },
+    "the-holly-and-the-ivy": {
+      "A": "llm: S6 qwen3:8b candidate chart (hard, 4 ringers; AI parts: chord symbols (unchanged from S5 inference), descant (voice 2); bass/inner realized by S5 from the chords) + I2 procedural backing from its chords",
+      "B": "amt: S5 melody bells (easy, 4 ringers) + AMT accompaniment (music-small-800k, local run) through the I2 bass/pad voices",
+      "C": "procedural: S5 chart (hard, 4 ringers) + I2 procedural backing from the S5 chords"
+    }
+  }
+}
