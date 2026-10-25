@@ -22,7 +22,8 @@ const names = (notes) => notes.map((n) => pitchName(n.midi));
 test('ABC: pitches, key signature, lengths, chord symbols', () => {
   const s = parseAbc(readFileSync(join(root, 'songs', 'jingle-bells.abc'), 'utf8'));
   assert.equal(s.title, 'Jingle Bells');
-  assert.deepEqual(names(s.notes.slice(0, 7)), ['D5', 'B4', 'A4', 'G4', 'D4', 'D4', 'D4']);
+  // "Dashing through the snow" starts on the low D and rises to B (#30).
+  assert.deepEqual(names(s.notes.slice(0, 7)), ['D4', 'B4', 'A4', 'G4', 'D4', 'D4', 'D4']);
   assert.deepEqual(s.notes.slice(4, 7).map((n) => n.dur), [3 * PPQ, PPQ / 2, PPQ / 2]);
   assert.ok(names(s.notes).includes('F#4'), 'key of G sharpens F');
   assert.equal(s.endTick, 32 * 4 * PPQ);
@@ -68,6 +69,53 @@ test('MIDI: Mutopia SATB file -> soprano melody via top-line extraction', () => 
   // Soprano opening from carol.ly: f'8 d''4 a'8 c'' bes' g' f'4 g'8 (B-flat major)
   assert.deepEqual(names(melody.slice(0, 8)), ['F4', 'D5', 'A4', 'C5', 'A#4', 'G4', 'F4', 'G4']);
   assert.ok(roleNotes.filter((n) => n.role === 'bass').length > 40);
+});
+
+// Soprano line of a Mutopia hymntune .ly (absolute pitches; `Soprano = { ... }`) -> [{ tick, midi }].
+function lySoprano(ly) {
+  const PC = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
+  const body = /^Soprano = \{([\s\S]*?)\}\s*\}?\s*$/m.exec(ly)[1]
+    .replace(/\\(time|partial|key)\s+\S+(\s+\\\w+)?/g, '').replace(/\\bar "[^"]*"/g, '').replace(/\\\w+/g, '');
+  const out = [];
+  let dur = PPQ;
+  let t = 0;
+  let tie = false;
+  for (const tok of body.match(/[a-gsr](?:is|es|s)*[',]*\d*\.?|~/g) || []) {
+    if (tok === '~') { tie = true; continue; }
+    const [, letter, acc, oct, len, dot] = /^([a-gsr])((?:is|es|s)*)([',]*)(\d*)(\.?)$/.exec(tok);
+    if (len) dur = ((4 * PPQ) / Number(len)) * (dot ? 1.5 : 1);
+    if (letter !== 'r' && letter !== 's') {
+      const alter = (acc.match(/is/g) || []).length - (acc.match(/es|(?<=[ae])s/g) || []).length;
+      const octave = 3 + (oct.match(/'/g) || []).length - (oct.match(/,/g) || []).length;
+      const midi = 12 * (octave + 1) + PC[letter] + alter;
+      if (!(tie && out.at(-1)?.midi === midi)) out.push({ tick: t, midi });
+    }
+    tie = false;
+    t += dur;
+  }
+  return out;
+}
+
+test('MIDI: every Mutopia SATB melody matches the soprano line of its .ly source', () => {
+  let checked = 0;
+  for (const entry of manifest.songs.filter((e) => e.format === 'midi')) {
+    const ly = readFileSync(join(root, 'songs', entry.file.replace(/\.mid$/, '.ly')), 'utf8');
+    if (!/^Soprano = /m.test(ly)) continue;
+    const { roleNotes } = loadSong(entry, join(root, 'songs'));
+    const melody = roleNotes.filter((n) => n.role === 'melody').map((n) => `${n.tick}:${pitchName(n.midi)}`);
+    assert.deepEqual(melody, lySoprano(ly).map((n) => `${n.tick}:${pitchName(n.midi)}`), entry.id);
+    checked++;
+  }
+  assert.ok(checked >= 9, `checked ${checked} songs`);
+});
+
+test('manifest timeSig override re-bars a source engraved in the wrong meter', () => {
+  const entry = manifest.songs.find((e) => e.id === 'away-in-a-manger');
+  assert.equal(entry.options.timeSig, '3/4');
+  const { score } = loadSong(entry, join(root, 'songs'));
+  assert.deepEqual([score.timeSigs[0].num, score.timeSigs[0].den], [3, 4]);
+  const starts = measureStarts(score);
+  assert.deepEqual(starts.slice(0, 4), [0, PPQ, 4 * PPQ, 7 * PPQ], 'one-beat pickup, then 3/4 bars');
 });
 
 test('MusicXML: divisions, pickup, backup, chord, tie, rest, harmony, tempo', () => {
