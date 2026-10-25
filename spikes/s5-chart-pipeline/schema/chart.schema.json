@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/dcuccia/go-go-harmoniyo/spikes/s5-chart-pipeline/schema/chart.schema.json",
-  "title": "Go Go HarmoniYo chart v0.2 (S5 proposal)",
+  "title": "Go Go HarmoniYo chart v0.3 (S5 proposal)",
   "description": "Engine-neutral handbell chart: one file per song, containing parts for several ringer counts and difficulty tiers. Times are given both in ticks (exact, for editing/export) and seconds (pre-computed from the tempo map, for playback). Unknown properties must be ignored by readers.",
   "type": "object",
   "required": ["format", "formatVersion", "song", "timing", "bells", "parts"],
@@ -71,6 +71,36 @@
       "description": "Every bell used by any part, low to high. Written pitch, scientific notation with sharps (handbells sound an octave higher than written).",
       "items": { "type": "object", "required": ["id", "midi"], "properties": { "id": { "$ref": "#/$defs/bellId" }, "midi": { "type": "integer", "minimum": 0, "maximum": 127 }, "natural": { "type": "boolean" } } }
     },
+    "form": {
+      "type": "object",
+      "description": "Optional (format 0.3+). How the song is laid out: sections in time order. Charts without it are the song played once.",
+      "required": ["id", "sections"],
+      "properties": {
+        "id": { "type": "string", "description": "full: intro, verses that develop, optional interlude + key change, coda. short: the song once." },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["index", "kind", "tick", "endTick", "time", "endTime"],
+            "properties": {
+              "index": { "type": "integer", "minimum": 0 },
+              "kind": { "enum": ["intro", "verse", "interlude", "coda"] },
+              "label": { "type": "string" },
+              "verse": { "type": "integer", "minimum": 1 },
+              "tick": { "$ref": "#/$defs/tick" },
+              "endTick": { "$ref": "#/$defs/tick" },
+              "time": { "$ref": "#/$defs/seconds" },
+              "endTime": { "$ref": "#/$defs/seconds" },
+              "transpose": { "type": "integer", "description": "Semitones relative to the song's written key (key change)." },
+              "key": { "$ref": "#/$defs/pitchClass", "description": "Tonic pitch class in this section." },
+              "development": { "type": "string", "description": "Arrangement stage, e.g. intro, light, full, descant, quiet, finale, interlude, coda, once." },
+              "energy": { "type": "number", "minimum": 0, "maximum": 1, "description": "Backing intensity hint (0 = sparse, 1 = full)." }
+            }
+          }
+        }
+      }
+    },
     "handbellSet": {
       "type": "object",
       "description": "Smallest standard handbell set the bells fit, and the transposition needed (informational).",
@@ -114,7 +144,8 @@
               "beat": { "type": "integer", "minimum": 0, "description": "Beat position in the bar, 0 = downbeat (pickup beats keep their bar position)." },
               "div": { "enum": [2, 3], "description": "Subdivisions per beat: 2 simple, 3 compound." },
               "strong": { "type": "boolean" },
-              "chord": { "type": ["integer", "null"], "minimum": 0, "description": "Index into chords of the chord sounding on this beat." }
+              "chord": { "type": ["integer", "null"], "minimum": 0, "description": "Index into chords of the chord sounding on this beat." },
+              "section": { "type": "integer", "minimum": 0, "description": "Format 0.3+: index into form.sections (lets the backing follow the form when times are rescaled)." }
             }
           }
         }
@@ -134,7 +165,8 @@
       "type": "object",
       "required": ["difficulty", "ringerCount", "ringers", "notes"],
       "properties": {
-        "difficulty": { "enum": ["easy", "medium", "hard", "expert"] },
+        "difficulty": { "enum": ["super-easy", "easy", "medium", "hard", "expert"], "description": "super-easy (0.3+): downbeats/long notes of the tune, generous spacing, at most 3 bells per ringer; the host plays the rest (guide)." },
+        "arrangement": { "enum": ["balanced", "chord-split", "by-range"], "description": "Format 0.3+. balanced: one musical role and pitch region per ringer, loads evened out; chord-split: the chord spread over up to 3 ringers, one tone each; by-range: bells cut into ranges by load (0.1/0.2 behaviour, the meaning when absent)." },
         "ringerCount": { "type": "integer", "minimum": 1 },
         "profile": { "type": "string", "description": "Controller/technique profile the assignment was optimized for (e.g. handbell, phone-4zone)." },
         "ringers": {
@@ -145,6 +177,8 @@
             "properties": {
               "index": { "type": "integer", "minimum": 0 },
               "label": { "type": "string" },
+              "role": { "enum": ["bass", "harmony", "chord", "melody", "descant"], "description": "Format 0.3+: the musical role of this ringer's bells." },
+              "name": { "type": "string", "description": "Format 0.3+: display name, e.g. Bass, Low melody, Chord middle." },
               "bells": { "type": "array", "items": { "$ref": "#/$defs/bellId" }, "description": "Low to high; lane order on this ringer's highway." },
               "stats": { "type": "object" }
             }
@@ -163,8 +197,24 @@
               "durSec": { "$ref": "#/$defs/seconds" },
               "bell": { "$ref": "#/$defs/bellId" },
               "ringer": { "type": "integer", "minimum": 0 },
-              "role": { "enum": ["melody", "bass", "inner"] },
+              "role": { "enum": ["melody", "bass", "inner", "descant"] },
               "technique": { "type": "string", "description": "Reserved: ring (default), damp, LV, shake, martellato, ... (HGP gesture vocabulary)." }
+            }
+          }
+        },
+        "guide": {
+          "type": "array",
+          "description": "Format 0.3+, optional: notes the host plays softly (no ringer), e.g. the rest of the tune in super-easy or a descant no ringer has.",
+          "items": {
+            "type": "object",
+            "required": ["tick", "time", "bell"],
+            "properties": {
+              "tick": { "$ref": "#/$defs/tick" },
+              "time": { "$ref": "#/$defs/seconds" },
+              "dur": { "type": "integer", "minimum": 0 },
+              "durSec": { "$ref": "#/$defs/seconds" },
+              "bell": { "$ref": "#/$defs/bellId" },
+              "role": { "enum": ["melody", "bass", "inner", "descant"] }
             }
           }
         },
