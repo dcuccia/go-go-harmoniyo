@@ -68,7 +68,7 @@ node scripts/exp-chords.ts; node scripts/exp-descant.ts; node scripts/build-cand
 | `src/songs.ts`, `src/theory.ts` | S5 corpus access, bar/beat chord lists, melody listings; key/range/bar checks, chord-tone fit, verticals, parallels, chord agreement, handbell playability (S5 `buildPart`) |
 | `src/llm.ts`, `src/prompts/*.md` | Prompt templates, ask-validate-repair loop, JSONL run logs (the AI provenance record) |
 | `src/assemble.ts`, `src/rule-descant.ts` | Intro + tune + ending + descant → candidate score/ABC; rule-based descant baseline |
-| `amt/` | AMT CLI (`amt_accompany.py`), `Dockerfile` (weights baked in, pinned by SHA-256), draft workload `manifest.json`, owner-only `publish.ps1` |
+| `amt/` | AMT CLI (`amt_accompany.py`), `Dockerfile` (weights baked in, pinned by SHA-256), workload `manifest.json` (published digest; see `amt/README.md`), owner-only `publish.ps1` (superseded by the `s6-amt-image` workflow) |
 | `preview/` | Browser page that renders the blind-listening clips with the S4 bell synth and I2 backing synth |
 | `results/` | Measurements and logs; `results/amt/<song>/` AMT inputs/outputs |
 | `candidates/`, `charts/`, `previews/` | AI candidate lead sheets, their charts, the listening set (all CC0, review pending) |

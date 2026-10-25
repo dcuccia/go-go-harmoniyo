@@ -1,6 +1,6 @@
 # 0011 — AI-assisted arranging: validated candidates, never replacements
 
-- Status: Proposed
+- Status: Accepted (owner, 2026-10-25; [#54](https://github.com/dcuccia/go-go-harmoniyo/pull/54))
 - Date: 2026-10-24
 - Deciders: @dcuccia (owner); proposed by the S6 spike session
 
@@ -62,6 +62,23 @@ Key S6 findings:
   promote, set the node token + CA, publish the AMT image and send its manifest to infra.
 - If this ADR is rejected, the candidate flag must go: then either review the S6 assets before
   merge or remove them from the PR.
+
+## Owner decision (2026-10-25)
+
+**Accepted** as written. Owner: "in terms of owner-decisions, i'm going to lean on your
+recommendations in general."
+
+The owner's blind listen (details in the [S6 report](../spikes/S6-report.md#owner-listening-result-2026-10-25))
+supports point 1: only *Deck the Halls* B sounded "decent", and B's AI parts were just a 4-bar
+intro and a 2-bar ending around S5's procedural arrangement. None of the *Holly and the Ivy*
+clips (AMT, LLM or procedural) sounded like a realistic arrangement; the cause is the
+melody-only source with inferred chords, so the fix is an SATB source, not a model.
+
+- All S6 AI candidates stay `review: pending` and `candidate: true`. The owner has **not** done
+  the ADR-0008 resemblance review; it is on his checklist (S6 report, owner actions) and is
+  required before any candidate is promoted.
+- Point 4 still stands: AMT is re-decided after a medium-model GPU run on the node. The image is
+  now published by the `s6-amt-image` workflow ([#56](https://github.com/dcuccia/go-go-harmoniyo/pull/56)).
 
 ## Evidence
 

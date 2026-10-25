@@ -154,7 +154,7 @@ difficulties.
 - Chart format 0.2 (S5, for the I2 backing track): optional `harmony` block — chord symbols,
   beat grid (tempo/meter changes resolved to seconds) and a backing style per song. Mutopia
   scores without chord symbols get chords inferred from their notes (unproofread).
-- Learned (S6, AI-assisted arranging; [report](../spikes/S6-report.md), [ADR-0011](../decisions/0011-ai-assisted-arranging.md) Proposed):
+- Learned (S6, AI-assisted arranging; [report](../spikes/S6-report.md), [ADR-0011](../decisions/0011-ai-assisted-arranging.md) Accepted 2026-10-25):
   - qwen3:8b (8B general LLM) is not a usable arranger: melody-only chord inference is worse than
     S5's matcher (chord-tone fit 0.53–0.66 vs 0.83–0.97), proofreading returns its input, and
     descants are degenerate (tune copied a 3rd up, or a looped example). 7 of 24 descant/intro

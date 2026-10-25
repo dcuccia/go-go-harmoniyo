@@ -53,6 +53,8 @@ export interface RingEvent {
 
 export class HgpLink {
   readonly sync = new ClockSync();
+  /** Host clock sync restarts (a good exchange disagreed with the fit by > 50 ms): when, and by how much. */
+  readonly syncJumps: { perf: number; deltaMs: number }[] = [];
   phones: PhoneInfo[] = [];
   info: HostInfo = {};
   state: 'connecting' | 'open' | 'closed' = 'closed';
@@ -119,7 +121,12 @@ export class HgpLink {
     }
     switch (m.type) {
       case 'sync':
-        if (typeof m.t0 === 'number' && typeof m.t1 === 'number' && typeof m.t2 === 'number') this.sync.add({ t0: m.t0, t1: m.t1, t2: m.t2, t3 });
+        if (typeof m.t0 === 'number' && typeof m.t1 === 'number' && typeof m.t2 === 'number') {
+          const resets = this.sync.resets;
+          const before = this.sync.offsetAt((m.t0 + t3) / 2);
+          this.sync.add({ t0: m.t0, t1: m.t1, t2: m.t2, t3 });
+          if (this.sync.resets !== resets && this.syncJumps.length < 32) this.syncJumps.push({ perf: Math.round(t3), deltaMs: Math.round(((this.sync.estimate?.offset ?? NaN) - before) * 100) / 100 });
+        }
         return;
       case 'welcome':
         if (m.info) this.setInfo(m.info);

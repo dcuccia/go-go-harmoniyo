@@ -1,8 +1,8 @@
 # S6 — AI-assisted arranging: report
 
 - Spike: [S6 brief](README.md#s6--ai-assisted-arranging) · code: [`spikes/s6-ai-arranging/`](../../spikes/s6-ai-arranging/README.md)
-- Date: 2026-10-24 · one session, unattended (owner away) · decisions proposed in
-  [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (Proposed)
+- Date: 2026-10-24 · one session, unattended (owner away) · decisions in
+  [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (Accepted 2026-10-25)
 - Machine: Windows 11 laptop (22 logical CPUs, 32 GB, NVIDIA RTX 2000 Ada Laptop 8 GB), Node
   22.18, Python 3.11.9, Docker Desktop 29.9.2 (WSL2), headless Chrome 155
 
@@ -34,7 +34,7 @@ node is the open question, and it needs owner actions.
 | Music I/O and checks ([`abc-io.ts`](../../spikes/s6-ai-arranging/src/abc-io.ts), [`songs.ts`](../../spikes/s6-ai-arranging/src/songs.ts), [`theory.ts`](../../spikes/s6-ai-arranging/src/theory.ts)) | Score → ABC writer that the S5 parser reads back exactly (all 8 carols round-trip: notes, chords, bar lines, pickups). Checks: bar lengths, key/diatonic share, range, chord-tone fit (all / strong beats), clashes and parallels against the tune, similar motion, pitch and bar variety, per-beat chord agreement, handbell playability through S5's `buildPart` | Tests |
 | LLM harness ([`llm.ts`](../../spikes/s6-ai-arranging/src/llm.ts), [prompts](../../spikes/s6-ai-arranging/src/prompts/)) | Templates in the repo; ask → validate → up to 2 repair turns that send the validator's errors back. Every call is logged to JSONL with the full prompt and reply: this is the AI-provenance record | [`results/runs/`](../../spikes/s6-ai-arranging/results/runs/) |
 | Candidates ([`build-candidates.ts`](../../spikes/s6-ai-arranging/scripts/build-candidates.ts), [`assemble.ts`](../../spikes/s6-ai-arranging/src/assemble.ts)) | Intro + tune + ending in voice 1, descant in voice 2, chords. S5 realizes bass/inner bells, then builds a chart (format 0.2.0, schema-valid). Originals untouched | [`candidates/`](../../spikes/s6-ai-arranging/candidates/), [`charts/`](../../spikes/s6-ai-arranging/charts/) |
-| AMT ([`amt/`](../../spikes/s6-ai-arranging/amt/)) | CLI `/inputs/melody.mid` + `args.json` → `/outputs/accompaniment.mid`, `combined.mid`, `report.json`; Dockerfile with weights baked in and verified by SHA-256, base image pinned by digest, non-root, works on a read-only rootfs; draft workload [`manifest.json`](../../spikes/s6-ai-arranging/amt/manifest.json); owner-only [`publish.ps1`](../../spikes/s6-ai-arranging/amt/publish.ps1) | Local CPU runs; sandboxed container smoke ([`container-smoke.json`](../../spikes/s6-ai-arranging/results/amt/container-smoke.json)) |
+| AMT ([`amt/`](../../spikes/s6-ai-arranging/amt/)) | CLI `/inputs/melody.mid` + `args.json` → `/outputs/accompaniment.mid`, `combined.mid`, `report.json`; Dockerfile with weights baked in and verified by SHA-256, base image pinned by digest, non-root, works on a read-only rootfs; workload [`manifest.json`](../../spikes/s6-ai-arranging/amt/manifest.json) (published digest, [#56](https://github.com/dcuccia/go-go-harmoniyo/pull/56)); owner-only [`publish.ps1`](../../spikes/s6-ai-arranging/amt/publish.ps1), superseded by the `s6-amt-image` workflow | Local CPU runs; sandboxed container smoke ([`container-smoke.json`](../../spikes/s6-ai-arranging/results/amt/container-smoke.json)) |
 | Blind-listening set ([`render-previews.ts`](../../spikes/s6-ai-arranging/scripts/render-previews.ts), [`preview/`](../../spikes/s6-ai-arranging/preview/)) | Headless Chrome, OfflineAudioContext, S4 bell synth + I2 backing synth unchanged; loudness-matched (−20 dBFS RMS) mono Ogg; shuffled letters | [`previews/`](../../spikes/s6-ai-arranging/previews/README.md), [`results/previews.md`](../../spikes/s6-ai-arranging/results/previews.md) |
 
 ## qwen3:8b experiments
@@ -168,8 +168,37 @@ the Ivy, three clips each (A/B/C, shuffled per song), 27–49 s, mono 22.05 kHz 
 
 Confound to keep in mind: the Holly "LLM" clip also gains S5-realized bass/inner bells, because
 the candidate is a lead sheet, while the original Holly chart is melody-only. Much of any
-improvement there comes from S5's realizer and not from the model. The owner hasn't listened yet:
-**the key is in `previews/answer-key.json`, don't open it first.**
+improvement there comes from S5's realizer and not from the model. The key is in
+`previews/answer-key.json` (for new listeners: don't open it first).
+
+### Owner listening result (2026-10-25)
+
+The owner listened blind. His verdict (verbatim): "for the blind listening the only one that
+sounded decent is deck the halls version B. none of the holly and the ivy ones sounded like a
+realistic arrangement."
+
+| Song | Clip rated "decent" | What it was (from the key) | Not rated decent |
+|---|---|---|---|
+| Deck the Halls | **B** | **LLM**: the qwen3:8b candidate. Its only AI parts are a 4-bar intro and a 2-bar ending; the rest is S5's procedural chart (bass/inner realized from S5's chords) plus the I2 procedural backing | A (AMT), C (procedural) |
+| The Holly and the Ivy | none | — | A (LLM descant), B (AMT), C (procedural) |
+
+What it means:
+
+- **Song form, not AI harmony, made the difference.** B and C are the same procedural
+  arrangement; B adds a short intro and ending. So the value is in the form (a lead-in and a
+  proper close), which a rule or a human can write too. It is not evidence that qwen3:8b
+  harmonizes well.
+- **AMT (small model, CPU) was not preferred for either song**, consistent with its chord fit of
+  0.30–0.40. The medium-model GPU run is still open (ADR-0011 point 4).
+- **The Holly and the Ivy failed in every version** because its source is melody-only and its
+  chords are inferred. Neither the LLM descant, the AMT accompaniment nor S5's realizer turns
+  that into a realistic arrangement. The fix is a real four-part (SATB) source, and an SATB redo
+  of the carol corpus is in progress (see [#57](https://github.com/dcuccia/go-go-harmoniyo/pull/57)).
+- Next cheap steps: rule-based intros and endings in S5/I2 for every song, and SATB sources
+  before any generative harmony.
+
+All AI candidates stay `review: pending`. A listening preference is not the ADR-0008
+resemblance review; the owner has not done that review (see owner actions).
 
 ## Licensing and provenance
 
@@ -177,11 +206,10 @@ improvement there comes from S5's realizer and not from the model. The owner has
   AI provenance (tool, model + revision + hash, terms URL and date, prompt-log paths),
   `review: pending` and the new `candidate: true` + `credit: false` flags. `REUSE.toml` was
   updated and `ATTRIBUTION.md` regenerated.
-- **Policy change (proposed):** ADR-0008 requires a resemblance review before merge. The brief
-  asks for `review: pending`. [ADR-0011](../decisions/0011-ai-assisted-arranging.md) proposes a
-  narrow `candidate` state: complete provenance is required, the review may be pending, the asset
-  is not credited and can't be promoted until reviewed. `attribution.mjs` enforces this. If the
-  owner rejects ADR-0011, do the review before merging or drop the assets from the PR.
+- **Policy change (accepted 2026-10-25):** ADR-0008 requires a resemblance review before merge.
+  The brief asks for `review: pending`. [ADR-0011](../decisions/0011-ai-assisted-arranging.md)
+  adds a narrow `candidate` state: complete provenance is required, the review may be pending, the
+  asset is not credited and can't be promoted until reviewed. `attribution.mjs` enforces this.
 - Models: qwen3:8b / Qwen3-8B and AMT are Apache-2.0, with no NC/ND terms. The local stand-in
   tooling (llama-cpp-python MIT; NVIDIA CUDA runtime pip wheels) was dev-only and lived outside
   the repo.
@@ -196,17 +224,21 @@ improvement there comes from S5's realizer and not from the model. The owner has
    (`78F6AA75…3357CC`). Then rerun on the node (wakes it first):
    `node scripts/smoke.ts; node scripts/exp-chords.ts; node scripts/exp-descant.ts` (results are
    tagged `-node`). Expect the same quality, with ~5× lower latency than the stand-in.
-2. **Publish the AMT image** (owner credentials, private GHCR package):
-   `pwsh spikes/s6-ai-arranging/amt/publish.ps1 -Push`, put the printed digest into
-   `amt/manifest.json`, send the manifest to cuccia-infra for review and registration (not
-   self-service, per the consumer guide).
+2. ~~**Publish the AMT image**~~ Done by the `s6-amt-image` GitHub Actions workflow
+   ([#56](https://github.com/dcuccia/go-go-harmoniyo/pull/56)); `amt/manifest.json` has the
+   published digest. `amt/publish.ps1` is superseded. Still to do: send the manifest to
+   cuccia-infra for review and registration (not self-service, per the consumer guide).
 3. Then run `node scripts/amt-run.ts --node --songs deck-the-halls,the-holly-and-the-ivy` (medium
    model, GPU), `node scripts/amt-analyze.ts` and `node scripts/render-previews.ts --ogg-python …`,
    and listen again.
-4. **Listen to the blind set** and note a preference per song, then open the key.
-5. Decide on [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (the candidate flag and
-   "arranging stays algorithmic").
-6. Infra wishes (draft; no issue filed in cuccia-infra): a documented way to get `/node/status`
+4. ~~**Listen to the blind set**~~ Done 2026-10-25 (see
+   [Owner listening result](#owner-listening-result-2026-10-25)).
+5. ~~Decide on ADR-0011~~ Accepted 2026-10-25.
+6. **Resemblance review (ADR-0008), not done.** Before any S6 candidate is promoted (used in a
+   build, or its `candidate` flag removed), listen to it and check it doesn't resemble a
+   specific copyrighted arrangement, then record reviewer and date in
+   `attribution/register.json`. Until then every S6 candidate stays `review: pending`.
+7. Infra wishes (draft; no issue filed in cuccia-infra): a documented way to get `/node/status`
    `wake` details once without a token, so a fresh client can wake a sleeping node; a
    `max_vram_mib` field in job status; and a note in the guide that GPU jobs should size threads
    from cgroup quotas.

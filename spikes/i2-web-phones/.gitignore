@@ -2,3 +2,4 @@ node_modules/
 dist/
 public/charts/
 results/*.png
+results/e2e-repeat*.ndjson

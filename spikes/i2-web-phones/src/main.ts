@@ -442,6 +442,20 @@ link.ringListeners.add((e) => {
 });
 
 // ── play ────────────────────────────────────────────────────────────────────
+/**
+ * How long past the good window a note waits for an in-flight ring before it counts as a miss.
+ * Phone rings reach this page 30–40 ms after the strike on a quiet LAN, but Wi-Fi power save
+ * delays some by up to ~200 ms (S1 report) and a busy host PC adds more; the ring still carries
+ * its source time, so it is judged correctly as long as it arrives within the grace.
+ */
+const MISS_GRACE_MS = 250;
+const MAX_MISS_GRACE_MS = 1000;
+/** The grace, stretched to the slowest of the last 32 rings' arrival when the PC or Wi-Fi is slow. */
+function missGrace(): number {
+  let worst = 0;
+  for (const l of hgpInput?.stats.latencyMs.slice(-32) ?? []) worst = Math.max(worst, l);
+  return Math.min(MAX_MISS_GRACE_MS, Math.max(num('missGrace', MISS_GRACE_MS), worst + 20));
+}
 let players: PlayerStats[] = [];
 let hgpInput: HgpInputSource | null = null;
 
@@ -473,7 +487,7 @@ async function start(mode: Mode): Promise<void> {
   const part = findPart(s5, difficulty, ringerCount)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
-  const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn });
+  const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
   players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
   teamHud.clearStats();
   s.onJudgement = (r, e) => {
@@ -490,14 +504,15 @@ async function start(mode: Mode): Promise<void> {
       }
       teamHud.judgement(ri, r.grade, r.offset * 1000);
     } else p.strays++;
+    if (e) timing.rings.push({ p: ri, perf: round(e.hostTimeMs, 1), offMs: isJudgement(r) ? round(r.offset * 1000, 1) : null, latMs: round(e.receivedAtMs - e.hostTimeMs, 1) });
     teamHud.stats(ri, p);
-    void e;
   };
   s.onFinish = (r) => finish(r);
   const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
   $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
   session = s;
   playing = true;
+  resetTiming();
   s.start();
   sendCues(s);
   sendParts(); // phase "play": phones hide the part picker
@@ -521,9 +536,53 @@ function keyboardRinger(laneStart: number, n: number, ring: (lane: number) => vo
   };
 }
 
+// ── timing diagnostics (in the result JSON; the E2E prints them when a scenario fails) ──
+/** S1 host time at which song time 0 is audible: what every cue and every judged ring hangs off. */
+const songZeroHost = (s: Session): number => link.perfToHost(s.perfAtSong(0));
+const timing = {
+  cueSends: [] as { perf: number; anchorMs: number }[],
+  samples: [] as { perf: number; songT: number; audioOffMs: number; hostOffMs: number; anchorMs: number }[],
+  longFrames: [] as { perf: number; ms: number }[],
+  rings: [] as { p: number; perf: number; offMs: number | null; latMs: number }[],
+};
+let lastTimingSample = 0;
+let lastRafTs = NaN;
+function resetTiming(): void {
+  for (const k of ['cueSends', 'samples', 'longFrames', 'rings'] as const) timing[k].length = 0;
+  lastTimingSample = 0;
+  lastRafTs = NaN;
+  cueAnchor = NaN;
+}
+function sampleTiming(s: Session, ts: number): void {
+  if (Number.isFinite(lastRafTs) && ts - lastRafTs > 50 && timing.longFrames.length < 500) timing.longFrames.push({ perf: round(ts, 1), ms: round(ts - lastRafTs, 1) });
+  lastRafTs = ts;
+  const now = performance.now();
+  if (now - lastTimingSample < 250) return;
+  lastTimingSample = now;
+  const anchor = songZeroHost(s);
+  // The phones got their cues on the clock mapping of that moment; if the mapping has moved since
+  // (host clock sync improved, audio clock re-anchored), send them again so phones stay on the beat.
+  if (Number.isFinite(anchor) && Math.abs(anchor - cueAnchor) > CUE_RESEND_MS) sendCues(s);
+  if (timing.samples.length > 4000) return;
+  timing.samples.push({
+    perf: round(now, 1),
+    songT: round(s.songTimeAt(now), 3),
+    audioOffMs: round(audio.clock.contextTimeAt(0) * 1000, 2),
+    hostOffMs: round(link.sync.offsetAt(now), 2),
+    anchorMs: round(anchor, 2),
+  });
+}
+
+/** Re-send cues when the song→host-time mapping has moved by more than this (ms). */
+const CUE_RESEND_MS = 2;
+/** S1 host time of song time 0 that the phones' current cues were computed with. */
+let cueAnchor = NaN;
+
 /** Tell each phone when its notes are due (S1 host time) so it can glow the next zone. */
 function sendCues(s: Session): void {
   if (!team || !link.sync.ready) return;
+  cueAnchor = songZeroHost(s);
+  timing.cueSends.push({ perf: round(performance.now(), 1), anchorMs: round(cueAnchor, 2) });
   for (const r of team.ringers) {
     const dev = roundSeats[r.index];
     if (!dev || !isPhone(dev)) continue;
@@ -584,6 +643,12 @@ function finish(r: SessionResult): void {
     players: playerRows,
     autoRingers: team?.autoRingers,
     hgp: { input, hostClock: link.sync.estimate, joinUrl: link.info.joinUrl },
+    timing: {
+      ...timing,
+      audioSnaps: audio.clock.snaps.map((x) => ({ perf: round(x.perf, 1), deltaMs: round(x.deltaMs, 2) })),
+      hostSyncResets: link.sync.resets,
+      hostSyncJumps: link.syncJumps,
+    },
     userAgent: navigator.userAgent,
   };
   (window as unknown as { __i2Result: unknown }).__i2Result = result;
@@ -691,12 +756,29 @@ window.addEventListener('resize', () => {
 
 // ── autostart (E2E / kiosk): ?start=play&waitPhones=3 ────────────────────────
 let autostarted = false;
+/** What autostart is still waiting for (E2E diagnostics). */
+let autostartWaiting = '';
+let autostartReadySince = 0;
 function maybeAutostart(): void {
   const mode = params.get('start') as Mode | null;
   if (!mode || autostarted || session || !index) return;
   const need = num('waitPhones', 0);
   const ready = onlinePhones().filter((p) => typeof p.status?.syncN === 'number' && p.status.syncN > 0);
+  // Also wait for a tight host clock sync (best exchange's error bound ≤ 10 ms; loopback is ~0.5 ms,
+  // a slow CI runner ~3 ms),
+  // not just the first sample, which a busy page may have timed through a long task, and for the
+  // audio output to have settled (no > 50 ms re-anchoring for 1 s: start-up underruns under load).
+  const tight = (link.sync.estimate?.errBound ?? Infinity) <= 10;
+  const clk = audio.clock;
+  const audioSettled = clk.ready && !(performance.now() - clk.lastSnapPerf < 1000);
+  autostartWaiting = [ready.length < need && `phones ${ready.length}/${need}`, !link.sync.ready && 'host sync', !tight && `host sync ±${link.sync.estimate?.errBound.toFixed(1)} ms`, !audioSettled && `audio clock (${clk.snaps.length} re-anchorings)`].filter(Boolean).join(', ');
   if (mode === 'play' && (ready.length < need || !link.sync.ready)) return;
+  // Clock conditions that never settle (a PC too busy to time a clean sync exchange; no audio
+  // device: Chrome's fake output) must not block a kiosk forever; cues are re-sent if the mapping
+  // moves during the song.
+  autostartReadySince ||= performance.now();
+  const waited = performance.now() - autostartReadySince;
+  if (mode === 'play' && ((!tight && waited < 20_000) || (!audioSettled && waited < 10_000))) return;
   autostarted = true;
   void rebuild().then(() => window.setTimeout(() => void start(mode), num('startDelay', 1500)));
 }
@@ -707,14 +789,19 @@ let lastStats = 0;
 let lastLobby = 0;
 function loop(ts: number): void {
   requestAnimationFrame(loop);
-  if (session) session.frame(ts);
-  else {
+  if (session) {
+    session.missGraceMs = missGrace();
+    session.frame(ts);
+    sampleTiming(session, ts);
+  } else {
+    audio.clock.update(); // keep the audio↔performance mapping settled before a round starts
     const dt = Math.min(0.1, (ts - lastIdle) / 1000);
     lastIdle = ts;
     mh.frame(ts / 1000 + 1e4, dt, ts / 1000);
     if (ts - lastLobby > 1000) {
       lastLobby = ts;
       if (!$('lobby').classList.contains('hidden')) renderStatus(); // clock-sync text, in place
+      maybeAutostart(); // its clock conditions settle without a device event
     }
   }
   if (session && !statsEl.classList.contains('hidden') && ts - lastStats > 500) {
@@ -749,6 +836,9 @@ fetch('charts/index.json')
 
 (window as unknown as Record<string, unknown>).__i2 = {
   link,
+  get autostartWaiting() {
+    return autostartWaiting;
+  },
   get team() {
     return team;
   },

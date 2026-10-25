@@ -33,11 +33,19 @@ const { values: a } = parseArgs({
     claim: { type: 'string' },
     /** Game lobby: press ✓ Ready once the lobby appears. */
     ready: { type: 'boolean', default: false },
+    /** Print clock diagnostics (`[diag] [...]` lines every 2 s): per phone the cue plan, rings sent, re-cues and clock-sync health. */
+    diag: { type: 'boolean', default: false },
   },
 });
 
 const r = rng(99);
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+/** FNV-1a: a stable 32-bit seed from a string. */
+const hashSeed = (s: string): number => {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+  return h >>> 0;
+};
 
 class FakePhone {
   ws: WebSocket;
@@ -74,16 +82,35 @@ class FakePhone {
     const e = this.sync.estimate;
     this.ws.send(JSON.stringify({ type: 'status', api: 'sim', rateHz: 60, rttMin: e?.rttMin, rttP50: e?.rttP50, syncN: e?.n, drift: e ? e.drift * 1e6 : undefined }));
   }
-  gesture(g: string, hostTime: number, jitterMs: number, detMs: number, extra: Record<string, unknown> = {}, leadMs?: number): void {
-    const tTrue = this.sync.toLocal(hostTime) + gauss(r) * jitterMs;
+  gesture(g: string, hostTime: number, jitterMs: number, detMs: number, extra: Record<string, unknown> = {}, leadMs?: number, z = gauss(r), onSent?: () => void): NodeJS.Timeout {
+    const tTrue = this.sync.toLocal(hostTime) + z * jitterMs;
     const t = this.quantize(tTrue) - 8; // detector back-dates to ~half a sample
     const delay = Math.max(0, (t - this.now()) / (1 + this.drift) + detMs);
-    this.timers.push(
-      setTimeout(() => {
-        const sel = leadMs !== undefined ? { sel: t - leadMs } : {};
-        this.ws.send(JSON.stringify({ type: 'gesture', seq: ++this.seq, g, t, th: this.sync.toHost(t), det: this.now() - t, src: 'sim', ...extra, ...sel }));
-      }, delay),
-    );
+    const thPlanned = this.sync.toHost(t);
+    const timer = setTimeout(() => {
+      const sel = leadMs !== undefined ? { sel: t - leadMs } : {};
+      const th = this.sync.toHost(t);
+      if (a.diag) {
+        this.thShift.push(th - thPlanned);
+        this.sendLate.push(this.now() - t - detMs);
+      }
+      this.ws.send(JSON.stringify({ type: 'gesture', seq: ++this.seq, g, t, th, det: this.now() - t, src: 'sim', ...extra, ...sel }));
+      onSent?.();
+    }, delay);
+    this.timers.push(timer);
+    return timer;
+  }
+  /** th at send − th planned when the cue arrived (sync estimate moving under a scheduled ring). */
+  thShift: number[] = [];
+  /** How late each ring left this process vs its intended send time (event-loop stalls), ms. */
+  sendLate: number[] = [];
+  diag(): Record<string, unknown> {
+    const e = this.sync.estimate;
+    const sh = this.thShift.map(Math.abs);
+    const rung = this.plan.filter((p) => p.done).length;
+    // Rings planned on the right bell: what a correct game must count as hits (wrong-zone rings are strays).
+    const expectHits = this.plan.filter((p) => !p.skip && !(this.bells.length > 1 && p.wrong)).length;
+    return { name: this.name, cues: this.plan.length, expectHits, rung, recued: this.recued, sendLateMaxMs: this.sendLate.length ? Math.round(Math.max(...this.sendLate)) : null, thShiftMaxAbs: sh.length ? Math.round(Math.max(...sh) * 100) / 100 : null, syncResets: this.sync.resets, rttMin: e ? Math.round(e.rttMin * 100) / 100 : null, used: e?.used };
   }
   onMessage(m: Record<string, unknown>): void {
     if (m.type === 'sync') {
@@ -135,20 +162,36 @@ class FakePhone {
       this.ws.send(JSON.stringify({ type: 'ready', ready: true }));
     }
   }
-  /** Game mode: ring each cued note (host time) on its bell, with human jitter, misses and wrong zones. */
+  /**
+   * Game mode: ring each cued note (host time) on its bell, with human jitter, misses and wrong
+   * zones. The draws come from an RNG seeded by the part (its bell sequence), so a part gets the
+   * same "performance" whichever phone plays it and whatever order the phones were cued in. A game
+   * may re-send the cues (its clock mapping moved): notes not rung yet are rescheduled to the new
+   * times with the same draws; rung ones are not repeated.
+   */
+  plan: { skip: boolean; wrong: boolean; z: number; lead: number; done: boolean; timer?: NodeJS.Timeout }[] = [];
+  planKey = '';
+  recued = 0;
   ringCues(at: number[], bells: string[]): void {
-    this.timers.forEach((t) => clearTimeout(t));
-    this.timers = [setInterval(() => this.ping(), 250), setInterval(() => this.status(), 1000)];
-    if (!at?.length) return;
-    let rang = 0;
+    const key = (bells ?? []).join(' ');
+    if (!at?.length || key !== this.planKey) {
+      for (const p of this.plan) clearTimeout(p.timer);
+      this.plan = [];
+      this.planKey = '';
+      if (!at?.length) return;
+      const pr = rng(hashSeed(key));
+      this.plan = at.map(() => ({ skip: pr() < Number(a.miss), wrong: pr() < 0.03, z: gauss(pr), lead: gauss(pr), done: false }));
+      this.planKey = key;
+      console.log(`${this.name}: ${at.length} cues on [${[...new Set(bells)].join(' ')}], will ring ${this.plan.filter((p) => !p.skip).length}`);
+    } else this.recued++;
     for (let i = 0; i < at.length; i++) {
-      if (r() < Number(a.miss)) continue;
-      const wrong = this.bells.length > 1 && r() < 0.03;
+      const p = this.plan[i];
+      if (p.skip || p.done) continue;
+      clearTimeout(p.timer);
+      const wrong = this.bells.length > 1 && p.wrong;
       const bell = wrong ? this.bells.find((b) => b !== bells[i]) : bells[i];
-      this.gesture('ring', at[i] + Number(a.late), Number(a.jitter), 25, { bell }, this.bells.length > 1 ? 300 + gauss(r) * 120 : undefined);
-      rang++;
+      p.timer = this.gesture('ring', at[i] + Number(a.late), Number(a.jitter), 25, { bell }, this.bells.length > 1 ? 300 + p.lead * 120 : undefined, p.z, () => (p.done = true));
     }
-    console.log(`${this.name}: ${at.length} cues on [${[...new Set(bells)].join(' ')}], will ring ${rang}`);
   }
   close(): void {
     this.timers.forEach((t) => clearTimeout(t));
@@ -168,6 +211,7 @@ if (a.game) {
   process.on('SIGINT', end);
   process.on('SIGTERM', end);
   setTimeout(end, Number(a.seconds) * 1000);
+  if (a.diag) setInterval(() => console.log(`[diag] ${JSON.stringify(phones.map((p) => p.diag()))}`), 2000);
   await new Promise(() => {});
 }
 const dash = new WebSocket(a.url!);

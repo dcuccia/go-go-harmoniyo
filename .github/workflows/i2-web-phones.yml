@@ -75,12 +75,13 @@ jobs:
           path: spikes/i2-web-phones/results/seating-e2e.json
           if-no-files-found: ignore
 
-  # Non-blocking until #18 makes the timing scenarios deterministic
-  # (https://github.com/dcuccia/go-go-harmoniyo/issues/18). Then drop continue-on-error so it gates.
+  # Gating since #18: misses wait for in-flight rings (source-timestamp judging survives slow frames
+  # and Wi-Fi-like delays) and the simulated phones' draws are seeded per part. On failure the e2e
+  # prints timing evidence (clock mappings, ring latency, strays) and the JSON is uploaded.
   timing-e2e:
-    name: 'timing e2e (non-blocking until #18)'
+    name: timing e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: spikes/i2-web-phones
@@ -97,15 +98,16 @@ jobs:
           npm ci --no-audit --no-fund
           npm ci --no-audit --no-fund --prefix ../s1-phone-bell
       - run: npm run build
-      - name: 'Timing e2e (4 scenarios; flaky under load, see #18)'
-        id: e2e
-        continue-on-error: true
+      - name: Timing e2e (4 scenarios)
         run: npm run e2e --ignore-scripts
-      - if: steps.e2e.outcome == 'failure'
-        run: >-
-          echo "::warning title=Timing e2e failed (non-blocking)::Known flake tracked in https://github.com/dcuccia/go-go-harmoniyo/issues/18"
       - if: always()
         run: cat results/e2e-summary.md >> "$GITHUB_STEP_SUMMARY" || true
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: i2-timing-e2e
+          path: spikes/i2-web-phones/results/e2e-*.json
+          if-no-files-found: ignore
 
   # Early Safari-engine signal for the phone controller (#27). Informational: not a substitute for a real
   # iPhone, and Playwright's WebKit is not iOS Safari. See results/webkit-controller-check.md.
