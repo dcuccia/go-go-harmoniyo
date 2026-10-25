@@ -82,6 +82,12 @@
               <input type="checkbox" id="chk-countin" /> Count-in
             </label>
           </div>
+          <div class="row backing-row">
+            <label title="Sparkles for streaks, a whoosh when the multiplier goes up, a fanfare for a perfect phrase, a soft boop for a miss and applause at the end. Quieter than the bells and ducked while they ring.">
+              <input type="checkbox" id="chk-sfx" /> Sound effects
+            </label>
+            <label>Volume <input type="range" id="rng-sfx" min="0" max="100" step="5" /> <span id="sfx-vol" class="dim"></span></label>
+          </div>
           <div class="row backing-row speed-row">
             <label title="Play the song slower to learn it: bells, highways, backing and count-in all slow down; timing is judged the same">
               Practice speed <input type="range" id="rng-speed" min="50" max="100" step="5" /> <b id="speed-val"></b>

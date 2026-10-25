@@ -21,6 +21,7 @@ import QRCode from 'qrcode';
 import { generate as generateCert } from 'selfsigned';
 import { WebSocket, WebSocketServer } from 'ws';
 import { bellBlock, DEFAULT_BELLS, HGP_VERSION, parseMessage, type Bell, type PartCard, type SoundMode, type TestKind } from '../core/hgp.ts';
+import { isSensitivity, type Sensitivity } from '../core/ring-detector.ts';
 import {
   analyzeClink,
   analyzeIdle,
@@ -250,6 +251,8 @@ interface Device {
   bells: Bell[];
   /** Ringer seat shown on the phone (HGP `assign.ringer`, shared with I1's YARG mode). */
   ringer?: { slot: number; title: string; song?: string };
+  /** Ring detection hints from the game (HGP `assign.ring`). */
+  ring?: { sens?: Sensitivity; ioi?: number };
   /** Lobby ✓ Ready toggle (HGP `ready`, I2 seating chart). */
   ready: boolean;
   /** Coarse status (api, synced, calibrated, …): a change triggers a device broadcast. */
@@ -394,7 +397,7 @@ const HEARTBEAT_MS = 3000;
 
 /** Coarse status fields whose change is worth a broadcast (not rtt/rate jitter). */
 function statusKey(st: Record<string, unknown>): string {
-  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null]);
+  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null, st.sens ?? null]);
 }
 
 /** HGP `parts`: the game's lobby state, with this device's own part index and Ready state. */
@@ -419,7 +422,7 @@ function nextBells(): Bell[] {
 function sendAssign(d: Device): void {
   const seat = yarg?.room.seatOf(d.id);
   const ringer = !yarg ? d.ringer : seat ? { slot: seat.slot, title: yarg.room.seatTitle(seat), song: yarg.room.chart?.song.title } : { slot: -1, title: 'All ringer seats are taken: free play (not sent to YARG)' };
-  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single', ringer };
+  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single', ringer, ring: d.ring };
   send(d.ws, msg);
 }
 
@@ -610,6 +613,8 @@ function handleDashboardCommand(m: Record<string, unknown>): void {
         d.bells = bells.map((b) => ({ id: b.id, label: String(b.label ?? b.id), midi: b.midi, color: String(b.color ?? '#888') }));
         const r = m.ringer as { slot?: unknown; title?: unknown; song?: unknown } | undefined;
         d.ringer = r && typeof r.title === 'string' ? { slot: Number(r.slot ?? 0), title: r.title, song: typeof r.song === 'string' ? r.song : undefined } : undefined;
+        const rg = m.ring as { sens?: unknown; ioi?: unknown } | undefined;
+        d.ring = rg && typeof rg === 'object' ? { sens: isSensitivity(rg.sens) ? rg.sens : undefined, ioi: typeof rg.ioi === 'number' && rg.ioi > 0 ? rg.ioi : undefined } : undefined;
         sendAssign(d);
       }
       break;

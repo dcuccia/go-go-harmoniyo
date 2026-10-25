@@ -60,7 +60,7 @@ and when the page becomes visible again.
 | `hello` | `v`, `deviceId`, `kind` (`phone`·`bell`·`keyboard`·`midi`·`listener`·`sim`), `name?`, `app?`, `ua?`, `sensors?` `{api, rateHz?, gyro?}`, `gestures?` (supported `g` values), `sound?` (can play locally) | First message. |
 | `sync` | `id`, `t0` | Clock-sync request (§6). |
 | `gesture` | `seq`, `g`, `t`, `th?`, `err?`, `bell?`, `sel?`, `vel?`, `det?`, `src?` | See §5. |
-| `status` | free-form diagnostics: `api`, `rateHz`, `rttMin`, `rttP50`, `drift` (ppm), `syncN`, `transport`, `visible`, `mode`, `battery?` | ~1 Hz; also serves as keep-alive. |
+| `status` | free-form diagnostics: `api`, `rateHz`, `rttMin`, `rttP50`, `drift` (ppm), `syncN`, `transport`, `visible`, `mode`, `sens?` (ring sensitivity in effect), `battery?` | ~1 Hz; also serves as keep-alive. |
 | `raw` | `off` (host − device at batch end), `cols` (e.g. `["t","ax","ay","az","gx","gy","gz"]`), `s` (rows) | Optional diagnostic sensor stream (~4 batches/s). |
 | `result` | `test`, `data` | Test/diagnostic results (environment, calibration, latency meter). |
 | `rtc` | `kind: "offer"`, `sdp` | Non-trickle WebRTC offer. |
@@ -125,7 +125,7 @@ immediately and take `t1` as early as possible on receipt.
 |---|---|---|
 | `welcome` | `v`, `deviceId`, `session`, `hostTime` | |
 | `sync` | `id`, `t0`, `t1`, `t2` | Echo of the request. |
-| `assign` | `bells` (1–4 × `{id, label, midi, color}`, low→high; up to 5 in YARG mode, one per lane), `sound` (`device`·`host`·`both`·`none`), `select` (`single`·`zones`), optional `ringer` (`{slot, title, song?}`, I1 YARG mode; `slot` −1 = no free seat) | Who plays sound, which bells, how the device selects among them, and (YARG mode) which ringer seat/highway the device drives. A merged lane has `id` `"F4+G4"`; the device sends either bell id. |
+| `assign` | `bells` (1–4 × `{id, label, midi, color}`, low→high; up to 5 in YARG mode, one per lane), `sound` (`device`·`host`·`both`·`none`), `select` (`single`·`zones`), optional `ringer` (`{slot, title, song?}`, I1 YARG mode; `slot` −1 = no free seat), optional `ring` (`{sens?, ioi?}`: `sens` `normal`·`quick`, `ioi` ms) | Who plays sound, which bells, how the device selects among them, and (YARG mode) which ringer seat/highway the device drives. A merged lane has `id` `"F4+G4"`; the device sends either bell id. `ring` tunes ring detection (see *Fast passages* below); devices that don't know it ignore it. |
 | `config` | `mode?` (`ring`·`impact`), `record?` (stream `raw`), `detector?` (threshold overrides), `calibrate?` | |
 | `test` | `action` (`start`·`stop`), `id`, `test` (`metronome`·`idle`·`clink`·`latency`), `start?` (host time of beat 0), `period?`, `count?`, `durationMs?`, `expect?` (bell id per beat) | Spike test orchestration; a game host would send chart cues instead. |
 | `cues` | `at` (host times, ms), `bells` (bell id per note) | I2 web host: this device's notes for the song, sent at song start (empty arrays clear). The device glows the zone of the next note not more than ~120 ms in the past. Purely a display hint; judging stays on the host. |
@@ -141,6 +141,27 @@ meaningful changes (join, leave, rename, assignment, Ready, sync/sensor state) p
 heartbeat for diagnostics — not every second — so a game can rebuild its lobby on change only.
 Devices that ignore `parts` (I1/YARG mode, older controllers) are unaffected: their seat and bells
 still come from `assign` (`assign.ringer.slot` = part index in I2, YARG seat in I1).
+
+**Fast passages (`assign.ring`, `cues`).** A ring detector tuned for one full stroke + return per note
+catches at most every other note of a back-and-forth shake, and nothing faster than its refractory
+period. The device therefore adapts per sample to the music around now (S1 `ring-detector.ts`
+`adaptParams`, measurements in the [S1 report](../spikes/S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes)):
+
+- **Expected IOI.** With `cues`, the device computes the local inter-onset interval of its own
+  notes (`expectedIoi`: shortest gap between consecutive cue times whose span, from 250 ms before
+  the first to 150 ms after the second, contains now; notes < 40 ms apart count once). Without
+  cues it uses `assign.ring.ioi` (the part's shortest IOI, a song-wide fallback for hosts that
+  can't send cues), but not while `parts.phase` is `lobby`.
+- **Fast passage** (IOI ≤ 400 ms Normal, ≤ 450 ms Quick): the refractory period becomes
+  0.6 × IOI (≥ 65 ms), smaller "flick" strokes count (lower arm/peak/deceleration thresholds) and,
+  with a calibrated axis, **both directions of a shake ring** — like a real handbell's clapper.
+  A rebound right after a ring, and a backward stroke much smaller than the ring before it (a
+  relaxed return swing), are not rings.
+- **`sens: "quick"`** (set per phone in the lobby) lowers the thresholds everywhere and treats
+  slower passages as fast. Default `normal` outside fast passages is exactly the v0 detector.
+
+Thresholds only ever go down from the device's base values, so `config.detector` overrides that
+are stricter still win. Judging is unchanged: gestures still carry back-dated source times.
 
 ## 9. Multi-bell devices
 

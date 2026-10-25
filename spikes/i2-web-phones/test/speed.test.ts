@@ -130,7 +130,8 @@ describe('practice speed: chart scaling', () => {
     expect(evHalf.length).toBe(evFull.length);
     evHalf.forEach((e, i) => {
       expect(e.inst).toBe(evFull[i].inst);
-      expect(e.time).toBeCloseTo(evFull[i].time * 2, 9);
+      // Event times are rounded to 0.1 ms (patterns.ts), e.g. glissando steps of beat/6.
+      expect(e.time).toBeCloseTo(evFull[i].time * 2, 3);
     });
   });
 
