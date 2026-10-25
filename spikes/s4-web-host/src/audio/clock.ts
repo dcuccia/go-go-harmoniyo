@@ -39,11 +39,20 @@ export class AudioClock {
     return { offset: this.ctx.currentTime - latency - now / 1000, perf: now };
   }
 
+  /** Times the offset was re-anchored by more than 50 ms (diagnostics). */
+  readonly snaps: { perf: number; deltaMs: number }[] = [];
+  /** performance.now() of the last re-anchoring (> 50 ms jump), e.g. output start-up underruns. */
+  lastSnapPerf = NaN;
+
   /** Call once per frame. Smooths quantization jitter of the output timestamp. */
   update(): void {
     const s = this.rawOffset();
     if (!s) return;
     if (!Number.isFinite(this.offset) || Math.abs(s.offset - this.offset) > 0.05) {
+      if (Number.isFinite(this.offset)) {
+        this.lastSnapPerf = s.perf;
+        if (this.snaps.length < 256) this.snaps.push({ perf: s.perf, deltaMs: (s.offset - this.offset) * 1000 });
+      }
       this.offset = s.offset;
     } else {
       this.jitterMs.push((s.offset - this.offset) * 1000);

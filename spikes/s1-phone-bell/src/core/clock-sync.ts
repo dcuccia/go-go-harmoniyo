@@ -71,6 +71,8 @@ export class ClockSync {
   readonly opts: ClockSyncOptions;
   private points: SyncPoint[] = [];
   private est: ClockEstimate | null = null;
+  /** How many times a clock jump restarted the fit. */
+  resets = 0;
 
   constructor(opts: Partial<ClockSyncOptions> = {}) {
     this.opts = { ...DEFAULT_SYNC_OPTIONS, ...opts };
@@ -97,6 +99,7 @@ export class ClockSync {
       const predicted = this.offsetAt(p.local);
       if (p.rtt <= this.est.rttMin + tol && Math.abs(p.offset - predicted) > this.opts.jumpResetMs + p.rtt / 2) {
         this.points = [];
+        this.resets++;
       }
     }
     this.points.push(p);
