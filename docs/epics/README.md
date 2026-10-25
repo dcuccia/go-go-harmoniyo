@@ -75,6 +75,15 @@ drive any host.
     ≤ 4 bells per phone on easy/medium for most carols, but 1–2 ringers and hard tiers still
     overflow; I2 lets the host ring the least-used overflow bells. Host `cues` make the
     next zone glow; zones laid out as a lane row (I1's `assign.ringer`) match the TV highway.
+  - Fast repeated rings (owner, 4-player session: "a little too difficult to do multiple rings
+    in rapid succession"): the S1 detector caught only the forward half of a back-and-forth
+    shake (~45 % of 8ths, ~25 % of 16ths at 140 bpm in emulation). The phone now adapts to its
+    own `cues`: in fast passages the refractory follows the note spacing, flick-sized strokes
+    count and both directions of a shake ring → 92–98 % of 8ths/16ths at 100–140 bpm at 60 Hz,
+    with false rings while idle unchanged. A per-phone Normal/Quick sensitivity is set in the I2
+    lobby (`assign.ring`). Open: re-tune on real fast-passage traces (the stroke model is
+    synthetic); whether players shake or flick; whether the max-rate (~9 rings/s emulated) holds
+    on iPhone at 60 Hz. See the [S1 report](../spikes/S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes).
 - Spikes: S1.
 
 ## E03 Game host & engine

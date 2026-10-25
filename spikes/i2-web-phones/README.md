@@ -71,6 +71,11 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    in real time (a ring 40 ms late is as late at 50 % as at 100 %). The HUD, the results and the
    phones show the speed when it isn't 100 %. It is remembered until the browser closes (or
    `?speed=50` in the URL). It works with any difficulty: try **Easy at 60–70 %** for a first round.
+   **Fast notes:** during a song each phone adapts its swing detection to its own notes, so in
+   8th/16th-note passages a quick back-and-forth **shake** rings on both directions (like a real
+   handbell). If a player still finds fast notes hard, click **Normal** next to their phone in
+   the *Phones* list to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
+   few more stray rings). Saved per phone on this PC.
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
    Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).

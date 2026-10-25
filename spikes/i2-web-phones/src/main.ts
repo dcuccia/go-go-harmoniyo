@@ -8,10 +8,11 @@ import { KeyboardSource } from '../../s4-web-host/src/input/keyboard';
 import type { InputSource } from '../../s4-web-host/src/input/types';
 import { Hud } from '../../s4-web-host/src/ui/hud';
 import type { SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
+import type { Sensitivity } from '../../s1-phone-bell/src/core/ring-detector.ts';
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type LobbyParts, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, isChartFormat, partBellNotes, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { partCards, type PartCard } from './parts';
 import { KEYBOARD, Seating, seededRng, TV } from './seating';
 import { SeatingView, type PlayerView } from './seating-view';
@@ -56,6 +57,10 @@ const cornerJoin = {
   corner: ['tl', 'tr', 'bl', 'br'].includes(params.get('joinQrCorner') ?? '') ? params.get('joinQrCorner')! : 'tl',
   size: num('joinQrSize', 0),
 };
+// ── ring sensitivity per phone (lobby; saved): Normal or Quick, sent in HGP assign.ring ──
+const SENS_KEY = 'i2.sens';
+const phoneSens: Record<string, Sensitivity> = JSON.parse(localStorage.getItem(SENS_KEY) ?? '{}');
+const sensOf = (id: string): Sensitivity => (phoneSens[id] === 'quick' ? 'quick' : 'normal');
 
 // ── engine pieces (S4) ──────────────────────────────────────────────────────
 const mh = new MultiHighway($('highways'), {
@@ -224,18 +229,22 @@ function sendAssignments(): void {
     if (!dev || !isPhone(dev)) continue;
     const bells = r.bells.map((b) => ({ id: b.id, label: b.letter, midi: b.pitch, color: b.color }));
     const ringer = { slot: r.index, title: `${cards[r.index]?.name ?? `Ringer ${r.index + 1}`} · Ringer ${r.index + 1}`, song };
-    const key = JSON.stringify([bells, ringer]);
+    // Fast-passage hint: the phone uses its cues during a song; this is the song-wide fallback.
+    const ioi = shortestIoiMs(r.noteIds.map((id) => team!.chart.notes[id].time));
+    const ring = { sens: sensOf(dev), ...(ioi !== null ? { ioi } : {}) };
+    const key = JSON.stringify([bells, ringer, ring]);
     if (sentAssign.get(dev) === key) continue;
     sentAssign.set(dev, key);
-    link.assign(dev, bells, ringer);
+    link.assign(dev, bells, ringer, ring);
   }
   for (const p of onlinePhones()) {
     if (seating.partOf(p.id) >= 0 || !p.bells?.length) continue;
     const ringer = { slot: -1, title: 'Not playing: pick a part', song };
-    const key = JSON.stringify([p.bells, ringer]);
+    const ring = { sens: sensOf(p.id) };
+    const key = JSON.stringify([p.bells, ringer, ring]);
     if (sentAssign.get(p.id) === key) continue;
     sentAssign.set(p.id, key);
-    link.assign(p.id, p.bells, ringer);
+    link.assign(p.id, p.bells, ringer, ring);
   }
 }
 
@@ -370,9 +379,11 @@ function renderStatus(): void {
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
       const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
       li.classList.toggle('off', !p.online);
+      const quick = sensOf(p.id) === 'quick';
+      const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
       setHtml(
         li,
-        `<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
+        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
       );
     });
   }
@@ -481,6 +492,17 @@ $<HTMLInputElement>('rng-speed').oninput = (e) => {
 };
 // Rebuild (scaled chart, highways, part meters, phone labels) when the slider is let go.
 $<HTMLInputElement>('rng-speed').onchange = () => void rebuild();
+// Per-phone ring sensitivity (Normal ⇄ Quick): saved on this PC, applied at once via HGP assign.ring.
+$('phones').addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-sens]');
+  const id = btn?.dataset.sens;
+  if (!id) return;
+  if (sensOf(id) === 'quick') delete phoneSens[id];
+  else phoneSens[id] = 'quick';
+  localStorage.setItem(SENS_KEY, JSON.stringify(phoneSens));
+  sendAssignments();
+  renderStatus();
+});
 
 let lastPhoneKey = '';
 link.onDevices = () => {

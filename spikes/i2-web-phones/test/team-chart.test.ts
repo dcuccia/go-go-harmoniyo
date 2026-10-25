@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTeamChart, CHART_FORMAT, findPart, isChartFormat, type S5Chart, type S5Part } from '../src/team-chart';
+import { buildTeamChart, CHART_FORMAT, findPart, isChartFormat, shortestIoiMs, type S5Chart, type S5Part } from '../src/team-chart';
 import { pitchColor } from '../../shared/pitch-palette';
 
 function fixture(): S5Chart {
@@ -91,5 +91,13 @@ describe('buildTeamChart', () => {
         for (let i = 1; i < t.chart.notes.length; i++) expect(t.chart.notes[i].time).toBeGreaterThanOrEqual(t.chart.notes[i - 1].time);
       }
     }
+  });
+});
+
+describe('shortestIoiMs', () => {
+  it('finds the shortest gap between strokes, a chord counting once', () => {
+    expect(shortestIoiMs([0, 0.5, 1, 1.25, 1.5])).toBe(250);
+    expect(shortestIoiMs([0, 0.01, 0.3])).toBe(300);
+    expect(shortestIoiMs([1])).toBeNull();
   });
 });

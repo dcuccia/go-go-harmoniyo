@@ -216,3 +216,23 @@ export function ringerSummary(r: TeamRinger): string {
   const auto = r.autoBells.length ? ` (+${r.autoBells.map(bellName).join(' ')} by host)` : '';
   return r.bells.map((b) => b.name).join(' ') + auto;
 }
+
+/**
+ * Shortest inter-onset interval (ms) between this ringer's strokes: notes closer than `chordMs`
+ * (a chord / merged lanes) count as one stroke. Null with fewer than two strokes. Sent to the phone
+ * as the song-wide fast-passage hint (HGP `assign.ring.ioi`).
+ */
+export function shortestIoiMs(times: readonly number[], chordMs = 40): number | null {
+  const ts = [...times].sort((a, b) => a - b).map((t) => t * 1000);
+  let best: number | null = null;
+  let prev = NaN;
+  for (const t of ts) {
+    if (Number.isFinite(prev)) {
+      const gap = t - prev;
+      if (gap < chordMs) continue;
+      if (best === null || gap < best) best = gap;
+    }
+    prev = t;
+  }
+  return best === null ? null : Math.round(best);
+}

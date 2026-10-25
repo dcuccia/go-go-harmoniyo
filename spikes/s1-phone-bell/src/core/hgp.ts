@@ -8,6 +8,7 @@
  *    audio clock internally; devices never see the audio clock.
  */
 import { pitchColor } from '../../../shared/pitch-palette.ts';
+import type { Sensitivity } from './ring-detector.ts';
 
 export const HGP_VERSION = 0;
 
@@ -173,6 +174,14 @@ export interface Assign {
    * of that ringer's YARG highway.
    */
   ringer?: { slot: number; title: string; song?: string };
+  /**
+   * Ring detection hints (I2 lobby). `sens`: the player's sensitivity, Normal (default) or Quick.
+   * `ioi`: the part's shortest inter-onset interval, ms — a song-wide fallback for hosts that send
+   * no `cues` (devices derive the local IOI from `cues` when they have them, and ignore `ioi` while
+   * `parts.phase` is `lobby`). Fast passages shorten the refractory period, accept smaller strokes
+   * and ring on both directions of a shake (ring-detector.ts `adaptParams`).
+   */
+  ring?: { sens?: Sensitivity; ioi?: number };
 }
 
 export interface Config {
