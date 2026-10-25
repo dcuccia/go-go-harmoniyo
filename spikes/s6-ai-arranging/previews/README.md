@@ -20,7 +20,7 @@ How to listen (about 5 minutes):
 
 Also listen for resemblance: does any clip sound like a specific recording or published
 arrangement you know? If so, note it. The AI clips need this human check before they can be
-promoted (ADR-0008, ADR-0010).
+promoted (ADR-0008, ADR-0011).
 
 Regenerate the set: `node scripts/render-previews.ts --ogg-python <python with soundfile>`
 (from `spikes/s6-ai-arranging`).

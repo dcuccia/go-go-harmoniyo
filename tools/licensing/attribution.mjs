@@ -72,7 +72,7 @@ for (const a of assets.filter((x) => x.ai)) {
   const reviewOnly = gaps.length && gaps.every((k) => k === 'reviewer' || k === 'reviewDate');
   if (a.candidate && a.credit !== false) errors.push(`${a.id}: candidate assets are not credited until promoted; set "credit": false`);
   if (a.candidate && a.review.status !== 'pending') errors.push(`${a.id}: an approved asset is no longer a candidate; remove "candidate"`);
-  if (gaps.length && a.candidate && reviewOnly) warnings.push(`${a.id}: candidate awaiting the human resemblance review (required before promotion; ADR-0010)`);
+  if (gaps.length && a.candidate && reviewOnly) warnings.push(`${a.id}: candidate awaiting the human resemblance review (required before promotion; ADR-0011)`);
   else if (gaps.length && !a.legacy) errors.push(`${a.id}: AI provenance incomplete (${gaps.join(', ')}); new AI assets need tool/model/version/terms/prompt and a human resemblance review before merge`);
   else if (gaps.length) warnings.push(`${a.id}: legacy AI provenance gaps: ${gaps.join(', ')}`);
 }

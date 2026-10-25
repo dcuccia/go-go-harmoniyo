@@ -1,4 +1,4 @@
-# 0010 — AI-assisted arranging: validated candidates, never replacements
+# 0011 — AI-assisted arranging: validated candidates, never replacements
 
 - Status: Proposed
 - Date: 2026-10-24

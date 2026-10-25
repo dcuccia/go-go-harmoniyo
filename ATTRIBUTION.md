@@ -292,7 +292,7 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Deck the Halls: 4-bar intro and 2-bar ending by qwen3:8b around the S5 lead sheet. The Holly and the Ivy: Mutopia melody, S5-inferred chords (qwen3:8b proofreading kept them unchanged) and a qwen3:8b descant (voice 2). Assembled by scripts/build-candidates.ts.
 - AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json)); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line; resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
 
 ### s6-candidate-charts
 
@@ -304,7 +304,7 @@ repository "MIT" in a way that hides them.
 - Copyright: 2026 Go Go HarmoniYo contributors (generated; dedicated to the public domain)
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Built from the candidate lead sheets: bass/inner bells realized by S5 from the chord symbols, descant as inner bells; 3/4/5 ringers × 3 tiers.
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
 
 ### s6-amt-melody-deck-the-halls
 
@@ -341,7 +341,7 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: Drum notes dropped; otherwise as generated.
 - AI provenance: Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
 
 ### s6-blind-listening-previews
 
@@ -354,7 +354,7 @@ repository "MIT" in a way that hides them.
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: One set covers all clips so the register does not reveal which letter is AI: per song one procedural render (S5 chart + I2 backing), one qwen3:8b candidate render and one AMT render (the key is in previews/answer-key.json). The procedural clips contain no AI material.
 - AI provenance: llama.cpp via llama-cpp-python 0.3.36 (scripts/local_llm_shim.py), standing in for the cuccia AI node /v1 (Ollama qwen3:8b); and Anticipatory Music Transformer, jthickstun/anticipation@af37397922665a0fb8d474d7988b0f3755a38d45 (Apache-2.0), spikes/s6-ai-arranging/amt/amt_accompany.py, local CPU run; model Qwen3-8B (qwen3:8b), official GGUF Qwen/Qwen3-8B-GGUF@7c41481f57cb95916b40956ab2f0b139b296d974, Qwen3-8B-Q4_K_M.gguf; stanford-crfm/music-small-800k@fa800530aa1126dd6b58b38f3bdb8fcec9c9d4f5 (GGUF sha256 d98cdcbd03e17ce47681435b5150e34c1417f50b5c0019dd560e4882c5745785; thinking off; prompt templates v1/v2 (sha256 in spikes/s6-ai-arranging/candidates/candidates.json); pytorch_model.bin sha256 45af5006d529a19af3654c729192c072f3aeb9e7e13e9eaf92c19bfd7c87e4d8; torch 2.6.0+cpu, transformers 4.51.3); terms <https://huggingface.co/Qwen/Qwen3-8B-GGUF/blob/main/LICENSE ; https://huggingface.co/stanford-crfm/music-small-800k> (2026-10-24); prompt: Full prompts and replies: spikes/s6-ai-arranging/results/runs/chords-local.jsonl and descant-local.jsonl (templates in spikes/s6-ai-arranging/src/prompts/); selected runs are named in each file's N: line. AMT: No text prompt: conditioned on the melody (results/amt/<song>/melody.mid as anticipation controls) with results/amt/<song>/args.json (top_p 0.95, seed 1, drums dropped); resemblance review: pending, pending
-- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).
+- Review: pending. S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).
 
 ## Open items
 
@@ -364,9 +364,9 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-we-wish-you-a-merry-christmas-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-musicxml-test-fixture: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
-- s6-candidate-lead-sheets: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
-- s6-amt-accompaniments: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
-- s6-blind-listening-previews: candidate awaiting the human resemblance review (required before promotion; ADR-0010)
+- s6-candidate-lead-sheets: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
+- s6-amt-accompaniments: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
+- s6-blind-listening-previews: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - pitch-class-palette-sheet: review pending (Rendered by tools/design/palette-check.mjs --sheet (headless Chrome) from docs/design/pitch-class-palette.json: coloured circles with note names, system UI font, no third-party content. Owner to confirm CC BY 4.0 like the UI captures (#12).)
 - s5-jingle-bells-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-joy-to-the-world-abc: review pending (Proofread against a public-domain edition (S5 report).)
@@ -374,10 +374,10 @@ repository "MIT" in a way that hides them.
 - s5-deck-the-halls-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-we-wish-you-a-merry-christmas-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-musicxml-test-fixture: review pending (A few hand-written test measures, not a song.)
-- s6-candidate-lead-sheets: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
-- s6-candidate-charts: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
-- s6-amt-accompaniments: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
-- s6-blind-listening-previews: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0010, Proposed).)
+- s6-candidate-lead-sheets: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
+- s6-candidate-charts: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
+- s6-amt-accompaniments: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
+- s6-blind-listening-previews: review pending (S6 candidate: owner blind listening + human resemblance review before any promotion (ADR-0011, Proposed).)
 
 ## Required record for each new asset
 

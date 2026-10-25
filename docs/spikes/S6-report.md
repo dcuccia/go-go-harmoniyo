@@ -2,7 +2,7 @@
 
 - Spike: [S6 brief](README.md#s6--ai-assisted-arranging) · code: [`spikes/s6-ai-arranging/`](../../spikes/s6-ai-arranging/README.md)
 - Date: 2026-10-24 · one session, unattended (owner away) · decisions proposed in
-  [ADR-0010](../decisions/0010-ai-assisted-arranging.md) (Proposed)
+  [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (Proposed)
 - Machine: Windows 11 laptop (22 logical CPUs, 32 GB, NVIDIA RTX 2000 Ada Laptop 8 GB), Node
   22.18, Python 3.11.9, Docker Desktop 29.9.2 (WSL2), headless Chrome 155
 
@@ -178,10 +178,10 @@ improvement there comes from S5's realizer and not from the model. The owner has
   `review: pending` and the new `candidate: true` + `credit: false` flags. `REUSE.toml` was
   updated and `ATTRIBUTION.md` regenerated.
 - **Policy change (proposed):** ADR-0008 requires a resemblance review before merge. The brief
-  asks for `review: pending`. [ADR-0010](../decisions/0010-ai-assisted-arranging.md) proposes a
+  asks for `review: pending`. [ADR-0011](../decisions/0011-ai-assisted-arranging.md) proposes a
   narrow `candidate` state: complete provenance is required, the review may be pending, the asset
   is not credited and can't be promoted until reviewed. `attribution.mjs` enforces this. If the
-  owner rejects ADR-0010, do the review before merging or drop the assets from the PR.
+  owner rejects ADR-0011, do the review before merging or drop the assets from the PR.
 - Models: qwen3:8b / Qwen3-8B and AMT are Apache-2.0, with no NC/ND terms. The local stand-in
   tooling (llama-cpp-python MIT; NVIDIA CUDA runtime pip wheels) was dev-only and lived outside
   the repo.
@@ -204,7 +204,7 @@ improvement there comes from S5's realizer and not from the model. The owner has
    model, GPU), `node scripts/amt-analyze.ts` and `node scripts/render-previews.ts --ogg-python …`,
    and listen again.
 4. **Listen to the blind set** and note a preference per song, then open the key.
-5. Decide on [ADR-0010](../decisions/0010-ai-assisted-arranging.md) (the candidate flag and
+5. Decide on [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (the candidate flag and
    "arranging stays algorithmic").
 6. Infra wishes (draft; no issue filed in cuccia-infra): a documented way to get `/node/status`
    `wake` details once without a token, so a fresh client can wake a sleeping node; a

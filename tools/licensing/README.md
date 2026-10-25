@@ -33,7 +33,7 @@ What the asset check enforces:
 - `REUSE.toml` gives each asset file the same license as the register.
 - Licenses for our own work by origin: `original` → CC-BY-4.0, `ai-generated` → CC0-1.0.
 - New AI assets have complete provenance and a dated human resemblance review. Legacy entries
-  are listed as warnings. Spike **candidates** (`"candidate": true`, [ADR-0010](../../docs/decisions/0010-ai-assisted-arranging.md),
+  are listed as warnings. Spike **candidates** (`"candidate": true`, [ADR-0011](../../docs/decisions/0011-ai-assisted-arranging.md),
   Proposed) may leave the review pending if everything else is recorded; they must have
   `"credit": false` and `review.status: "pending"`, and the review is required before promotion.
 - AI prompts contain none of the blocklisted franchise names.

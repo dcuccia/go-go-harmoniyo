@@ -19,7 +19,7 @@ copied from GACJ/handbellmanager (GPL-3.0); only its approach was studied.
 **Once:** install Node 22+ (`winget install OpenJS.NodeJS.LTS`). PC and phones on the same
 Wi-Fi (not a guest network: guest networks usually block phone→PC traffic). On guest,
 corporate or school networks, or when the PC and phone are on different networks, use the
-tunnel instead (`npm run tunnel`, or `npm start -- --tunnel` from `spikes/i2-web-phones`).
+tunnel instead (`npm run tunnel`, or `npm start -- --tunnel` at the repo root for the I2 game).
 
 ```powershell
 cd spikes\s1-phone-bell
