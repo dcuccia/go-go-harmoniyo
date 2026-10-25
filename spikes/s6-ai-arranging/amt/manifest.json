@@ -4,7 +4,7 @@
   "workload": {
     "description": "Anticipatory Music Transformer: accompaniment for a melody MIDI (/inputs/melody.mid + args.json -> /outputs/accompaniment.mid, combined.mid, report.json)",
     "projects": ["go-go-harmoniyo"],
-    "image": "ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:REPLACE_WITH_PUSHED_DIGEST",
+    "image": "ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097",
     "image_tag": "0.1.0-cu124-medium",
     "command": ["python", "/app/amt_accompany.py"],
     "gpu": "exclusive",
@@ -15,6 +15,17 @@
     "network": "none"
   },
   "review": {
+    "image_build": {
+      "workflow_run": "https://github.com/dcuccia/go-go-harmoniyo/actions/runs/40237996285",
+      "source_revision": "cf4e96ea7b523b1b7a79450c5efbc001a295fe2b",
+      "index_digest": "sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097",
+      "linux_amd64_manifest_digest": "sha256:89d10fa46b868933b3eb883673de33ef83a8c47d3f48d69c0cab9f836e54b336",
+      "attestations": "SPDX SBOM and SLSA provenance (BuildKit) in the index",
+      "compressed_bytes": 4474424663,
+      "uncompressed_bytes": 7031343606,
+      "registry_visibility": "public (anonymous pull by digest works); if the owner makes it private, the node needs a read:packages pull credential",
+      "verified": "pulled digest run with --network none --read-only --cap-drop ALL: UID 10001, torch 2.6.0+cu124 (CUDA 12.4), transformers 4.51.3, model SHA-256 matches"
+    },
     "vram_estimate_mib": 3072,
     "vram_basis": "360M-parameter GPT-2 in fp16 = 0.7 GiB weights; batch 1, 1024-token context, no KV cache; plus CUDA context. Measured peak is written to report.json max_vram_mib on the first node run; expected well under the ~10 GiB budget.",
     "expected_runtime": "GPU: seconds per carol (3 forward passes per generated note, ~120 notes for a 25 s carol) plus ~10-20 s model load. CPU reference (laptop, small model): 824 s generate for a 23 s carol.",

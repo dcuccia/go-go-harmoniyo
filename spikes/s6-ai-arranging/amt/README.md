@@ -47,11 +47,45 @@ platform-manifest digest in case infrastructure prefers that.
 To build locally instead (CPU smoke tests and so on), see the comments at the top of the
 `Dockerfile`.
 
+### Current image
+
+Published 2026-10-25 by [run 40237996285](https://github.com/dcuccia/go-go-harmoniyo/actions/runs/40237996285)
+from commit `cf4e96e` (about 10 minutes on `ubuntu-latest`):
+
+```text
+ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097
+```
+
+4.5 GB compressed, 7.0 GB unpacked; `linux/amd64` manifest
+`sha256:89d10fa46b868933b3eb883673de33ef83a8c47d3f48d69c0cab9f836e54b336`. The workflow checked
+the pulled digest: UID 10001, torch 2.6.0+cu124, transformers 4.51.3, and the
+`music-medium-800k` weights' SHA-256 matches. It has not run on the node's GPU yet; the first
+node job records `max_vram_mib` in `report.json`.
+
+### Handing off to infrastructure
+
+Send [`manifest.json`](manifest.json) with a note like this:
+
+> Please register the `go-go-harmoniyo-amt` batch workload (contract v0). Manifest:
+> `spikes/s6-ai-arranging/amt/manifest.json` in dcuccia/go-go-harmoniyo. Image
+> `ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097`
+> (public on GHCR, no pull credential; built by GitHub Actions with SBOM and provenance).
+> Command `python /app/amt_accompany.py`, `gpu: exclusive`, about 3 GiB VRAM (fp16 360M
+> model), memory 8g, 4 CPUs, timeout 900 s, no caches, no network. Weights are baked in:
+> stanford-crfm/music-medium-800k at revision `93b6eb7e09bad33be6cb2ebd50ce5279cbfde7f6`,
+> `pytorch_model.bin` SHA-256 `7af65dbabb2f6b7df9df03c2ea5b1909b74043591ba578fb663d80fcf82241ad`,
+> Apache-2.0; code jthickstun/anticipation `af37397` (Apache-2.0). Runs as UID 10001, read-only
+> root filesystem OK, writes only `/outputs`. Inputs: `melody.mid` plus optional `args.json`;
+> outputs: `accompaniment.mid`, `combined.mid`, `report.json`.
+
+If the workflow is run again, update the digest here, in `manifest.json`, and in the note.
+
 ### Package visibility
 
-The first run creates the package under the owner's account. Choose its visibility in
+The first run created the package under the owner's account, and it inherited **public**
+visibility (an anonymous pull of the digest works, checked 2026-10-25). Change it in
 **github.com/users/dcuccia/packages/container/go-go-harmoniyo-amt/settings**; the workflow
-doesn't change it.
+never changes it.
 
 - **Public** (simplest): the AI node pulls by digest with no credentials. This is acceptable
   under [ADR-0008](../../../docs/decisions/0008-assets-ip-and-attribution.md): our code is MIT,
@@ -72,4 +106,4 @@ doesn't change it.
 The image is `linux/amd64` with CUDA 12.4 wheels, which run on the node's CUDA 13.x driver.
 Docker Desktop on Windows/macOS (Intel) can run it on the CPU; on Apple Silicon it runs under
 emulation and is very slow. A CPU-only image (`--build-arg TORCH_INDEX=https://download.pytorch.org/whl/cpu`)
-is about 2.6 GB; the GPU image is several times larger.
+is about 2.6 GB; the GPU image is 7.0 GB unpacked.

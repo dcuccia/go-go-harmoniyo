@@ -11,8 +11,6 @@ on:
         description: Human-readable image tag (consumers pin the digest, not the tag)
         required: true
         default: 0.1.0-cu124-medium
-  push:
-    branches: [dcuccia-s6-amt-image-ghcr] # TEMPORARY: first publish before merge; removed in the next commit
 
 permissions:
   contents: read
