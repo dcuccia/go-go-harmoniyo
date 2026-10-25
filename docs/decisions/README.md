@@ -10,11 +10,11 @@ Status: `Proposed` → `Accepted` (owner only) → optionally `Superseded by NNN
 | [0003](0003-holiday-v1-scope.md) | Holiday 2026 v1 scope | Accepted |
 | [0004](0004-host-strategy.md) | Host strategy: web-first host on an engine we own; YARG fork as a community/experimental track | Accepted (2026-10-23) |
 | [0005](0005-shared-core-language.md) | Shared core: TypeScript; HGP + chart JSON as language-neutral contracts with golden test vectors | Accepted (2026-10-23) |
-| [0006](0006-phone-host-transport.md) | Phone ↔ host transport | Proposed (S1); pending owner |
-| [0007](0007-chart-format.md) | Chart format | Proposed (S5); pending owner |
+| [0006](0006-phone-host-transport.md) | Phone ↔ host transport | Accepted (2026-10-25); holiday default: self-signed + `--tunnel` fallback ([#35](https://github.com/dcuccia/go-go-harmoniyo/issues/35)) |
+| [0007](0007-chart-format.md) | Chart format | Accepted (2026-10-25) |
 | [0008](0008-assets-ip-and-attribution.md) | Assets, IP and attribution: MIT code, CC BY 4.0 original assets, CC0 AI assets; REUSE, license gate, asset register | Accepted (2026-10-23), incl. copyleft adoption gate |
 | [0009](0009-product-name.md) | Product name: Go Go HarmoniYo (mascot HarmoniYo, "Yo"); repository `dcuccia/go-go-harmoniyo` | Accepted (2026-10-23); amended 2026-10-23 (repository renamed, code name retired) |
-| [0010](0010-product-layout.md) | Product layout: npm workspaces (`packages/`, `apps/`, `content/`, `contracts/`); ship the alpha from `spikes/i2-web-phones`, graduate Nov 16–24 | Proposed (2026-10-24); pending owner ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
+| [0010](0010-product-layout.md) | Product layout: npm workspaces (`packages/`, `apps/`, `content/`, `contracts/`); ship the alpha from `spikes/i2-web-phones`, graduate Nov 16–24 | Accepted (2026-10-25), option A ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
 | [0011](0011-ai-assisted-arranging.md) | AI-assisted arranging: generated music only as validated candidates; `candidate` register flag | Accepted (2026-10-25) |
 
 Background for 0004–0007: [M2 decision brief](m2-decision-brief.md) and

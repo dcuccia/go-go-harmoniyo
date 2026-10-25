@@ -138,9 +138,12 @@ judge.
 
 ### Origin story
 
-> **Pending owner wording approval. Don't publish yet.** Draft: "Yo is named after a family
-> nickname, YoYo. Go Go HarmoniYo started as a way for one family to ring carols together in the
-> living room."
+> "Yo is named after a family nickname, YoYo. Go Go HarmoniYo started as a way for one family to
+> ring carols together in the living room."
+
+Approved as drafted by the owner on 2026-10-25
+([#46](https://github.com/dcuccia/go-go-harmoniyo/issues/46)). The release notes and the
+how-to-play page may use it.
 
 ### Inclusive, women-forward options for the owner
 
