@@ -60,7 +60,7 @@ try {
   const game = await tv.newPage();
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   game.on('console', (m) => m.type() === 'error' && errors.push(`game console: ${m.text()}`));
-  const gameUrl = `http://127.0.0.1:${port}/game/?song=${SONG}&diff=easy&ringers=2&seed=3`;
+  const gameUrl = `http://127.0.0.1:${port}/game/?song=${SONG}&diff=easy&ringers=2&seed=3&form=short`; // the song once: the checks time a ~20 s song
   await game.goto(gameUrl);
   await game.waitForFunction(() => window.__i2?.cards?.length === 2, null, { timeout: 20000 });
 
