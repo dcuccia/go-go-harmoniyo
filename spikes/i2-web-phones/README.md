@@ -158,8 +158,8 @@ before, with no backing (the count-in then uses the first tempo and meter).
 
 CI ([`.github/workflows/i2-web-phones.yml`](../../.github/workflows/i2-web-phones.yml)) runs on changes to
 this folder, S1, S4, S5, `spikes/shared` or the palette: `npm ci`, `typecheck`, `test`, `build`, the
-S4 and S5 unit tests and `e2e:seating` (gating); `npm run e2e` runs in a non-blocking job until
-[#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18) makes it deterministic; the WebKit smoke
+S4 and S5 unit tests and `e2e:seating`, plus `npm run e2e` in its own job (all gating; the timing
+e2e has gated since [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18)); the WebKit smoke
 test runs in an informational job (results in the job summary).
 
 URL parameters on the game page: `song`, `diff`, `ringers`, `sound` (`device`·`both`·`none`),

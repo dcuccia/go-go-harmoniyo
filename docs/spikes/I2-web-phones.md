@@ -103,6 +103,53 @@ zone, 300 ± 120 ms zone-touch lead). Reproduce: `npm run e2e` in `spikes/i2-web
   via CDP at note times): 32/32 hits, all Perfect, mean +6.8…+10 ms (CDP input latency),
   ring→page 13 ms; next-zone glow correct 11/11 samples.
 
+### Timing under load: the flaky E2E ([#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18), 2026-10-24)
+
+The timing E2E failed intermittently on a busy PC, including on unmodified `main`, and in all four
+CI runs on GitHub's runners (hit rates 30–70 %). We added instrumentation for every clock in the
+chain, which the E2E now prints when a scenario fails. It found two causes, both in the game
+rather than in the test.
+
+1. **Valid rings were thrown away (the hit-rate failures).** S4's `Session` declared a note
+   missed 140 ms (the good window) after it was due, using the current frame's time. Rings are
+   judged on source time, but they arrive later. On a quiet loopback they reach the page 30–40 ms
+   after the strike. Wi-Fi power save adds up to ~200 ms (S1), and a ring that arrives during a
+   long frame waits behind the next rAF callback. When the sweep ran first, a ring timed
+   correctly became a miss plus a stray. Measured on the unmodified code with 16 busy CPU threads:
+   ring→page p95 225 ms, max 635 ms, frames up to 1.8 s. In one run Dan scored 45/65 although his
+   phone rang 59 notes, 14 of them as strays. A real player on real Wi-Fi hits the same thing.
+   **Fix:** the sweep runs one frame behind (`lastCpu0`), minus a `missGraceMs` (new
+   `SessionOptions` field, default 0 so S4's keyboard behaviour is unchanged). I2 uses
+   250 ms, stretched to the slowest of the last 32 rings' arrival (capped at 1 s). The only visible
+   effect is that a "miss" appears up to 250 ms later.
+2. **The phones' cues could be stale (the uniform +80 ms).** Cues (host times of each note) were
+   sent once, at song start, from that moment's song→host-time mapping. That mapping chains the
+   page↔host clock sync and the audio clock, and both can still move near page start-up. We
+   measured the page's first host-sync estimate (a sample timed through a long task) as 65–571 ms
+   off until a clean exchange reset it. The audio clock also re-anchored by 50–826 ms, repeatedly,
+   while Chrome's audio output started under load. If either correction lands after the cues,
+   every phone is offset by the same amount. **Fix:** cues are re-sent when the mapping moves by
+   more than 2 ms (the phone controller already handles a fresh `cues` list). The audio clock is
+   now updated in the lobby too, so it has settled before a round. Autostart (`?start=play`,
+   kiosk/E2E only) also waits for a host sync bound ≤ 10 ms (up to 20 s) and for an audio clock
+   with no re-anchoring in the last second (up to 10 s).
+
+Test harness changes. The simulated phones seed their jitter, miss and wrong-zone draws from the
+part, so a part gets the same "performance" whichever phone plays it. A re-cue reschedules only the
+notes not yet rung. The phones also run above normal priority, because they stand in for separate
+devices whose CPUs the PC's load can't stall. Each player must hit every ring that their phone
+sent on the right bell (±1). The mean-offset tolerance is 4.5 standard errors of the ring jitter
+(σ ≈ 20.6 ms), but never below 12 ms per player or 6 ms for the team: ±35 ms for a 7-note part
+and ±7–15 ms for the pooled team. The old fixed thresholds (≥ 80 % hits, ±12 ms per player) were
+1–2 σ events for the small parts. The E2E hosts use ports 18080+ (`--port`).
+
+| Run (Core Ultra 7 155H, Chrome 155 headless) | Result |
+|---|---|
+| Before, 16 busy threads (`--load=16`) | 4/7 suite runs passed; every failure was hit rate (rings dropped as strays) |
+| After, 16 busy threads | **24/25 suite runs (99/100 scenarios)**; worst per-player mean-offset error 6.5 ms. The one failure: rings sent 0.5–2.0 s late during a single 2 s stall of a Node process, beyond the 1 s grace cap |
+| After, no extra load, repeated suite runs (stopped at 36 of 50 planned) | **35/36 runs (143/144 scenarios)**; worst cue-anchor drift 1.1 ms. The one failure: the S1 host relayed three rings 0.5–1.0 s late, although the phones sent them on time (≤ 16 ms) and the page had no long frame. That is a single ~1 s stall in the host process, beyond the grace (follow-up) |
+| After, GitHub `ubuntu-latest`, no GPU (SwiftShader), default quality | PASS: **2.5 fps**, ring→page p50 450–570 ms, every player's mean offset within 7 ms of target |
+
 ## Answers to the brief
 
 1. **Phones → game over the S1 host, judged on source timestamps:** yes, as designed
