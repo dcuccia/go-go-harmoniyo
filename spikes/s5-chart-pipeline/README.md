@@ -10,7 +10,7 @@ MIDI writer, so they can be bundled for a browser later.
 
 ```sh
 node build.mjs            # regenerate charts/, exports/, results/
-node --test               # 18 tests: importers, assignment, schema, determinism, export, harmony
+node --test               # 21 tests: importers, assignment, schema, determinism, export, harmony
 node build.mjs --ringers 3,4,5 --export-ringers 5
 ```
 
@@ -20,10 +20,10 @@ Each chart carries an optional `harmony` object for game-side backing tracks (us
 web game, `spikes/i2-web-phones/src/backing/`):
 
 - `chords[]`: `{ tick, time, dur, durSec, symbol, root, bass, tones }` (pitch classes, 0 = C).
-  `source` is `lead-sheet` when the file has chord symbols (the 5 ABC songs) and `inferred`
-  otherwise (the 11 Mutopia MIDI files: template matching per strong-beat segment with bass,
+  `source` is `lead-sheet` when the file has chord symbols (the 14 ABC songs, including the multi-voice
+  ones, whose first voice carries the symbols) and `inferred` otherwise (the 10 Mutopia MIDI files: template matching per strong-beat segment with bass,
   diatonic and tonic bonuses, `src/harmony.mjs`). Inferred chords are plausible, not
-  proofread; the melody-only Holly and the Ivy is the weakest.
+  proofread.
 - `beats[]`: `{ tick, time, bar, beat, div, strong, chord }` — every beat with times from the
   tempo map (compound meters count dotted quarters, `div` 3), and the chord sounding on it.
 - `style`: backing preset (`sleigh-ride`, `march`, `waltz`, `gentle`) from the manifest's
@@ -37,9 +37,9 @@ it still validate.
 
 | Path | What |
 |---|---|
-| `songs/*.abc` | 5 self-encoded public-domain carol lead sheets (melody + chord symbols), CC0-1.0 |
+| `songs/*.abc` | 14 self-encoded public-domain carols, CC0-1.0: 12 lead sheets (melody + chord symbols), The Holly and the Ivy as SATB (4 `V:` voices, our own harmony) and our own 3-voice arrangement of Carol of the Bells (Shchedryk). Multi-voice files set `melodyVoice`/`bassVoice` (the `V:` ids) in the manifest. The 9 added 2026-10-25 are AI-generated and await the owner's resemblance review (`attribution/register.json`) |
 | `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style). The I2 game's song list is generated from it |
-| `sources/mutopia/` | 11 Mutopia Project files (`.mid` input + `.ly` provenance), public domain; 9 are SATB hymn settings. A test checks each SATB melody against the `.ly` soprano line |
+| `sources/mutopia/` | 11 Mutopia Project files (`.mid` + `.ly`), public domain; 9 SATB hymn settings and 1 more used as chart input, plus the melody-only Holly and the Ivy kept as the reference for our SATB version (a test compares them). A test checks each SATB melody against the `.ly` soprano line |
 | `src/abc.mjs`, `src/midi.mjs`, `src/musicxml.mjs` | Importers → common score model (`src/score.mjs`) |
 | `src/arrange.mjs` | Melody/bass/inner role detection, lead-sheet realization, difficulty tiers |
 | `src/harmony.mjs` | Chord timeline + beat grid + backing style for the chart's `harmony` block; chord inference |

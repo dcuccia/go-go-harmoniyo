@@ -1,0 +1,19 @@
+X:1
+T:God Rest Ye Merry, Gentlemen
+C:Traditional English (London tune, 18th c.)
+O:England
+S:Public-domain traditional melody, checked note by note against The Public Domain Song Anthology (Aperio Press 2020, CC0 1.0) p. 104 and the SATB score in the English Wikipedia article (soprano line)
+Z:Encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. Chord symbols by the encoder.
+N:One verse with refrain; the repeated first phrase is written out (the parser does not expand repeats). Lead sheet: melody + chord symbols; the pipeline realizes bass and harmony.
+N:E minor (F sharp), one-beat pickup on E4; range D4-E5. Checked: octave of every note, the pickup, and that every bar sums to 4 beats.
+%%hh-id god-rest-ye-merry-gentlemen
+%%hh-license CC0-1.0
+L:1/4
+M:4/4
+Q:1/4=132
+K:Em
+E | "Em"E B B A | "Em"G F E "D"D | "C"E F "Em"G "D"A | "B7"B3 E |
+"Em"E B B A | "Em"G F E "D"D | "C"E F "Em"G "D"A | "B7"B3 B |
+"Am"c A "G"B c | "D"d e "G"B A | "Em"G E "D"F G | "D"A2 G A |
+"G"B2 "C"c B | "B7"B A G F | "Em"E2 G/F/ E | "D"A2 G A |
+"G"B c d "C"e | "B7"B A G F | "Em"E3 |]

@@ -47,6 +47,69 @@
       "options": { "backingStyle": "waltz" }
     },
     {
+      "id": "god-rest-ye-merry-gentlemen",
+      "file": "god-rest-ye-merry-gentlemen.abc",
+      "format": "abc",
+      "year": null,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional English carol, London tune (18th c., public domain). Melody checked note by note against The Public Domain Song Anthology (Aperio Press 2020, CC0) p. 104 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "march" }
+    },
+    {
+      "id": "we-three-kings",
+      "file": "we-three-kings.abc",
+      "format": "abc",
+      "year": 1857,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Words and music by John Henry Hopkins Jr., 1857 (public domain). Melody checked note by note against the Wikipedia SATB score; notated in 3/4 instead of 3/8. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "waltz" }
+    },
+    {
+      "id": "angels-we-have-heard-on-high",
+      "file": "angels-we-have-heard-on-high.abc",
+      "format": "abc",
+      "year": null,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional French carol, tune GLORIA (public domain). Melody checked note by note against The Public Domain Song Anthology p. 19 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "gentle" }
+    },
+    {
+      "id": "o-christmas-tree",
+      "file": "o-christmas-tree.abc",
+      "format": "abc",
+      "year": 1824,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional German melody 'O Tannenbaum' (public domain); words Ernst Anschuetz 1824. Melody checked against The Public Domain Song Anthology p. 226 (rhythm and pitches) and the Wikipedia score (pitches). Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "waltz" }
+    },
+    {
+      "id": "jolly-old-st-nicholas",
+      "file": "jolly-old-st-nicholas.abc",
+      "format": "abc",
+      "year": 1881,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional American song; melody as printed in Franklin Square Song Collection No. 1 (1881), p. 80 (public domain; scan on Wikimedia Commons, File:Jolly_old.gif), checked note by note against the scan. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "sleigh-ride" }
+    },
+    {
+      "id": "ding-dong-merrily-on-high",
+      "file": "ding-dong-merrily-on-high.abc",
+      "format": "abc",
+      "year": 1588,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Dance tune 'Branle de l'Official' from Thoinot Arbeau's Orchesographie (1588, public domain). Melody only, checked against the soprano line of the Wikipedia score; the chord symbols are ours, not any published harmonization. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "march" }
+    },
+    {
+      "id": "auld-lang-syne",
+      "file": "auld-lang-syne.abc",
+      "format": "abc",
+      "year": 1788,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional Scottish air (public domain); words Robert Burns 1788. Melody checked note by note against The Public Domain Song Anthology p. 27 and the Wikipedia score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "gentle" }
+    },
+    {
       "id": "it-came-upon-the-midnight-clear",
       "file": "../sources/mutopia/carol.mid",
       "format": "midi",
@@ -70,14 +133,12 @@
     },
     {
       "id": "the-holly-and-the-ivy",
-      "file": "../sources/mutopia/thehollyandtheivy.mid",
-      "format": "midi",
-      "title": "The Holly and the Ivy",
-      "composer": "Traditional English",
+      "file": "the-holly-and-the-ivy.abc",
+      "format": "abc",
       "year": null,
-      "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
-      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=644", "fileUrl": "https://www.mutopiaproject.org/ftp/Traditional/thehollyandtheivy/thehollyandtheivy.mid", "attribution": "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644)", "notes": "Melody only (no harmony), so all tiers are melody-only: shows why lead-sheet chord symbols matter." },
-      "options": { "backingStyle": "waltz", "pickupTicks": 480 }
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Traditional English melody (public domain), checked note by note against the Mutopia edition kept in sources/mutopia/thehollyandtheivy.* (a test compares them). SATB: the alto, tenor and bass parts and the chord symbols are our own hymn-style harmony. Written by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "waltz", "melodyVoice": "S", "bassVoice": "B" }
     },
     {
       "id": "o-come-all-ye-faithful",
@@ -166,6 +227,17 @@
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
       "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233", "fileUrl": "https://www.mutopiaproject.org/ftp/HolstGT/cranham/cranham.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1233); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup (the edition includes the pickup note some verses use). Source MIDI tempo is 60 qpm; overridden to 76 qpm for play." },
       "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "gentle", "pickupTicks": 480, "tempoQpm": 76 }
+    },
+    {
+      "id": "carol-of-the-bells",
+      "file": "carol-of-the-bells.abc",
+      "format": "abc",
+      "title": "Carol of the Bells (Shchedryk)",
+      "composer": "Mykola Leontovych (1916), arranged for Go Go HarmoniYo",
+      "year": 1916,
+      "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
+      "source": { "kind": "self-encoded", "notes": "Our own three-voice arrangement of public-domain material from Mykola Leontovych's 'Shchedryk' (1916): the four-note ostinato and the melodic phrases (checked against a transcription of his setting). Bass and inner parts, form, interlude and ending are ours; no English words and no later arrangement used. Arranged by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); owner resemblance review pending." },
+      "options": { "backingStyle": "waltz", "melodyVoice": "1", "bassVoice": "3" }
     }
   ]
 }

@@ -54,6 +54,33 @@ precedence = "override"
 SPDX-FileCopyrightText = "2026 Go Go HarmoniYo contributors (generated; dedicated to the public domain)"
 SPDX-License-Identifier = "CC0-1.0"
 
+# Charts and exports generated from the CC0 self-encoded carols added 2026-10-25 (lead sheets,
+# The Holly and the Ivy SATB, Carol of the Bells arrangement): CC0 1.0.
+[[annotations]]
+path = [
+  "spikes/s5-chart-pipeline/charts/god-rest-ye-merry-gentlemen.json",
+  "spikes/s5-chart-pipeline/charts/we-three-kings.json",
+  "spikes/s5-chart-pipeline/charts/angels-we-have-heard-on-high.json",
+  "spikes/s5-chart-pipeline/charts/o-christmas-tree.json",
+  "spikes/s5-chart-pipeline/charts/jolly-old-st-nicholas.json",
+  "spikes/s5-chart-pipeline/charts/ding-dong-merrily-on-high.json",
+  "spikes/s5-chart-pipeline/charts/auld-lang-syne.json",
+  "spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json",
+  "spikes/s5-chart-pipeline/charts/carol-of-the-bells.json",
+  "spikes/s5-chart-pipeline/exports/god-rest-ye-merry-gentlemen/**",
+  "spikes/s5-chart-pipeline/exports/we-three-kings/**",
+  "spikes/s5-chart-pipeline/exports/angels-we-have-heard-on-high/**",
+  "spikes/s5-chart-pipeline/exports/o-christmas-tree/**",
+  "spikes/s5-chart-pipeline/exports/jolly-old-st-nicholas/**",
+  "spikes/s5-chart-pipeline/exports/ding-dong-merrily-on-high/**",
+  "spikes/s5-chart-pipeline/exports/auld-lang-syne/**",
+  "spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/**",
+  "spikes/s5-chart-pipeline/exports/carol-of-the-bells/**",
+]
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Go Go HarmoniYo contributors (generated; dedicated to the public domain)"
+SPDX-License-Identifier = "CC0-1.0"
+
 # Mutopia Project files (unmodified) and the charts/exports generated from them: public domain.
 [[annotations]]
 path = [
@@ -78,8 +105,6 @@ SPDX-License-Identifier = "LicenseRef-Mutopia-PublicDomain"
 [[annotations]]
 path = [
   "spikes/s5-chart-pipeline/sources/mutopia/thehollyandtheivy.*",
-  "spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json",
-  "spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/**",
 ]
 precedence = "override"
 SPDX-FileCopyrightText = "Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain"

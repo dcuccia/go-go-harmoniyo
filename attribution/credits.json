@@ -62,6 +62,96 @@
           }
         },
         {
+          "id": "s5-god-rest-ye-merry-gentlemen-abc",
+          "title": "God Rest Ye Merry, Gentlemen (lead sheet, ABC)",
+          "credit": "God Rest Ye Merry, Gentlemen, traditional English melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-we-three-kings-abc",
+          "title": "We Three Kings (lead sheet, ABC)",
+          "credit": "We Three Kings by John Henry Hopkins Jr. (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-angels-we-have-heard-on-high-abc",
+          "title": "Angels We Have Heard on High (lead sheet, ABC)",
+          "credit": "Angels We Have Heard on High, traditional French carol (GLORIA), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-o-christmas-tree-abc",
+          "title": "O Christmas Tree (O Tannenbaum) (lead sheet, ABC)",
+          "credit": "O Christmas Tree (O Tannenbaum), traditional German melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-jolly-old-st-nicholas-abc",
+          "title": "Jolly Old St. Nicholas (lead sheet, ABC)",
+          "credit": "Jolly Old St. Nicholas, traditional American song as printed in Franklin Square Song Collection No. 1 (1881), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-ding-dong-merrily-on-high-abc",
+          "title": "Ding Dong Merrily on High (lead sheet, ABC)",
+          "credit": "Ding Dong Merrily on High: melody 'Branle de l'Official' from Thoinot Arbeau's Orchesographie (1588), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-auld-lang-syne-abc",
+          "title": "Auld Lang Syne (lead sheet, ABC)",
+          "credit": "Auld Lang Syne, traditional Scottish air, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-the-holly-and-the-ivy-abc",
+          "title": "The Holly and the Ivy (SATB, ABC)",
+          "credit": "The Holly and the Ivy, traditional English melody, public domain. Four-part harmony written for Go Go HarmoniYo (CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
+          "id": "s5-carol-of-the-bells-abc",
+          "title": "Carol of the Bells (Shchedryk), three-voice arrangement (ABC)",
+          "credit": "Carol of the Bells: arrangement for Go Go HarmoniYo (CC0) of public-domain material from Mykola Leontovych's 'Shchedryk' (1916).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
           "id": "mutopia-carol",
           "title": "Carol (hymn tune for 'It Came Upon the Midnight Clear'), Mutopia edition",
           "credit": "It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain.",

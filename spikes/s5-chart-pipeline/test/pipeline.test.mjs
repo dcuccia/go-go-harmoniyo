@@ -18,6 +18,7 @@ import { buildHarmony, backingStyle, BACKING_STYLES } from '../src/harmony.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const manifest = JSON.parse(readFileSync(join(root, 'songs', 'manifest.json'), 'utf8'));
 const names = (notes) => notes.map((n) => pitchName(n.midi));
+const MUTOPIA_HOLLY = { id: 'mutopia-holly', file: '../sources/mutopia/thehollyandtheivy.mid', format: 'midi', options: { pickupTicks: 480 } };
 
 test('ABC: pitches, key signature, lengths, chord symbols', () => {
   const s = parseAbc(readFileSync(join(root, 'songs', 'jingle-bells.abc'), 'utf8'));
@@ -45,6 +46,68 @@ test('ABC: ties, accidentals within a bar, and unsupported constructs', () => {
   assert.deepEqual(names(s.notes), ['A#4', 'F#4', 'F#4', 'A#4', 'B4', 'B4']);
   assert.equal(s.notes[3].dur, 2 * PPQ, 'tie merged across bar line');
   assert.throws(() => parseAbc('X:1\nK:C\n|: C D :|\n'), /Repeat/);
+});
+
+test('ABC lead sheets added 2026-10-25: opening notes in the right octave (verified against PD/CC0 references)', () => {
+  const open = {
+    'god-rest-ye-merry-gentlemen': ['E4', 'E4', 'B4', 'B4', 'A4'],
+    'we-three-kings': ['B4', 'A4', 'G4', 'E4', 'F#4'],
+    'angels-we-have-heard-on-high': ['A4', 'A4', 'A4', 'C5', 'C5'],
+    'o-christmas-tree': ['C4', 'F4', 'F4', 'F4', 'G4'],
+    'jolly-old-st-nicholas': ['C#5', 'C#5', 'C#5', 'C#5', 'B4'],
+    'ding-dong-merrily-on-high': ['A#4', 'A#4', 'C5', 'A#4', 'A4'],
+    'auld-lang-syne': ['C4', 'F4', 'F4', 'F4', 'A4'],
+  };
+  for (const [id, first] of Object.entries(open)) {
+    const entry = manifest.songs.find((e) => e.id === id);
+    const s = parseAbc(readFileSync(join(root, 'songs', entry.file), 'utf8'));
+    assert.deepEqual(names(s.notes.slice(0, 5)), first, id);
+    assert.ok(s.chords.length > 0, `${id}: lead sheet has chord symbols`);
+  }
+  // Ding Dong's Gloria run starts an octave above the verse.
+  const dd = parseAbc(readFileSync(join(root, 'songs', 'ding-dong-merrily-on-high.abc'), 'utf8'));
+  assert.equal(pitchName(dd.notes.find((n) => n.tick === 8 * 4 * PPQ).midi), 'F5');
+  // Jolly Old bar 7 ("What I'm going to say") rises from the leading tone (1881 printing).
+  const jo = parseAbc(readFileSync(join(root, 'songs', 'jolly-old-st-nicholas.abc'), 'utf8'));
+  assert.deepEqual(names(jo.notes.filter((n) => n.tick >= 6 * 2 * PPQ && n.tick < 8 * 2 * PPQ)), ['G#4', 'A4', 'B4', 'C#5', 'B4']);
+});
+
+test('ABC multi-voice SATB: Holly and the Ivy soprano equals the Mutopia melody; voices become roles', () => {
+  const entry = manifest.songs.find((e) => e.id === 'the-holly-and-the-ivy');
+  assert.equal(entry.format, 'abc');
+  const { score, roleNotes } = loadSong(entry, join(root, 'songs'));
+  assert.deepEqual([...new Set(score.notes.map((n) => n.voice))].sort(), ['A', 'B', 'S', 'T']);
+  for (const v of ['S', 'A', 'T', 'B']) {
+    const end = Math.max(...score.notes.filter((n) => n.voice === v).map((n) => n.tick + n.dur));
+    assert.equal(end, score.endTick, `voice ${v} fills every bar`);
+  }
+  const ref = loadSong(MUTOPIA_HOLLY, join(root, 'songs')).score.notes;
+  const rel = (ns) => ns.map((n) => `${n.tick - ns[0].tick}:${pitchName(n.midi)}`);
+  assert.deepEqual(rel(roleNotes.filter((n) => n.role === 'melody')), rel(ref));
+  assert.ok(roleNotes.filter((n) => n.role === 'melody').every((n) => n.voice === 'S'));
+  assert.ok(roleNotes.filter((n) => n.role === 'bass').every((n) => n.voice === 'B'));
+  assert.ok(roleNotes.filter((n) => n.role === 'inner').length > 40, 'alto + tenor');
+  const h = buildHarmony(score, roleNotes);
+  assert.equal(h.source, 'lead-sheet', 'chord symbols on the first voice feed the harmony block');
+  assert.equal(h.chords.at(-1).symbol, 'F');
+});
+
+test('ABC multi-voice: Carol of the Bells (our arrangement of the PD Shchedryk material)', () => {
+  const entry = manifest.songs.find((e) => e.id === 'carol-of-the-bells');
+  const { score, roleNotes } = loadSong(entry, join(root, 'songs'));
+  assert.deepEqual([score.timeSigs[0].num, score.timeSigs[0].den], [3, 4]);
+  assert.equal(score.endTick, 44 * 3 * PPQ);
+  const melody = roleNotes.filter((n) => n.role === 'melody');
+  // Ostinato B-flat A B-flat G (quarter, two eighths, quarter) opens the piece alone.
+  assert.deepEqual(names(melody.slice(0, 4)), ['A#4', 'A4', 'A#4', 'G4']);
+  assert.deepEqual(melody.slice(0, 4).map((n) => n.dur), [PPQ, PPQ / 2, PPQ / 2, PPQ]);
+  assert.ok(roleNotes.slice(0, 16).every((n) => n.role === 'melody'), 'intro: ostinato alone');
+  assert.ok(melody.every((n) => n.voice === '1'));
+  assert.ok(roleNotes.filter((n) => n.role === 'bass').every((n) => n.voice === '3'));
+  assert.ok(roleNotes.some((n) => n.role === 'inner' && n.voice === '2'));
+  // The rising scale uses E natural and F sharp despite the G minor signature.
+  assert.ok(names(melody).includes('E4') && names(melody).includes('F#4'));
+  assert.equal(buildHarmony(score, roleNotes).source, 'lead-sheet');
 });
 
 test('MIDI: write -> read round trip', () => {
@@ -257,8 +320,10 @@ test('harmony: chords inferred for scores without chord symbols', () => {
   assert.equal(h.source, 'inferred');
   assert.equal(h.chords[0].symbol, 'A', 'A major tonic');
   assert.equal(h.chords.at(-1).symbol, 'A', 'ends on the tonic');
-  const hi = load('the-holly-and-the-ivy');
+  // The melody-only Mutopia Holly and the Ivy (kept in sources/ as provenance for the SATB ABC).
+  const hi = loadSong(MUTOPIA_HOLLY, join(root, 'songs'));
   const hh = buildHarmony(hi.score, hi.roleNotes);
+  assert.equal(hh.source, 'inferred');
   assert.equal(hh.chords.at(-1).symbol, 'F', 'melody-only song still ends on the tonic');
   for (const c of [...h.chords, ...hh.chords]) assert.ok(c.dur > 0 && c.tones.includes(c.root));
   // Deterministic, and contiguous from tick 0 to the end.
