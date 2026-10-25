@@ -1,0 +1,7 @@
+# Runtime dependencies of the AMT workload (torch is installed separately: CPU or CUDA wheel index).
+# Licenses: transformers Apache-2.0, mido MIT, numpy BSD-3-Clause, tqdm MPL-2.0 AND MIT,
+# safetensors/tokenizers/huggingface_hub Apache-2.0 (pulled in by transformers).
+transformers==4.51.3
+mido==1.2.10
+numpy==2.2.6
+tqdm==4.67.1

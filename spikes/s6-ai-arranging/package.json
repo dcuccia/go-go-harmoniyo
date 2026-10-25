@@ -1,0 +1,12 @@
+{
+  "name": "s6-ai-arranging",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Spike S6: AI-assisted arranging on the home AI compute node (qwen3:8b via /v1, Anticipatory Music Transformer as a batch job). Zero dependencies; Node >= 22.18 runs the .ts files directly (type stripping).",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "smoke": "node scripts/smoke.ts",
+    "test": "node --test test/*.test.ts"
+  }
+}
