@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import dgram from 'node:dgram';
+import { readdirSync } from 'node:fs';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { ChartLibrary, laneBells, LANE_COLORS, tierForDifficulty, YargLink, YargRoom, type Chart } from '../src/host/yarg.ts';
@@ -113,7 +114,8 @@ test('setSong: no chart → free pentatonic lanes', () => {
 
 test('real S5 charts load and give 4 ringers ≤ 5 lanes on every tier', () => {
   const lib = ChartLibrary.load(CHARTS);
-  assert.equal(lib.charts.length, 8);
+  assert.equal(lib.charts.length, readdirSync(CHARTS).filter((f) => f.endsWith('.json')).length);
+  assert.ok(lib.charts.length >= 16);
   assert.ok(lib.find('Deck the Halls'));
   assert.ok(lib.find('deck-the-halls'));
   for (const c of lib.charts) {
