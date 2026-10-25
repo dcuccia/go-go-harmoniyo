@@ -21,6 +21,8 @@ import { isAccidental } from '../../shared/pitch-palette';
 import { BackingTrack, DEFAULT_BACKING, type BackingSettings } from './backing/track';
 import { backingTimeline } from './backing/timeline';
 import { describe as describeBacking } from './backing/patterns';
+import { clampSpeed, DEFAULT_SPEED, parseSpeedPercent, scaleChart, speedNote, speedPercent } from './speed';
+import { JoinQueue, waitingLabel } from './join-queue';
 
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -43,6 +45,18 @@ if (params.has('countin')) backingSettings.countIn = flag('countin', true);
 const saveBacking = (): void => localStorage.setItem(BACKING_KEY, JSON.stringify(backingSettings));
 let backing: BackingTrack | null = null;
 
+// ── practice speed (lobby; remembered for this browser session, ?speed=50..100) ──
+const SPEED_KEY = 'i2.speed';
+let speed = parseSpeedPercent(params.get('speed')) ?? parseSpeedPercent(sessionStorage.getItem(SPEED_KEY)) ?? DEFAULT_SPEED;
+const saveSpeed = (): void => sessionStorage.setItem(SPEED_KEY, String(speedPercent(speed)));
+
+// ── always-visible join QR (?joinQr=0 hides it; ?joinQrCorner=tl|tr|bl|br; ?joinQrSize=px) ──
+const cornerJoin = {
+  show: flag('joinQr', true),
+  corner: ['tl', 'tr', 'bl', 'br'].includes(params.get('joinQrCorner') ?? '') ? params.get('joinQrCorner')! : 'tl',
+  size: num('joinQrSize', 0),
+};
+
 // ── engine pieces (S4) ──────────────────────────────────────────────────────
 const mh = new MultiHighway($('highways'), {
   bloom: flag('bloom', true),
@@ -50,6 +64,7 @@ const mh = new MultiHighway($('highways'), {
   msaa: num('msaa', 0),
   particles: flag('particles', true),
 });
+mh.setSpeed(speed);
 const audio = new AudioEngine();
 const hud = new Hud();
 const teamHud = new TeamHud(mh);
@@ -96,6 +111,8 @@ const sentAssign = new Map<string, string>();
 let sentParts = '';
 /** Seats when the current/last round started (results rows → players). */
 let roundSeats: string[] = [];
+/** Phones that joined during the current round (or its results screen): seated when the next starts. */
+const joinQueue = new JoinQueue();
 
 const onlinePhones = (): PhoneInfo[] => link.phones.filter((p) => p.online && p.kind !== 'dashboard');
 const phoneName = (id: string): string => link.phones.find((p) => p.id === id)?.name ?? id;
@@ -114,6 +131,22 @@ async function loadChart(id: string): Promise<S5Chart> {
   }
   return c;
 }
+
+/** The chart at the practice speed (cached per song and speed). */
+const scaledCache = new Map<string, S5Chart>();
+async function songChart(id: string): Promise<S5Chart> {
+  const key = `${id}@${speed}`;
+  let c = scaledCache.get(key);
+  if (!c) {
+    c = scaleChart(await loadChart(id), speed);
+    scaledCache.set(key, c);
+  }
+  return c;
+}
+/** Current song at the current speed, once loaded. */
+const currentChart = (): S5Chart | undefined => scaledCache.get(`${songId}@${speed}`);
+/** Song label for the phones: title, tier and (when slowed down) the practice speed. */
+const songLabel = (): string => `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
@@ -137,7 +170,7 @@ function syncPhones(): string[] {
 async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   if (!index) return;
   const joiners = syncPhones();
-  const s5 = await loadChart(songId);
+  const s5 = await songChart(songId);
   const part = findPart(s5, difficulty, ringerCount);
   if (!part) {
     joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
@@ -148,12 +181,15 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   const transpose = num('octave', 1) ? 12 : 0;
   cards = partCards(s5, part, buildTeamChart(s5, part, { transpose }));
   seating.setParts(cards.map((c) => c.name));
+  // Phones that joined during the last round get their part first, in join order (drop-in).
+  joinQueue.seat(seating);
   // Seat newcomers, reconnecting phones and anyone waiting for a part (not those who sat out).
   seating.fill(onlinePhones().map((p) => p.id));
   const seats = seating.seats;
   const active = seats.map((s) => forPlayMode === 'autoplay' || s !== TV);
   if (!active.some(Boolean)) active.fill(true); // lobby preview with no players: show every highway
   team = buildTeamChart(s5, part, { active, transpose });
+  mh.setSpeed(speed);
   mh.setTeam(team);
   teamHud.setup(
     team,
@@ -182,12 +218,12 @@ function seatingChanged(): void {
  */
 function sendAssignments(): void {
   if (!team) return;
-  const songLabel = `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})`;
+  const song = songLabel();
   for (const r of team.ringers) {
     const dev = seating.seats[r.index];
     if (!dev || !isPhone(dev)) continue;
     const bells = r.bells.map((b) => ({ id: b.id, label: b.letter, midi: b.pitch, color: b.color }));
-    const ringer = { slot: r.index, title: `${cards[r.index]?.name ?? `Ringer ${r.index + 1}`} · Ringer ${r.index + 1}`, song: songLabel };
+    const ringer = { slot: r.index, title: `${cards[r.index]?.name ?? `Ringer ${r.index + 1}`} · Ringer ${r.index + 1}`, song };
     const key = JSON.stringify([bells, ringer]);
     if (sentAssign.get(dev) === key) continue;
     sentAssign.set(dev, key);
@@ -195,7 +231,7 @@ function sendAssignments(): void {
   }
   for (const p of onlinePhones()) {
     if (seating.partOf(p.id) >= 0 || !p.bells?.length) continue;
-    const ringer = { slot: -1, title: 'Not playing: pick a part', song: songLabel };
+    const ringer = { slot: -1, title: 'Not playing: pick a part', song };
     const key = JSON.stringify([p.bells, ringer]);
     if (sentAssign.get(p.id) === key) continue;
     sentAssign.set(p.id, key);
@@ -221,7 +257,7 @@ function sendParts(): void {
       ready: isPhone(s) && !!link.phones.find((p) => p.id === s)?.ready,
     };
   });
-  const lobby: LobbyParts = { phase: playing ? 'play' : 'lobby', song: `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})`, parts };
+  const lobby: LobbyParts = { phase: playing ? 'play' : 'lobby', song: songLabel(), parts, waiting: [...joinQueue.waiting] };
   const key = JSON.stringify(lobby);
   if (key === sentParts) return;
   sentParts = key;
@@ -279,8 +315,10 @@ function playerViews(): PlayerView[] {
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
   const selSong = $<HTMLSelectElement>('sel-song');
-  if (index && selSong.options.length !== index.songs.length && document.activeElement !== selSong) {
-    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(s.durationSec)} s, ${s.license ?? '?'})</option>`).join('');
+  const songsKey = `${index?.songs.length}@${speed}`;
+  if (index && selSong.dataset.key !== songsKey && document.activeElement !== selSong) {
+    selSong.dataset.key = songsKey;
+    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(s.durationSec / speed)} s, ${s.license ?? '?'})</option>`).join('');
   }
   setValue(selSong, songId);
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
@@ -291,9 +329,10 @@ function renderLobby(): void {
   $<HTMLInputElement>('rng-backing').disabled = !backingSettings.enabled;
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
   setChecked($<HTMLInputElement>('chk-countin'), backingSettings.countIn);
+  renderSpeed();
 
   view.update(cards, seating.seats, playerViews());
-  const s5 = chartCache.get(songId);
+  const s5 = currentChart();
   const part = s5 ? findPart(s5, difficulty, ringerCount) : undefined;
   if (part) {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
@@ -346,7 +385,52 @@ function renderStatus(): void {
 /** Results screen: who plays what next round (claims, swaps and 🔁 apply on Again). */
 function renderNext(): void {
   const who = (s: string): string => (s === TV ? '🤖 TV' : s === KEYBOARD ? '⌨ Keyboard' : phoneName(s));
-  $('res-next').textContent = cards.length ? `Next round: ${cards.map((c, i) => `${c.name} — ${who(seating.seats[i] ?? TV)}`).join(' · ')}` : '';
+  const joining = joinQueue.waiting.length ? ` · Joining: ${joinQueue.waiting.map(phoneName).join(', ')} (first part the TV plays)` : '';
+  $('res-next').textContent = cards.length ? `Next round: ${cards.map((c, i) => `${c.name} — ${who(seating.seats[i] ?? TV)}`).join(' · ')}${joining}` : '';
+}
+
+/** Lobby speed control: value, label and the song length at this speed. */
+function renderSpeed(): void {
+  setValue($<HTMLInputElement>('rng-speed'), String(speedPercent(speed)));
+  $('speed-val').textContent = `${speedPercent(speed)}%`;
+  const dur = index?.songs.find((s) => s.id === songId)?.durationSec;
+  $('speed-info').textContent = speed < 1 ? `Slower for learning: ${dur ? `${Math.round(dur / speed)} s instead of ${Math.round(dur)} s; ` : ''}bells, backing and count-in slow down too, timing is judged the same.` : '';
+}
+
+/**
+ * Corner QR + join URL while a round is on screen (song or results), so people can join at any
+ * time; hidden in the lobby (it has the big QR), while there is no join URL yet (--tunnel still
+ * starting) and while the phone host is unreachable. "+N waiting" lists phones that joined mid-round.
+ */
+function renderCornerJoin(): void {
+  const el = $('corner-join');
+  const url = link.info.joinUrl ?? '';
+  const show = cornerJoin.show && !!session && link.state === 'open' && !!url;
+  el.classList.toggle('hidden', !show);
+  if (!show) return;
+  el.dataset.corner = cornerJoin.corner;
+  if (cornerJoin.size > 0) el.style.setProperty('--cj-size', `${cornerJoin.size}px`);
+  const img = $<HTMLImageElement>('corner-qr');
+  if (img.dataset.u !== url) {
+    img.dataset.u = url;
+    img.src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(url)}`;
+  }
+  $('corner-url').textContent = url.replace(/\/$/, '');
+  $('corner-hint').textContent = /self-signed/i.test(link.info.tlsMode ?? '') ? 'scan · accept the warning once' : 'scan to join';
+  const waiting = joinQueue.waiting;
+  const w = $('corner-wait');
+  w.classList.toggle('hidden', !waiting.length);
+  w.querySelector('b')!.textContent = waitingLabel(waiting.length);
+  w.querySelector('span')!.textContent = waiting.map(phoneName).join(', ');
+}
+
+/** During a round: phones that just joined wait for the next one (TV indicator + phone screen). */
+function updateJoinQueue(): void {
+  if (!session) return;
+  if (!joinQueue.update(onlinePhones().map((p) => p.id), roundSeats, seating)) return;
+  sendParts();
+  renderCornerJoin();
+  if (!playing) renderNext();
 }
 
 const shown = new WeakMap<Element, string>();
@@ -390,6 +474,13 @@ $<HTMLInputElement>('chk-countin').onchange = (e) => {
   backingSettings.countIn = (e.target as HTMLInputElement).checked;
   saveBacking();
 };
+$<HTMLInputElement>('rng-speed').oninput = (e) => {
+  speed = clampSpeed(Number((e.target as HTMLInputElement).value) / 100);
+  saveSpeed();
+  renderSpeed();
+};
+// Rebuild (scaled chart, highways, part meters, phone labels) when the slider is let go.
+$<HTMLInputElement>('rng-speed').onchange = () => void rebuild();
 
 let lastPhoneKey = '';
 link.onDevices = () => {
@@ -405,17 +496,20 @@ link.onDevices = () => {
       renderLobby();
     }
   } else if (!playing) sendParts(); // results screen: Ready flags to the phones
+  updateJoinQueue();
   maybeAutostart();
 };
 // A phone picked a part ("Pick your part"); a taken part is swapped (v0: no consent prompt).
 link.onClaim = (deviceId, part) => {
   if (playing || !onlinePhones().some((p) => p.id === deviceId)) return;
   seating.assign(part, deviceId);
+  if (joinQueue.remove(deviceId)) renderCornerJoin(); // results screen: a waiting phone chose for itself
   seatingChanged();
 };
 link.onInfo = () => {
   $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl ?? '')}`;
   renderLobby();
+  renderCornerJoin();
 };
 link.onState = (s) => {
   if (s === 'open') {
@@ -426,6 +520,7 @@ link.onState = (s) => {
     lastPhoneKey = '';
   }
   renderLobby();
+  renderCornerJoin();
 };
 
 // Lobby practice: ringing a phone lights its lane and its row.
@@ -458,6 +553,8 @@ function missGrace(): number {
 }
 let players: PlayerStats[] = [];
 let hgpInput: HgpInputSource | null = null;
+/** Practice speed of the current/last round (for its results). */
+let roundSpeed = 1;
 
 async function start(mode: Mode): Promise<void> {
   await audio.resume();
@@ -483,7 +580,7 @@ async function start(mode: Mode): Promise<void> {
   if (kbRinger) sources.push(keyboardRinger(kbRinger.laneStart, kbRinger.bells.length, (lane) => audio.bell(t.chart.lanes[lane].pitch, 0, 0.9, 0)));
 
   const hostRingSound = soundMode !== 'device';
-  const s5 = chartCache.get(songId)!;
+  const s5 = currentChart()!;
   const part = findPart(s5, difficulty, ringerCount)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
@@ -512,13 +609,18 @@ async function start(mode: Mode): Promise<void> {
   $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
   session = s;
   playing = true;
+  roundSpeed = speed;
+  joinQueue.startRound(onlinePhones().map((p) => p.id));
   resetTiming();
   s.start();
   sendCues(s);
   sendParts(); // phase "play": phones hide the part picker
   teamHud.position();
+  $('speed-badge').textContent = speed < 1 ? `🐢 ${speedNote(speed)}` : '';
+  $('speed-badge').classList.toggle('hidden', speed >= 1);
   $('lobby').classList.add('hidden');
   $('results').classList.add('hidden');
+  renderCornerJoin();
 }
 
 /** Keyboard as one ringer: A S D F → that ringer's lanes; plays the bell on the host (no phone). */
@@ -636,6 +738,9 @@ function finish(r: SessionResult): void {
     song: songId,
     difficulty,
     ringers: ringerCount,
+    /** Practice speed (1 = written tempo); song times in this result are at this speed. */
+    speed: roundSpeed,
+    chartDurationSec: team ? round(team.chart.duration, 3) : null,
     soundMode,
     backing: backing
       ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
@@ -655,10 +760,11 @@ function finish(r: SessionResult): void {
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = r.title;
+  const speedLine = roundSpeed < 1 ? `<br><span class="res-speed">🐢 Practice speed ${speedPercent(roundSpeed)}%</span>` : '';
   $('res-body').innerHTML =
     r.mode === 'autoplay'
-      ? 'Autoplay demo finished.'
-      : `Team score <span class="big">${r.score.toLocaleString()}</span><br>Accuracy ${(r.accuracy * 100).toFixed(1)}% · best team streak ${r.maxStreak}<br>Perfect ${c.perfect} · Great ${c.great} · Good ${c.good} · Miss ${c.miss} · stray rings ${r.strays}`;
+      ? `Autoplay demo finished.${speedLine}`
+      : `Team score <span class="big">${r.score.toLocaleString()}</span><br>Accuracy ${(r.accuracy * 100).toFixed(1)}% · best team streak ${r.maxStreak}<br>Perfect ${c.perfect} · Great ${c.great} · Good ${c.good} · Miss ${c.miss} · stray rings ${r.strays}${speedLine}`;
   $('res-players').innerHTML = r.mode === 'autoplay' ? '' : `<tr><th>Ringer</th><th>Notes</th><th>Hit</th><th>Perfect</th><th>Miss</th><th>Stray</th><th>Best streak</th><th>Accuracy</th><th>Timing (mean / p95)</th></tr>` +
     playerRows
       .map(
@@ -670,6 +776,7 @@ function finish(r: SessionResult): void {
   $('results').classList.remove('hidden');
   sendParts(); // phones can pick parts for the next round
   renderNext();
+  renderCornerJoin();
 }
 
 function toLobby(): void {
@@ -682,6 +789,7 @@ function toLobby(): void {
   hud.show(false);
   $('results').classList.add('hidden');
   $('lobby').classList.remove('hidden');
+  renderCornerJoin();
   lastPhoneKey = '';
   void rebuild();
 }
@@ -851,6 +959,10 @@ fetch('charts/index.json')
   },
   seating,
   view,
+  joinQueue,
+  get speed() {
+    return speed;
+  },
   get session() {
     return session;
   },

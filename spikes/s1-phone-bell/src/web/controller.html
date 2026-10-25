@@ -19,8 +19,14 @@
     </section>
     <section id="main" hidden>
       <div id="banner" hidden></div>
+      <section id="waiting" hidden aria-live="polite">
+        <h2>You're in! 🎉</h2>
+        <p>A song is playing. You'll get a part when the <b>next song</b> starts.</p>
+        <p id="waiting-song" class="small"></p>
+      </section>
       <section id="lobby" hidden aria-label="Pick your part">
         <h2>Pick your part</h2>
+        <p id="lobby-next" class="small" hidden>You're in for the next song: pick a part, or you'll get the first one the TV is playing.</p>
         <p id="lobby-song" class="small"></p>
         <div id="parts" role="list"></div>
         <div class="row">

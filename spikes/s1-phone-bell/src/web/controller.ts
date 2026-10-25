@@ -340,7 +340,7 @@ client.onMessage = (m) => {
           player: { kind: p.player?.kind === 'phone' || p.player?.kind === 'keyboard' ? p.player.kind : 'tv', id: typeof p.player?.id === 'string' ? p.player.id : undefined, name: String(p.player?.name ?? '') },
           ready: p.ready === true,
         })) as Parts['parts'];
-        lobby = { type: 'parts', phase: m.phase === 'play' ? 'play' : 'lobby', song: typeof m.song === 'string' ? m.song : undefined, parts, you: Number.isInteger(m.you) ? (m.you as number) : -1, ready: m.ready === true };
+        lobby = { type: 'parts', phase: m.phase === 'play' ? 'play' : 'lobby', song: typeof m.song === 'string' ? m.song : undefined, parts, you: Number.isInteger(m.you) ? (m.you as number) : -1, ready: m.ready === true, next: m.next === true };
         renderLobby();
       }
       break;
@@ -365,9 +365,14 @@ function setHtml(el: Element, html: string): void {
 }
 
 function renderLobby(): void {
+  // Drop-in: joined while a song plays → "you're in for the next song" until the round ends.
+  const waiting = !!lobby && lobby.phase === 'play' && !!lobby.next && lobby.you < 0;
+  $('waiting').hidden = !waiting;
+  if (waiting) $('waiting-song').textContent = lobby!.song ? `Now playing: ${lobby!.song}` : '';
   const show = !!lobby && lobby.phase === 'lobby' && lobby.parts.length > 0;
   $('lobby').hidden = !show;
   if (!show || !lobby) return;
+  $('lobby-next').hidden = !(lobby.next && lobby.you < 0);
   $('lobby-song').textContent = lobby.song ?? '';
   const box = $('parts');
   while (box.children.length > lobby.parts.length) box.lastElementChild!.remove();
