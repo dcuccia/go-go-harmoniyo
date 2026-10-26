@@ -74,32 +74,106 @@ The name is an umbrella. Instruments and audiences become editions:
   - holiday content is opt-in, never the only theme.
 - **Short.** Couch-readable UI copy: a few words, big type.
 
-## 3. Logo direction
+## 3. Logo and visual identity
 
-These are directions for future human or AI work, not a finished logo.
+![Go Go HarmoniYo brand assets](brand/preview.png)
 
-- **A wordmark first:** custom, rounded, friendly lettering. It must be readable from three meters
-  on a TV and at 48 px as an app icon. "Go Go" can be smaller and sit above "HarmoniYo". The
-  capital Y may be the hero letter.
-- **Mark idea:** a handbell built from our own shapes, for example:
-  - a "Y" formed by the bell's handle and two sound arcs;
-  - a bell whose ring burst is drawn as concentric arcs;
-  - optionally, a few dots in [pitch-class palette](visual-identity.md#pitch-class-palette) colors.
-- **Colors:**
-  - Stage dark `#0b0d17` with warm candlelight, brass and wood accents.
-  - Multicolor uses come from the pitch-class palette in circle-of-fifths order. **Never** use a
-    fixed green/red/yellow/blue/orange lane order.
-  - Provide a one-color version (white on dark, dark on light).
-- **Avoid anything that evokes other rhythm-game brands:**
-  - flames, lightning bolts, guitar necks or headstocks, picks;
-  - chrome or metal "rock" lettering, star bursts behind the logo;
-  - five-lane highways in the logo;
-  - drum sets, "X" endings.
+### Decision (owner, 2026-10-25)
 
-  Also avoid yo-yo toys and go-go-dancer or nightclub imagery.
-- **Clear space:** at least the height of the "o" on every side. Minimum size: 24 px for the mark
-  alone and 96 px wide for the wordmark.
-- **Accessibility:** contrast of at least 4.5:1 against its background. Never rely on color alone.
+@dcuccia chose the identity from the [brand options](brand-options/README.md):
+
+1. Six directions were narrowed to 2 Resonance and 6 Sing-Along.
+2. Their [mashups](brand-options/mashups/README.md) led to mashup G.
+3. From the [G vamps](brand-options/g-vamps/README.md), the owner picked: "let's go candlelight, 1.5x,
+   Y1 wink is good".
+
+- **Logo:** lockup **G2**. Yo, "Go Go" and the Y of HarmoniYo share **candlelight**, and "Go Go"
+  is 1.5× its size in mashup G (90 % of "HarmoniYo").
+- **Mark and app icon:** **Y1 Wink**, Yo the living bell (mascot brief option 2), gender-neutral.
+- **Dark mode is the default.** Light mode is secondary.
+- **Recommended defaults** the owner can change: the favicon is **Y8** (icon-grade). The in-game
+  states are **Y3** idle, **Y4** ring, and **Y2** or **Y5** cheer.
+
+Production files are in [`brand/`](brand/README.md), built by `tools/design/brand/build.py`. They
+are registered in the asset register as `brand-identity` (owner-approved) and `brand-yo-defaults`.
+
+### Logo files
+
+| Use | File |
+|---|---|
+| Primary (TV title, store, splash) | `logo-stacked-dark.svg` |
+| Headers and tight spaces | `logo-line-dark.svg` |
+| On light backgrounds (secondary) | `logo-stacked-light.svg`, `logo-line-light.svg` |
+| One colour | `logo-*-mono-white.svg` (on dark), `logo-*-mono-ink.svg` (on light) |
+| Mark (Yo) | `mark-dark.svg` (three rings), `mark-light.svg`, `mark-mono-*.svg` |
+| App icons | `app-icon.svg`, `icon-192.png`, `icon-512.png`, `icon-maskable-192.png`, `icon-maskable-512.png`, `apple-touch-icon.png` (180) |
+| Favicon | `favicon.svg`, `favicon.ico` (16, 32, 48) |
+| Social card | `og-image.png` (1200 × 630) |
+| Yo states | `yo/yo-wink.svg`, `yo/yo-idle.svg`, `yo/yo-ring.svg`, `yo/yo-cheer.svg`, `yo/yo-cheer-hands.svg`, `yo/yo-icon.svg` |
+
+### Colour
+
+The accents come from the [pitch-class palette](visual-identity.md#pitch-class-palette):
+
+| Role | Colour | Hex |
+|---|---|---|
+| Yo's body, "Go Go", the Y | candlelight (pitch D) | `#f3b01d` |
+| Yo's handle, sound bow and clapper | candlelight shade | `#aa7b14` |
+| "HarmoniYo" on dark | warm white | `#fbf7ef` |
+| Default background | stage | `#0b0d17` |
+| Yo's face; text and outlines on light | ink | `#10121c` |
+| Sound rings on dark, inner to outer | rosehip (F), candlelight (D), holly (E) | `#ff98ca`, `#f3b01d`, `#9cf189` |
+| Sound rings on light | berry deep, brass ink, spruce deep | `#a8262f`, `#8f5d10`, `#00654f` |
+| Sparkle by the Y | rosehip on dark, berry deep on light | `#ff98ca`, `#a8262f` |
+| "Go Go" and the Y on light | candlelight, darkened | `#8d6611` |
+| Felt hands | felt | `#f4ece0` |
+
+- **Contrast on the stage:** candlelight is 10.2:1 and warm white is 18.1:1.
+- **Contrast on paper** (`#f7f2e8`): ink is 16.7:1 and darkened candlelight is 4.7:1.
+- On light backgrounds, Yo keeps its candlelight body with an ink outline.
+
+### Type
+
+- **Logo:** [Grandstander](https://fonts.google.com/specimen/Grandstander) Black (900), by Tyler Finck
+  and ETC, licensed under the SIL Open Font License 1.1. The logo files are outlines, so no font
+  ships with them. The font, its `OFL.txt` and its pinned hash are in
+  [brand-options/fonts](brand-options/fonts/).
+- **UI text** keeps the system UI fonts for now. If Grandstander is ever used for live UI headings,
+  ship its `OFL.txt` with it.
+
+### Clear space and minimum sizes
+
+- **Clear space:** keep at least the height of the "o" in "HarmoniYo" clear on every side. The sound
+  rings count as part of the logo.
+- **Minimum sizes:**
+  - stacked lockup: 160 px wide;
+  - one-line lockup: 200 px wide;
+  - mark (Y1): 32 px;
+  - below 32 px, use the favicon (Y8). It holds up at 16 px.
+- **Mark alone:** use it only where the full name already appears nearby, or as the app icon.
+
+### Do
+
+- Use the **dark** lockup on the stage by default.
+- Keep "Go Go", the Y and Yo in **one** colour, candlelight (darkened candlelight on light
+  backgrounds).
+- Use the one-line lockup in headers, and the mark or the Yo states for in-game moments: Y3 idle,
+  Y4 ring, Y2 or Y5 cheer.
+- Keep the sound rings in their order (rosehip, candlelight, holly). They are pitch colours F, D
+  and E, not a lane order.
+- Use the one-colour versions when colour isn't available. Never rely on colour alone.
+
+### Don't
+
+- Don't recolour "Go Go" separately from the Y and Yo, or change their size ratio.
+- Don't stylize the o's of "HarmoniYo" (no dots, fills or rings on an "o"). HARMONIX draws its O as
+  a filled dot.
+- Don't stretch, skew, outline, bevel or add gradients, drop shadows or star bursts.
+- Don't put the stacked lockup inside a cloud or blob shape.
+- Don't use the tilted ringing Yo (Y4) as the app icon. It's close to the generic notification bell.
+- If Yo wears a bow (Y6), keep it a plain ribbon on the handle: no polka dots and no "ear" position.
+- Never use flames, lightning, guitars, chrome or "rock" lettering, five-lane highways, a fixed
+  green/red/yellow/blue/orange order, yo-yo toys, or go-go-dancer or nightclub imagery.
 
 ## 4. Non-affiliation disclaimer
 
@@ -117,6 +191,11 @@ the in-game credits.
 ## 5. Mascot concept brief: HarmoniYo ("Yo")
 
 This brief is for future concept art (human or AI) under [ADR-0008](../decisions/0008-assets-ip-and-attribution.md).
+
+> **Chosen 2026-10-25:** Yo is the **living bell**: option 2 below, drawn as Y1 Wink in
+> [§3](#3-logo-and-visual-identity), gender-neutral by default. The Y6 ribbon is the ready-made
+> "she" variant if the owner wants it. The state art is in [`brand/yo/`](brand/README.md). The brief
+> still applies to key art and to the human crew around Yo.
 
 ### Who Yo is
 
@@ -211,7 +290,9 @@ girls to see themselves in the lead. Pick one:
    old `handbell-hero` URLs) and retired the code name from current use
    ([ADR-0009 amendment](../decisions/0009-product-name.md#amendment-2026-10-23-repository-renamed)).
    Moving it to a GitHub org is still open.
-5. **Commission** the mascot and logo with the brief above.
+5. **Done 2026-10-25:** chose the logo and Yo's look ([§3](#3-logo-and-visual-identity)). A designer may still refine
+   them, and the human crew in key art still follows the brief below.
+6. Apply the brand in the game (TV lobby, HUD, results, phone controller, favicons and PWA icons).
 
 ## Appendix: considered alternative, Go Go Harmonio
 

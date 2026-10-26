@@ -29,6 +29,7 @@ const LICENSE_INFO = {
   'CC0-1.0': { name: 'CC0 1.0 Universal (public domain dedication)', url: 'https://creativecommons.org/publicdomain/zero/1.0/' },
   'LicenseRef-Mutopia-PublicDomain': { name: 'Public domain (Mutopia Project dedication)', url: 'https://www.mutopiaproject.org/legal.html#publicdomain' },
   'LGPL-3.0-or-later': { name: 'GNU Lesser General Public License v3.0 or later', url: 'https://www.gnu.org/licenses/lgpl-3.0.html' },
+  'OFL-1.1': { name: 'SIL Open Font License 1.1', url: 'https://openfontlicense.org/open-font-license-official-text/' },
 };
 const licenseInfo = (id) => LICENSE_INFO[id] ?? { name: id, url: licenseUrl(id) };
 
