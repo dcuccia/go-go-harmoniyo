@@ -1,0 +1,21 @@
+X:1
+T:We Three Kings
+C:John Henry Hopkins Jr. (1857)
+O:United States
+S:Public-domain melody (1857), checked note by note against the SATB score in the English Wikipedia article (soprano line, repeats unfolded)
+Z:Encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. Chord symbols by the encoder.
+N:One verse with refrain; repeats written out. Notated in 3/4 (each eighth of the 3/8 reference is a quarter here; same tune, same rhythm). Lead sheet: melody + chord symbols.
+N:E minor (F sharp); range D4-D5. Checked: octave of every note, the F sharps, and that every bar sums to 3 beats.
+%%hh-id we-three-kings
+%%hh-license CC0-1.0
+L:1/4
+M:3/4
+Q:1/4=144
+K:Em
+"Em"B2 A | "Em"G2 E | "B7"F G F | "Em"E2 z |
+"Em"B2 A | "Em"G2 E | "B7"F G F | "Em"E2 z |
+"Em"G2 G | "D"A2 A | "G"B2 B | "G"d c B | "Am"A B A | "Em"G2 "B7"F | "Em"E2 z |
+"D7"F2 A |
+"G"G2 G | "G"G2 D | "C"G2 E | "G"G2 z |
+"G"G2 G | "G"G2 D | "C"G2 E | "G"G2 z |
+"Em"G2 G | "D"A2 B | "Am"c2 "G"B | "D"A2 "G"B | "G"G2 G | "G"G2 D | "C"G2 E | "G"G3 |]

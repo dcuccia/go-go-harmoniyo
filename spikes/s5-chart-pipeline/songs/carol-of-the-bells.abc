@@ -1,0 +1,51 @@
+X:1
+T:Carol of the Bells (Shchedryk)
+C:Melody and ostinato: Ukrainian folk chant 'Shchedryk', set by Mykola Leontovych (1916)
+O:Ukraine
+S:Public-domain material only: the four-note ostinato and the melodic phrases of Leontovych's 'Shchedryk' (1916), checked against a transcription of his choral setting (English Wikipedia article 'Shchedryk (song)'). No English words, and no later arrangement, were used
+Z:Arranged and encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. The bass and inner parts, the section order, the interlude and the ending are our own.
+N:Our own three-voice arrangement for handbells, written from the public-domain Shchedryk material. V:1 lead (ostinato, then the melodic phrases), V:2 inner (sustained chord tones, the ostinato an octave lower, or rests), V:3 bass (our own lines). No dynamics or words.
+N:Form (44 bars): intro (ostinato alone, 4) / ostinato over our bass and inner line (8) / upper motif over the low ostinato (4) / descending phrase (4) / rising scale (4) / interlude with pulsing bass (4) / upper motif, phrase, scale again (12) / ostinato and a plain G minor close (4).
+N:G minor (B flat, E flat); the rising scale uses E natural and F sharp. Lead range D4-G5, bass C3-A3. Checked: the ostinato is B flat 4 - A4 - B flat 4 - G4 (quarter, two eighths, quarter), octave of every note, and every bar of every voice sums to 3 beats.
+%%hh-id carol-of-the-bells
+%%hh-license CC0-1.0
+L:1/8
+M:3/4
+Q:1/4=138
+V:1
+V:2
+V:3
+K:Gm
+V:1
+"Gm"B2 A B G2 | "Gm"B2 A B G2 | "Gm"B2 A B G2 | "Gm"B2 A B G2 |
+"Gm"B2 A B G2 | "Gm/D"B2 A B G2 | "Cm"B2 A B G2 | "D"B2 A B G2 | "Gm"B2 A B G2 | "Cm"B2 A B G2 | "D"B2 A B G2 | "Gm"B2 A B G2 |
+"Gm"d2 c d B2 | "Eb"d2 c d B2 | "Cm"d2 c d B2 | "Gm"d2 c d B2 |
+"Eb"g2 g g f e | "Bb/D"d2 d d c B | "Cm"c2 c c d c | "Gm"G2 G G G2 |
+"D"D =E ^F G A B | "Cm"c d c2 "Gm"B2 | "D"D =E ^F G A B | "Cm"c d c2 "Gm"B2 |
+"Gm"B2 A B G2 | "F"B2 A B G2 | "Cm/Eb"B2 A B G2 | "D"B2 A B G2 |
+"Gm"d2 c d B2 | "Eb"d2 c d B2 | "Cm"d2 c d B2 | "Gm"d2 c d B2 |
+"Eb"g2 g g f e | "Bb/D"d2 d d c B | "Cm"c2 c c d c | "Gm"G2 G G G2 |
+"D"D =E ^F G A B | "Cm"c d c2 "Gm"B2 | "D"D =E ^F G A B | "Cm"c d c2 "Gm"B2 |
+"Gm"B2 A B G2 | "Cm"B2 A B G2 | "D"B2 A B G2 | "Gm"G6 |]
+V:2
+z6 | z6 | z6 | z6 |
+D6 | D6 | E6 | A,6 | D6 | E6 | A,6 | D6 |
+B,2 A, B, G,2 | B,2 A, B, G,2 | B,2 A, B, G,2 | B,2 A, B, G,2 |
+B2 A B G2 | B2 A B G2 | B2 A B G2 | B,2 A, B, G,2 |
+z6 | E6 | z6 | D6 |
+z6 | z6 | z6 | z6 |
+B,2 A, B, G,2 | B,2 A, B, G,2 | B,2 A, B, G,2 | B,2 A, B, G,2 |
+B2 A B G2 | B2 A B G2 | B2 A B G2 | B,2 A, B, G,2 |
+z6 | E6 | z6 | D6 |
+D6 | E6 | A,6 | D6 |]
+V:3
+z6 | z6 | z6 | z6 |
+G,6 | D,6 | C,6 | D,6 | G,6 | C,6 | D,6 | G,6 |
+G,4 D,2 | E,4 G,2 | C,4 E,2 | G,4 D,2 |
+E,4 G,2 | D,4 F,2 | C,4 E,2 | G,4 D,2 |
+D,6 | C,4 G,2 | D,6 | C,4 G,2 |
+G,2 D,2 G,2 | F,2 C,2 F,2 | E,2 C,2 E,2 | D,2 ^F,2 A,2 |
+G,4 D,2 | E,4 G,2 | C,4 E,2 | G,4 D,2 |
+E,4 G,2 | D,4 F,2 | C,4 E,2 | G,4 D,2 |
+D,6 | C,4 G,2 | D,6 | C,4 G,2 |
+G,6 | C,6 | D,6 | G,6 |]

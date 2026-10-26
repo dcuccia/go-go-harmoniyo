@@ -1,0 +1,20 @@
+X:1
+T:Angels We Have Heard on High
+C:Traditional French carol (tune GLORIA)
+O:France
+S:Public-domain traditional melody, checked note by note against The Public Domain Song Anthology (Aperio Press 2020, CC0 1.0) p. 19 and the SATB score in the English Wikipedia article (soprano line, repeats unfolded)
+Z:Encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. Chord symbols by the encoder.
+N:Verse (written out twice) and the Gloria refrain (written out twice, second time with the final ending). Lead sheet: melody + chord symbols.
+N:F major (B flat); range C4-D5. Checked: octave of every note (refrain starts on C5, the 'in excelsis' run starts on C4), and that every bar sums to 4 beats.
+%%hh-id angels-we-have-heard-on-high
+%%hh-license CC0-1.0
+L:1/8
+M:4/4
+Q:1/4=100
+K:F
+"F"A2 A2 "Dm"A2 c2 | "C"c3 B "F"A4 | "F"A2 "C"G2 "F"A2 c2 | "F"A3 "C"G "F"F4 |
+"F"A2 A2 "Dm"A2 c2 | "C"c3 B "F"A4 | "F"A2 "C"G2 "F"A2 c2 | "F"A3 "C"G "F"F4 |
+"F"c4 "Dm"d c B A | "Gm"B4 "C"c B A G | "F"A4 "Bb"B A G F | "C"G3 C C4 |
+"F"F2 "C"G2 "F"A2 "Bb"B2 | "F"A4 "C"G4 |
+"F"c4 "Dm"d c B A | "Gm"B4 "C"c B A G | "F"A4 "Bb"B A G F | "C"G3 C C4 |
+"F"F2 "C"G2 "F"A2 "Bb"B2 | "C7"A4 G4 | "F"F8 |]

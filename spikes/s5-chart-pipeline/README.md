@@ -23,7 +23,7 @@ Format 0.3 (all additions optional; 0.1/0.2 charts stay valid):
 - **Song form** (`src/form.mjs`, chart `form.sections[]`). `full` (default): intro (the last
   phrase, accompaniment only) · verse × N · interlude + key change up a step before the last verse
   (when there are 3+ verses) · coda (tag of the last phrase, a held final bar, gentle
-  ritardando). N is chosen so the piece lands near 150 s (all 16 songs: 2:10–2:52). Verses
+  ritardando). N is chosen so the piece lands near 150 s (all 24 songs: 2:04–2:59). Verses
   develop: v1 light bass/harmony, v2 fuller, then a descant verse and a quiet verse alternate,
   the last verse is the finale. `short`: the song once. Deterministic, rule-based, no AI content;
   options (`targetSec`, `keyChange`, `descant`, `intro`, `coda`, …) in `FORM_DEFAULTS`.
@@ -60,10 +60,10 @@ Each chart carries an optional `harmony` object for game-side backing tracks (us
 web game, `spikes/i2-web-phones/src/backing/`):
 
 - `chords[]`: `{ tick, time, dur, durSec, symbol, root, bass, tones }` (pitch classes, 0 = C).
-  `source` is `lead-sheet` when the file has chord symbols (the 5 ABC songs) and `inferred`
-  otherwise (the 11 Mutopia MIDI files: template matching per strong-beat segment with bass,
+  `source` is `lead-sheet` when the file has chord symbols (the 14 ABC songs, including the multi-voice
+  ones, whose first voice carries the symbols) and `inferred` otherwise (the 10 Mutopia MIDI files: template matching per strong-beat segment with bass,
   diatonic and tonic bonuses, `src/harmony.mjs`). Inferred chords are plausible, not
-  proofread; the melody-only Holly and the Ivy is the weakest.
+  proofread.
 - `beats[]`: `{ tick, time, bar, beat, div, strong, chord }` — every beat with times from the
   tempo map (compound meters count dotted quarters, `div` 3), and the chord sounding on it.
 - `style`: backing preset (`sleigh-ride`, `march`, `waltz`, `gentle`) from the manifest's
@@ -77,9 +77,9 @@ it still validate.
 
 | Path | What |
 |---|---|
-| `songs/*.abc` | 5 self-encoded public-domain carol lead sheets (melody + chord symbols), CC0-1.0 |
+| `songs/*.abc` | 14 self-encoded public-domain carols, CC0-1.0: 12 lead sheets (melody + chord symbols), The Holly and the Ivy as SATB (4 `V:` voices, our own harmony) and our own 3-voice arrangement of Carol of the Bells (Shchedryk). Multi-voice files set `melodyVoice`/`bassVoice` (the `V:` ids) in the manifest. The 9 added 2026-10-25 are AI-generated and await the owner's resemblance review (`attribution/register.json`) |
 | `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style, `corrections` — proofread pitch fixes applied on import, each naming the pitches it replaces, so pinned sources stay byte-identical). The I2 game's song list is generated from it |
-| `sources/mutopia/` | 11 Mutopia Project files (`.mid` input + `.ly` provenance), public domain; 9 are SATB hymn settings. A test checks each SATB melody against the `.ly` soprano line |
+| `sources/mutopia/` | 11 Mutopia Project files (`.mid` + `.ly`), public domain; 9 SATB hymn settings and 1 more used as chart input, plus the melody-only Holly and the Ivy kept as the reference for our SATB version (a test compares them). A test checks each SATB melody against the `.ly` soprano line |
 | `src/abc.mjs`, `src/midi.mjs`, `src/musicxml.mjs` | Importers → common score model (`src/score.mjs`) |
 | `src/arrange.mjs` | Melody/bass/inner role detection (one pass of the song) |
 | `src/form.mjs` | Song form: intro, developing verses, interlude + key change, coda; rule-based descant; role pitch windows |

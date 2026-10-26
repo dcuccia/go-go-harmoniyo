@@ -36,6 +36,15 @@ repository "MIT" in a way that hides them.
 - Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - Deck the Halls, traditional Welsh melody 'Nos Galan', public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - We Wish You a Merry Christmas, traditional English melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- God Rest Ye Merry, Gentlemen, traditional English melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- We Three Kings by John Henry Hopkins Jr. (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Angels We Have Heard on High, traditional French carol (GLORIA), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- O Christmas Tree (O Tannenbaum), traditional German melody, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Jolly Old St. Nicholas, traditional American song as printed in Franklin Square Song Collection No. 1 (1881), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Ding Dong Merrily on High: melody 'Branle de l'Official' from Thoinot Arbeau's Orchesographie (1588), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Auld Lang Syne, traditional Scottish air, public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- The Holly and the Ivy, traditional English melody, public domain. Four-part harmony written for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
+- Carol of the Bells: arrangement for Go Go HarmoniYo (CC0) of public-domain material from Mykola Leontovych's 'Shchedryk' (1916). License: CC0 1.0 Universal (public domain dedication).
 - It Came Upon the Midnight Clear (tune CAROL) by Richard Storrs Willis (1850). Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), public domain. License: Public domain (Mutopia Project dedication).
 - Good King Wenceslas, melody from Piae Cantiones (1582), words by J. M. Neale (1853). Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905) from C. L. Hutchins, Carols Old and Carols New (1916), public domain. License: Public domain (Mutopia Project dedication).
 - The Holly and the Ivy, traditional English. Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), public domain. License: Public domain (Mutopia Project dedication).
@@ -62,6 +71,15 @@ repository "MIT" in a way that hides them.
 | [Silent Night (lead sheet, ABC)](#s5-silent-night-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [Deck the Halls (lead sheet, ABC)](#s5-deck-the-halls-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [We Wish You a Merry Christmas (lead sheet, ABC)](#s5-we-wish-you-a-merry-christmas-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
+| [God Rest Ye Merry, Gentlemen (lead sheet, ABC)](#s5-god-rest-ye-merry-gentlemen-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [We Three Kings (lead sheet, ABC)](#s5-we-three-kings-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [Angels We Have Heard on High (lead sheet, ABC)](#s5-angels-we-have-heard-on-high-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [O Christmas Tree (O Tannenbaum) (lead sheet, ABC)](#s5-o-christmas-tree-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [Jolly Old St. Nicholas (lead sheet, ABC)](#s5-jolly-old-st-nicholas-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [Ding Dong Merrily on High (lead sheet, ABC)](#s5-ding-dong-merrily-on-high-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [Auld Lang Syne (lead sheet, ABC)](#s5-auld-lang-syne-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [The Holly and the Ivy (SATB, ABC)](#s5-the-holly-and-the-ivy-abc) | ai-generated | CC0-1.0 | 1 | pending |
+| [Carol of the Bells (Shchedryk), three-voice arrangement (ABC)](#s5-carol-of-the-bells-abc) | ai-generated | CC0-1.0 | 1 | pending |
 | [S5 MusicXML importer test fixture](#s5-musicxml-test-fixture) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
 | [Carol (hymn tune for 'It Came Upon the Midnight Clear'), Mutopia edition](#mutopia-carol) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [Good King Wenceslas, Mutopia edition](#mutopia-good-king-wenceslas) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
@@ -77,7 +95,6 @@ repository "MIT" in a way that hides them.
 | [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 35 | approved (legacy) |
 | [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
 | [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
-| [S5 charts and exports for 'The Holly and the Ivy'](#s5-charts-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
 | [S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)](#s6-candidate-lead-sheets) | ai-generated | CC0-1.0 | 2 | pending |
 | [S6 candidate charts (chart format 0.2.0)](#s6-candidate-charts) | derived | CC0-1.0 | 2 | pending |
 | [Deck the Halls melody MIDI (AMT input)](#s6-amt-melody-deck-the-halls) | derived | CC0-1.0 | 1 | approved |
@@ -85,6 +102,7 @@ repository "MIT" in a way that hides them.
 | [S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)](#s6-amt-accompaniments) | ai-generated | CC0-1.0 | 4 | pending |
 | [S6 blind-listening previews (procedural vs qwen3:8b vs AMT)](#s6-blind-listening-previews) | ai-generated | CC0-1.0 | 6 | pending |
 | [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 56 | approved |
+| [S5 charts and exports for the CC0 self-encoded carols added 2026-10-25 (8 lead sheets/arrangements + Holly and the Ivy SATB)](#s5-charts-self-encoded-2026-10-25) | derived | CC0-1.0 | 63 | pending |
 
 ### project-ui-captures
 
@@ -180,6 +198,132 @@ repository "MIT" in a way that hides them.
 - AI provenance: GitHub Copilot coding agent; model unrecorded (unrecorded); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (unrecorded); prompt: unrecorded (pre-ADR-0008); task brief: S5 in docs/spikes/README.md; resemblance review: pending, pending
 - Review: pending. Proofread against a public-domain edition (S5 report).
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
+
+### s5-god-rest-ye-merry-gentlemen-abc
+
+**God Rest Ye Merry, Gentlemen (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/god-rest-ye-merry-gentlemen.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional English (London tune, 18th c., public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the public-domain tune; repeated first phrase written out; chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): God Rest Ye Merry, Gentlemen (traditional London tune, E minor).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/god-rest-ye-merry-gentlemen/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: The Public Domain Song Anthology (D. Berger and C. Israels, Aperio Press 2020, CC0 1.0, https://doi.org/10.32881/book2) p. 104; the LilyPond score in the English Wikipedia article 'God Rest Ye Merry, Gentlemen' (read as a reference only) (soprano line). Pitch and onset of all 67 notes match both.
+
+### s5-we-three-kings-abc
+
+**We Three Kings (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/we-three-kings.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: John Henry Hopkins Jr. (melody, 1857, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the public-domain tune; renotated from 3/8 to 3/4 (same rhythm); repeats written out; chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): We Three Kings (J. H. Hopkins 1857).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/we-three-kings/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: the LilyPond score in the English Wikipedia article 'We Three Kings' (read as a reference only) (soprano line, repeats unfolded; 3/8 there, 3/4 here with doubled note values). All 62 notes match.
+
+### s5-angels-we-have-heard-on-high-abc
+
+**Angels We Have Heard on High (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/angels-we-have-heard-on-high.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional French (tune GLORIA, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the public-domain tune; verse and refrain repeats written out; chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): Angels We Have Heard on High (GLORIA, French traditional).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/angels-we-have-heard-on-high/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: The Public Domain Song Anthology (D. Berger and C. Israels, Aperio Press 2020, CC0 1.0, https://doi.org/10.32881/book2) p. 19; the LilyPond score in the English Wikipedia article 'Angels We Have Heard on High' (read as a reference only) (soprano line, repeats and endings unfolded). All 77 notes match.
+
+### s5-o-christmas-tree-abc
+
+**O Christmas Tree (O Tannenbaum) (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/o-christmas-tree.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional German (melody, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the public-domain tune; chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): O Christmas Tree (O Tannenbaum, German traditional).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/o-christmas-tree/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: The Public Domain Song Anthology (D. Berger and C. Israels, Aperio Press 2020, CC0 1.0, https://doi.org/10.32881/book2) p. 226 (pitches and rhythm, F major); the LilyPond score in the English Wikipedia article 'O Tannenbaum' (read as a reference only) (pitches, transposed from G; its bar 1 and 4 rhythms are a common variant). All 46 pitches match.
+
+### s5-jolly-old-st-nicholas-abc
+
+**Jolly Old St. Nicholas (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/jolly-old-st-nicholas.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional American (melody as printed 1881, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the 1881 printing (same key, A major); chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): Jolly Old St. Nicholas (traditional, 19th c.).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/jolly-old-st-nicholas/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: Franklin Square Song Collection No. 1 (J. P. McCaskey, ed., Harper, 1881), p. 80, scan on Wikimedia Commons (File:Jolly_old.gif): top line of the keyboard score read note by note, notehead positions measured on the scan. Single reference; bar 7 starts on G sharp 4 as printed.
+
+### s5-ding-dong-merrily-on-high-abc
+
+**Ding Dong Merrily on High (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/ding-dong-merrily-on-high.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Thoinot Arbeau, 'Branle de l'Official', Orchesographie (1588, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Melody encoded from the public-domain tune; verse repeat written out; chord symbols by the encoder (not taken from any published harmonization).
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): Ding Dong Merrily on High (Branle de l'Official, Arbeau 1588; melody only, not a later published harmonization).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/ding-dong-merrily-on-high/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Specifically compare our chord symbols with the well-known 1924 choral harmonization: they must not follow it.
+- Notes: Melody verified (agent, 2026-10-25) against: the LilyPond score in the English Wikipedia article 'Ding Dong Merrily on High' (read as a reference only) (soprano line only, repeat unfolded). All 68 notes match. No harmony taken from it.
+
+### s5-auld-lang-syne-abc
+
+**Auld Lang Syne (lead sheet, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/auld-lang-syne.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional Scottish (air, public domain); Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Encoded from the public-domain tune; chord symbols by the encoder.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Lead sheet (melody plus chord symbols, like the existing songs/*.abc): Auld Lang Syne (traditional Scottish).; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/auld-lang-syne/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.
+- Notes: Melody verified (agent, 2026-10-25) against: The Public Domain Song Anthology (D. Berger and C. Israels, Aperio Press 2020, CC0 1.0, https://doi.org/10.32881/book2) p. 27; the LilyPond score in the English Wikipedia article 'Auld Lang Syne' (read as a reference only). All 56 notes match the Wikipedia score; bar 14 beat 4 is a quarter A (the anthology prints an A-G eighth pair).
+
+### s5-the-holly-and-the-ivy-abc
+
+**The Holly and the Ivy (SATB, ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/the-holly-and-the-ivy.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Traditional English (melody, public domain); Go Go HarmoniYo S5 agent session (encoding, harmony and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Melody from the public-domain tune (identical to the Mutopia edition); alto, tenor and bass harmony and the chord symbols written by the agent.
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. The Holly and the Ivy: redo with real harmony. The current entry is the melody-only Mutopia file. Write an SATB ABC (4 voices) with our own hymn-style harmony over the traditional melody (verify the melody against the public-domain Mutopia .ly in this repo). Replace the manifest entry's file with the ABC; keep the Mutopia files as provenance.; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/the-holly-and-the-ivy/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Also check the alto/tenor/bass parts are plain hymn harmony and not a copy of any published SATB setting.
+- Notes: Melody verified (agent, 2026-10-25) against: the Mutopia edition in this repo (sources/mutopia/thehollyandtheivy.ly and .mid, Mutopia-2005/12/23-644, public domain); a test asserts the soprano voice equals the Mutopia melody note for note.
+
+### s5-carol-of-the-bells-abc
+
+**Carol of the Bells (Shchedryk), three-voice arrangement (ABC)**
+
+- Files: `spikes/s5-chart-pipeline/songs/carol-of-the-bells.abc` (1 file(s))
+- Origin: ai-generated
+- Authors: Mykola Leontovych ('Shchedryk', 1916, public domain), on a Ukrainian folk chant; Go Go HarmoniYo S5 agent session (encoding and chord symbols)
+- Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: New three-voice arrangement (lead, inner, bass) of the public-domain Shchedryk ostinato and phrases; the bass and inner parts, section order, interlude and ending were written by the agent. Tempo 138 qpm (eighths 0.22 s): with S5 0.3's balanced parts this leaves no playability violations on the phone game's Easy tier (4 ringers).
+- AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Carol of the Bells: Leontovych's 'Shchedryk' (1916) melody is public domain; the 1936 English arrangement and lyrics are not. Create our own arrangement from the public-domain Shchedryk material. Don't copy any published handbell or choral arrangement, and document the provenance. Use the folk ostinato (in G minor: B-flat A B-flat G, eighths in 3/4), with entries of the melody and our own bass and inner parts as multiple ABC voices. Write it from the public-domain material; do not reproduce the 1936 arrangement's or any handbell edition's layering, voicings, dynamics or structure. Document provenance in the ABC header and register.; resemblance review: pending, pending
+- Review: pending. Owner: (1) play exports/carol-of-the-bells/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Resemblance: compare with the 1936 English choral arrangement and common handbell editions (section order, which voices carry the ostinato, bass line, ending) and confirm it is not a copy. Melody: compare the ostinato and phrases with a public-domain edition of Leontovych (1916).
+- Notes: Melody verified (agent, 2026-10-25) against: a transcription of Leontovych's 1916 choral setting (the LilyPond score in the English Wikipedia article 'Shchedryk (song)', read as a reference only): ostinato B-flat A B-flat G and the melodic phrases (upper motif, descending phrase, rising scale with E natural and F sharp) match it. Bass and inner parts, form, interlude and ending are new; no English words and no 1936-or-later arrangement used.
 
 ### s5-musicxml-test-fixture
 
@@ -421,19 +565,6 @@ repository "MIT" in a way that hides them.
 - Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23
 - Legacy: added before ADR-0008; gaps are listed under "Open items".
 
-### s5-charts-the-holly-and-the-ivy
-
-**S5 charts and exports for 'The Holly and the Ivy'**
-
-- Files: `spikes/s5-chart-pipeline/charts/the-holly-and-the-ivy.json`, `spikes/s5-chart-pipeline/exports/the-holly-and-the-ivy/*` (7 file(s))
-- Origin: derived — from [mutopia-the-holly-and-the-ivy](#mutopia-the-holly-and-the-ivy) via `node spikes/s5-chart-pipeline/build.mjs`
-- Authors: Go Go HarmoniYo S5 chart pipeline
-- Copyright: Typeset by Geoffrey Lehr for the Mutopia Project (Mutopia-2005/12/23-644), placed in the public domain
-- License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
-- Modifications: Algorithmic arrangement from the Mutopia MIDI (melody only; difficulty tiers, bell assignment).
-- Review: approved by IP audit (agent), pending owner confirmation on 2026-10-23
-- Legacy: added before ADR-0008; gaps are listed under "Open items".
-
 ### s6-candidate-lead-sheets
 
 **S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)**
@@ -521,6 +652,18 @@ repository "MIT" in a way that hides them.
 - Modifications: Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged except one proofread correction applied on import (songs/manifest.json options.corrections): O Come, All Ye Faithful's first refrain line 'O come, let us adore Him' is re-pitched from the edition's B B A B C B A to the tune's G G F# G A G D, per Wade's Cantus Diversi (1751, Mutopia 367) and standard hymnals; the source files stay byte-identical.
 - Review: approved by License check (agent session), pending owner confirmation on 2026-10-25. Each chart carries its source and license in song.license / song.source.
 
+### s5-charts-self-encoded-2026-10-25
+
+**S5 charts and exports for the CC0 self-encoded carols added 2026-10-25 (8 lead sheets/arrangements + Holly and the Ivy SATB)**
+
+- Files: `spikes/s5-chart-pipeline/charts/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}.json`, `spikes/s5-chart-pipeline/exports/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}/*` (63 file(s))
+- Origin: derived — from [s5-god-rest-ye-merry-gentlemen-abc](#s5-god-rest-ye-merry-gentlemen-abc), [s5-we-three-kings-abc](#s5-we-three-kings-abc), [s5-angels-we-have-heard-on-high-abc](#s5-angels-we-have-heard-on-high-abc), [s5-o-christmas-tree-abc](#s5-o-christmas-tree-abc), [s5-jolly-old-st-nicholas-abc](#s5-jolly-old-st-nicholas-abc), [s5-ding-dong-merrily-on-high-abc](#s5-ding-dong-merrily-on-high-abc), [s5-auld-lang-syne-abc](#s5-auld-lang-syne-abc), [s5-the-holly-and-the-ivy-abc](#s5-the-holly-and-the-ivy-abc), [s5-carol-of-the-bells-abc](#s5-carol-of-the-bells-abc) via `node spikes/s5-chart-pipeline/build.mjs`
+- Authors: Go Go HarmoniYo S5 chart pipeline
+- Copyright: 2026 Go Go HarmoniYo contributors (generated), dedicated to the public domain
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: Algorithmic arrangement: role detection (lead-sheet realization or the ABC voices), difficulty tiers, bell-to-ringer assignment, MIDI export.
+- Review: pending. Generated; follows the resemblance review of the source ABC entries. Each chart carries its source and license in song.license / song.source. The Holly and the Ivy charts were Mutopia-derived until 2026-10-25 and are now generated from the CC0 SATB ABC.
+
 ## Open items
 
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -538,11 +681,21 @@ repository "MIT" in a way that hides them.
 - s5-silent-night-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-deck-the-halls-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-we-wish-you-a-merry-christmas-abc: review pending (Proofread against a public-domain edition (S5 report).)
+- s5-god-rest-ye-merry-gentlemen-abc: review pending (Owner: (1) play exports/god-rest-ye-merry-gentlemen/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-we-three-kings-abc: review pending (Owner: (1) play exports/we-three-kings/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-angels-we-have-heard-on-high-abc: review pending (Owner: (1) play exports/angels-we-have-heard-on-high/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-o-christmas-tree-abc: review pending (Owner: (1) play exports/o-christmas-tree/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-jolly-old-st-nicholas-abc: review pending (Owner: (1) play exports/jolly-old-st-nicholas/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-ding-dong-merrily-on-high-abc: review pending (Owner: (1) play exports/ding-dong-merrily-on-high/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Specifically compare our chord symbols with the well-known 1924 choral harmonization: they must not follow it.)
+- s5-auld-lang-syne-abc: review pending (Owner: (1) play exports/auld-lang-syne/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date.)
+- s5-the-holly-and-the-ivy-abc: review pending (Owner: (1) play exports/the-holly-and-the-ivy/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Also check the alto/tenor/bass parts are plain hymn harmony and not a copy of any published SATB setting.)
+- s5-carol-of-the-bells-abc: review pending (Owner: (1) play exports/carol-of-the-bells/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Resemblance: compare with the 1936 English choral arrangement and common handbell editions (section order, which voices carry the ostinato, bass line, ending) and confirm it is not a copy. Melody: compare the ostinato and phrases with a public-domain edition of Leontovych (1916).)
 - s5-musicxml-test-fixture: review pending (A few hand-written test measures, not a song.)
 - s6-candidate-lead-sheets: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
 - s6-candidate-charts: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
 - s6-amt-accompaniments: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
 - s6-blind-listening-previews: review pending (S6 candidate (ADR-0011, Accepted 2026-10-25). Owner blind listening done 2026-10-25; the human resemblance review is still pending and is required before any promotion.)
+- s5-charts-self-encoded-2026-10-25: review pending (Generated; follows the resemblance review of the source ABC entries. Each chart carries its source and license in song.license / song.source. The Holly and the Ivy charts were Mutopia-derived until 2026-10-25 and are now generated from the CC0 SATB ABC.)
 
 ## Required record for each new asset
 
