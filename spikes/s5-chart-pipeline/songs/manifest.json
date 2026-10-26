@@ -148,8 +148,13 @@
       "composer": "John Francis Wade (c. 1743)",
       "year": 1743,
       "license": { "id": "LicenseRef-Mutopia-PublicDomain", "url": "https://creativecommons.org/licenses/publicdomain/", "text": "Placed in the public domain by the typesetter (Mutopia 'Public Domain' license)." },
-      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220", "fileUrl": "https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup. Source MIDI tempo is 60 qpm; overridden to 100 qpm for play." },
-      "options": { "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "march", "pickupTicks": 480, "tempoQpm": 100 }
+      "source": { "kind": "mutopia", "url": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1220", "fileUrl": "https://www.mutopiaproject.org/ftp/WadeJF/adeste_fideles/adeste_fideles.mid", "attribution": "Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1220); source www.cyberhymnal.org", "notes": "SATB on two staves (upper = S+A, lower = T+B). One-beat pickup. Source MIDI tempo is 60 qpm; overridden to 100 qpm for play. Proofread correction (options.corrections): this edition gives the refrain's first 'O come, let us adore Him' the pitches of the second (B B A B C B A); the tune sings it from the tonic (G G F# G A G D), as in Wade's Cantus Diversi (1751, Mutopia 367) and standard hymnals. Soprano and alto share that line in unison (tenor and bass rest), so one fix covers both." },
+      "options": {
+        "melodyVoice": "t1c1", "bassVoice": "t2c2", "backingStyle": "march", "pickupTicks": 480, "tempoQpm": 100,
+        "corrections": [
+          { "voice": "t1c1", "fromTick": 23040, "was": ["B4", "B4", "A4", "B4", "C5", "B4", "A4"], "now": ["G4", "G4", "F#4", "G4", "A4", "G4", "D4"], "why": "Refrain line 1 ('O come, let us adore Him') starts on the tonic; the edition copied line 2's pitches. Source: Mutopia 367 (Cantus Diversi, 1751)." }
+        ]
+      }
     },
     {
       "id": "hark-the-herald-angels-sing",

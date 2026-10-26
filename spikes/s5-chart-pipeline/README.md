@@ -10,7 +10,7 @@ MIDI writer, so they can be bundled for a browser later.
 
 ```sh
 node build.mjs            # regenerate charts/, exports/, results/ (~30–90 s: the metrics build every arrangement)
-node --test               # 29 tests: importers, assignment, schema, determinism, export, harmony, form, fairness
+node --test               # 29 tests: importers, corrections, assignment, schema, determinism, export, harmony, form, fairness, melody fidelity
 node build.mjs --ringers 3,4,5 --arrangements balanced,chord-split,by-range --export-ringers 5 --form short
 ```
 
@@ -78,7 +78,7 @@ it still validate.
 | Path | What |
 |---|---|
 | `songs/*.abc` | 14 self-encoded public-domain carols, CC0-1.0: 12 lead sheets (melody + chord symbols), The Holly and the Ivy as SATB (4 `V:` voices, our own harmony) and our own 3-voice arrangement of Carol of the Bells (Shchedryk). Multi-voice files set `melodyVoice`/`bassVoice` (the `V:` ids) in the manifest. The 9 added 2026-10-25 are AI-generated and await the owner's resemblance review (`attribution/register.json`) |
-| `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style). The I2 game's song list is generated from it |
+| `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style, `corrections` — proofread pitch fixes applied on import, each naming the pitches it replaces, so pinned sources stay byte-identical). The I2 game's song list is generated from it |
 | `sources/mutopia/` | 11 Mutopia Project files (`.mid` + `.ly`), public domain; 9 SATB hymn settings and 1 more used as chart input, plus the melody-only Holly and the Ivy kept as the reference for our SATB version (a test compares them). A test checks each SATB melody against the `.ly` soprano line |
 | `src/abc.mjs`, `src/midi.mjs`, `src/musicxml.mjs` | Importers → common score model (`src/score.mjs`) |
 | `src/arrange.mjs` | Melody/bass/inner role detection (one pass of the song) |

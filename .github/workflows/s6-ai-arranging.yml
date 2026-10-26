@@ -1,0 +1,43 @@
+name: s6-ai-arranging
+
+# S6 unit tests (#67), offline only: `npm test` preloads test/offline-guard.ts, which drops any
+# CUCCIA_AI_* settings and refuses every non-loopback connection, so CI never contacts the AI node
+# (the client tests talk to src/mock-node.ts on 127.0.0.1). S6 imports S5, so S5 changes run it too.
+on:
+  pull_request:
+    paths:
+      - 'spikes/s6-ai-arranging/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - '.github/workflows/s6-ai-arranging.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'spikes/s6-ai-arranging/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - '.github/workflows/s6-ai-arranging.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: s6-ai-arranging-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: unit tests (mock node, offline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: spikes/s6-ai-arranging
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Zero dependencies; Node >= 22.18 runs the .ts sources directly (type stripping).
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - run: npm test

@@ -649,7 +649,7 @@ repository "MIT" in a way that hides them.
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project, placed in the public domain (per-song ids in the source entries)
 - License: [Public domain (Mutopia Project dedication)](LICENSES/LicenseRef-Mutopia-PublicDomain.txt) (`LicenseRef-Mutopia-PublicDomain`)
-- Modifications: Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged.
+- Modifications: Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged except one proofread correction applied on import (songs/manifest.json options.corrections): O Come, All Ye Faithful's first refrain line 'O come, let us adore Him' is re-pitched from the edition's B B A B C B A to the tune's G G F# G A G D, per Wade's Cantus Diversi (1751, Mutopia 367) and standard hymnals; the source files stay byte-identical.
 - Review: approved by License check (agent session), pending owner confirmation on 2026-10-25. Each chart carries its source and license in song.license / song.source.
 
 ### s5-charts-self-encoded-2026-10-25
