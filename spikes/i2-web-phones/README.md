@@ -30,7 +30,9 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter) or
    `npm start -- --tunnel` (guest/work Wi-Fi, or phones on mobile data). `npm start` in this
    folder does the same.
-2. The browser opens **http://127.0.0.1:8080/game/** — drag it to the TV and press **F11**.
+2. The browser opens **http://127.0.0.1:18900/game/** — drag it to the TV and press **F11**.
+   (If port 18900 is busy, `npm start` uses the next free port and prints the TV address; see
+   [#53](https://github.com/dcuccia/go-go-harmoniyo/issues/53).)
 3. Each ringer scans the QR on the TV. The phone warns about the certificate **once**
    (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
@@ -62,13 +64,20 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    **Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
    on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
-   its beat). Both settings are saved on this PC.
+   its beat). **Sound effects** (on by default, volume 50 %): sparkles for team streaks, a whoosh
+   when the multiplier goes up, a fanfare for a perfect phrase, a soft "boop" for a miss and
+   applause at the end — always quieter than the bells. All settings are saved on this PC.
    **Practice speed** (50–100 % in 5 % steps, default 100 %) slows the whole song down for
    first-time players: highways, the phones' next-zone glow, the backing groove and the count-in
    all follow, and the song list shows each song's length at that speed. Timing is judged the same
    in real time (a ring 40 ms late is as late at 50 % as at 100 %). The HUD, the results and the
    phones show the speed when it isn't 100 %. It is remembered until the browser closes (or
    `?speed=50` in the URL). It works with any difficulty: try **Easy at 60–70 %** for a first round.
+   **Fast notes:** during a song each phone adapts its swing detection to its own notes, so in
+   8th/16th-note passages a quick back-and-forth **shake** rings on both directions (like a real
+   handbell). If a player still finds fast notes hard, click **Normal** next to their phone in
+   the *Phones* list to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
+   few more stray rings). Saved per phone on this PC.
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
    Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
@@ -109,7 +118,8 @@ problem prints a fix for you to run.
 | Check | ✗ stops / ! warns | What it says to do |
 |---|---|---|
 | Node.js older than 22 | ✗ | `pwsh tools/setup/setup-web.ps1 -AllowElevation`, or install the LTS from nodejs.org |
-| Port 8080 (TV page) or 8443 (phones) in use | ✗ | Names the program (PID). An old host (`node.exe`): Ctrl+C in its window. Docker/WSL: stop the container. Or `--http-port`/`--port` with a free port it suggests |
+| TV page port 18900 in use | i | Uses the next free port (18901, …) and says which program had it. The TV page is only used on this PC, so phones are not affected. A port you chose with `--http-port` is not moved: ✗ with the fixes below |
+| Port 8443 (phones) in use | ✗ | Names the program (PID). An old host (`node.exe`): Ctrl+C in its window. Docker/WSL: stop the container. Or `--port` with a free port it suggests |
 | No private IPv4 address (only VPN, virtual or 169.254.x.x adapters) | ! | Join the same Wi-Fi as the phones, or `--tunnel` |
 | Several adapters | i | Prints the address phones will use and each alternative as `npm start -- --ip …`. Wi-Fi is preferred because phones are on Wi-Fi; virtual and VPN adapters (WSL, Hyper-V, Docker, NordLynx, Tailscale…) are ignored |
 | Windows Firewall (reads the Node.js rules and the network's Private/Public type) | ! | Network is Public but Node is allowed only on Private: make the network Private (Settings → Network & internet → Wi-Fi → network → Private) or `--tunnel`. A *Block* rule (Cancel on the prompt): how to remove it. No rule yet: tick **Private networks** when Windows asks. If it can't tell, a reminder to allow Node on Private networks |
@@ -129,7 +139,7 @@ warning on the phones and help on the TV are [#26](https://github.com/dcuccia/go
 **macOS and Linux (untested):** the same command and checks run. Port owners come from `lsof`
 (if installed). Wi-Fi is recognised as `en0` (macOS) or `wl*`/`wlan*` (Linux). Instead of the
 Windows Firewall check there is a reminder: macOS asks whether `node` may accept incoming
-connections (click Allow); on Linux, open TCP 8080 and 8443 in `ufw`/`firewalld` if a firewall is
+connections (click Allow); on Linux, open TCP 8443 in `ufw`/`firewalld` if a firewall is
 on. cloudflared is found on PATH or in `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`,
 `~/.local/bin`. The browser opens with `open` / `xdg-open`.
 
@@ -141,10 +151,45 @@ the World** (march). *Autoplay demo* plays the bells and the backing together wi
 
 | Style | Songs | What plays |
 |---|---|---|
-| Sleigh ride | Jingle Bells, Deck the Halls | sleigh bells on every eighth (shake on 2 and 4), kick on 1/3, brushy snare on 2/4, walking bass, drawbar organ |
-| March | Joy to the World, Good King Wenceslas | kick on strong beats, soft snare, sleigh bells on the beat, root–fifth bass on every beat, organ |
-| Waltz | We Wish You a Merry Christmas, The Holly and the Ivy | "oom-pah-pah": bass + soft kick on 1, organ stabs, brushes and sleigh bells on 2 and 3 |
-| Gentle | Silent Night, It Came Upon the Midnight Clear | no drums: soft brushes, a sleigh shimmer per bar, bass on the downbeat, warm slow pad |
+| Sleigh ride | Jingle Bells, Deck the Halls | sleigh bells on every eighth (shake on 2 and 4), kick on 1/3, brushy snare on 2/4 (+ ghost notes in alternate phrases), walking bass (through the third in alternate phrases), drawbar organ, celesta broken chords in alternate phrases; snare fills |
+| March | Joy to the World, Good King Wenceslas | kick on strong beats, soft snare, off-beat hi-hat, sleigh bells on the beat, root–fifth bass on every beat (octave leaps in alternate phrases), organ; tom fills |
+| Waltz | We Wish You a Merry Christmas, The Holly and the Ivy | "oom-pah-pah": bass + soft kick on 1 (alternating root/fifth in alternate phrases), organ stabs, strings pad, brushes and sleigh bells on 2 and 3, celesta in alternate phrases; brush-swell fills |
+| Gentle | Silent Night, It Came Upon the Midnight Clear | no drums: soft brushes, a sleigh shimmer per bar, bass on the downbeat, warm slow pad, celesta broken chords; sleigh-bell roll + glockenspiel "fills" |
+
+Every style reads the song as **4-bar phrases** (`src/backing/phrases.ts`): a fill on the last
+beat of each phrase (two beats for the march's toms) with a soft crash (or sleigh shake) on the
+next downbeat, a sleigh-bell roll and glockenspiel glissando up into every other phrase, a strings
+"lift" under the last phrase (organ/warm styles), a fill into the final bar, and a **ritardando
+ending**: the final chord is held (fermata) while glockenspiel and sleigh bells step down it with
+gaps growing ×1.25, closing on a low glock "ding". The bells' last note is on the final downbeat,
+so the song's tempo is untouched and judging is unchanged; the tag rings on into the results
+screen.
+
+Code layout (modular so song-form/key changes in the timeline flow through): `timeline.ts`
+(chart → chords + beats), `styles.ts` (presets), `phrases.ts` (phrase structure),
+`patterns.ts` (groove layers: drums, bass, harmony), `flourishes.ts` (fills, glissandos, ending),
+`synth.ts` (one method per voice: kick, snare, brush, hat, tom, crash, sleigh, bass, organ / warm
+/ strings pad, celesta, glockenspiel, woodblock), `track.ts` (one play-through). Practice speed:
+the game hands the backing the already-stretched chart (`src/speed.ts`), so phrases, fills and the
+ending slow down with it; `BackingTrack`'s `speed` option is only for callers holding the written
+chart.
+
+### Performance sound effects
+
+`src/sfx/director.ts` decides (pure, unit-tested), `src/sfx/synth.ts` plays (synthesised):
+
+| Moment | Sound |
+|---|---|
+| Team streak 10, 25, 50, then every 50 | rising sparkle pings above the bells; from 25 a two-note chime |
+| Multiplier goes up (×2, ×3, ×4) | filtered-noise whoosh with a rising tone |
+| A miss (at most one cue per 3 s; stray rings none) | a soft, low two-note "boop-boo" — friendly, not a buzzer |
+| Every note of a 4-bar phrase Perfect or Great | a short brass "da-da-da DAA" on the chord sounding then, below the bells' register; its pickup follows the beat |
+| End of the song | applause, denser and longer with team accuracy (everyone gets some); cheering whistles from 80 % |
+
+Bells stay the hero: at the default volume the effects sit 10–25 dB under a single bell, start
+80 ms after the ring that triggered them, and the SFX bus ducks 9 dB for 0.2 s whenever a phone's
+ring arrives. Effects are event-driven, so they follow any tempo or practice speed. The results
+JSON lists how many of each played (`sfx.cues`). URL parameters `sfx=0|1`, `sfxVol=0–100`.
 
 How it works: the S5 pipeline writes each song's chords and beat grid into the chart
 (`harmony`, chart format 0.2; chords come from the lead sheet, or are inferred from the
@@ -162,15 +207,16 @@ before, with no backing (the count-in then uses the first tempo and meter).
 
 | Command | What |
 |---|---|
-| `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`). |
+| `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`; the S1 host's own default stays 8080). For a game started with `npm start` (port 18900), add `?hgp=ws://127.0.0.1:18900/hgp`. |
 | `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; drop-in join queue: mid-song joiners wait and are seated first come first served; practice speed: 5 % steps, chart/tempo/beat-grid stretching, judging windows in real time, backing and count-in follow, slow-motion scroll, every generated tier; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
 | `npm start -- --check` | Start-up checks only (same as `npm run preflight` at the repo root). `npm start -- --help` lists the options. |
 | `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
-| `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Five scenarios, one at 50 % practice speed (the stretched song, rings still judged in real time against the same offset tolerances). Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a host you are running on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
+| `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Five scenarios, one at 50 % practice speed (the stretched song, rings still judged in real time against the same offset tolerances). Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a game you are running (`npm start`, port 18900) or an S1 host on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
 | `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
 | `npm run e2e:dropin` | Drop-in + practice speed end-to-end (port 18600): the lobby speed control (5 % steps, kept across a reload), Alice plays at 50 % (HUD badge, phone label, stretched song, results line), Bob joins mid-song from a phone page (*You're in!*, TV corner QR + *+1 waiting*, seats unchanged), results (*Joining: Bob*, he can pick a part), **Again** seats him in the TV's part, the corner QR hides in the lobby and with `?joinQr=0`. Writes `results/dropin-e2e.json`; `-- --shots` captures `i2-ingame-join-qr.png`, `i2-results-join-qr.png` and `i2-phone-waiting.png`. |
 | `npm run e2e:takeover` | Reconnect/takeover end-to-end (port 18800), the regression for the 2026-10-25 joining thrash (two tabs of one phone kicking each other off): a second tab of a joined phone shows *connected in another tab — Use this tab* without connecting; **Use this tab** takes over exactly once and stays stable (the TV never sees the phone offline, seats unchanged, device broadcasts at heartbeat level); the TV's QR scanned again mid-song leaves the playing tab connected and ringing; two pages that can't see each other (separate profiles, same deviceId) end after one host `replaced`; and the same with Web Locks removed (iOS Safari < 15.4: localStorage heartbeat). Counts hellos/replacements in the host's event log. Writes `results/takeover-e2e.json`. |
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample, silence after stop. Writes `results/backing-render.md`. |
+| `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample (also at practice speed 0.75), the ritardando ending on time and decaying to silence, silence after stop; and each performance SFX alone: no clipping, on its scheduled sample, 6–30 dB under one bell, ducked ≥ 6 dB under a ringing bell. Writes `results/backing-render.md`. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `node scripts/webkit-controller-check.mjs` | WebKit smoke test (#27): S1's phone page in Playwright **WebKit** with an iPhone profile (`--device="iPhone 15"`) over HTTPS with the self-signed certificate, TV page in Chrome. Tap to start (stubbed `DeviceMotionEvent.requestPermission`), Web Audio unlock, joining and *Pick your part*, zones and the next-zone glow, and synthetic `devicemotion` rings (calibration, lobby practice, then the song's notes) reaching the host. Needs `npm run build` and, once, `npx playwright-core install webkit` (Linux: `--with-deps`; use `playwright-core`, already a dev dependency, so the browser matches its version). Writes `results/webkit-controller-check.{json,md}`, including what emulation can't show. An early signal, not a substitute for a real iPhone. |
 | `npm run charts` | Regenerate `public/charts/` from S5 (`-- --profile handbell --ringers 3,4,5` for the S5 defaults). |
@@ -236,6 +282,8 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
   broadcast on change + 3 s heartbeat instead of every second. Controller: **Pick your part** list,
   *Swap with …?*, **I'm ready**, *Sit out*. `tools/sim-phones.ts --claim N --ready`.
   Drop-in: `parts.waiting` from the game → `next` per phone; controller **You're in!** screen.
+  Fast rings: `assign-bells` also relays `ring` (`{sens, ioi}`) → HGP `assign.ring`; the controller
+  adapts its ring detector to its `cues` (fast passages) and to Normal/Quick sensitivity.
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
   `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
   come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
@@ -251,9 +299,10 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
 
 Code: MIT (repo). No third-party assets: charts are generated from S5's CC0/public-domain
 sources (licence per song in each chart's `song.license`); bell sound is S4's additive synth
-on the TV and S1's synth on the phones. The backing track (sleigh bells, drums, bass, organ/pad,
-count-in) is synthesised live with Web Audio from code in `src/backing/` — no samples or audio
-files, so there is no media to register. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
+on the TV and S1's synth on the phones. The backing track (sleigh bells, drums, bass, organ/pad/strings,
+celesta, glockenspiel, count-in) and the performance SFX (sparkles, whoosh, boop, fanfare, applause)
+are synthesised live with Web Audio from code in `src/backing/` and `src/sfx/` — no samples or
+audio files, so there is no media to register. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
 typescript (Apache-2.0), playwright-core (Apache-2.0).
 
 Platform notes for the backing: it runs on the TV host only; phones are unchanged. Verified in

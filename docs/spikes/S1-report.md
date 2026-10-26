@@ -139,6 +139,75 @@ The impact detector, used for the clink and latency tests, is an adaptive thresh
 linear-acceleration magnitude (≥ max(4 m/s², mean + 10 × mean abs deviation)). Its timestamp is
 the midpoint of the bracketing samples.
 
+## Fast repeated rings (eighth and sixteenth notes)
+
+Added after the owner's 4-player I2 session: *"it seems like it's a little too difficult to do
+multiple rings in rapid succession … if there's a way to adjust the gesture detection of rings to
+be more likely to pick up fast multi-ring gestures, that could make the eighth and sixteenth notes
+more feasible."* No fast-passage traces were recorded yet (no `data/**/raw-*.ndjson` in the repo),
+so everything below is **emulated** (`npm run sim:fast`, section 5 of
+[`results/sim-results.md`](../../spikes/s1-phone-bell/results/sim-results.md)).
+
+**Why it was hard.** After calibration the detector projects the gyro onto the forward axis and
+ignores the return swing, and it needs `refractoryMs` = 150 ms between rings. At 8ths and faster
+there is no time for a full stroke + return per note, so ringers shake back and forth (as with a
+real handbell, whose clapper strikes both ways). Only the forward half rang:
+
+| Model (60 Hz, 3 ringer profiles, calibrated) | 8ths 100 bpm | 8ths 120 | 8ths 140 | 16ths 100 | 16ths 120 | 16ths 140 |
+|---|---|---|---|---|---|---|
+| **Before** (S1 defaults), shake: fast notes detected | 44 % | 44 % | 44 % | 39 % | 30 % | 23 % |
+| **After · Normal**, shake: fast notes detected / false | 97 % / 0.5 % | 97 % / 4.5 % | 98 % / 0 % | 95 % / 0.3 % | 93 % / 2.6 % | 92 % / 0 % |
+| **After · Quick**, shake | 97 % / 0.6 % | 99 % / 5.6 % | 98 % / 0 % | 95 % / 0.6 % | 95 % / 3.1 % | 93 % / 0 % |
+| Before, forward flicks + quick return | 76 % | 60 % | 50 % | – | – | – |
+| After · Normal, flicks: detected / false | 94 % / 2.9 % | 90 % / 4.8 % | 88 % / 0.9 % | – | – | – |
+| After · Quick, flicks | 98 % / 11.6 % | 97 % / 7.7 % | 92 % / 5.9 % | – | – | – |
+
+Passages are one bar of quarters + one bar of fast notes, six times. **Maximum ring rate** (every
+slower rate also ≥ 90 % detected, ≤ 5 % false), shake: **2 rings/s before → 9.3 rings/s after
+(Normal) / 10.6 (Quick)**, the same at 60, 100 and 200 Hz: the 60 Hz iOS rate is not the limit,
+the human stroke is. A higher rate (`?api=generic` on Android) mainly helps flicks (16ths at
+120 bpm: 84 % at 60 Hz → 94 % at 200 Hz). Forward flicks at 16ths are physically implausible and
+not modelled.
+
+**What changed** (`src/core/ring-detector.ts`):
+
+1. **Context.** `RingDetector.setContext({sensitivity, ioiMs})`; `adaptParams` derives the
+   effective thresholds. The phone sets the context every 50 ms from its `cues`:
+   `expectedIoi` = shortest gap between its consecutive notes whose span (250 ms before the first
+   to 150 ms after the second) contains now. Without cues it may use the host's song-wide
+   `assign.ring.ioi` hint (never in the lobby). With Normal sensitivity and no fast passage the
+   detector is **exactly** the S1 default (unit-tested).
+2. **Fast passage** (IOI ≤ 400 ms Normal, ≤ 450 ms Quick): refractory 0.6 × IOI (≥ 65 ms),
+   arm/peak/deceleration 110/140/3500 (Quick 100/120/3000), max stroke 2 × IOI, and with a
+   calibrated axis **both directions** ring (`bidirectional`). The other half of a shake arms
+   immediately from cool-down; the refractory is checked when it ends.
+3. **Return swings are not rings:** a backward stroke within 600 ms of a ring must peak at
+   ≥ 0.55 × that ring's peak (capped at 450 deg/s); a rebound within 90 ms below 0.45 × is a
+   bounce. (Stop sharpness, decel/peak, overlapped too much between returns and real backward
+   rings to help: medians 21 vs 34 s⁻¹, 5th percentile of real rings 25.)
+4. **Quick** (per phone, TV lobby → `assign.ring.sens`): arm/peak/decel/refractory 130/170/4500/
+   120 ms everywhere, and the wider fast window.
+
+**False rings (test B model, 30 min of handling per cell, 60 Hz):**
+
+| Context | FP/min calibrated | FP/min uncalibrated | Slow metronome detected / false |
+|---|---|---|---|
+| Before = Normal outside fast passages | 0.07 | 1.5 | 99.2 % / 0 % |
+| Quick | 0.27 | 4.2 | 99.9 % / 0 % |
+| Normal, fast forced the whole time (IOI 125 ms) | 2.0 | 9.8 | 99.9 % / 39 % |
+
+Test B runs with no cues (lobby), so Normal is unchanged and Quick stays well under one false
+ring per minute when calibrated. The last row is why the fast context comes from cues and is
+local: kept on for a whole song, the return swings of slow notes would ring.
+
+**Limits / to verify on phones.** The stroke model (shake vs flick, fast-stroke peaks 170–520
+deg/s, symmetric shakes) is invented; the reverse-ratio rule assumes deliberate backward rings
+are similar in size to forward ones. Players who flick forward with brisk returns get a few
+extra rings in Normal 8ths (2–6 %) and more in Quick (6–17 %); those are judged as strays (no
+streak break) but do make a bell sound on the phone. Next physical step: record test A-style
+traces of 8ths/16ths (`?record=1`, a metronome at 100–140 bpm, shake and flick) and replay
+them with `npm run analyze`.
+
 ## Sound placement
 
 | Placement | Latency chain (gesture → sound) | Expected | Measured |

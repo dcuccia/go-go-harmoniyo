@@ -8,6 +8,7 @@ import { ImpactDetector } from '../src/core/impact-detector.ts';
 import { matchNearest } from '../src/core/match.ts';
 import { DEFAULT_RING_PARAMS, learnAxis, RingDetector, type MotionSample, type RingDetectorParams, type StrikeEvent } from '../src/core/ring-detector.ts';
 import { centeredAbs, fmt, summarize } from '../src/core/stats.ts';
+import { fastRingsReport } from './fast-rings.ts';
 import { NET_PROFILES, simulateSync, type DeviceClock } from './netsim.ts';
 import { clinkSession, distractorSession, RINGERS, ringSession, SENSOR_100HZ, SENSOR_60HZ, type SensorModel } from './synth.ts';
 
@@ -207,6 +208,9 @@ for (const net of NET_PROFILES) {
   log(`| ${net.name} | ${fmt(sp.p50)} | ${fmt(sp.p95)} | ${fmt(sp.p99)} |`);
 }
 log();
+
+// ── 5. Fast repeated rings ───────────────────────────────────────────────────
+fastRingsReport(log);
 
 const md = out.join('\n');
 console.log(md);

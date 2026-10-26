@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T22:37:00.358Z",
+  "at": "2026-10-25T23:02:56.403Z",
   "ok": true,
   "checks": [
     {
@@ -15,7 +15,7 @@
     {
       "name": "phone shows \"Pick your part\" with every part, occupant, range and meter",
       "ok": true,
-      "detail": "Low melodyYouDEF♯GD4–G4●○○○○18 notes | Middle melody📱 BobABA4–B4●●○○○47 notes | High melody🤖 TV playsCDEC5–E5●●○○○32 notes"
+      "detail": "Low melodyYouDEF♯GD4–G4●○○○○22 notes | Middle melody📱 BobABA4–B4●●○○○47 notes | High melody🤖 TV playsCDEC5–E5●●○○○28 notes"
     },
     {
       "name": "parts have musical names",
