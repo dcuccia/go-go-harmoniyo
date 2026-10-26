@@ -53,7 +53,7 @@ export function exclusionsFrom(notes: BellNote[]): Exclusions {
 }
 
 const OVERLAP = 0.02;
-const PERCUSSION = new Set<Instrument>(['kick', 'snare', 'brush', 'sleigh', 'shake']);
+const PERCUSSION = new Set<Instrument>(['kick', 'snare', 'brush', 'hat', 'tom', 'crash', 'sleigh', 'shake']);
 const overlaps = (a0: number, a1: number, b0: number, b1: number): boolean => Math.min(a1, b1) - Math.max(a0, b0) > OVERLAP;
 
 // ── generation ──────────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ export function generateBacking(tl: Timeline, opts: GenerateOptions = {}): Backi
   const human = (v: number): number => Math.max(0, Math.min(1, v * (0.94 + rand() * 0.12)));
   const out: BackingEvent[] = [];
   // Song form (chart 0.3): percussion follows each section's energy; kick and snare sit out the
-  // light sections (intro, quiet verse) so the arrangement can build.
+  // light sections (intro, quiet verse) with the hi-hat, so the arrangement can build.
   const energyAt = (t: number): number => {
     let lo = 0;
     let hi = tl.beats.length - 1;
@@ -122,7 +122,7 @@ export function generateBacking(tl: Timeline, opts: GenerateOptions = {}): Backi
   const add = (e: BackingEvent): void => {
     if (PERCUSSION.has(e.inst)) {
       const energy = energyAt(e.time);
-      if (energy < 0.5 && (e.inst === 'kick' || e.inst === 'snare')) return;
+      if (energy < 0.5 && (e.inst === 'kick' || e.inst === 'snare' || e.inst === 'hat')) return;
       if (energy < 1) e = { ...e, vel: e.vel * (0.55 + 0.45 * energy) };
     }
     if (e.vel > 0) out.push({ ...e, time: r4(e.time), ...(e.dur !== undefined ? { dur: r4(e.dur) } : {}) });
