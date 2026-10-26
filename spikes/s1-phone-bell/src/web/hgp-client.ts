@@ -1,5 +1,6 @@
+import { Backoff } from '../core/backoff.ts';
 import { ClockSync } from '../core/clock-sync.ts';
-import { HGP_VERSION, parseMessage, type DeviceKind } from '../core/hgp.ts';
+import { HGP_CLOSE_REPLACED, HGP_VERSION, parseMessage, type DeviceKind } from '../core/hgp.ts';
 
 type Msg = Record<string, unknown> & { type: string };
 
@@ -16,24 +17,37 @@ export interface ClientOptions {
  * Browser HGP client: WebSocket with auto-reconnect, device-initiated clock sync (burst then
  * steady pings, which also keep the Wi-Fi radio out of power-save), optional WebRTC data
  * channel (unordered, maxRetransmits 0) for the timing-critical messages.
+ *
+ * Reconnects: one socket at a time (a pending retry is cancelled by any newer connect), events from
+ * an old socket are ignored, and the back-off only resets after a connection stayed up 5 s. When
+ * the host says `replaced` (another tab/page connected with this deviceId) the client goes to
+ * standby and does not reconnect until {@link takeover} — otherwise two tabs kick each other off
+ * forever.
  */
 export class HgpClient {
   readonly sync = new ClockSync();
   readonly rtcSync = new ClockSync();
+  readonly backoff = new Backoff();
   ws: WebSocket | null = null;
   dc: RTCDataChannel | null = null;
   pc: RTCPeerConnection | null = null;
   transport: 'ws' | 'rtc' = 'ws';
   onMessage: (m: Msg) => void = () => {};
   onState: (s: string) => void = () => {};
+  /** The host handed this deviceId to a newer connection (another tab); the client is in standby. */
+  onReplaced: (reason: string) => void = () => {};
+  /** Standby: replaced by another tab, no auto-reconnect until `takeover()`. */
+  standby = false;
   private syncId = 0;
   private pending = new Map<number, number>();
   private syncTimer: number | undefined;
-  private retryMs = 500;
+  private retryTimer: number | undefined;
   private seq = 0;
   private closedByUser = false;
+  private takeoverNext = false;
 
   constructor(private opts: ClientOptions) {}
+
 
   setName(name: string): void {
     this.opts.name = name;
@@ -54,37 +68,88 @@ export class HgpClient {
 
   connect(): void {
     this.closedByUser = false;
+    this.standby = false;
+    window.clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
+    // One socket at a time: a second chain would kick this one off at the host (same deviceId).
+    if (this.ws && this.ws.readyState <= WebSocket.OPEN) return;
     const ws = new WebSocket(this.url);
     this.ws = ws;
     this.onState('connecting');
     ws.onopen = () => {
-      this.retryMs = 500;
+      if (ws !== this.ws) return;
+      this.backoff.opened(performance.now());
       this.sync.reset();
+      const takeover = this.takeoverNext;
+      this.takeoverNext = false;
       ws.send(
-        JSON.stringify({ type: 'hello', v: HGP_VERSION, deviceId: this.opts.deviceId, kind: this.opts.kind, name: this.opts.name, ua: navigator.userAgent, ...this.opts.hello }),
+        JSON.stringify({ type: 'hello', v: HGP_VERSION, deviceId: this.opts.deviceId, kind: this.opts.kind, name: this.opts.name, ua: navigator.userAgent, ...this.opts.hello, ...(takeover ? { takeover: true } : {}) }),
       );
       this.onState('open');
       this.startSync();
     };
-    ws.onmessage = (e) => this.receive(typeof e.data === 'string' ? e.data : '', 'ws');
-    ws.onclose = () => {
-      this.onState('closed');
+    ws.onmessage = (e) => {
+      if (ws === this.ws) this.receive(typeof e.data === 'string' ? e.data : '', 'ws');
+    };
+    ws.onclose = (e) => {
+      if (ws !== this.ws) return; // an old socket: a newer one already took over
+      this.backoff.closed(performance.now());
       window.clearInterval(this.syncTimer);
-      if (!this.closedByUser) {
-        window.setTimeout(() => this.connect(), this.retryMs);
-        this.retryMs = Math.min(5000, this.retryMs * 2);
-      }
+      if (e.code === HGP_CLOSE_REPLACED && !this.standby) this.enterStandby(e.reason || 'replaced');
+      this.onState(this.standby ? 'replaced' : 'closed');
+      if (!this.closedByUser && !this.standby) this.scheduleReconnect();
     };
     ws.onerror = () => ws.close();
   }
 
+  /** Take the deviceId back from another tab (the user tapped "Use this tab"). */
+  takeover(): void {
+    this.takeoverNext = true;
+    this.backoff.reset();
+    const old = this.ws;
+    if (old && old.readyState <= WebSocket.OPEN) {
+      // Still open (the host's close may be in flight): drop it so its close can't re-enter standby.
+      this.ws = null;
+      window.clearInterval(this.syncTimer);
+      old.close();
+    }
+    this.connect();
+  }
+
+  /** Stop using the connection without reconnecting (another tab of this browser took over). */
+  goStandby(reason: string): void {
+    if (this.standby) return;
+    this.enterStandby(reason);
+  }
+
+  private enterStandby(reason: string): void {
+    this.standby = true;
+    window.clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
+    this.onReplaced(reason);
+  }
+
+  private scheduleReconnect(): void {
+    window.clearTimeout(this.retryTimer);
+    const delay = this.backoff.next();
+    this.onState(`retry in ${(delay / 1000).toFixed(1)} s`);
+    this.retryTimer = window.setTimeout(() => {
+      this.retryTimer = undefined;
+      this.connect();
+    }, delay);
+  }
+
+  /** Page visible again: retry now instead of waiting out the back-off (never in standby). */
   reconnectNow(): void {
+    if (this.closedByUser || this.standby) return;
     if (this.ws && this.ws.readyState <= WebSocket.OPEN) return;
     this.connect();
   }
 
   close(): void {
     this.closedByUser = true;
+    window.clearTimeout(this.retryTimer);
+    this.retryTimer = undefined;
     this.ws?.close();
   }
 
@@ -131,6 +196,11 @@ export class HgpClient {
     }
     if (m.type === 'rtc') {
       void this.onRtcSignal(m);
+      return;
+    }
+    if (m.type === 'replaced') {
+      // The host closes this socket next (HGP_CLOSE_REPLACED); don't reconnect when it does.
+      this.goStandby(typeof m.reason === 'string' ? m.reason : 'replaced');
       return;
     }
     this.onMessage(m);

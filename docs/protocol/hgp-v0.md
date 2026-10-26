@@ -49,15 +49,35 @@ sequenceDiagram
   D->>H: status {rateHz, rttMin, rttP50, drift, …} every 1 s
 ```
 
-Reconnect: devices reconnect with back-off (0.5 → 5 s) and the **same `deviceId`** (persisted
-on the device), so the host restores bell assignment. Devices reset clock sync on reconnect
-and when the page becomes visible again.
+Reconnect: devices reconnect with back-off and the **same `deviceId`** (persisted on the device), so
+the host restores bell assignment. Devices reset clock sync on reconnect and when the page becomes
+visible again.
+
+- **Back-off:** exponential from 0.5 s to a 5 s cap with equal jitter (each delay uniform in
+  [d/2, d]). It resets only after a connection stayed open **≥ 5 s**, so a connection that is closed
+  right after `hello` keeps backing off instead of retrying every 0.5 s. One connection at a time per
+  device: a pending retry is cancelled by any newer connect, and events from an old socket are ignored.
+- **One connection per `deviceId`, newest wins.** When a `hello` arrives for a `deviceId` that already
+  has an open connection, the host sends the old connection `replaced` and closes it with WebSocket
+  close code **4001** (reason `replaced`). The device keeps its bells, seat and Ready state (it is
+  the same device), and the host does not broadcast a device change for it. A device that gets
+  `replaced` (or close code 4001) **must not auto-reconnect** — that would kick the newer connection
+  back, forever (the 2026-10-25 "joining thrash": two tabs of one phone alternated every ~0.7 s). It
+  stands by and offers "Use this tab"; tapping it reconnects with `hello.takeover: true`. Devices that
+  predate `replaced` simply reconnect as before (unknown `type`s are ignored).
+- **One controller tab per browser.** Every tab of a browser shares the persisted `deviceId`, so the
+  S1 controller lets only one tab be the bell: a [Web Lock](https://developer.mozilla.org/docs/Web/API/Web_Locks_API)
+  held for the page's life (Chrome/Edge, Firefox, Safari/iOS 15.4+), or a localStorage heartbeat on
+  older Safari (which has neither Web Locks nor BroadcastChannel). A second tab — e.g. the TV's join QR
+  scanned again on a phone that already plays — shows "This phone is connected in another tab — Use
+  this tab" **without connecting**, so the playing tab keeps playing mid-song. "Use this tab" steals
+  the lock (the old tab stands by at once) and sends `hello.takeover`.
 
 ## 4. Messages: device → host
 
 | `type` | Fields | Notes |
 |---|---|---|
-| `hello` | `v`, `deviceId`, `kind` (`phone`·`bell`·`keyboard`·`midi`·`listener`·`sim`), `name?`, `app?`, `ua?`, `sensors?` `{api, rateHz?, gyro?}`, `gestures?` (supported `g` values), `sound?` (can play locally) | First message. |
+| `hello` | `v`, `deviceId`, `kind` (`phone`·`bell`·`keyboard`·`midi`·`listener`·`sim`), `name?`, `app?`, `ua?`, `sensors?` `{api, rateHz?, gyro?}`, `gestures?` (supported `g` values), `sound?` (can play locally), `tab?` (per-page id, for logs), `takeover?` (`true`: the user chose "Use this tab") | First message. A second `hello` for a connected `deviceId` replaces the older connection (§3). |
 | `sync` | `id`, `t0` | Clock-sync request (§6). |
 | `gesture` | `seq`, `g`, `t`, `th?`, `err?`, `bell?`, `sel?`, `vel?`, `det?`, `src?` | See §5. |
 | `status` | free-form diagnostics: `api`, `rateHz`, `rttMin`, `rttP50`, `drift` (ppm), `syncN`, `transport`, `visible`, `mode`, `sens?` (ring sensitivity in effect), `battery?` | ~1 Hz; also serves as keep-alive. |
@@ -131,6 +151,7 @@ immediately and take `t1` as early as possible on receipt.
 | `cues` | `at` (host times, ms), `bells` (bell id per note) | I2 web host: this device's notes for the song, sent at song start (empty arrays clear). The device glows the zone of the next note not more than ~120 ms in the past. Purely a display hint; judging stays on the host. |
 | `parts` | `phase` (`lobby`·`play`), `song?`, `parts` (array of `{index, name, range, bells, notes, perSec, level, player: {kind: "phone"·"keyboard"·"tv", id?, name}, ready?}`), `you` (this device's part index, −1 = not in a part), `ready` (this device's Ready), `next?` (this device joined during a round and gets a part when the next one starts) | I2 seating chart: the arrangement's parts and who plays each, for the phone's "Pick your part" list. `name` is musical where the chart has note roles ("Melody", "Bass", "Harmony", "Low melody", …) else "Ringer N"; `level` is a 1–5 difficulty meter; `bells` use the pitch-class colours. Sent whenever it changes and to every device that joins; `phase: "play"` hides the list during a song (with `next`, the phone shows "you're in for the next song" instead). `song` may carry the practice speed ("… · 50% speed"). The device's actual bells still come from `assign`. |
 | `rtc` | `kind` (`answer`·`error`), `sdp?`, `error?` | |
+| `replaced` | `reason`, `hostTime` | A newer connection with this `deviceId` said `hello` (newest wins). Sent just before the host closes this connection with code 4001. The device must not auto-reconnect; it may offer "Use this tab" (§3). |
 
 **Lobby flow (I2 seating chart).** The game (a `dashboard` client of the S1 host) sends
 `{"type":"cmd","cmd":"parts", phase, song, parts, waiting?}`; the host stores it, adds each device's `you`,
@@ -139,6 +160,8 @@ reaches the game as `{"type":"claim", deviceId, name, part}`; `ready` is kept by
 in the `devices` list (`ready` per device). The host broadcasts `devices` when something
 meaningful changes (join, leave, rename, assignment, Ready, sync/sensor state) plus a 3 s
 heartbeat for diagnostics — not every second — so a game can rebuild its lobby on change only.
+Bursts are coalesced (at most one broadcast per 200 ms), and a reconnect or takeover of a device
+that was online with the same name and bells is not a change.
 Devices that ignore `parts` (I1/YARG mode, older controllers) are unaffected: their seat and bells
 still come from `assign` (`assign.ringer.slot` = part index in I2, YARG seat in I1).
 

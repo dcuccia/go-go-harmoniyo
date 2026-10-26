@@ -238,7 +238,11 @@ No iPhone was available to this session. Everything below is implemented or anti
 - Wake Lock: the controller requests it and re-acquires it on visibility change. Support depends
   on the iOS version (also in home-screen web apps).
 - Backgrounding/locking kills the socket. The controller reconnects with back-off, keeps its
-  `deviceId` (and therefore its bells), and resets clock sync.
+  `deviceId` (and therefore its bells), and resets clock sync. (2026-10-25 update: one controller
+  tab per phone — Web Locks on iOS 15.4+, a localStorage heartbeat on older iOS, which has neither
+  Web Locks nor BroadcastChannel — and the host's `replaced` message; see
+  [HGP v0 §3](../protocol/hgp-v0.md#3-session-flow). A suspended iOS tab's heartbeat goes stale, so
+  a new tab may connect; the host then replaces the old tab, which stands by when it wakes.)
 - No `navigator.vibrate` (no haptics). No Generic Sensor API. `performance.now()` has about 1 ms
   resolution (negligible: emulated sync p95 0.9 ms). All iOS browsers are WebKit, so Chrome on
   iOS behaves the same.

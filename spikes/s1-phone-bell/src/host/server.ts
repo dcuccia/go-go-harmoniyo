@@ -20,7 +20,7 @@ import * as esbuild from 'esbuild';
 import QRCode from 'qrcode';
 import { generate as generateCert } from 'selfsigned';
 import { WebSocket, WebSocketServer } from 'ws';
-import { bellBlock, DEFAULT_BELLS, HGP_VERSION, parseMessage, type Bell, type PartCard, type SoundMode, type TestKind } from '../core/hgp.ts';
+import { bellBlock, DEFAULT_BELLS, HGP_CLOSE_REPLACED, HGP_VERSION, parseMessage, type Bell, type PartCard, type SoundMode, type TestKind } from '../core/hgp.ts';
 import { isSensitivity, type Sensitivity } from '../core/ring-detector.ts';
 import {
   analyzeClink,
@@ -388,12 +388,30 @@ function deviceSummary(d: Device) {
 /**
  * Device list to dashboards/the game. Sent when something meaningful changes (join, leave, rename,
  * assignment, Ready, sync/sensor state) plus a slow heartbeat for the diagnostics (rtt, rates):
- * a game must not rebuild its lobby on every frame of this.
+ * a game must not rebuild its lobby on every frame of this. Bursts (a phone reconnecting, a lobby
+ * update touching every phone) are coalesced: the first change goes out at once, later ones within
+ * BROADCAST_MIN_MS are sent together at the end of that window.
  */
 function broadcastDevices(): void {
+  if (broadcastTimer) return;
+  const wait = lastBroadcast + BROADCAST_MIN_MS - now();
+  if (wait <= 0) {
+    flushDevices();
+    return;
+  }
+  broadcastTimer = setTimeout(() => {
+    broadcastTimer = null;
+    flushDevices();
+  }, wait);
+}
+function flushDevices(): void {
+  lastBroadcast = now();
   toDashboards({ type: 'devices', hostTime: now(), devices: [...devices.values()].map(deviceSummary), soundMode, bellsPerPhone, test: running, yarg: yargSummary() });
 }
 const HEARTBEAT_MS = 3000;
+const BROADCAST_MIN_MS = 200;
+let broadcastTimer: NodeJS.Timeout | null = null;
+let lastBroadcast = -Infinity;
 
 /** Coarse status fields whose change is worth a broadcast (not rtt/rate jitter). */
 function statusKey(st: Record<string, unknown>): string {
@@ -723,7 +741,19 @@ wss.on('connection', (ws) => {
       }
       const id = String(m.deviceId ?? `dev-${Math.random().toString(36).slice(2, 8)}`);
       const existing = devices.get(id);
-      if (existing?.ws && existing.ws !== ws) existing.ws.close();
+      // Newest connection wins. Tell the old one first so its client goes to standby ("Use this
+      // tab") instead of reconnecting and kicking this one back (the 2026-10-25 ping-pong).
+      const wasOnline = existing?.ws?.readyState === WebSocket.OPEN;
+      if (existing?.ws && existing.ws !== ws) {
+        const old = existing.ws;
+        if (old.readyState === WebSocket.OPEN) {
+          send(old, { type: 'replaced', reason: 'This phone connected again (another tab or page)', hostTime: now() });
+          old.close(HGP_CLOSE_REPLACED, 'replaced');
+        } else if (old.readyState === WebSocket.CONNECTING) old.terminate();
+        logEvent({ type: 'replaced', at: rx, deviceId: id, oldTab: existing.hello.tab, tab: m.tab, takeover: m.takeover === true });
+      }
+      const prevName = existing?.name;
+      const prevBells = existing ? JSON.stringify(existing.bells) : '';
       dev = existing ?? {
         id,
         name: String(m.name ?? id),
@@ -757,7 +787,9 @@ wss.on('connection', (ws) => {
         if (!t.deviceIds.includes(id)) t.deviceIds.push(id);
         send(ws, { type: 'test', action: 'start', id: t.id, test: t.kind, start: t.beats?.[0] ?? t.start, period: t.period, count: t.beats?.length, durationMs: t.end - t.start });
       }
-      broadcastDevices();
+      // A reconnect/takeover of a phone that was online with the same name and bells changes
+      // nothing the game (TV) cares about: skip the device broadcast so its lobby doesn't churn.
+      if (!existing || !wasOnline || prevName !== dev.name || prevBells !== JSON.stringify(dev.bells)) broadcastDevices();
       return;
     }
     if (isDashboard) {
@@ -768,13 +800,16 @@ wss.on('connection', (ws) => {
     if (dev) handleDeviceMessage(dev, m, rx, (o) => send(ws, o), 'ws');
   });
   ws.on('close', () => {
-    if (isDashboard) dashboards.delete(ws);
-    if (dev && dev.ws === ws) {
-      dev.ws = null;
-      logEvent({ type: 'disconnect', at: now(), deviceId: dev.id });
-      const seat = yarg?.room.leave(dev.id);
-      if (seat) console.log(`YARG: ${dev.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
+    if (isDashboard) {
+      dashboards.delete(ws);
+      return;
     }
+    // A socket replaced by a newer one with the same deviceId: the device never went offline.
+    if (!dev || dev.ws !== ws) return;
+    dev.ws = null;
+    logEvent({ type: 'disconnect', at: now(), deviceId: dev.id });
+    const seat = yarg?.room.leave(dev.id);
+    if (seat) console.log(`YARG: ${dev.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
     broadcastDevices();
   });
 });

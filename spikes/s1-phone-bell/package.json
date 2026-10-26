@@ -6,7 +6,7 @@
     "start": "tsx src/host/server.ts",
     "tunnel": "tsx src/host/server.ts --tunnel",
     "yarg": "tsx src/host/server.ts --yarg",
-    "test": "tsx --test test/core.test.ts test/detectors.test.ts test/host.test.ts test/yarg.test.ts",
+    "test": "tsx --test test/core.test.ts test/detectors.test.ts test/host.test.ts test/yarg.test.ts test/reconnect.test.ts",
     "sim": "tsx sim/run-sim.ts",
     "sim:fast": "tsx sim/fast-rings.ts",
     "analyze": "tsx tools/analyze.ts",
