@@ -13,7 +13,7 @@ import { buildChart, buildPart, fitHandbellSet, formSong, FORMAT, isChartFormat 
 import { expandForm, transposeSymbol, verseSchedule, windowsFor } from '../src/form.mjs';
 import { ARRANGEMENTS, TIERS, jain, harmonyRegions } from '../src/parts.mjs';
 import { exportCloneHero, laneOf, CH_TRACKS } from '../src/export.mjs';
-import { loadSong } from '../src/pipeline.mjs';
+import { applyCorrections, loadSong } from '../src/pipeline.mjs';
 import { validate } from '../src/validate.mjs';
 import { buildHarmony, backingStyle, BACKING_STYLES } from '../src/harmony.mjs';
 
@@ -98,17 +98,49 @@ function lySoprano(ly) {
   return out;
 }
 
+// The source melody line of a manifest entry, read independently of the arranger where possible:
+// the .ly soprano for Mutopia SATB files (with the manifest's proofread `corrections` applied to
+// the melody voice), else the arranger's melody (ABC lead sheets, melody-only files).
+function sourceMelody(entry) {
+  if (entry.format === 'midi') {
+    const ly = readFileSync(join(root, 'songs', entry.file.replace(/\.mid$/, '.ly')), 'utf8');
+    if (/^Soprano = /m.test(ly)) {
+      const v = entry.options.melodyVoice;
+      const fixes = (entry.options.corrections ?? []).filter((c) => c.voice === v);
+      return applyCorrections(lySoprano(ly).map((n) => ({ ...n, voice: v })), fixes);
+    }
+  }
+  return loadSong(entry, join(root, 'songs')).roleNotes.filter((n) => n.role === 'melody');
+}
+
 test('MIDI: every Mutopia SATB melody matches the soprano line of its .ly source', () => {
   let checked = 0;
   for (const entry of manifest.songs.filter((e) => e.format === 'midi')) {
     const ly = readFileSync(join(root, 'songs', entry.file.replace(/\.mid$/, '.ly')), 'utf8');
     if (!/^Soprano = /m.test(ly)) continue;
-    const { roleNotes } = loadSong(entry, join(root, 'songs'));
+    const { score, roleNotes } = loadSong(entry, join(root, 'songs'));
     const melody = roleNotes.filter((n) => n.role === 'melody').map((n) => `${n.tick}:${pitchName(n.midi)}`);
-    assert.deepEqual(melody, lySoprano(ly).map((n) => `${n.tick}:${pitchName(n.midi)}`), entry.id);
+    assert.deepEqual(melody, sourceMelody(entry).map((n) => `${n.tick}:${pitchName(n.midi)}`), entry.id);
+    // Bar lines: a \partial in the source must be the pickup the score is barred with.
+    const partial = /\\partial\s+(\d+)(\.?)/.exec(ly);
+    if (partial) assert.equal(measureStarts(score)[1], ((4 * PPQ) / Number(partial[1])) * (partial[2] ? 1.5 : 1), `${entry.id}: pickup`);
     checked++;
   }
   assert.ok(checked >= 9, `checked ${checked} songs`);
+});
+
+test('manifest corrections: re-pitch the named onsets, refuse to land anywhere else', () => {
+  const notes = () => [
+    { tick: 0, midi: 71, voice: 'a' },
+    { tick: 0, midi: 62, voice: 'a' },
+    { tick: 480, midi: 69, voice: 'a' },
+    { tick: 480, midi: 50, voice: 'b' },
+  ];
+  const fixed = applyCorrections(notes(), [{ voice: 'a', fromTick: 0, was: ['B4', 'A4'], now: ['G4', 'F#4'] }]);
+  assert.deepEqual(names(fixed), ['G4', 'D4', 'F#4', 'D3']);
+  assert.throws(() => applyCorrections(notes(), [{ voice: 'a', fromTick: 0, was: ['C5'], now: ['G4'] }]), /expected C5, found B4\/D4/);
+  assert.throws(() => applyCorrections(notes(), [{ voice: 'a', fromTick: 0, was: ['B4', 'A4', 'G4'], now: ['B4', 'A4', 'G4'] }]), /onset 2/);
+  assert.throws(() => applyCorrections(notes(), [{ voice: 'a', fromTick: 0, was: ['B4'], now: [] }]), /same length/);
 });
 
 test('manifest timeSig override re-bars a source engraved in the wrong meter', () => {
@@ -485,4 +517,78 @@ test('every arrangement × tier validates (format 0.3) and a 0.2-shaped chart st
   assert.deepEqual(validate(schema, old), []);
   // Deterministic.
   assert.deepEqual(buildPart(formed('joy-to-the-world'), 'hard', 4, 'phone-4zone', 'chord-split'), buildPart(formed('joy-to-the-world'), 'hard', 4, 'phone-4zone', 'chord-split'));
+});
+
+// Mutopia 1220 (cyberhymnal) gives the first "O come, let us adore Him" the pitches of the second;
+// Wade's Cantus Diversi (1751, Mutopia 367: refrain bar 13, A major) and the hymnals sing it from
+// the tonic: A A G# A B A E, here in G.
+test('O Come, All Ye Faithful: the refrain\'s first "O come, let us adore Him" starts on the tonic', () => {
+  const entry = manifest.songs.find((e) => e.id === 'o-come-all-ye-faithful');
+  const { score, roleNotes } = loadSong(entry, join(root, 'songs'));
+  const melody = roleNotes.filter((n) => n.role === 'melody');
+  const at = melody.findIndex((n) => n.tick === 23040); // beat 4 of bar 12 (after the 1-beat pickup)
+  const line = (i) => names(melody.slice(at + 7 * i, at + 7 * i + 7)).join(' ');
+  assert.equal(line(0), 'G4 G4 F#4 G4 A4 G4 D4', 'line 1 (do do ti do re do sol)');
+  assert.equal(line(1), 'B4 B4 A4 B4 C5 B4 A4', 'line 2, a third higher, unchanged');
+  assert.equal(names(melody.slice(at + 14, at + 20)).join(' '), 'B4 C5 B4 A4 G4 F#4', 'line 3, unchanged');
+  // The other voices are untouched (tenor and bass rest under line 1).
+  assert.equal(score.notes.filter((n) => n.voice === 't2c2' && n.tick > 22600 && n.tick < 26880).length, 0);
+  // Every tier, arrangement, ringer count and both lengths ring it from the tonic of each verse
+  // (A after the key change), on the melody bells or the super-easy guide.
+  for (const form of ['full', 'short']) {
+    const f = formed('o-come-all-ye-faithful', form);
+    const verses = f.segments.filter((s) => s.kind === 'verse');
+    const chart = buildChart({ score, roleNotes, song: { id: entry.id }, ringerCounts: [1, 3, 4, 5], profile: 'handbell', formed: f });
+    for (const p of chart.parts) {
+      const tune = [...p.notes, ...(p.guide ?? [])].filter((n) => n.role === 'melody');
+      for (const v of verses) {
+        const opening = [0, 1, 2, 3, 4, 5, 6].map((k) => tune.find((n) => n.tick === 23040 + v.offset + [0, 480, 960, 1440, 1920, 2400, 3360][k])?.bell);
+        const want = v.transpose === 2 ? 'A4 A4 G#4 A4 B4 A4 E4' : 'G4 G4 F#4 G4 A4 G4 D4';
+        assert.equal(opening.join(' '), want, `${form} ${p.arrangement} ${p.difficulty} ×${p.ringerCount} verse ${v.verse}`);
+      }
+    }
+  }
+});
+
+// The tune is never rewritten by the arrangement: in every verse (developed or not, before and
+// after the key change) and the coda tag, the melody-role notes a part rings plus the ones the
+// host plays for it (super-easy `guide`) are the source melody line, note for note, moved to the
+// section's place and key. Intro and interlude carry no melody. Catches wrong-voice picks, pickup
+// or bar misalignment and tier/form code that drops or alters tune notes.
+test('every song, form, arrangement, tier and ringer count rings the source melody unchanged', () => {
+  const configs = [
+    { profile: 'handbell', ringerCounts: [1, 3, 5], forms: ['full', 'short'] },
+    { profile: 'phone-4zone', ringerCounts: [2, 4], forms: [{ id: 'full', keyChange: false }, 'short'] },
+  ];
+  let checked = 0;
+  for (const entry of manifest.songs) {
+    const src = sourceMelody(entry);
+    const { score, roleNotes } = loadSong(entry, join(root, 'songs'));
+    for (const { profile, ringerCounts, forms } of configs) {
+      for (const form of forms) {
+        const f = formed(entry.id, form);
+        const chart = buildChart({ score, roleNotes, song: { id: entry.id }, ringerCounts, profile, formed: f });
+        const segs = f.segments;
+        const want = [];
+        for (const s of segs) {
+          if (s.offset === undefined || !['verse', 'coda'].includes(s.kind)) continue;
+          const clip = s.index + 1 < segs.length ? segs[s.index + 1].start : f.score.endTick;
+          for (const n of src) {
+            const tick = n.tick + s.offset;
+            if (n.tick >= s.srcFrom && n.tick < s.srcTo && tick < clip) want.push(`${tick}:${pitchName(n.midi + s.transpose)}`);
+          }
+        }
+        want.sort();
+        // The committed chart (handbell, full form, 4 ringers) too, so a stale chart is caught.
+        const committed = profile === 'handbell' && form === 'full' ? JSON.parse(readFileSync(join(root, 'charts', `${entry.id}.json`), 'utf8')).parts : [];
+        for (const p of [...chart.parts, ...committed]) {
+          const where = `${entry.id} ${typeof form === 'string' ? form : form.id} ${profile} ${p.arrangement} ${p.difficulty} ×${p.ringerCount}`;
+          const got = [...p.notes, ...(p.guide ?? [])].filter((n) => n.role === 'melody').map((n) => `${n.tick}:${n.bell}`).sort();
+          assert.deepEqual(got, want, where);
+          checked++;
+        }
+      }
+    }
+  }
+  assert.ok(checked >= manifest.songs.length * 2 * 2 * 12, `checked ${checked} parts`);
 });

@@ -624,7 +624,7 @@
       "license": "LicenseRef-Mutopia-PublicDomain",
       "derivedFrom": ["mutopia-o-come-all-ye-faithful", "mutopia-hark-the-herald-angels-sing", "mutopia-the-first-noel", "mutopia-o-little-town-of-bethlehem", "mutopia-what-child-is-this", "mutopia-away-in-a-manger", "mutopia-o-come-o-come-emmanuel", "mutopia-in-the-bleak-midwinter"],
       "generator": "node spikes/s5-chart-pipeline/build.mjs",
-      "modifications": "Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged.",
+      "modifications": "Algorithmic arrangement from the Mutopia MIDI (soprano melody, bass, inner voices; difficulty tiers; bell assignment). Tempos, pickups and (Away in a Manger) the 3/4 meter are set in songs/manifest.json; notes are unchanged except one proofread correction applied on import (songs/manifest.json options.corrections): O Come, All Ye Faithful's first refrain line 'O come, let us adore Him' is re-pitched from the edition's B B A B C B A to the tune's G G F# G A G D, per Wade's Cantus Diversi (1751, Mutopia 367) and standard hymnals; the source files stay byte-identical.",
       "credit": false,
       "review": { "status": "approved", "reviewer": "License check (agent session), pending owner confirmation", "date": "2026-10-25", "notes": "Each chart carries its source and license in song.license / song.source." }
     }

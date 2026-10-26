@@ -51,6 +51,23 @@ Notes:
   CC BY-SA/NC), **hymnary.org / cyberhymnal** MIDI (no clear file license). Recommendation:
   for MVP, keep self-encoding lead sheets (fast: ~5 min per carol in ABC) and add Mutopia
   PD/CC BY files; avoid ShareAlike/NC sources for charts we ship.
+- **Typeset editions need a proofread too** (2026-10-26, owner report). Mutopia 1220 (O Come,
+  All Ye Faithful, transcribed from cyberhymnal) gives the refrain's first "O come, let us adore
+  Him" the pitches of the second (B B A B C B A in G) instead of the tune (G G F# G A G D), so
+  the game started that line on the 3rd degree. The chart pipeline was faithful to the file (the
+  melody voice, pickup and every tier matched the `.ly` soprano); the edition was wrong. Checked
+  against Wade's *Cantus Diversi* (1751, [Mutopia #367](https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=367),
+  refrain bar 13), two hymnary.org public-domain scores and Wikipedia's engraving: all start the
+  line on the tonic. Fixed on import with a manifest `corrections` entry (the pinned file is
+  untouched; a correction must name the pitches it replaces, so it fails loudly if it lands on
+  the wrong notes). The other seven SATB editions from #57 were compared note by note with
+  hymnary.org public-domain scores (soprano pitch sequence), plus Wikipedia/Mutopia where
+  available. No pitch errors; edition variants kept as engraved: What Child Is This refrain
+  "Haste, haste" has C♮ (Stainer's harmonization: C♯) and "sleeping" F♯. without the D♯ (as
+  Stainer); The First Noel, O Little Town and Away in a Manger differ from some hymnals only in
+  rhythm (lyric splits, dotted vs even quarters); In the Bleak Midwinter includes the pickup
+  some verses use. Tests now check every song's melody, in every form section, arrangement,
+  tier and ringer count, against the source melody line.
 
 ## Assignment algorithm
 
@@ -303,7 +320,8 @@ adds 1–2 bells to most parts, more than a 4-bell phone holds, so the I2 phone 
 by default (`npm run charts -- --key-change` to try it).
 
 
-- Melody encodings need a human proofread; lead-sheet harmony is simple (root bass, 3rd/5th
+- Melody encodings need a human proofread, typeset editions included (see "Typeset editions
+  need a proofread too" above); lead-sheet harmony is simple (root bass, 3rd/5th
   pads) and occasionally clashes with passing tones — fine for a game, not for publication.
 - No repeat/ending expansion in ABC/MusicXML importers; MusicXML `.mxl` (zip) not supported.
 - Playability thresholds are assumptions (see profiles); no device or ringer measurements.
