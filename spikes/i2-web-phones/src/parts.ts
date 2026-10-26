@@ -44,15 +44,20 @@ const QUALIFIERS: Record<number, string[]> = { 2: ['Low', 'High'], 3: ['Low', 'M
  * Musical part names from the chart's note roles: each ringer is named after the role most of its
  * notes have (melody / bass / inner → Harmony). When several ringers share a role (e.g. an easy
  * arrangement splits the melody by range) they are qualified low → high ("Low melody", "High
- * melody"). Charts without roles fall back to "Ringer N".
+ * melody"). Charts without roles fall back to "Ringer N". Format 0.3 charts name each part from
+ * its arrangement role (`ringers[].name`); those names are used as they are.
  */
 export function partNames(part: S5Part): string[] {
+  if (part.ringers.length && part.ringers.every((r) => r.name)) return part.ringers.map((r) => r.name!);
   const roles: (Role | null)[] = part.ringers.map((r) => {
     const count: Record<Role, number> = { melody: 0, bass: 0, inner: 0 };
     let any = false;
     for (const n of part.notes) {
       if (n.ringer === r.index && n.role && n.role in count) {
         count[n.role as Role]++;
+        any = true;
+      } else if (n.ringer === r.index && n.role === 'descant') {
+        count.melody++;
         any = true;
       }
     }

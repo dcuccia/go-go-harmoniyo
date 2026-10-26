@@ -8,10 +8,11 @@ import { KeyboardSource } from '../../s4-web-host/src/input/keyboard';
 import type { InputSource } from '../../s4-web-host/src/input/types';
 import { Hud } from '../../s4-web-host/src/ui/hud';
 import type { SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
+import type { Sensitivity } from '../../s1-phone-bell/src/core/ring-detector.ts';
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type LobbyParts, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { buildTeamChart, findPart, isChartFormat, partBellNotes, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { ARRANGEMENTS, buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Arrangement, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
 import { partCards, type PartCard } from './parts';
 import { KEYBOARD, Seating, seededRng, TV } from './seating';
 import { SeatingView, type PlayerView } from './seating-view';
@@ -23,6 +24,9 @@ import { backingTimeline } from './backing/timeline';
 import { describe as describeBacking } from './backing/patterns';
 import { clampSpeed, DEFAULT_SPEED, parseSpeedPercent, scaleChart, speedNote, speedPercent } from './speed';
 import { JoinQueue, waitingLabel } from './join-queue';
+import { beatAt } from './backing/phrases';
+import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
+import { SfxSynth } from './sfx/synth';
 
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -56,6 +60,30 @@ const cornerJoin = {
   corner: ['tl', 'tr', 'bl', 'br'].includes(params.get('joinQrCorner') ?? '') ? params.get('joinQrCorner')! : 'tl',
   size: num('joinQrSize', 0),
 };
+// ── performance sound effects (lobby; saved) ───────────────────────────────
+const SFX_KEY = 'i2.sfx';
+const sfxSettings: SfxSettings = { ...DEFAULT_SFX, ...JSON.parse(localStorage.getItem(SFX_KEY) ?? '{}') };
+if (params.has('sfx')) sfxSettings.enabled = flag('sfx', true);
+if (params.has('sfxVol')) sfxSettings.volume = Math.max(0, Math.min(1, num('sfxVol', 50) / 100));
+const saveSfx = (): void => localStorage.setItem(SFX_KEY, JSON.stringify(sfxSettings));
+let sfx: SfxSynth | null = null;
+let director: PerformanceDirector | null = null;
+/** SFX bus, created once on the game's AudioContext; a little hall reverb like the backing. */
+function ensureSfx(): SfxSynth {
+  if (!sfx) {
+    sfx = new SfxSynth(audio.ctx);
+    audio.connect(sfx.output, 0.15);
+  }
+  sfx.setVolume(sfxSettings.enabled ? sfxSettings.volume : 0, audio.ctx.currentTime);
+  return sfx;
+}
+/** SFX start a beat-let after the ring that triggered them, so the bell's attack is heard first. */
+const SFX_DELAY = 0.08;
+
+// ── ring sensitivity per phone (lobby; saved): Normal or Quick, sent in HGP assign.ring ──
+const SENS_KEY = 'i2.sens';
+const phoneSens: Record<string, Sensitivity> = JSON.parse(localStorage.getItem(SENS_KEY) ?? '{}');
+const sensOf = (id: string): Sensitivity => (phoneSens[id] === 'quick' ? 'quick' : 'normal');
 
 // ── engine pieces (S4) ──────────────────────────────────────────────────────
 const mh = new MultiHighway($('highways'), {
@@ -84,12 +112,19 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
-  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[] }[];
+  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>> }[];
 }
 let index: SongIndex | null = null;
 const chartCache = new Map<string, S5Chart>();
 let songId = params.get('song') ?? 'jingle-bells';
 let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
+/** Song length: full (intro, verses that develop, coda; charts/<id>.json) or short (once; charts/short/<id>.json). */
+type SongForm = 'full' | 'short';
+let songForm: SongForm = params.get('form') === 'short' ? 'short' : 'full';
+/** How parts are split: balanced roles (default), chord split, or by range (S5 0.2). */
+let arrangement: Arrangement = (ARRANGEMENTS as readonly string[]).includes(params.get('parts') ?? '') ? (params.get('parts') as Arrangement) : 'balanced';
+const chartKey = (id: string = songId): string => `${songForm}:${id}`;
+const songDuration = (s: SongIndex['songs'][number]): number => s.forms?.[songForm]?.durationSec ?? s.durationSec;
 let ringerCount = num('ringers', 0);
 let ringersAuto = !params.has('ringers');
 /** Seating chart: part index → phone deviceId | KEYBOARD | TV (persists across songs). */
@@ -121,13 +156,14 @@ const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name
 const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
 
 async function loadChart(id: string): Promise<S5Chart> {
-  let c = chartCache.get(id);
+  let c = chartCache.get(chartKey(id));
   if (!c) {
-    const res = await fetch(`charts/${id}.json`);
-    if (!res.ok) throw new Error(`charts/${id}.json: ${res.status} — run "npm run charts"`);
+    const url = `charts/${songForm === 'short' ? 'short/' : ''}${id}.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`${url}: ${res.status} — run "npm run charts"`);
     c = (await res.json()) as S5Chart;
-    if (!isChartFormat(c.format)) throw new Error(`charts/${id}.json: unknown chart format "${c.format}"`);
-    chartCache.set(id, c);
+    if (!isChartFormat(c.format)) throw new Error(`${url}: unknown chart format "${c.format}"`);
+    chartCache.set(chartKey(id), c);
   }
   return c;
 }
@@ -135,7 +171,7 @@ async function loadChart(id: string): Promise<S5Chart> {
 /** The chart at the practice speed (cached per song and speed). */
 const scaledCache = new Map<string, S5Chart>();
 async function songChart(id: string): Promise<S5Chart> {
-  const key = `${id}@${speed}`;
+  const key = `${chartKey(id)}@${speed}`;
   let c = scaledCache.get(key);
   if (!c) {
     c = scaleChart(await loadChart(id), speed);
@@ -144,9 +180,9 @@ async function songChart(id: string): Promise<S5Chart> {
   return c;
 }
 /** Current song at the current speed, once loaded. */
-const currentChart = (): S5Chart | undefined => scaledCache.get(`${songId}@${speed}`);
+const currentChart = (): S5Chart | undefined => scaledCache.get(`${chartKey()}@${speed}`);
 /** Song label for the phones: title, tier and (when slowed down) the practice speed. */
-const songLabel = (): string => `${chartCache.get(songId)?.song.title ?? songId} (${difficulty})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
+const songLabel = (): string => `${chartCache.get(chartKey())?.song.title ?? songId} (${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
@@ -171,7 +207,7 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   if (!index) return;
   const joiners = syncPhones();
   const s5 = await songChart(songId);
-  const part = findPart(s5, difficulty, ringerCount);
+  const part = findPart(s5, difficulty, ringerCount, arrangement);
   if (!part) {
     joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
     $('lobby-msg').textContent = `No ${difficulty} part for ${ringerCount} ringers in ${s5.song.title}.`;
@@ -224,18 +260,22 @@ function sendAssignments(): void {
     if (!dev || !isPhone(dev)) continue;
     const bells = r.bells.map((b) => ({ id: b.id, label: b.letter, midi: b.pitch, color: b.color }));
     const ringer = { slot: r.index, title: `${cards[r.index]?.name ?? `Ringer ${r.index + 1}`} · Ringer ${r.index + 1}`, song };
-    const key = JSON.stringify([bells, ringer]);
+    // Fast-passage hint: the phone uses its cues during a song; this is the song-wide fallback.
+    const ioi = shortestIoiMs(r.noteIds.map((id) => team!.chart.notes[id].time));
+    const ring = { sens: sensOf(dev), ...(ioi !== null ? { ioi } : {}) };
+    const key = JSON.stringify([bells, ringer, ring]);
     if (sentAssign.get(dev) === key) continue;
     sentAssign.set(dev, key);
-    link.assign(dev, bells, ringer);
+    link.assign(dev, bells, ringer, ring);
   }
   for (const p of onlinePhones()) {
     if (seating.partOf(p.id) >= 0 || !p.bells?.length) continue;
     const ringer = { slot: -1, title: 'Not playing: pick a part', song };
-    const key = JSON.stringify([p.bells, ringer]);
+    const ring = { sens: sensOf(p.id) };
+    const key = JSON.stringify([p.bells, ringer, ring]);
     if (sentAssign.get(p.id) === key) continue;
     sentAssign.set(p.id, key);
-    link.assign(p.id, p.bells, ringer);
+    link.assign(p.id, p.bells, ringer, ring);
   }
 }
 
@@ -315,14 +355,16 @@ function playerViews(): PlayerView[] {
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
   const selSong = $<HTMLSelectElement>('sel-song');
-  const songsKey = `${index?.songs.length}@${speed}`;
+  const songsKey = `${index?.songs.length}@${speed}:${songForm}`;
   if (index && selSong.dataset.key !== songsKey && document.activeElement !== selSong) {
     selSong.dataset.key = songsKey;
-    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(s.durationSec / speed)} s, ${s.license ?? '?'})</option>`).join('');
+    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(songDuration(s) / speed)} s, ${s.license ?? '?'})</option>`).join('');
   }
   setValue(selSong, songId);
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
   setValue($<HTMLSelectElement>('sel-ringers'), String(ringerCount));
+  setValue($<HTMLSelectElement>('sel-parts'), arrangement);
+  setValue($<HTMLSelectElement>('sel-form'), songForm);
   setValue($<HTMLSelectElement>('sel-sound'), soundMode);
   setChecked($<HTMLInputElement>('chk-backing'), backingSettings.enabled);
   setValue($<HTMLInputElement>('rng-backing'), String(Math.round(backingSettings.volume * 100)));
@@ -330,13 +372,17 @@ function renderLobby(): void {
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
   setChecked($<HTMLInputElement>('chk-countin'), backingSettings.countIn);
   renderSpeed();
+  setChecked($<HTMLInputElement>('chk-sfx'), sfxSettings.enabled);
+  setValue($<HTMLInputElement>('rng-sfx'), String(Math.round(sfxSettings.volume * 100)));
+  $<HTMLInputElement>('rng-sfx').disabled = !sfxSettings.enabled;
+  $('sfx-vol').textContent = `${Math.round(sfxSettings.volume * 100)}%`;
 
   view.update(cards, seating.seats, playerViews());
   const s5 = currentChart();
-  const part = s5 ? findPart(s5, difficulty, ringerCount) : undefined;
+  const part = s5 ? findPart(s5, difficulty, ringerCount, arrangement) : undefined;
   if (part) {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
-    $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''} · chart profile ${index?.profile}`;
+    $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
   $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
   const seated = seating.players.filter(isPhone);
@@ -370,9 +416,11 @@ function renderStatus(): void {
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
       const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
       li.classList.toggle('off', !p.online);
+      const quick = sensOf(p.id) === 'quick';
+      const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
       setHtml(
         li,
-        `<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
+        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
       );
     });
   }
@@ -393,7 +441,7 @@ function renderNext(): void {
 function renderSpeed(): void {
   setValue($<HTMLInputElement>('rng-speed'), String(speedPercent(speed)));
   $('speed-val').textContent = `${speedPercent(speed)}%`;
-  const dur = index?.songs.find((s) => s.id === songId)?.durationSec;
+  const dur = ((s) => (s ? songDuration(s) : undefined))(index?.songs.find((s) => s.id === songId));
   $('speed-info').textContent = speed < 1 ? `Slower for learning: ${dur ? `${Math.round(dur / speed)} s instead of ${Math.round(dur)} s; ` : ''}bells, backing and count-in slow down too, timing is judged the same.` : '';
 }
 
@@ -451,6 +499,14 @@ $<HTMLSelectElement>('sel-diff').onchange = (e) => {
   difficulty = (e.target as HTMLSelectElement).value as Difficulty;
   void rebuild();
 };
+$<HTMLSelectElement>('sel-parts').onchange = (e) => {
+  arrangement = (e.target as HTMLSelectElement).value as Arrangement;
+  void rebuild();
+};
+$<HTMLSelectElement>('sel-form').onchange = (e) => {
+  songForm = (e.target as HTMLSelectElement).value as SongForm;
+  void rebuild();
+};
 $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
   ringerCount = Number((e.target as HTMLSelectElement).value);
   ringersAuto = false;
@@ -481,6 +537,28 @@ $<HTMLInputElement>('rng-speed').oninput = (e) => {
 };
 // Rebuild (scaled chart, highways, part meters, phone labels) when the slider is let go.
 $<HTMLInputElement>('rng-speed').onchange = () => void rebuild();
+$<HTMLInputElement>('chk-sfx').onchange = (e) => {
+  sfxSettings.enabled = (e.target as HTMLInputElement).checked;
+  saveSfx();
+  if (sfx) ensureSfx();
+  renderLobby();
+};
+$<HTMLInputElement>('rng-sfx').oninput = (e) => {
+  sfxSettings.volume = Number((e.target as HTMLInputElement).value) / 100;
+  saveSfx();
+  $('sfx-vol').textContent = `${Math.round(sfxSettings.volume * 100)}%`;
+};
+// Per-phone ring sensitivity (Normal ⇄ Quick): saved on this PC, applied at once via HGP assign.ring.
+$('phones').addEventListener('click', (e) => {
+  const btn = (e.target as HTMLElement).closest<HTMLElement>('[data-sens]');
+  const id = btn?.dataset.sens;
+  if (!id) return;
+  if (sensOf(id) === 'quick') delete phoneSens[id];
+  else phoneSens[id] = 'quick';
+  localStorage.setItem(SENS_KEY, JSON.stringify(phoneSens));
+  sendAssignments();
+  renderStatus();
+});
 
 let lastPhoneKey = '';
 link.onDevices = () => {
@@ -562,6 +640,8 @@ async function start(mode: Mode): Promise<void> {
   session = null;
   backing?.stop();
   backing = null;
+  sfx?.hush();
+  director = null;
   playing = false;
   await rebuild(mode);
   if (!team) return;
@@ -581,11 +661,16 @@ async function start(mode: Mode): Promise<void> {
 
   const hostRingSound = soundMode !== 'device';
   const s5 = currentChart()!;
-  const part = findPart(s5, difficulty, ringerCount)!;
+  const part = findPart(s5, difficulty, ringerCount, arrangement)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
   players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
+  // Performance SFX: streaks, multiplier, misses, perfect phrases (phrases from the backing's
+  // chord timeline), applause at the end. Play mode only.
+  const fx = mode === 'play' && sfxSettings.enabled ? ensureSfx() : null;
+  director = fx ? new PerformanceDirector({ phrases: backing.phrases, noteTimes: t.chart.notes.map((n) => n.time) }) : null;
+  const bt = backing;
   teamHud.clearStats();
   s.onJudgement = (r, e) => {
     const ri = t.laneRinger[r.lane];
@@ -601,6 +686,16 @@ async function start(mode: Mode): Promise<void> {
       }
       teamHud.judgement(ri, r.grade, r.offset * 1000);
     } else p.strays++;
+    if (fx && director) {
+      const now = audio.ctx.currentTime;
+      if (e) fx.duck(now); // a bell rings (on the phone or here): SFX step back
+      const st = s.judge.state;
+      const cues = director.judge(isJudgement(r) ? r.noteId : undefined, isJudgement(r) ? r.grade : 'stray', st.streak, st.multiplier, performance.now());
+      if (cues.length) {
+        const beat = bt.timeline ? beatAt(bt.timeline, s.songTimeAt(performance.now()) * bt.speed) : undefined;
+        for (const cue of cues) fx.play(cue, now + SFX_DELAY, { chord: beat?.chord?.tones, beatSec: beat ? beat.dur / bt.speed : undefined });
+      }
+    }
     if (e) timing.rings.push({ p: ri, perf: round(e.hostTimeMs, 1), offMs: isJudgement(r) ? round(r.offset * 1000, 1) : null, latMs: round(e.receivedAtMs - e.hostTimeMs, 1) });
     teamHud.stats(ri, p);
   };
@@ -713,6 +808,7 @@ function summarize(xs: number[]): { n: number; mean: number; p50: number; p95abs
 function finish(r: SessionResult): void {
   playing = false;
   clearCues();
+  if (r.mode === 'play' && director && sfx) sfx.play(director.finish(r.accuracy, performance.now()), audio.ctx.currentTime + 0.3);
   if (r.mode === 'play' && team) {
     // Accuracy history for ⚖️ Balance (this page session only).
     players.forEach((p, i) => {
@@ -737,6 +833,8 @@ function finish(r: SessionResult): void {
     ...r,
     song: songId,
     difficulty,
+    form: songForm,
+    arrangement,
     ringers: ringerCount,
     /** Practice speed (1 = written tempo); song times in this result are at this speed. */
     speed: roundSpeed,
@@ -745,6 +843,7 @@ function finish(r: SessionResult): void {
     backing: backing
       ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
       : null,
+    sfx: { ...sfxSettings, cues: director?.counts() ?? null },
     players: playerRows,
     autoRingers: team?.autoRingers,
     hgp: { input, hostClock: link.sync.estimate, joinUrl: link.info.joinUrl },
@@ -785,6 +884,7 @@ function toLobby(): void {
   playing = false;
   backing?.stop();
   backing = null;
+  sfx?.hush();
   clearCues();
   hud.show(false);
   $('results').classList.add('hidden');

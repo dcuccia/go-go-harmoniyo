@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { backingTimeline, countIn, type HarmonyChart, type S5Beat, type S5Chord } from '../src/backing/timeline';
-import { exclusionsFrom, generateBacking, resolveStyle, STYLES, voice, type BackingEvent } from '../src/backing/patterns';
+import { exclusionsFrom, FERMATA, generateBacking, resolveStyle, scaleEvents, STYLES, voice, type BackingEvent } from '../src/backing/patterns';
+import { RIT_RATIO } from '../src/backing/flourishes';
+import { phraseAt, phrases } from '../src/backing/phrases';
 import { partBellNotes, type S5Chart } from '../src/team-chart';
+import { scaleChart } from '../src/speed';
 
 const C = (time: number, durSec: number, symbol: string, root: number, tones: number[]): S5Chord => ({ tick: 0, time, dur: 1, durSec, symbol, root, bass: root, tones });
 
@@ -92,7 +95,8 @@ describe('pattern generation', () => {
     expect(generateBacking(tl, { seed: 'jingle-bells' })).toEqual(a);
     expect(generateBacking(tl, { seed: 'other' })).not.toEqual(a);
     for (let i = 1; i < a.length; i++) expect(a[i].time).toBeGreaterThanOrEqual(a[i - 1].time);
-    expect(a.every((e) => e.vel > 0 && e.vel <= 1 && e.time >= 0 && e.time <= tl.end + 1e-9)).toBe(true);
+    // The ritardando tag may ring a little past the last bar (fermata).
+    expect(a.every((e) => e.vel > 0 && e.vel <= 1 && e.time >= 0 && e.time <= tl.end + 1.5)).toBe(true);
   });
 
   it('sleigh-ride: jingles on every eighth, kick on 1 and 3, snare + shake on 2 and 4, walking bass', () => {
@@ -105,15 +109,17 @@ describe('pattern generation', () => {
     // Bar 1 (C → F next): C, G, then E as a chromatic approach into F.
     expect(bass.filter((e) => e.time < 2).map((e) => e.midi)).toEqual([48, 43, 40]);
     expect(bass.every((e) => e.midi! >= 40 && e.midi! <= 52)).toBe(true);
-    // Last bar is one ringing downbeat.
-    expect(ev.filter((e) => e.time > 6 && e.inst !== 'pad')).toEqual([]);
-    expect(of(ev, 'pad').map((e) => e.midis!.length)).toEqual([3, 3, 4, 3]);
+    // Last bar: one ringing downbeat, then only the ending tag (glockenspiel + sleigh bells).
+    expect(ev.filter((e) => e.time > 6 && !['pad', 'glock', 'sleigh', 'shake'].includes(e.inst))).toEqual([]);
+    expect(of(ev, 'pad').filter((e) => e.tone === 'organ').map((e) => e.midis!.length)).toEqual([3, 3, 4, 3]);
   });
 
   it('gentle: no kick or snare, warm pad, bass on downbeats', () => {
     const ev = generateBacking(backingTimeline(chart({ style: 'gentle', beatsPerBar: 2, div: 3, beatSec: 1 }))!);
     expect(of(ev, 'kick').length + of(ev, 'snare').length).toBe(0);
-    expect(of(ev, 'pad').every((e) => e.tone === 'warm')).toBe(true);
+    // Warm pad; strings join it in the last phrase (here the whole 4-bar song).
+    expect(of(ev, 'pad').every((e) => e.tone === 'warm' || e.tone === 'strings')).toBe(true);
+    expect(of(ev, 'pad').filter((e) => e.tone === 'warm').length).toBe(4);
     expect(of(ev, 'bass').map((e) => e.time)).toEqual([0, 2, 4, 6]);
   });
 
@@ -149,7 +155,7 @@ describe('pattern generation', () => {
     const bass = of(ev, 'bass');
     expect(bass.length).toBeGreaterThan(0);
     expect(bass.every((e) => e.time >= 4)).toBe(true);
-    const pads = of(ev, 'pad');
+    const pads = of(ev, 'pad').filter((e) => e.tone === 'organ');
     expect(pads[0].midis!.map((m) => m % 12)).toEqual(expect.not.arrayContaining([4]));
     expect(pads[0].midis!.length).toBe(2);
     expect(pads[3].midis!.map((m) => m % 12)).toContain(4);
@@ -165,6 +171,91 @@ describe('pattern generation', () => {
   });
 });
 
+/** A 16-bar 4/4 chart at 120 bpm (four 4-bar phrases), C F G7 C per phrase. */
+const long = (style: string, bars = 16): HarmonyChart => chart({ style, bars });
+const barT = (bar: number, beat = 0): number => (bar - 1) * 2 + beat * 0.5;
+
+describe('phrases, fills, variations and the ending', () => {
+  it('splits a song into 4-bar phrases from the first harmonised bar; a lone last bar folds into the previous phrase', () => {
+    const tl = backingTimeline(long('march'))!;
+    expect(phrases(tl).map((p) => [p.firstBar, p.lastBar, p.start, p.end, p.final])).toEqual([
+      [1, 4, 0, 8, false],
+      [5, 8, 8, 16, false],
+      [9, 12, 16, 24, false],
+      [13, 16, 24, 32, true],
+    ]);
+    expect(phrases(backingTimeline(long('march', 17))!).map((p) => [p.firstBar, p.lastBar])).toEqual([[1, 4], [5, 8], [9, 12], [13, 17]]);
+    expect(phraseAt(phrases(tl), 9)?.index).toBe(1);
+    // A pickup bar is not part of a phrase.
+    expect(phrases(backingTimeline(chart({ beatsPerBar: 3, pickup: 1, bars: 8 }))!)[0]).toMatchObject({ firstBar: 2, start: 0.5 });
+  });
+
+  it('sleigh-ride: a snare fill with a crescendo on the last beat of each phrase, then a soft crash', () => {
+    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
+    const fill = of(ev, 'snare').filter((e) => e.time >= barT(4, 3) && e.time < barT(5));
+    expect(fill.map((e) => e.time)).toEqual([barT(4, 3), barT(4, 3) + 0.25]);
+    expect(fill[1].vel).toBeGreaterThan(fill[0].vel);
+    // The groove rests under the fill: no sleigh jingles on that beat in phrase 1 (snare fill, no glock).
+    expect(of(ev, 'sleigh').filter((e) => e.time >= barT(4, 3) && e.time < barT(5))).toEqual([]);
+    expect(of(ev, 'crash').map((e) => e.time)).toEqual([barT(5), barT(9), barT(13), barT(16)]); // + the final downbeat
+    // Odd phrases (2nd, 4th) end with a sleigh roll + glockenspiel glissando up into the next chord.
+    const gliss = of(ev, 'glock').filter((e) => e.time > barT(8, 3) && e.time < barT(9));
+    expect(gliss.length).toBe(5);
+    expect(gliss.map((e) => e.midi!)).toEqual([...gliss.map((e) => e.midi!)].sort((a, b) => a - b));
+  });
+
+  it('march: hi-hat on the off-beats and a tom fill down the toms over the last two beats', () => {
+    const ev = generateBacking(backingTimeline(long('march'))!);
+    expect(of(ev, 'hat').filter((e) => e.time < 2).map((e) => e.time)).toEqual([0.25, 0.75, 1.25, 1.75]);
+    const toms = of(ev, 'tom').filter((e) => e.time < barT(5));
+    expect(toms.length).toBe(8);
+    expect(toms[0].time).toBe(barT(4, 2));
+    expect(toms[0].midi!).toBeGreaterThan(toms[7].midi!);
+  });
+
+  it('varies the bass in odd phrases: the walking bass walks through the third', () => {
+    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
+    const beat1 = (bar: number) => of(ev, 'bass').find((e) => e.time === barT(bar, 1));
+    expect(beat1(1)).toBeUndefined(); // phrase 1: root – fifth – approach
+    expect(beat1(5)?.midi! % 12).toBe(4); // phrase 2, C chord: E
+    const waltz = generateBacking(backingTimeline(chart({ style: 'waltz', beatsPerBar: 3, bars: 8 }))!);
+    expect(of(waltz, 'bass').every((e) => (e.time * 2) % 3 === 0)).toBe(true); // still "oom" on 1
+  });
+
+  it('celesta broken chords only in odd phrases for sleigh-ride, throughout for gentle', () => {
+    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
+    const cel = of(ev, 'celesta');
+    expect(cel.length).toBeGreaterThan(0);
+    expect(cel.every((e) => (e.time >= 8 && e.time < 16) || (e.time >= 24 && e.time < 32))).toBe(true);
+    const gentle = of(generateBacking(backingTimeline(long('gentle'))!), 'celesta');
+    expect(gentle.some((e) => e.time < 8)).toBe(true);
+  });
+
+  it('ends with a ritardando tag: glock steps down the final chord with growing gaps, over a held fermata', () => {
+    const tl = backingTimeline(long('sleigh-ride'))!;
+    const ev = generateBacking(tl);
+    const down = barT(16);
+    const tag = of(ev, 'glock').filter((e) => e.time > down);
+    expect(tag.length).toBe(6);
+    const gaps = tag.slice(1).map((e, i) => e.time - tag[i].time);
+    for (let i = 1; i < gaps.length; i++) expect(gaps[i] / gaps[i - 1]).toBeCloseTo(RIT_RATIO, 1);
+    expect(tag.slice(0, 5).map((e) => e.midi!)).toEqual([...tag.slice(0, 5).map((e) => e.midi!)].sort((a, b) => b - a));
+    // Fermata: the last pad and bass are held well past the final downbeat.
+    const lastPad = of(ev, 'pad').filter((e) => e.tone === 'organ').at(-1)!;
+    expect(lastPad.time + lastPad.dur!).toBeGreaterThan(down + FERMATA * 2);
+    expect(of(ev, 'bass').at(-1)!.dur!).toBeGreaterThan(2);
+    // A drum fill leads into the final bar.
+    expect(of(ev, 'snare').filter((e) => e.time >= barT(15, 3) && e.time < down).length).toBe(2);
+  });
+
+  it('practice speed scales event times and lengths', () => {
+    const ev = generateBacking(backingTimeline(chart({ style: 'march' }))!);
+    const half = scaleEvents(ev, 0.5);
+    expect(half[5].time).toBeCloseTo(ev[5].time * 2, 3);
+    expect(of(half, 'pad')[0].dur).toBeCloseTo(of(ev, 'pad')[0].dur! * 2, 3);
+    expect(scaleEvents(ev, 1)).toBe(ev);
+  });
+});
 const charts = import.meta.glob('../public/charts/*.json', { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;
 const songs = Object.entries(charts).filter(([k]) => !k.endsWith('index.json')) as [string, S5Chart][];
 describe.skipIf(songs.length === 0)('generated carol charts (run "npm run charts" first)', () => {
@@ -183,7 +274,9 @@ describe.skipIf(songs.length === 0)('generated carol charts (run "npm run charts
       for (const p of c.parts.filter((x) => x.ringerCount === 2)) {
         const ev = generateBacking(tl!, { exclusions: exclusionsFrom(partBellNotes(c, p)), seed: c.song.id });
         expect(ev.length).toBeGreaterThan(20);
-        expect(ev.every((e) => Number.isFinite(e.time) && e.time >= 0 && e.time <= tl!.end + 0.01)).toBe(true);
+        // The ritardando tag ends ~1/8 bar after the final bar.
+        const down = tl!.beats.find((b) => b.bar === tl!.beats.at(-1)!.bar && b.beat === 0)!;
+        expect(ev.every((e) => Number.isFinite(e.time) && e.time >= 0 && e.time <= Math.max(tl!.end, down.time + 1.2 * down.dur * down.beatsPerBar))).toBe(true);
         // Easy (melody only) gets a backing bass line; hard (with bass bells) mostly does not.
         if (p.difficulty === 'easy') expect(of(ev, 'bass').length).toBeGreaterThan(4);
       }
@@ -192,5 +285,54 @@ describe.skipIf(songs.length === 0)('generated carol charts (run "npm run charts
       const bassOf = (p: typeof easy): number => of(generateBacking(tl!, { exclusions: exclusionsFrom(partBellNotes(c, p)) }), 'bass').length;
       expect(bassOf(hard)).toBeLessThanOrEqual(bassOf(easy));
     }
+  });
+});
+
+describe('song form (chart 0.3)', () => {
+  /** 8 bars: bars 1–2 intro (energy 0.45), 3–6 verse (0.8), 7–8 a verse up a step (1). */
+  function formChart(): HarmonyChart & { form: { sections: { energy: number; label: string; time: number; durSec: number }[] } } {
+    const c = chart({ style: 'march', bars: 8 });
+    const sectionOf = (bar: number): number => (bar <= 2 ? 0 : bar <= 6 ? 1 : 2);
+    c.harmony!.beats.forEach((b) => (b.section = sectionOf(b.bar)));
+    // Last two bars a whole step up (key change): D, A7.
+    c.harmony!.chords[6] = C(12, 2, 'D', 2, [2, 6, 9]);
+    c.harmony!.chords[7] = C(14, 2, 'A7', 9, [9, 1, 4, 7]);
+    return { ...c, form: { sections: [{ energy: 0.45, label: 'Intro', time: 0, durSec: 4 }, { energy: 0.8, label: 'Verse 1', time: 4, durSec: 8 }, { energy: 1, label: 'Verse 2', time: 12, durSec: 4 }] } };
+  }
+
+  it('the groove builds with the sections: no kick or snare in the intro, softer percussion in lighter sections', () => {
+    const tl = backingTimeline(formChart())!;
+    expect(tl.beats.map((b) => b.energy).slice(0, 9)).toEqual([0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.8]);
+    const ev = generateBacking(tl, { seed: 'x' });
+    expect([...of(ev, 'kick'), ...of(ev, 'snare')].every((e) => e.time >= 4)).toBe(true);
+    expect(of(ev, 'sleigh').some((e) => e.time < 4)).toBe(true);
+    const mean = (xs: BackingEvent[]): number => xs.reduce((s, e) => s + e.vel, 0) / xs.length;
+    expect(mean(of(ev, 'sleigh').filter((e) => e.time < 4))).toBeLessThan(mean(of(ev, 'sleigh').filter((e) => e.time >= 12)));
+    // Without a form every beat is at full energy (pre-0.3 charts sound as before).
+    const plain = chart({ style: 'march' });
+    expect(backingTimeline(plain)!.beats.every((b) => b.energy === 1)).toBe(true);
+  });
+
+  it('follows a key change: bass and pad use the transposed chords', () => {
+    const ev = generateBacking(backingTimeline(formChart())!, { seed: 'x' });
+    const lastBass = of(ev, 'bass').filter((e) => e.time >= 12 && e.time < 14);
+    expect(lastBass.length).toBeGreaterThan(0);
+    expect(lastBass[0].midi! % 12).toBe(2); // D
+    const pad = of(ev, 'pad').find((e) => e.time >= 14)!;
+    expect(new Set(pad.midis!.map((m) => m % 12))).toEqual(new Set([9, 1, 4, 7]));
+  });
+
+  it('at practice speed the whole form stretches: events at 2× the time, sections included', () => {
+    const c = formChart();
+    const slow = scaleChart(c, 0.5);
+    expect(slow.form.sections.map((s) => [s.time, s.durSec])).toEqual([[0, 8], [8, 16], [24, 8]]);
+    const a = generateBacking(backingTimeline(c)!, { seed: 'x' });
+    const b = generateBacking(backingTimeline(slow)!, { seed: 'x' });
+    expect(b.length).toBe(a.length);
+    b.forEach((e, i) => {
+      expect(e.inst).toBe(a[i].inst);
+      expect(e.time).toBeCloseTo(a[i].time * 2, 3);
+      expect(e.vel).toBeCloseTo(a[i].vel, 6);
+    });
   });
 });

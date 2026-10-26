@@ -101,7 +101,7 @@ try {
   const aliceCards = await alice.page.$$eval('#parts .pcard', (els) => els.map((e) => e.textContent));
   check('phone shows "Pick your part" with every part, occupant, range and meter', aliceCards.length === 3 && /TV plays/.test(aliceCards[2]) && /You/.test(aliceCards[0]) && /notes/.test(aliceCards[1]) && /[●○]{5}/.test(aliceCards[1]), aliceCards.map((t) => t.replace(/\s+/g, ' ')).join(' | '));
   const names = await game.evaluate(() => window.__i2.cards.map((c) => c.name));
-  check('parts have musical names', names.join() === 'Low melody,Middle melody,High melody', names.join(', '));
+  check('parts have musical names (one role each, from the balanced arrangement)', names.length === 3 && new Set(names).size === 3 && names.every((n) => /^(Bass|Harmony|Melody|(Low|Middle|High) melody)$/.test(n)), names.join(', '));
 
   // 2. Regression (lobby dropdown bug): the picker survives device broadcasts and Ready changes.
   await game.evaluate(() => {

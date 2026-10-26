@@ -34,7 +34,7 @@ export function backingStyle(score) {
   return 'march';
 }
 
-function keyOf(score, notes) {
+export function keyOf(score, notes) {
   if (Number.isInteger(score.meta?.fifths)) {
     const majorTonic = (((score.meta.fifths * 7) % 12) + 12) % 12;
     return score.meta.mode === 'minor' ? { tonic: (majorTonic + 9) % 12, mode: 'minor' } : { tonic: majorTonic, mode: 'major' };
@@ -121,10 +121,12 @@ export function inferChords(score, notes) {
 
 // The chart's `harmony` block: { source, style, chords[], beats[] } with times from the tempo map.
 // Returns null when no chords can be found (e.g. an empty score); readers then play no backing.
-export function buildHarmony(score, roleNotes) {
+// opts.chords/opts.source: a chord timeline already built (song form: transposed copies of the
+// lead-sheet or inferred chords); opts.sectionAt(tick): form section index stored on each beat.
+export function buildHarmony(score, roleNotes, opts = {}) {
   const toSec = makeTimeMap(score);
-  const source = score.chords.length ? 'lead-sheet' : 'inferred';
-  const raw = source === 'lead-sheet' ? score.chords : inferChords(score, roleNotes);
+  const source = opts.source ?? (score.chords.length ? 'lead-sheet' : 'inferred');
+  const raw = opts.chords ?? (source === 'lead-sheet' ? score.chords : inferChords(score, roleNotes));
   if (!raw.length) return null;
   const chords = raw.map((c) => ({
     tick: c.tick,
@@ -149,6 +151,7 @@ export function buildHarmony(score, roleNotes) {
     div: b.div,
     strong: b.strong,
     chord: chordAt(b.tick),
+    ...(opts.sectionAt ? { section: opts.sectionAt(b.tick) } : {}),
   }));
   return { source, style: backingStyle(score), chords, beats };
 }

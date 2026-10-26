@@ -70,6 +70,50 @@ survives device broadcasts). Runbook: [spike README](../../spikes/i2-web-phones/
 
 ![Seating chart lobby](media/i2-seating-lobby.png) ![Pick your part on a phone](media/i2-phone-part-picker.png)
 
+### Fast rings, richer backing, performance SFX (follow-up, 2026-10-25)
+
+From the owner's 4-player session:
+
+- **Fast repeated rings** — *"a little too difficult to do multiple rings in rapid succession"*.
+  Each phone now adapts its ring detector to its own notes (from `cues`): in 8th/16th passages
+  the refractory follows the note spacing, flick-sized strokes count and both directions of a
+  back-and-forth shake ring. Emulated (60 Hz, shake): 8ths/16ths at 100–140 bpm **23–44 % →
+  92–98 %** of fast notes detected; max ring rate **2 → 9.3 rings/s**; false rings while idle
+  unchanged. A per-phone **Normal / 🐇 Quick** sensitivity in the TV's phone list (HGP
+  `assign.ring`). Details and limits: [S1 report](S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes).
+- **Richer backing** — *"more sophisticated backing tracks"*. Songs are read as 4-bar phrases
+  (`backing/phrases.ts`): drum fills (snare, tom run, brush swell or a sleigh-bell roll) at
+  phrase ends with a soft crash on the next downbeat, a glockenspiel glissando up into every
+  other phrase, bass variations in alternate phrases (walking through the third, octave leaps,
+  alternating waltz bass), hi-hats in the march, celesta broken chords, a strings voice (the
+  waltz pad, and a lift under the last phrase of the others) and a **ritardando ending**: after
+  the bells' last note the chord is held (fermata) while glockenspiel and sleigh bells step down
+  it with ever longer gaps. The song's tempo itself is untouched, so judging is unchanged.
+- **Performance SFX** — *"special sound effects for feedback on performance"*: sparkle/chime at
+  team-streak milestones (10, 25, 50, every 50), a whoosh when the multiplier goes up, a soft
+  two-note "boop" for a miss (at most one per 3 s), a little brass fanfare on the current chord
+  for a phrase with every note Perfect/Great, and applause at the end scaled by team accuracy
+  (cheers from 80 %). All synthesised (`src/sfx/`), 10–25 dB under one bell and ducked a further
+  9 dB while a bell rings; lobby **Sound effects** on/off + volume.
+
+Evidence: unit tests (`test/backing.test.ts`, `test/sfx.test.ts`, S1 `test/detectors.test.ts`),
+`npm run audio-check` ([results](../../spikes/i2-web-phones/results/backing-render.md):
+OfflineAudioContext levels, onsets on their scheduled sample, ending decays to silence, 0.75×
+practice speed on-sample), `npm run sim:fast` in S1, and the gating timing E2E.
+
+### Balanced parts, longer songs, super easy (follow-up, 2026-10-25)
+
+After a 4-player session (parts unbalanced, songs too short, Easy too steep) the charts moved to
+S5 format 0.3 ([S5 report follow-up](S5-report.md#follow-up-2026-10-25-song-form-balanced-parts-super-easy-format-03)):
+the lobby gains **Parts** (Balanced / Chord split / By range), **Length** (Full ≈ 2–3 min /
+Short) and a **Super easy** tier. Part cards take their names from the chart's roles; super easy
+and any descant nobody holds are played softly by the TV from the part's `guide`. The backing
+follows the form: each beat's section energy drops kick and snare in the intro and quiet verses
+and builds to the last verse, and key changes come from the (transposed) chords. Phone charts
+skip the key change by default (it adds bells beyond 4 per phone). The timing E2E plays the
+short form (as before) plus one full-form super-easy run with 4 phones; charts at practice speed
+stretch the form like every other time.
+
 ### Alignment with I1 (YARG fork, PR #8)
 
 I1 changed the same S1 controller. I2 takes I1's controller/HGP changes **verbatim** (optional
@@ -195,6 +239,8 @@ and ±7–15 ms for the pooled team. The old fixed thresholds (≥ 80 % hits, ±
 - Drop-in joining (owner feedback 2026-10-25): a corner QR stays on screen during songs and results;
   phones that join mid-song wait and get the first TV-played part at the next round. Follow-up:
   live takeover of a TV part mid-song (needs a cue/highway handover inside a round).
+- The richer backing (phrases, fills, ritardando ending) is generated from the stretched chart, and
+  the performance SFX are event-driven, so both follow practice speed.
 - A/V offset is global; per-phone latency offsets (HGP v1) would help mixed iOS/Android groups.
 - `cues` are sent once at song start (a phone that reconnects mid-song loses its glow).
 - Charts: S5's assignment is not phone-aware enough for 1–2 ringers; consider a "max 4 bells"
@@ -203,5 +249,6 @@ and ±7–15 ms for the pooled team. The old fixed thresholds (≥ 80 % hits, ±
 ## Licenses
 
 All code MIT (repo). No new assets: S5 charts (CC0 / public domain, per-song licence in each
-chart), S4's and S1's synthesized bell sounds. New npm dev dependencies are MIT/Apache-2.0
+chart), S4's and S1's synthesized bell sounds; the backing and performance SFX are synthesised
+live from code (no samples or audio files, nothing to register). New npm dev dependencies are MIT/Apache-2.0
 (see the spike README).

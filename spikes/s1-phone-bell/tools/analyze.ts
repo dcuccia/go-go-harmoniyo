@@ -3,6 +3,7 @@
  * with different thresholds and score against the metronome beats of a recorded test.
  *
  *   npm run analyze -- data/<session> [--minDecel 4500 --minPeakOmega 200 ...] [--any-axis]
+ *                      [--sens normal|quick] [--ioi 125]   (fast-passage context, e.g. a fast metronome)
  *
  * Prints per-device sensor statistics (rate, interval jitter, gaps) and detection results.
  */
@@ -10,7 +11,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { matchNearest } from '../src/core/match.ts';
-import { DEFAULT_RING_PARAMS, learnAxis, RingDetector, type MotionSample, type RingDetectorParams, type StrikeEvent } from '../src/core/ring-detector.ts';
+import { DEFAULT_RING_PARAMS, isSensitivity, learnAxis, RingDetector, type RingContext, type MotionSample, type RingDetectorParams, type StrikeEvent } from '../src/core/ring-detector.ts';
 import { centeredAbs, fmt, summarize } from '../src/core/stats.ts';
 
 const { values: a, positionals } = parseArgs({
@@ -23,6 +24,8 @@ const { values: a, positionals } = parseArgs({
     rearmOmega: { type: 'string' },
     refractoryMs: { type: 'string' },
     'any-axis': { type: 'boolean', default: false },
+    sens: { type: 'string' },
+    ioi: { type: 'string' },
   },
 });
 const dir = positionals[0];
@@ -37,12 +40,14 @@ for (const k of ['armOmega', 'minPeakOmega', 'minDecel', 'releaseRatio', 'rearmO
   if (v !== undefined) overrides[k] = Number(v);
 }
 
+const context: RingContext = { sensitivity: isSensitivity(a.sens) ? a.sens : 'normal', ioiMs: a.ioi ? Number(a.ioi) : null };
+
 const files = readdirSync(dir);
 const metronomes = files
   .filter((f) => f.startsWith('results-metronome-'))
   .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')) as { test: { id: string; beats: number[]; period: number } });
 
-console.log(`Session ${dir}; detector ${JSON.stringify({ ...DEFAULT_RING_PARAMS, ...overrides, axis: a['any-axis'] ? 'any' : 'learned' })}\n`);
+console.log(`Session ${dir}; detector ${JSON.stringify({ ...DEFAULT_RING_PARAMS, ...overrides, axis: a['any-axis'] ? 'any' : 'learned' })}; context ${JSON.stringify(context)}\n`);
 console.log('| Device | samples | rate (Hz) | Δt p50 / p95 / max (ms) | gaps >50 ms | test | detected | extra | spread p95 (ms) |');
 console.log('|---|---|---|---|---|---|---|---|---|');
 
@@ -62,6 +67,7 @@ for (const f of files.filter((x) => x.startsWith('raw-'))) {
 
   const run = (params: Partial<RingDetectorParams>, ss: readonly (MotionSample & { off: number })[]) => {
     const d = new RingDetector(params);
+    if (params.axis !== null) d.setContext(context);
     const out: (StrikeEvent & { th: number })[] = [];
     for (const s of ss) {
       const e = d.push(s);

@@ -4,6 +4,7 @@
 // and sends bell assignments + note cues back through the host.
 import { ClockSync } from '../../s1-phone-bell/src/core/clock-sync.ts';
 import { HGP_VERSION, type Bell, type PartCard, type SoundMode } from '../../s1-phone-bell/src/core/hgp.ts';
+import type { Sensitivity } from '../../s1-phone-bell/src/core/ring-detector.ts';
 
 export interface PhoneInfo {
   id: string;
@@ -11,7 +12,7 @@ export interface PhoneInfo {
   kind: string;
   online: boolean;
   bells: Bell[];
-  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown };
+  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown; sens?: string };
   /** Lobby ✓ Ready (HGP `ready`). */
   ready?: boolean;
   events: number;
@@ -185,10 +186,11 @@ export class HgpLink {
 
   /**
    * Give one phone an explicit bell list (HGP `assign`, zones when > 1 bell) and a ringer label
-   * (`assign.ringer`, the field I1's YARG mode also uses; the phone then lays zones out as lanes).
+   * (`assign.ringer`, the field I1's YARG mode also uses; the phone then lays zones out as lanes),
+   * plus ring-detection hints (`assign.ring`: Normal/Quick sensitivity, the part's shortest IOI).
    */
-  assign(deviceId: string, bells: Bell[], ringer?: { slot: number; title: string; song?: string }): void {
-    this.cmd({ cmd: 'assign-bells', deviceId, bells, ringer });
+  assign(deviceId: string, bells: Bell[], ringer?: { slot: number; title: string; song?: string }, ring?: { sens?: Sensitivity; ioi?: number }): void {
+    this.cmd({ cmd: 'assign-bells', deviceId, bells, ringer, ring });
   }
 
   /** Upcoming notes for one phone so it can glow the next zone; empty arrays clear. */

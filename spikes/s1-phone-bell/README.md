@@ -72,7 +72,12 @@ cmd:"assign-bells", deviceId, bells:[{id,label,midi,color}], ringer?:{slot,title
 runs fake phones that ring whatever notes they are cued.
 
 Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw traces),
-`?minDecel=4500&minPeakOmega=200…` (detector overrides).
+`?minDecel=4500&minPeakOmega=200…` (detector overrides), `?sens=quick` (Quick ring sensitivity; normally set per phone in the I2 lobby).
+
+**Fast passages.** During a song the phone adapts the ring detector to its own upcoming notes
+(from `cues`): in 8th/16th-note passages the refractory period follows the note spacing, smaller
+"flick" strokes count and both halves of a back-and-forth shake ring. The status line shows
+`rings: normal · fast 125 ms` while it is active. See [S1 report → Fast repeated rings](../../docs/spikes/S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes).
 
 ### YARG mode (I1: phones as ringers in the YARG fork)
 
@@ -95,7 +100,7 @@ and results: [docs/spikes/I1-yarg-phones.md](../../docs/spikes/I1-yarg-phones.md
 ```powershell
 npm run typecheck   # tsc --noEmit
 npm test            # unit tests (clock sync, detectors, onsets, analysis)
-npm run sim         # emulated measurements → results/sim-results.md
+npm run sim         # emulated measurements → results/sim-results.md run sim:fast    # only section 5 (fast repeated rings), add -- --quick for a 5 s run
 npx tsx tools/sim-phones.ts   # with `npm start -- --no-open` running: fake phones end-to-end
 npx tsx tools/sim-yarg-phones.ts --churn --extra   # with `npm run yarg -- --no-https --no-open` (+ YARG -hgp) running
 ```
