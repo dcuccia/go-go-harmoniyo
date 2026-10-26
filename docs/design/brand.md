@@ -91,7 +91,7 @@ The name is an umbrella. Instruments and audiences become editions:
   is 1.5× its size in mashup G (90 % of "HarmoniYo").
 - **Mark and app icon:** **Y1 Wink**, Yo the living bell (mascot brief option 2), gender-neutral.
 - **Dark mode is the default.** Light mode is secondary.
-- **Recommended defaults** the owner can change: the favicon is **Y8** (icon-grade). The in-game
+- **Defaults (owner-confirmed 2026-10-25, after seeing them in-game in #70):** the favicon is **Y8** (icon-grade). The in-game
   states are **Y3** idle, **Y4** ring, and **Y2** or **Y5** cheer.
 
 Production files are in [`brand/`](brand/README.md), built by `tools/design/brand/build.py`. They
