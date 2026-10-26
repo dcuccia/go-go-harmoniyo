@@ -1,4 +1,10 @@
-# Go Go HarmoniYo
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/design/brand/logo-stacked-light.svg" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/design/brand/logo-stacked-dark.svg" />
+    <img src="docs/design/brand/logo-stacked-dark.svg" alt="Go Go HarmoniYo" width="480" />
+  </picture>
+</h1>
 
 A rhythm game for **handbell ringers**, inspired by games like Guitar Hero and Rock Band. Play
 solo, as a family, or as a whole classroom ringing together in front of one shared screen.

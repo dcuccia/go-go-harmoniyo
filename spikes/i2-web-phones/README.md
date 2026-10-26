@@ -215,7 +215,7 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`; the S1 host's own default stays 8080). For a game started with `npm start` (port 18900), add `?hgp=ws://127.0.0.1:18900/hgp`. |
 | `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; drop-in join queue: mid-song joiners wait and are seated first come first served; practice speed: 5 % steps, chart/tempo/beat-grid stretching, judging windows in real time, backing and count-in follow, slow-motion scroll, every generated tier; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
 | `npm start -- --check` | Start-up checks only (same as `npm run preflight` at the repo root). `npm start -- --help` lists the options. |
-| `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
+| `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/` and copies the brand files to `public/brand/`). |
 | `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Five scenarios, one at 50 % practice speed (the stretched song, rings still judged in real time against the same offset tolerances). Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a game you are running (`npm start`, port 18900) or an S1 host on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
 | `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
 | `npm run e2e:dropin` | Drop-in + practice speed end-to-end (port 18600): the lobby speed control (5 % steps, kept across a reload), Alice plays at 50 % (HUD badge, phone label, stretched song, results line), Bob joins mid-song from a phone page (*You're in!*, TV corner QR + *+1 waiting*, seats unchanged), results (*Joining: Bob*, he can pick a part), **Again** seats him in the TV's part, the corner QR hides in the lobby and with `?joinQr=0`. Writes `results/dropin-e2e.json`; `-- --shots` captures `i2-ingame-join-qr.png`, `i2-results-join-qr.png` and `i2-phone-waiting.png`. |
@@ -275,6 +275,17 @@ only when phones join, leave or are renamed; Ready/sync/heartbeat broadcasts pat
 dropdown within a second.) Phones talk to the seating through HGP `parts` / `claim` / `ready`
 ([hgp-v0.md](../../docs/protocol/hgp-v0.md)).
 
+### Branding
+
+The TV wears the Go Go HarmoniYo identity ([brand guide §3](../../docs/design/brand.md#3-logo-and-visual-identity)):
+the stacked lockup (G2) heads the lobby, Yo hums (Y3) next to *Scan to join*, a phone's lobby row
+shows Yo ringing (Y4) for a moment when that phone rings, the corner join card carries the Yo
+mark with *Join Go Go HarmoniYo*, and the results panel has Yo cheering: Y5 (hands up) from 80 %
+team accuracy, Y2 (joy) below that. Every outcome gets a celebration. The UI accent (`--gold`) is
+candlelight `#f3b01d` and the page is the stage `#0b0d17`; the note highways keep their darker
+`#05040d`, which the pitch-class palette's contrast checks use. Yo's motion stops with
+`prefers-reduced-motion`. Favicon, app icons and `theme-color` come from the same files.
+
 ## Changes made to the other spikes (additive)
 
 - **S1** host: `--game <dir>` serves a static game at `/game/`; dashboard commands
@@ -289,6 +300,8 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
   Drop-in: `parts.waiting` from the game → `next` per phone; controller **You're in!** screen.
   Fast rings: `assign-bells` also relays `ring` (`{sens, ioi}`) → HGP `assign.ring`; the controller
   adapts its ring detector to its `cues` (fast passages) and to Normal/Quick sensitivity.
+  Branding: the host serves `docs/design/brand/` at `/brand/`, `/favicon.ico` and the phone's
+  `/manifest.webmanifest`; the controller, dashboard and meter carry the lockup, favicon and stage colours.
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
   `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
   come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
@@ -310,7 +323,11 @@ sources (licence per song in each chart's `song.license`); bell sound is S4's ad
 on the TV and S1's synth on the phones. The backing track (sleigh bells, drums, bass, organ/pad/strings,
 celesta, glockenspiel, count-in) and the performance SFX (sparkles, whoosh, boop, fanfare, applause)
 are synthesised live with Web Audio from code in `src/backing/` and `src/sfx/` — no samples or
-audio files, so there is no media to register. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
+audio files, so there is no media to register. The brand files (lobby lockup, Yo states, favicon,
+app icons) are copied at build time from [`docs/design/brand/`](../../docs/design/brand/README.md)
+into `public/brand/` (gitignored) by `npm run brand` (part of `prebuild`/`predev`); the sources are
+registered as `brand-identity` and `brand-yo-defaults` (CC BY 4.0), and the copies are never edited.
+`public/manifest.webmanifest` makes the TV page installable with those icons. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
 typescript (Apache-2.0), playwright-core (Apache-2.0).
 
 Platform notes for the backing: it runs on the TV host only; phones are unchanged. Verified in

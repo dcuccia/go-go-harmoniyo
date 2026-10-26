@@ -32,6 +32,10 @@ const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
 const flag = (k: string, d: boolean): boolean => (params.has(k) ? params.get(k) !== '0' : d);
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
+/** Brand files (docs/design/brand, copied by scripts/brand-assets.mjs). */
+const BRAND = `${import.meta.env.BASE_URL}brand/`;
+/** Results cheer: Y5 (cheer with hands) from this team accuracy, Y2 (joy) below it. Both celebrate. */
+const BIG_CHEER_ACCURACY = 0.8;
 
 // ── offsets (same semantics as S4; separate storage key) ───────────────────
 const OFFSETS_KEY = 'i2.offsets';
@@ -420,7 +424,7 @@ function renderStatus(): void {
       const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
       setHtml(
         li,
-        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
+        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small><img class="yo-rang" src="${BRAND}yo-ring.svg" alt="" />`,
       );
     });
   }
@@ -859,6 +863,10 @@ function finish(r: SessionResult): void {
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = r.title;
+  const yo = $<HTMLImageElement>('res-yo');
+  const bigCheer = r.accuracy >= BIG_CHEER_ACCURACY;
+  yo.src = `${BRAND}${bigCheer ? 'yo-cheer-hands' : 'yo-cheer'}.svg`;
+  yo.dataset.state = bigCheer ? 'cheer-hands' : 'cheer';
   const speedLine = roundSpeed < 1 ? `<br><span class="res-speed">🐢 Practice speed ${speedPercent(roundSpeed)}%</span>` : '';
   $('res-body').innerHTML =
     r.mode === 'autoplay'

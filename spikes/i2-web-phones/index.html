@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Go Go HarmoniYo — I2 phones + web host</title>
-    <link rel="icon" href="data:," />
+    <title>Go Go HarmoniYo</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0d17" />
+    <!-- Brand files are copied from docs/design/brand by scripts/brand-assets.mjs (npm run brand). -->
+    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
     <div id="highways"></div>
@@ -34,8 +40,8 @@
     <div id="lobby" class="overlay">
       <div class="lobby">
         <section class="join">
-          <h1>Go Go <span>HarmoniYo</span></h1>
-          <p class="sub">Scan to join with your phone</p>
+          <h1 class="brand"><img src="/brand/logo-stacked-dark.svg" alt="Go Go HarmoniYo" /></h1>
+          <p class="sub"><img class="yo-idle" src="/brand/yo-idle.svg" alt="" /> Scan to join with your phone</p>
           <img id="qr" alt="QR code for the phone join URL" />
           <div id="join-url">waiting for host…</div>
           <ol class="steps">
@@ -142,7 +148,10 @@
 
     <div id="results" class="overlay hidden">
       <div class="panel wide">
-        <h2 id="res-title">Results</h2>
+        <div class="res-head">
+          <h2 id="res-title">Results</h2>
+          <img id="res-yo" alt="" />
+        </div>
         <div id="res-body"></div>
         <table id="res-players"></table>
         <p id="res-next" class="dim"></p>
@@ -158,6 +167,7 @@
 
     <!-- Always-visible join QR during the song and on the results screen (drop-in joining). -->
     <aside id="corner-join" class="hidden" aria-label="Join with your phone">
+      <div id="corner-brand"><img src="/brand/mark-dark.svg" alt="" /><span>Join Go Go HarmoniYo</span></div>
       <img id="corner-qr" alt="QR code to join with a phone" />
       <div id="corner-url"></div>
       <div id="corner-hint"></div>

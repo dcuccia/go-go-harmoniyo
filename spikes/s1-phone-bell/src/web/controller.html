@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>Go Go HarmoniYo — bell</title>
+    <meta name="apple-mobile-web-app-title" content="Go Go HarmoniYo" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0d17" />
+    <title>Go Go HarmoniYo</title>
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body class="controller">
     <section id="start-screen">
-      <h1>🔔 Go Go HarmoniYo</h1>
+      <h1><img class="brand-line" src="/brand/logo-line-dark.svg" alt="Go Go HarmoniYo" /></h1>
       <p>Spike S1 controller. Hold the phone like a handbell, screen facing you.</p>
       <label>Your name <input id="name" autocomplete="nickname" maxlength="20" placeholder="e.g. Dad" /></label>
       <button id="start" class="big">Tap to start</button>
@@ -18,6 +25,7 @@
       <p id="secure" class="warn"></p>
     </section>
     <section id="main" hidden>
+      <header id="brand-bar"><span id="brand-yo"><img class="idle" src="/brand/yo/yo-idle.svg" alt="" /><img class="ring" src="/brand/yo/yo-ring.svg" alt="" /></span><span>Go Go HarmoniYo</span></header>
       <div id="banner" hidden></div>
       <section id="waiting" hidden aria-live="polite">
         <h2>You're in! 🎉</h2>

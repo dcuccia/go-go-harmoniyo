@@ -1,11 +1,14 @@
 :root {
   --bell: #888;
+  /* Brand chrome (docs/design/brand.md §3): candlelight accent on the stage. */
+  --gold: #f3b01d;
+  --stage: #0b0d17;
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 body {
   margin: 0;
-  background: #111;
+  background: var(--stage);
   color: #eee;
 }
 [hidden] {
@@ -93,7 +96,7 @@ body.controller {
 }
 /* Sharps/flats: ring outline, so colour is never the only cue. */
 #bell.acc {
-  box-shadow: 0 0 0 6px #111, 0 0 0 11px #f4f4ff;
+  box-shadow: 0 0 0 6px var(--stage), 0 0 0 11px #f4f4ff;
 }
 #bell small {
   font-size: 0.2em;
@@ -134,7 +137,7 @@ body.multi #bell {
   height: min(30vw, 22vh);
   border-radius: 1em;
   border: 3px solid transparent;
-  background: color-mix(in srgb, var(--zone) 35%, #111);
+  background: color-mix(in srgb, var(--zone) 35%, var(--stage));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -262,7 +265,7 @@ fieldset {
   background: #1d1d26;
 }
 .pcard.mine {
-  border-color: #ffd23f;
+  border-color: var(--gold);
   background: #2a2614;
 }
 .pcard b {
@@ -296,19 +299,19 @@ fieldset {
   color: #10121c;
 }
 .pcard .pb i.acc {
-  box-shadow: 0 0 0 2px #111, 0 0 0 3px #f4f4ff;
+  box-shadow: 0 0 0 2px var(--stage), 0 0 0 3px #f4f4ff;
   margin: 0 0.3em 0 0.2em;
 }
 .meter {
   letter-spacing: 0.05em;
-  color: #ffd23f;
+  color: var(--gold);
 }
 .pcard .swap {
   grid-column: 1 / -1;
   margin-top: 0.3em;
   padding: 0.5em;
   border-radius: 0.5em;
-  background: #ffd23f;
+  background: var(--gold);
   color: #10121c;
   font-weight: 700;
   text-align: center;
@@ -327,7 +330,7 @@ fieldset {
   max-width: 34em;
   padding: 0.8em 1em;
   border-radius: 0.8em;
-  border: 2px solid #ffd23f;
+  border: 2px solid var(--gold);
   background: #2a2614;
   text-align: center;
 }
@@ -340,6 +343,72 @@ fieldset {
 }
 #lobby-next {
   margin: 0 0 0.3em;
-  color: #ffd23f;
+  color: var(--gold);
 }
 
+
+/* Brand (docs/design/brand.md §3). One-line lockup: never below 200 px wide. */
+.brand-line {
+  display: block;
+  width: min(320px, 86vw);
+  min-width: 200px;
+  height: auto;
+}
+#start-screen h1 {
+  margin: 0;
+  line-height: 0;
+}
+/* Play view: Yo with the full name beside it; Yo shows Y4 (ding!) briefly on each ring. Both images
+   load up front, so a ring never fetches anything. */
+#brand-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  margin: -0.3em 0 0.5em;
+  font-weight: 700;
+  font-size: 0.9em;
+  opacity: 0.9;
+}
+#brand-yo {
+  position: relative;
+  width: 36px;
+  height: 36px;
+}
+#brand-yo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#brand-yo .ring,
+#brand-yo.ringing .idle {
+  visibility: hidden;
+}
+#brand-yo.ringing .ring {
+  visibility: visible;
+  animation: yo-ding 0.35s ease-out;
+}
+@keyframes yo-ding {
+  0% {
+    transform: rotate(-12deg) scale(1.15);
+  }
+  100% {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #brand-yo.ringing .ring {
+    animation: none;
+  }
+}
+body.dashboard h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 0 0.6em;
+  font-size: 1.4em;
+}
+body.dashboard h1 .brand-line {
+  width: 240px;
+}

@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-26T00:36:43.105Z",
+  "at": "2026-10-26T02:55:06.849Z",
   "ok": true,
   "evidence": {
     "takeover": {
@@ -19,7 +19,7 @@
       "hello": 2,
       "replaced": 1,
       "disconnect": 0,
-      "windowMs": 8010
+      "windowMs": 8007
     },
     "fallback": {
       "hello": 2,
@@ -156,7 +156,7 @@
     {
       "name": "no ping-pong: one replacement, then stable for 8 s",
       "ok": true,
-      "detail": "{\"hello\":2,\"replaced\":1,\"disconnect\":0,\"windowMs\":8010}"
+      "detail": "{\"hello\":2,\"replaced\":1,\"disconnect\":0,\"windowMs\":8007}"
     },
     {
       "name": "newest page wins and stays connected; the old one stays off",

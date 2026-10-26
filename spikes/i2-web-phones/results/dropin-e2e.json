@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T23:04:05.416Z",
+  "at": "2026-10-26T02:54:30.428Z",
   "ok": true,
   "checks": [
     {
@@ -55,12 +55,12 @@
     {
       "name": "corner shows the short join URL (and the certificate hint with a self-signed cert)",
       "ok": true,
-      "detail": "{\"url\":\"https://192.168.1.143:18963\",\"hint\":\"scan · accept the warning once\",\"src\":\"http://127.0.0.1:18600/qr.svg?u=https%3A%2F%2F192.168.1.143%3A18963%2F\",\"x\":19.1875,\"y\":16.1875,\"w\":152.390625,\"h\":221.984375}"
+      "detail": "{\"url\":\"https://192.168.70.107:18963\",\"hint\":\"scan · accept the warning once\",\"src\":\"http://127.0.0.1:18600/qr.svg?u=https%3A%2F%2F192.168.70.107%3A18963%2F\",\"x\":19.1875,\"y\":16.1875,\"w\":152.390625,\"h\":257.984375}"
     },
     {
       "name": "corner QR is small and in the top-left corner",
       "ok": true,
-      "detail": "152×222 at 19,16"
+      "detail": "152×258 at 19,16"
     },
     {
       "name": "phone that joins mid-song shows \"you're in for the next song\"",
