@@ -7,9 +7,10 @@
   "license": "MIT",
   "scripts": {
     "charts": "node scripts/build-charts.mjs",
-    "predev": "npm run charts",
+    "brand": "node scripts/brand-assets.mjs",
+    "predev": "npm run charts && npm run brand",
     "dev": "vite",
-    "prebuild": "npm run charts",
+    "prebuild": "npm run charts && npm run brand",
     "build": "tsc --noEmit && vite build",
     "start": "node scripts/start.mjs",
     "pree2e": "npm run build",

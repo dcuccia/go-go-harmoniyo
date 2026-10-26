@@ -9,14 +9,14 @@
   ],
   "notes": 32,
   "hit": 32,
-  "perfect": 30,
+  "perfect": 32,
   "miss": 0,
   "strays": 0,
   "offsetMs": {
     "n": 32,
-    "mean": 16.4,
-    "p50": 13.8,
-    "p95abs": 48.8
+    "mean": 10.1,
+    "p50": 10.3,
+    "p95abs": 17.5
   },
   "glow": "11/11",
   "input": {
@@ -26,9 +26,9 @@
     "nonRing": 0,
     "latencyMs": {
       "n": 32,
-      "mean": 27.1,
-      "p50": 23.8,
-      "p95abs": 48.6
+      "mean": 21.4,
+      "p50": 22.1,
+      "p95abs": 32.3
     }
   },
   "errors": []

@@ -1,5 +1,5 @@
 {
-  "at": "2026-10-25T23:02:56.403Z",
+  "at": "2026-10-26T02:53:18.131Z",
   "ok": true,
   "checks": [
     {
@@ -15,12 +15,12 @@
     {
       "name": "phone shows \"Pick your part\" with every part, occupant, range and meter",
       "ok": true,
-      "detail": "Low melodyYouDEF♯GD4–G4●○○○○22 notes | Middle melody📱 BobABA4–B4●●○○○47 notes | High melody🤖 TV playsCDEC5–E5●●○○○28 notes"
+      "detail": "BassYouDGACD2–C3●●○○○72 notes | Low melody📱 BobDEGAD4–A4●●○○○72 notes | High melody🤖 TV playsBCDEB4–E5●●●○○134 notes"
     },
     {
-      "name": "parts have musical names",
+      "name": "parts have musical names (one role each, from the balanced arrangement)",
       "ok": true,
-      "detail": "Low melody, Middle melody, High melody"
+      "detail": "Bass, Low melody, High melody"
     },
     {
       "name": "picker stays open, focused and is the same node across device broadcasts",
@@ -55,7 +55,7 @@
     {
       "name": "phone gets the new part’s bells and label",
       "ok": true,
-      "detail": "Middle melody"
+      "detail": "Low melody"
     },
     {
       "name": "taken part offers \"Swap with <name>?\"",

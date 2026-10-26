@@ -120,11 +120,19 @@ function render(): void {
   } else banner.hidden = true;
 }
 
+let yoTimer = 0;
 function flash(): void {
   const el = $('bell');
   el.classList.remove('hit');
   void el.offsetWidth;
   el.classList.add('hit');
+  // Yo rings with you: Y4 (ding!) for a moment, then back to Y3 (idle hum).
+  const yo = $('brand-yo');
+  yo.classList.remove('ringing');
+  void yo.offsetWidth;
+  yo.classList.add('ringing');
+  clearTimeout(yoTimer);
+  yoTimer = window.setTimeout(() => yo.classList.remove('ringing'), 400);
 }
 
 // ── gestures ────────────────────────────────────────────────────────────────
