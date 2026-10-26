@@ -104,6 +104,7 @@ repository "MIT" in a way that hides them.
 | [Brand option 5, Bell Tag: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-5-bell-tag) | derived | CC-BY-4.0 | 16 | pending |
 | [Brand option 6, Sing-Along: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-6-sing-along) | derived | CC-BY-4.0 | 16 | pending |
 | [Brand options: side-by-side overview sheets (wordmarks, icons, mascots)](#brand-options-overviews) | derived | CC-BY-4.0 | 3 | pending |
+| [Brand options: eight mashups of directions 2 (Resonance) and 6 (Sing-Along), with preview boards and overview](#brand-option-mashups) | derived | CC-BY-4.0 | 117 | pending |
 
 ### project-ui-captures
 
@@ -726,6 +727,18 @@ repository "MIT" in a way that hides them.
 - Modifications: none
 - Review: pending. Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.
 
+### brand-option-mashups
+
+**Brand options: eight mashups of directions 2 (Resonance) and 6 (Sing-Along), with preview boards and overview**
+
+- Files: `docs/design/brand-options/mashups/*/*`, `docs/design/brand-options/mashups/*.png` (117 file(s))
+- Origin: derived — from [font-outfit](#font-outfit), [font-grandstander](#font-grandstander), [brand-option-2-resonance](#brand-option-2-resonance), [brand-option-6-sing-along](#brand-option-6-sing-along) via `python tools/design/brand-options/mashups.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required.
+
 ## Open items
 
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -761,6 +774,7 @@ repository "MIT" in a way that hides them.
 - brand-option-5-bell-tag: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
 - brand-option-6-sing-along: review pending (Procedural design exploration (not adopted). Wordmarks are glyph outlines from the OFL font, shaped with HarfBuzz and converted to SVG paths; logos made with OFL fonts are the maker's own work (OFL-FAQ 1.1). Marks, icons and the mascot sketch are hand-written SVG geometry; no image-generation model and no reference images were used (the generator script was written with an AI coding agent). Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
 - brand-options-overviews: review pending (Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
+- brand-option-mashups: review pending (Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required.)
 
 ## Required record for each new asset
 

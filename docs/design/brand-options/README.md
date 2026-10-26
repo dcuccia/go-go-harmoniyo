@@ -26,6 +26,10 @@ favicon, a mascot sketch, taglines, and a preview board.
 
 ## Recommendation
 
+> **Update (2026-10-25):** the owner narrowed it to 2 Resonance and 6 Sing-Along. Eight mashups
+> of those two, with the same preview boards and a recommended pick, are in
+> **[mashups](mashups/README.md)**.
+
 **Top 2: [1. Ring Burst](#1-ring-burst) and [4. Pitch Wheel](#4-pitch-wheel).**
 
 1. **Ring Burst** is the most *distinctive*. The capital Y is drawn as a handbell held at rest,
@@ -269,6 +273,7 @@ before any option is adopted. The register entries are marked `review: pending`.
 python -m pip install -r tools/design/brand-options/requirements.txt
 python -m playwright install chromium
 python tools/design/brand-options/build.py
+python tools/design/brand-options/mashups.py
 node tools/licensing/attribution.mjs
 ```
 

@@ -1047,6 +1047,34 @@
         "status": "pending",
         "notes": "Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted."
       }
+    },
+    {
+      "id": "brand-option-mashups",
+      "title": "Brand options: eight mashups of directions 2 (Resonance) and 6 (Sing-Along), with preview boards and overview",
+      "kind": "image",
+      "origin": "derived",
+      "paths": [
+        "docs/design/brand-options/mashups/*/*",
+        "docs/design/brand-options/mashups/*.png"
+      ],
+      "authors": [
+        "David Cuccia and Go Go HarmoniYo contributors"
+      ],
+      "copyright": "2026 David Cuccia and Go Go HarmoniYo contributors",
+      "license": "CC-BY-4.0",
+      "derivedFrom": [
+        "font-outfit",
+        "font-grandstander",
+        "brand-option-2-resonance",
+        "brand-option-6-sing-along"
+      ],
+      "generator": "python tools/design/brand-options/mashups.py",
+      "modifications": "none",
+      "credit": false,
+      "review": {
+        "status": "pending",
+        "notes": "Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required."
+      }
     }
   ]
 }
