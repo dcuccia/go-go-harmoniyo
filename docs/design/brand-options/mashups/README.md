@@ -38,6 +38,10 @@ These ratings are our judgment from the boards.
 
 ## Recommendation
 
+> **Update (2026-10-25):** the owner picked **G** to develop further. The refinements (one colour for
+> "Go Go", the Y and Yo; a bigger "Go Go"; dark mode first) and eight versions of Yo are in
+> **[G vamps](../g-vamps/README.md)**.
+
 **Pick: [H. Fork-handle Yo](#h-fork-handle-yo).** It keeps everything you liked about each parent
 in its own place. The name is Resonance's calm Outfit wordmark, which looks professional in a store
 listing or a classroom. The icon is Sing-Along's Yo, which gives the brand a face. A single shape

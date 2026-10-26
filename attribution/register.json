@@ -1075,6 +1075,32 @@
         "status": "pending",
         "notes": "Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required."
       }
+    },
+    {
+      "id": "brand-option-g-vamps",
+      "title": "Brand options: G vamps (colour-matched Go Go lockups and eight versions of Yo), with preview boards and overviews",
+      "kind": "image",
+      "origin": "derived",
+      "paths": [
+        "docs/design/brand-options/g-vamps/*/*",
+        "docs/design/brand-options/g-vamps/*.png"
+      ],
+      "authors": [
+        "David Cuccia and Go Go HarmoniYo contributors"
+      ],
+      "copyright": "2026 David Cuccia and Go Go HarmoniYo contributors",
+      "license": "CC-BY-4.0",
+      "derivedFrom": [
+        "font-grandstander",
+        "brand-option-mashups"
+      ],
+      "generator": "python tools/design/brand-options/gvamps.py",
+      "modifications": "none",
+      "credit": false,
+      "review": {
+        "status": "pending",
+        "notes": "Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as vamps on mashup G. Wordmarks are Grandstander glyph outlines (OFL-FAQ 1.1); Yo versions are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks, bow-wearing character brands and the ringing-bell UI icon (see docs/design/brand-options/g-vamps/README.md#resemblance-re-check); a human resemblance review is still required."
+      }
     }
   ]
 }

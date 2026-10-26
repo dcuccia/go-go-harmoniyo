@@ -28,7 +28,8 @@ favicon, a mascot sketch, taglines, and a preview board.
 
 > **Update (2026-10-25):** the owner narrowed it to 2 Resonance and 6 Sing-Along. Eight mashups
 > of those two, with the same preview boards and a recommended pick, are in
-> **[mashups](mashups/README.md)**.
+> **[mashups](mashups/README.md)**. The owner then chose mashup G. Colour-matched "Go Go" lockups and
+> eight versions of Yo (dark mode first) are in **[G vamps](g-vamps/README.md)**.
 
 **Top 2: [1. Ring Burst](#1-ring-burst) and [4. Pitch Wheel](#4-pitch-wheel).**
 
@@ -274,6 +275,7 @@ python -m pip install -r tools/design/brand-options/requirements.txt
 python -m playwright install chromium
 python tools/design/brand-options/build.py
 python tools/design/brand-options/mashups.py
+python tools/design/brand-options/gvamps.py
 node tools/licensing/attribution.mjs
 ```
 
