@@ -105,7 +105,10 @@ repository "MIT" in a way that hides them.
 | [Brand option 6, Sing-Along: wordmarks, mark, app icon, favicon, mascot sketch and preview board](#brand-option-6-sing-along) | derived | CC-BY-4.0 | 16 | pending |
 | [Brand options: side-by-side overview sheets (wordmarks, icons, mascots)](#brand-options-overviews) | derived | CC-BY-4.0 | 3 | pending |
 | [Brand options: eight mashups of directions 2 (Resonance) and 6 (Sing-Along), with preview boards and overview](#brand-option-mashups) | derived | CC-BY-4.0 | 117 | pending |
-| [Brand options: G vamps (colour-matched Go Go lockups and eight versions of Yo), with preview boards and overviews](#brand-option-g-vamps) | derived | CC-BY-4.0 | 195 | pending |
+| [Brand options: G vamps not selected (other lockups and Yo versions), with preview boards and overviews](#brand-option-g-vamps) | derived | CC-BY-4.0 | 163 | pending |
+| [Brand options: the selected G vamps (lockup G2 and Yo Y1), preview boards](#brand-option-g-vamps-selected) | derived | CC-BY-4.0 | 32 | approved |
+| [Go Go HarmoniYo brand identity: logo lockups, Yo mark, app icons, social card and asset sheet](#brand-identity) | derived | CC-BY-4.0 | 24 | approved |
+| [Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)](#brand-yo-defaults) | derived | CC-BY-4.0 | 7 | pending |
 
 ### project-ui-captures
 
@@ -742,15 +745,51 @@ repository "MIT" in a way that hides them.
 
 ### brand-option-g-vamps
 
-**Brand options: G vamps (colour-matched Go Go lockups and eight versions of Yo), with preview boards and overviews**
+**Brand options: G vamps not selected (other lockups and Yo versions), with preview boards and overviews**
 
-- Files: `docs/design/brand-options/g-vamps/*/*`, `docs/design/brand-options/g-vamps/*.png` (195 file(s))
+- Files: `docs/design/brand-options/g-vamps/{g1-candlelight-1-25x,g3-candlelight-equal,g4-ember-1-5x,y2-joy,y3-calm,y4-ding,y5-cheer,y6-ribbon,y7-lashes,y8-icon-grade}/*`, `docs/design/brand-options/g-vamps/*.png` (163 file(s))
 - Origin: derived — from [font-grandstander](#font-grandstander), [brand-option-mashups](#brand-option-mashups) via `python tools/design/brand-options/gvamps.py`
 - Authors: David Cuccia and Go Go HarmoniYo contributors
 - Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
 - Review: pending. Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as vamps on mashup G. Wordmarks are Grandstander glyph outlines (OFL-FAQ 1.1); Yo versions are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks, bow-wearing character brands and the ringing-bell UI icon (see docs/design/brand-options/g-vamps/README.md#resemblance-re-check); a human resemblance review is still required.
+
+### brand-option-g-vamps-selected
+
+**Brand options: the selected G vamps (lockup G2 and Yo Y1), preview boards**
+
+- Files: `docs/design/brand-options/g-vamps/g2-candlelight-1-5x/*`, `docs/design/brand-options/g-vamps/y1-wink/*` (32 file(s))
+- Origin: derived — from [font-grandstander](#font-grandstander), [brand-option-mashups](#brand-option-mashups) via `python tools/design/brand-options/gvamps.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: approved by @dcuccia (owner) on 2026-10-25. Owner (@dcuccia) reviewed the G vamps boards and selected lockup G2 and Yo Y1 on 2026-10-25 ("let's go candlelight, 1.5x, Y1 wink is good"). Exploration boards kept for the record; production files are brand-identity.
+
+### brand-identity
+
+**Go Go HarmoniYo brand identity: logo lockups, Yo mark, app icons, social card and asset sheet**
+
+- Files: `docs/design/brand/logo-*.svg`, `docs/design/brand/mark-*.svg`, `docs/design/brand/app-icon*.svg`, `docs/design/brand/apple-touch-icon.*`, `docs/design/brand/icon-*.png`, `docs/design/brand/og-image.*`, `docs/design/brand/preview.png`, `docs/design/brand/yo/yo-wink.svg` (24 file(s))
+- Origin: derived — from [font-grandstander](#font-grandstander), [brand-option-g-vamps-selected](#brand-option-g-vamps-selected) via `python tools/design/brand/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: approved by @dcuccia (owner) on 2026-10-25. Owner (@dcuccia) reviewed the G vamps boards and selected lockup G2 and Yo Y1 on 2026-10-25 ("let's go candlelight, 1.5x, Y1 wink is good"). Approved for use in the product, store listings and docs. Procedural SVG (Grandstander Black outlines, OFL-FAQ 1.1; hand-written geometry); no image-generation model or reference images. Resemblance checks: docs/design/brand-options/g-vamps/README.md#resemblance-re-check.
+
+### brand-yo-defaults
+
+**Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)**
+
+- Files: `docs/design/brand/favicon.*`, `docs/design/brand/yo/yo-{idle,ring,cheer,cheer-hands,icon}.svg` (7 file(s))
+- Origin: derived — from [font-grandstander](#font-grandstander), [brand-option-g-vamps](#brand-option-g-vamps) via `python tools/design/brand/build.py`
+- Authors: David Cuccia and Go Go HarmoniYo contributors
+- Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
+- License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
+- Modifications: none
+- Review: pending. Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity.
 
 ## Open items
 
@@ -789,6 +828,7 @@ repository "MIT" in a way that hides them.
 - brand-options-overviews: review pending (Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
 - brand-option-mashups: review pending (Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required.)
 - brand-option-g-vamps: review pending (Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as vamps on mashup G. Wordmarks are Grandstander glyph outlines (OFL-FAQ 1.1); Yo versions are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks, bow-wearing character brands and the ringing-bell UI icon (see docs/design/brand-options/g-vamps/README.md#resemblance-re-check); a human resemblance review is still required.)
+- brand-yo-defaults: review pending (Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity.)
 
 ## Required record for each new asset
 

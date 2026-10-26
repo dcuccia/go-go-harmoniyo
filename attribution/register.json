@@ -1078,11 +1078,11 @@
     },
     {
       "id": "brand-option-g-vamps",
-      "title": "Brand options: G vamps (colour-matched Go Go lockups and eight versions of Yo), with preview boards and overviews",
+      "title": "Brand options: G vamps not selected (other lockups and Yo versions), with preview boards and overviews",
       "kind": "image",
       "origin": "derived",
       "paths": [
-        "docs/design/brand-options/g-vamps/*/*",
+        "docs/design/brand-options/g-vamps/{g1-candlelight-1-25x,g3-candlelight-equal,g4-ember-1-5x,y2-joy,y3-calm,y4-ding,y5-cheer,y6-ribbon,y7-lashes,y8-icon-grade}/*",
         "docs/design/brand-options/g-vamps/*.png"
       ],
       "authors": [
@@ -1100,6 +1100,94 @@
       "review": {
         "status": "pending",
         "notes": "Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as vamps on mashup G. Wordmarks are Grandstander glyph outlines (OFL-FAQ 1.1); Yo versions are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks, bow-wearing character brands and the ringing-bell UI icon (see docs/design/brand-options/g-vamps/README.md#resemblance-re-check); a human resemblance review is still required."
+      }
+    },
+    {
+      "id": "brand-option-g-vamps-selected",
+      "title": "Brand options: the selected G vamps (lockup G2 and Yo Y1), preview boards",
+      "kind": "image",
+      "origin": "derived",
+      "paths": [
+        "docs/design/brand-options/g-vamps/g2-candlelight-1-5x/*",
+        "docs/design/brand-options/g-vamps/y1-wink/*"
+      ],
+      "authors": [
+        "David Cuccia and Go Go HarmoniYo contributors"
+      ],
+      "copyright": "2026 David Cuccia and Go Go HarmoniYo contributors",
+      "license": "CC-BY-4.0",
+      "derivedFrom": [
+        "font-grandstander",
+        "brand-option-mashups"
+      ],
+      "generator": "python tools/design/brand-options/gvamps.py",
+      "modifications": "none",
+      "credit": false,
+      "review": {
+        "status": "approved",
+        "reviewer": "@dcuccia (owner)",
+        "date": "2026-10-25",
+        "notes": "Owner (@dcuccia) reviewed the G vamps boards and selected lockup G2 and Yo Y1 on 2026-10-25 (\"let's go candlelight, 1.5x, Y1 wink is good\"). Exploration boards kept for the record; production files are brand-identity."
+      }
+    },
+    {
+      "id": "brand-identity",
+      "title": "Go Go HarmoniYo brand identity: logo lockups, Yo mark, app icons, social card and asset sheet",
+      "kind": "image",
+      "origin": "derived",
+      "paths": [
+        "docs/design/brand/logo-*.svg",
+        "docs/design/brand/mark-*.svg",
+        "docs/design/brand/app-icon*.svg",
+        "docs/design/brand/apple-touch-icon.*",
+        "docs/design/brand/icon-*.png",
+        "docs/design/brand/og-image.*",
+        "docs/design/brand/preview.png",
+        "docs/design/brand/yo/yo-wink.svg"
+      ],
+      "authors": [
+        "David Cuccia and Go Go HarmoniYo contributors"
+      ],
+      "copyright": "2026 David Cuccia and Go Go HarmoniYo contributors",
+      "license": "CC-BY-4.0",
+      "derivedFrom": [
+        "font-grandstander",
+        "brand-option-g-vamps-selected"
+      ],
+      "generator": "python tools/design/brand/build.py",
+      "modifications": "none",
+      "credit": false,
+      "review": {
+        "status": "approved",
+        "reviewer": "@dcuccia (owner)",
+        "date": "2026-10-25",
+        "notes": "Owner (@dcuccia) reviewed the G vamps boards and selected lockup G2 and Yo Y1 on 2026-10-25 (\"let's go candlelight, 1.5x, Y1 wink is good\"). Approved for use in the product, store listings and docs. Procedural SVG (Grandstander Black outlines, OFL-FAQ 1.1; hand-written geometry); no image-generation model or reference images. Resemblance checks: docs/design/brand-options/g-vamps/README.md#resemblance-re-check."
+      }
+    },
+    {
+      "id": "brand-yo-defaults",
+      "title": "Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)",
+      "kind": "image",
+      "origin": "derived",
+      "paths": [
+        "docs/design/brand/favicon.*",
+        "docs/design/brand/yo/yo-{idle,ring,cheer,cheer-hands,icon}.svg"
+      ],
+      "authors": [
+        "David Cuccia and Go Go HarmoniYo contributors"
+      ],
+      "copyright": "2026 David Cuccia and Go Go HarmoniYo contributors",
+      "license": "CC-BY-4.0",
+      "derivedFrom": [
+        "font-grandstander",
+        "brand-option-g-vamps"
+      ],
+      "generator": "python tools/design/brand/build.py",
+      "modifications": "none",
+      "credit": false,
+      "review": {
+        "status": "pending",
+        "notes": "Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity."
       }
     }
   ]

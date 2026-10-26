@@ -1,7 +1,7 @@
 # Brand mashups: Resonance × Sing-Along
 
-- Status: **exploration for the owner** (2026-10-25). Nothing is adopted, and the in-game branding is
-  unchanged.
+- Status: **exploration record.** The owner went on with G; see [G vamps](../g-vamps/README.md) and the
+  final [brand assets](../../brand/README.md).
 - Owner request: "torn between 2 and 6 - can you create a variety of variants/mashups of those two
   brand directions?" Parents: [2. Resonance](../README.md#2-resonance) (Outfit, tuning-fork Y,
   calm) and [6. Sing-Along](../README.md#6-sing-along) (Grandstander, ringing letters, Yo's face).

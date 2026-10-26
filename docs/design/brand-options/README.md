@@ -1,7 +1,8 @@
 # Brand identity options: Go Go HarmoniYo
 
-- Status: **Exploration for the owner to choose from** (2026-10-25). Nothing here is adopted. The
-  in-game branding and the [brand guide](../brand.md) are unchanged.
+- Status: **Decided 2026-10-25.** The owner chose G2 + Y1 from the [G vamps](g-vamps/README.md). The final
+  files are in [`../brand/`](../brand/README.md), and the rules are in [brand guide §3](../brand.md#3-logo-and-visual-identity).
+  This page is kept as the exploration record.
 - Owner request: "I'd like to update the branding font/graphic representation of Go Go HarmoniYo -
   need some options, but want to make it distinctive and professional looking".
 - Rules followed: [brand guide](../brand.md) (full name, capital Y, no "GGH", no yo-yo toys),

@@ -1,7 +1,7 @@
 # G vamps: colour-matched "Go Go", bigger "Go Go", and versions of Yo
 
-- Status: **exploration for the owner** (2026-10-25). Nothing is adopted, and the in-game branding is
-  unchanged.
+- Status: **Decided 2026-10-25.** The owner chose **G2** (candlelight, "Go Go" 1.5×) and **Y1 Wink**: "let's go
+  candlelight, 1.5x, Y1 wink is good". The final files are in [`../../brand/`](../../brand/README.md).
 - Owner direction: "let's vamp on G but match the color of the "Go Go" with the bell and the "Y",
   and make the "Go Go" font bigger. Default "dark mode" is best. also give me different versions of
   the bell character". Starting point: [mashup G, Ring-Along](../mashups/README.md#g-ring-along-kids).
