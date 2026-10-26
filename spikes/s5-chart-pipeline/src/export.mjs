@@ -5,7 +5,14 @@ import { beatGrid, measureStarts } from './score.mjs';
 
 // One ringer per CH/YARG 5-lane instrument track. Lanes = that ringer's bells low->high.
 export const CH_TRACKS = ['PART GUITAR', 'PART BASS', 'PART RHYTHM', 'PART KEYS', 'PART GUITAR COOP'];
-const CH_BASE = { easy: [60], medium: [72], hard: [84, 96] }; // hard also fills Expert
+// Four tiers onto CH's four difficulties: super easy → Easy, easy → Medium, medium → Hard, hard → Expert.
+const CH_BASE = { 'super-easy': [60], easy: [72], medium: [84], hard: [96] };
+
+/** The part exports use: balanced arrangement (charts before 0.3 have no arrangement field). */
+export function findExportPart(chart, tier, ringerCount) {
+  const parts = chart.parts.filter((p) => p.difficulty === tier && p.ringerCount === ringerCount);
+  return parts.find((p) => (p.arrangement ?? 'balanced') === 'balanced') ?? parts[0];
+}
 const CH_NOTE_LEN = 60; // ticks @480: well below the default sustain cutoff, so no sustains
 
 export function laneOf(bellIndex, bellCount) {
@@ -23,8 +30,9 @@ export function exportCloneHero(score, chart, ringerCount) {
   const warnings = [];
   for (let r = 0; r < ringerCount; r++) {
     const events = [];
-    for (const tier of ['easy', 'medium', 'hard']) {
-      const part = chart.parts.find((p) => p.difficulty === tier && p.ringerCount === ringerCount);
+    for (const tier of Object.keys(CH_BASE)) {
+      const part = findExportPart(chart, tier, ringerCount);
+      if (!part) continue;
       const ringer = part.ringers[r];
       if (ringer.bells.length > 5) warnings.push(`${tier} ringer ${r + 1} has ${ringer.bells.length} bells; lanes merged`);
       const seen = new Set();
@@ -48,7 +56,7 @@ export function exportCloneHero(score, chart, ringerCount) {
 }
 
 export function songIni(chart, ringerCount) {
-  const hard = chart.parts.find((p) => p.difficulty === 'hard' && p.ringerCount === ringerCount);
+  const hard = findExportPart(chart, 'hard', ringerCount);
   const rating = (r) => Math.max(0, Math.min(6, Math.round(r.stats.strikesPerMinute / 12)));
   const keys = ['diff_guitar', 'diff_bass', 'diff_rhythm', 'diff_keys', 'diff_guitar_coop'];
   const lines = [
@@ -62,7 +70,7 @@ export function songIni(chart, ringerCount) {
     `song_length = ${Math.round(chart.timing.durationSec * 1000)}`,
     'delay = 0',
     ...hard.ringers.map((r, i) => `${keys[i]} = ${rating(r)}`),
-    `loading_phrase = Ringers (hard): ${hard.ringers.map((r, i) => `${i + 1}=${r.bells.join(' ')}`).join('; ')}. License: ${chart.song.license.id}.`,
+    `loading_phrase = Ringers (hard): ${hard.ringers.map((r, i) => `${i + 1}=${r.name ? `${r.name} ` : ''}${r.bells.join(' ')}`).join('; ')}. License: ${chart.song.license.id}.`,
   ];
   return lines.join('\r\n') + '\r\n';
 }
@@ -77,7 +85,7 @@ export function exportAudition(score, part) {
       const midi = noteNumber(n.bell);
       events.push(...noteEvents(n.tick, Math.max(n.dur, score.ppq), midi, n.role === 'melody' ? 110 : 80, ch));
     }
-    tracks.push({ name: `Ringer ${r.index + 1} (${r.bells.join(' ')})`, events });
+    tracks.push({ name: `Ringer ${r.index + 1}${r.name ? ` ${r.name}` : ''} (${r.bells.join(' ')})`, events });
   }
   return writeMidi({ ppq: score.ppq, tracks });
 }
@@ -89,28 +97,29 @@ export function noteNumber(bell) {
 }
 
 // ASCII lane preview: one row per eighth-note slot, one column group per ringer.
-export function asciiPreview(score, part, measures = 8) {
-  const starts = measureStarts(score);
+export function asciiPreview(score, part, measures = 8, fromTick = 0) {
+  const all = measureStarts(score);
+  const starts = all.slice(Math.max(0, all.findIndex((s) => s >= fromTick)));
   const endTick = starts[Math.min(measures, starts.length - 1)] ?? score.endTick;
   const step = score.ppq / 2;
   const header = part.ringers.map((r, i) => `R${i + 1}:${r.bells.map((b) => b.padStart(4)).join('')}`);
   const lines = [`bar  | ${header.join(' | ')}`];
   const byTick = new Map();
   for (const n of part.notes) {
-    if (n.tick >= endTick) continue;
+    if (n.tick >= endTick || n.tick < (starts[0] ?? 0)) continue;
     const slot = Math.floor(n.tick / step) * step;
     if (!byTick.has(slot)) byTick.set(slot, []);
     byTick.get(slot).push(n);
   }
-  for (let t = 0; t < endTick; t += step) {
-    const m = starts.filter((s) => s <= t).length;
+  for (let t = starts[0] ?? 0; t < endTick; t += step) {
+    const m = all.filter((s) => s <= t).length;
     const isBar = starts.includes(t);
     const label = isBar ? String(m).padStart(3) + ' ' : '    ';
     const hits = byTick.get(t) || [];
     const cols = part.ringers.map((r, i) => {
       const cells = r.bells.map((b) => {
         const h = hits.find((x) => x.ringer === i && x.bell === b);
-        return (h ? (h.role === 'melody' ? 'M' : h.role === 'bass' ? 'B' : 'h') : isBar ? '-' : '.').padStart(4);
+        return (h ? (h.role === 'melody' ? 'M' : h.role === 'descant' ? 'D' : h.role === 'bass' ? 'B' : 'h') : isBar ? '-' : '.').padStart(4);
       });
       return `${' '.repeat(3)}${cells.join('')}`.padEnd(header[i].length);
     });

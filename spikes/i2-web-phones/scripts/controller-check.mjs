@@ -50,7 +50,7 @@ try {
 
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
-  await game.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=1&waitPhones=1&start=play&startDelay=3000`);
+  await game.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
   // Assignment reaches the phone: 4 zones in the chart's lane colours.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));

@@ -7,21 +7,50 @@ import type { BellNote } from './backing/patterns';
 import type { S5Harmony } from './backing/timeline';
 
 // ── S5 chart format (subset we read; see spikes/s5-chart-pipeline/schema/chart.schema.json) ──
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
+export type Difficulty = 'super-easy' | 'easy' | 'medium' | 'hard' | 'expert';
+/** Format 0.3+: how a part spreads the music over the ringers (absent = by-range). */
+export type Arrangement = 'balanced' | 'chord-split' | 'by-range';
+export const ARRANGEMENTS: readonly Arrangement[] = ['balanced', 'chord-split', 'by-range'];
+export type NoteRole = 'melody' | 'bass' | 'inner' | 'descant';
 export interface S5Note {
   tick: number;
   time: number;
   durSec?: number;
   bell: string;
   ringer: number;
-  role?: 'melody' | 'bass' | 'inner';
+  role?: NoteRole;
+}
+export interface S5Ringer {
+  index: number;
+  label?: string;
+  /** Format 0.3+: bass | harmony | chord | melody | descant. */
+  role?: string;
+  /** Format 0.3+: display name ("Bass", "Low melody", "Chord middle", …). */
+  name?: string;
+  bells: string[];
 }
 export interface S5Part {
   difficulty: Difficulty;
   ringerCount: number;
   profile?: string;
-  ringers: { index: number; label?: string; bells: string[] }[];
+  arrangement?: Arrangement;
+  ringers: S5Ringer[];
   notes: S5Note[];
+  /** Format 0.3+: notes the host plays softly (super easy: the rest of the tune; the descant). */
+  guide?: { tick: number; time: number; durSec?: number; bell: string; role?: NoteRole }[];
+}
+/** Format 0.3+: song sections (intro, verses, interlude, coda). */
+export interface S5Section {
+  index: number;
+  kind: 'intro' | 'verse' | 'interlude' | 'coda';
+  label?: string;
+  tick: number;
+  time: number;
+  durSec?: number;
+  transpose?: number;
+  key?: number;
+  development?: string;
+  energy?: number;
 }
 /** Chart format id written by the S5 pipeline. */
 export const CHART_FORMAT = 'go-go-harmoniyo.chart';
@@ -39,17 +68,24 @@ export interface S5Chart {
   bells: { id: string; midi: number }[];
   /** Format 0.2+: chord timeline + beat grid for the procedural backing (absent in older charts). */
   harmony?: S5Harmony;
+  /** Format 0.3+: song form (absent: the song played once). */
+  form?: { id: string; sections: S5Section[] };
   parts: S5Part[];
 }
 
-export function findPart(c: S5Chart, difficulty: Difficulty, ringerCount: number): S5Part | undefined {
-  return c.parts.find((p) => p.difficulty === difficulty && p.ringerCount === ringerCount);
+/**
+ * The part for a tier and ringer count in the wanted arrangement; falls back to balanced, then to
+ * any arrangement (charts before 0.3 have one part per tier and count, without rrangement).
+ */
+export function findPart(c: S5Chart, difficulty: Difficulty, ringerCount: number, arrangement: Arrangement = 'balanced'): S5Part | undefined {
+  const all = c.parts.filter((p) => p.difficulty === difficulty && p.ringerCount === ringerCount);
+  return all.find((p) => (p.arrangement ?? 'by-range') === arrangement) ?? all.find((p) => p.arrangement === 'balanced') ?? all[0];
 }
 
 /** Every bell strike of a part (held by players or rung by the host), for backing exclusions. */
 export function partBellNotes(c: S5Chart, p: S5Part): BellNote[] {
   const midiOf = new Map(c.bells.map((b) => [b.id, b.midi] as const));
-  return p.notes.map((n) => ({ time: n.time, dur: n.durSec ?? 0.5, midi: midiOf.get(n.bell) ?? 60, role: n.role }));
+  return p.notes.map((n) => ({ time: n.time, dur: n.durSec ?? 0.5, midi: midiOf.get(n.bell) ?? 60, role: n.role === 'descant' ? 'melody' : n.role }));
 }
 
 // ── team chart ───────────────────────────────────────────────────────────────
@@ -105,9 +141,13 @@ export interface TeamOptions {
   /** Written → sounding transposition, semitones (handbells: +12). */
   transpose?: number;
   title?: string;
+  /** Play the part's guide notes (super easy: the rest of the tune; a descant nobody holds) softly on the host. Default true. */
+  guide?: boolean;
 }
 
 const SHARP = '♯';
+/** Host-played guide notes sit under the players' bells. */
+export const GUIDE_VELOCITY = 60;
 export const bellName = (id: string): string => id.replace('#', SHARP);
 export const bellLetter = (id: string): string => bellName(id).replace(/-?\d+$/, '');
 
@@ -156,6 +196,13 @@ export function buildTeamChart(src: S5Chart, part: S5Part, opts: TeamOptions = {
     const lane = laneOfBell.get(n.bell);
     if (lane !== undefined && active[n.ringer]) notes.push({ id: 0, time: n.time, lane, pitch: midi + transpose, velocity: 100 });
     else backing.push({ time: n.time, pitch: midi + transpose, velocity: n.role === 'melody' ? 110 : 80, duration: dur });
+  }
+  if (opts.guide ?? true) {
+    for (const g of part.guide ?? []) {
+      const dur = g.durSec ?? 0.5;
+      end = Math.max(end, g.time + dur);
+      backing.push({ time: g.time, pitch: (midiOf.get(g.bell) ?? 60) + transpose, velocity: GUIDE_VELOCITY, duration: dur });
+    }
   }
   notes.sort((a, b) => a.time - b.time || a.lane - b.lane);
   notes.forEach((n, i) => (n.id = i));

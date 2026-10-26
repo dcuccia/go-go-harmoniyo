@@ -233,7 +233,7 @@ try {
   // DPR 1) so the TV's software WebGL doesn't starve the phone on a 2-vCPU CI runner.
   const tv = await tvBrowser.newPage({ viewport: { width: 1920, height: 1080 } });
   tv.on('pageerror', (e) => errors.push(`tv: ${e}`));
-  await tv.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=2&seed=7&bloom=0&particles=0&dpr=1`);
+  await tv.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=2&seed=7&form=short&bloom=0&particles=0&dpr=1`);
   await tv.waitForFunction(() => window.__i2?.cards?.length === 2, null, { timeout: 20000 });
   await tv.evaluate(() => {
     window.__rings = [];

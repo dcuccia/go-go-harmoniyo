@@ -1,15 +1,17 @@
 // Build engine-neutral chart JSON (see ../schema/chart.schema.json).
 import { pitchName, makeTimeMap, measureStarts, timeSigAt, isNatural } from './score.mjs';
-import { TIERS, tierNotes } from './arrange.mjs';
-import { PROFILES, assignBells, evaluateRinger, repair, ringerLabel } from './assign.mjs';
-import { buildHarmony } from './harmony.mjs';
+import { buildHarmony, inferChords, keyOf } from './harmony.mjs';
+import { expandForm } from './form.mjs';
+import { ARRANGEMENTS, TIERS, buildFormPart } from './parts.mjs';
 
 export const FORMAT = 'go-go-harmoniyo.chart';
 // Format ids written before the rename to Go Go HarmoniYo (ADR-0009); readers still accept them.
 export const LEGACY_FORMATS = ['handbell-hero.chart'];
 // 0.2.0 adds the optional `harmony` block (chords + beat grid + backing style); 0.1 readers ignore it.
-export const FORMAT_VERSION = '0.2.0';
-export const GENERATOR = { name: 'go-go-harmoniyo/spikes/s5-chart-pipeline', version: '0.2.0' };
+// 0.3.0 adds the optional `form` block (song sections), part `arrangement` + ringer `role`/`name`,
+// the `super-easy` tier with a host-played `guide`, the `descant` note role and beat `section`s.
+export const FORMAT_VERSION = '0.3.0';
+export const GENERATOR = { name: 'go-go-harmoniyo/spikes/s5-chart-pipeline', version: '0.3.0' };
 
 export const isChartFormat = (format) => format === FORMAT || LEGACY_FORMATS.includes(format);
 
@@ -37,75 +39,6 @@ export function fitHandbellSet(midis) {
 
 const r3 = (x) => Math.round(x * 1000) / 1000;
 
-export function buildPart(score, roleNotes, tier, ringerCount, profileId) {
-  const profile = PROFILES[profileId];
-  const toSec = makeTimeMap(score);
-  const base = tierNotes(score, roleNotes, tier).map((n) => ({ ...n, time: toSec(n.tick) }));
-  let notes = base;
-  let assignment = assignBells(notes, ringerCount, profile);
-  let dropped = [];
-  for (let iter = 0; iter < 2; iter++) {
-    const ringerOf = mapper(assignment);
-    const rep = repair(notes, ringerOf, profile);
-    dropped = dropped.concat(rep.dropped);
-    notes = rep.notes;
-    assignment = assignBells(notes, ringerCount, profile);
-  }
-  const ringerOf = mapper(assignment);
-  const ringers = assignment.ringers.map((r, i) => {
-    const mine = notes.filter((n) => ringerOf(n.midi) === i).sort((a, b) => a.time - b.time || a.midi - b.midi);
-    const ev = evaluateRinger(mine, profile);
-    const durationSec = toSec(score.endTick);
-    return {
-      index: i,
-      label: ringerLabel(r),
-      bells: r.bells.map(pitchName),
-      stats: {
-        strikes: ev.strikes,
-        bells: r.bells.length,
-        strikesPerMinute: r3((ev.strikes / durationSec) * 60),
-        maxSimultaneous: ev.maxSimultaneous,
-        minGapSec: ev.minGapSec === null ? null : r3(ev.minGapSec),
-        swaps: ev.swaps,
-        violations: ev.violations,
-      },
-    };
-  });
-  const strikes = ringers.map((r) => r.stats.strikes).filter((s) => s > 0);
-  return {
-    difficulty: tier,
-    ringerCount,
-    profile: profileId,
-    ringers,
-    notes: notes
-      .sort((a, b) => a.tick - b.tick || a.midi - b.midi)
-      .map((n) => ({
-        tick: n.tick,
-        time: r3(n.time),
-        dur: n.dur,
-        durSec: r3(toSec(n.tick + n.dur) - n.time),
-        bell: pitchName(n.midi),
-        ringer: ringerOf(n.midi),
-        role: n.role,
-      })),
-    metrics: {
-      strikes: notes.length,
-      distinctBells: new Set(notes.map((n) => n.midi)).size,
-      droppedForPlayability: { total: dropped.length, bass: dropped.filter((n) => n.role === 'bass').length, inner: dropped.filter((n) => n.role === 'inner').length },
-      remainingViolations: ringers.reduce((s, r) => s + r.stats.violations, 0),
-      loadBalance: strikes.length ? r3(Math.max(...strikes) / Math.min(...strikes)) : null,
-      maxBellsPerRinger: Math.max(...ringers.map((r) => r.stats.bells)),
-      idleRingers: ringers.filter((r) => r.stats.strikes === 0).length,
-    },
-  };
-}
-
-function mapper(assignment) {
-  const m = new Map();
-  assignment.ringers.forEach((r, i) => r.bells.forEach((b) => m.set(b, i)));
-  return (midi) => m.get(midi);
-}
-
 // Pretty JSON with leaf objects/arrays (e.g. each note) on a single line. Arrays of primitives
 // inside an object (e.g. a chord's `tones`) keep that object on one line.
 export function stringifyChart(value, indent = '') {
@@ -117,31 +50,72 @@ export function stringifyChart(value, indent = '') {
   return `{\n${Object.entries(value).map(([k, v]) => `${inner}${JSON.stringify(k)}: ${stringifyChart(v, inner)}`).join(',\n')}\n${indent}}`;
 }
 
-export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], profile = 'handbell' }) {
-  const toSec = makeTimeMap(score);
+
+/**
+ * What the form and the parts are built from: the tune, the score's own bass line (SATB sources;
+ * empty for lead sheets and melody-only files) and a chord timeline (lead-sheet symbols, else
+ * inferred from the notes).
+ */
+export function songMaterial(score, roleNotes) {
+  const leadSheet = score.chords.length > 0;
+  return {
+    melody: roleNotes.filter((n) => n.role === 'melody'),
+    sourceBass: leadSheet ? [] : roleNotes.filter((n) => n.role === 'bass'),
+    sourceInner: leadSheet ? [] : roleNotes.filter((n) => n.role === 'inner'),
+    chords: leadSheet ? score.chords : inferChords(score, roleNotes),
+    chordSource: leadSheet ? 'lead-sheet' : 'inferred',
+    key: keyOf(score, roleNotes),
+  };
+}
+
+/** The song laid out in a form ('full' | 'short' | options object, see form.mjs). */
+export function formSong(score, roleNotes, form = 'full') {
+  return expandForm(score, songMaterial(score, roleNotes), form);
+}
+
+/** One part (see parts.mjs). `formed` from formSong(). */
+export function buildPart(formed, tier, ringerCount, profileId, arrangement = 'balanced') {
+  return buildFormPart(formed, tier, ringerCount, profileId, arrangement);
+}
+
+export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], profile = 'handbell', form = 'full', arrangements = ARRANGEMENTS, tiers = TIERS, formed: pre }) {
+  const formed = pre ?? formSong(score, roleNotes, form);
+  const exp = formed.score;
+  const toSec = makeTimeMap(exp);
   const parts = [];
-  for (const k of ringerCounts) for (const tier of TIERS) parts.push(buildPart(score, roleNotes, tier, k, profile));
-  const allMidis = [...new Set(parts.flatMap((p) => p.notes.map((n) => n.bell)))];
-  const bellMidi = new Map(roleNotes.map((n) => [pitchName(n.midi), n.midi]));
-  const bells = allMidis.map((id) => bellMidi.get(id)).sort((a, b) => a - b).map((m) => ({ id: pitchName(m), midi: m, natural: isNatural(m) }));
-  const starts = measureStarts(score);
-  const harmony = buildHarmony(score, roleNotes);
+  for (const arrangement of arrangements) for (const k of ringerCounts) for (const tier of tiers) parts.push(buildFormPart(formed, tier, k, profile, arrangement));
+  const bellMidi = new Map();
+  for (const n of [...formed.melody, ...formed.descant, ...formed.sourceBass]) bellMidi.set(pitchName(n.midi), n.midi);
+  const noteIds = [...new Set(parts.flatMap((p) => [...p.notes, ...(p.guide ?? [])].map((n) => n.bell)))];
+  const midiOf = (id) => bellMidi.get(id) ?? noteMidi(id);
+  const bells = noteIds.map(midiOf).sort((a, b) => a - b).map((m) => ({ id: pitchName(m), midi: m, natural: isNatural(m) }));
+  const starts = measureStarts(exp);
+  const harmony = buildHarmony(exp, formed.melody, { chords: exp.chords, source: formed.chordSource, sectionAt: formed.sectionAt });
   return {
     format: FORMAT,
     formatVersion: FORMAT_VERSION,
     generator: GENERATOR,
     song,
+    form: {
+      id: formed.id,
+      sections: formed.sections.map((s) => ({ ...s, time: r3(toSec(s.tick)), durSec: r3(toSec(s.endTick) - toSec(s.tick)) })),
+    },
     timing: {
-      resolution: score.ppq,
-      tempos: score.tempos.map((t) => ({ tick: t.tick, time: r3(toSec(t.tick)), bpm: r3(60e6 / t.usPerQuarter) })),
-      timeSignatures: score.timeSigs.map((t) => ({ tick: t.tick, numerator: t.num, denominator: t.den })),
-      measures: starts.map((t, i) => ({ number: i + 1, tick: t, time: r3(toSec(t)), pickup: i === 0 && starts.length > 1 && starts[1] - t < (score.ppq * 4 * timeSigAt(score, t).num) / timeSigAt(score, t).den })),
-      endTick: score.endTick,
-      durationSec: r3(toSec(score.endTick)),
+      resolution: exp.ppq,
+      tempos: exp.tempos.map((t) => ({ tick: t.tick, time: r3(toSec(t.tick)), bpm: r3(60e6 / t.usPerQuarter) })),
+      timeSignatures: exp.timeSigs.map((t) => ({ tick: t.tick, numerator: t.num, denominator: t.den })),
+      measures: starts.map((t, i) => ({ number: i + 1, tick: t, time: r3(toSec(t)), pickup: i === 0 && starts.length > 1 && starts[1] - t < (exp.ppq * 4 * timeSigAt(exp, t).num) / timeSigAt(exp, t).den })),
+      endTick: exp.endTick,
+      durationSec: r3(toSec(exp.endTick)),
     },
     bells,
     handbellSet: fitHandbellSet(bells.map((b) => b.midi)),
     ...(harmony ? { harmony } : {}),
     parts,
   };
+}
+
+function noteMidi(id) {
+  const m = /^([A-G]#?)(-?\d+)$/.exec(id);
+  return ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'].indexOf(m[1]) + 12 * (Number(m[2]) + 1);
 }

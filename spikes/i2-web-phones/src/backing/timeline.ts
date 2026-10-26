@@ -21,6 +21,8 @@ export interface S5Beat {
   div?: number;
   strong?: boolean;
   chord: number | null;
+  /** Format 0.3+: index into the chart's form sections. */
+  section?: number;
 }
 export interface S5Harmony {
   source: 'lead-sheet' | 'inferred';
@@ -32,6 +34,8 @@ export interface S5Harmony {
 export interface HarmonyChart {
   timing: { tempos: { time: number; bpm: number }[]; timeSignatures: { numerator: number; denominator: number }[]; durationSec: number };
   harmony?: S5Harmony;
+  /** Format 0.3+: song form; each section's energy (0..1) shapes the groove. */
+  form?: { sections: { energy?: number; label?: string; time?: number; durSec?: number }[] };
 }
 
 export interface Chord {
@@ -54,6 +58,8 @@ export interface Beat {
   div: number;
   strong: boolean;
   chord: Chord | null;
+  /** Groove intensity from the song form (intro and quiet verses lighter), 0..1; 1 without a form. */
+  energy: number;
 }
 export interface Timeline {
   style: string | undefined;
@@ -91,6 +97,7 @@ export function backingTimeline(c: HarmonyChart): Timeline | null {
       div: b.div ?? 2,
       strong: b.strong ?? b.beat === 0,
       chord: b.chord === null || b.chord === undefined ? null : (chords[b.chord] ?? null),
+      energy: Math.max(0, Math.min(1, (b.section !== undefined ? c.form?.sections[b.section]?.energy : undefined) ?? 1)),
     };
   });
   return { style: h.style, source: h.source, chords, beats, end };
