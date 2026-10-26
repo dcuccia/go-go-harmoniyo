@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildTeamChart, CHART_FORMAT, findPart, isChartFormat, type S5Chart, type S5Part } from '../src/team-chart';
+import { buildTeamChart, CHART_FORMAT, findPart, GUIDE_VELOCITY, isChartFormat, shortestIoiMs, type S5Chart, type S5Part } from '../src/team-chart';
 import { pitchColor } from '../../shared/pitch-palette';
 
 function fixture(): S5Chart {
@@ -72,6 +72,28 @@ describe('buildTeamChart', () => {
     expect(t.chart.backing.length).toBe(9);
   });
 
+  it('finds the part for an arrangement, falling back to balanced, then to charts without arrangements', () => {
+    const c = fixture();
+    const base = c.parts[0];
+    expect(findPart(c, 'easy', 2, 'chord-split')).toBe(base); // pre-0.3: one part per tier and count
+    const balanced: S5Part = { ...base, arrangement: 'balanced' };
+    const chord: S5Part = { ...base, arrangement: 'chord-split' };
+    c.parts = [balanced, chord];
+    expect(findPart(c, 'easy', 2)).toBe(balanced);
+    expect(findPart(c, 'easy', 2, 'chord-split')).toBe(chord);
+    expect(findPart(c, 'easy', 2, 'by-range')).toBe(balanced);
+    expect(findPart(c, 'hard', 2)).toBeUndefined();
+  });
+
+  it('plays the part guide (super easy: the rest of the tune) softly on the host', () => {
+    const c = fixture();
+    const part = { ...c.parts[0], difficulty: 'super-easy' as const, guide: [{ tick: 240, time: 0.25, durSec: 0.25, bell: 'D4', role: 'melody' as const }] };
+    const t = buildTeamChart(c, part);
+    const g = t.chart.backing.find((b) => b.time === 0.25)!;
+    expect(g.pitch).toBe(62 + 12);
+    expect(g.velocity).toBe(GUIDE_VELOCITY);
+    expect(buildTeamChart(c, part, { guide: false }).chart.backing.some((b) => b.time === 0.25)).toBe(false);
+  });
   it('accepts the current chart format id and the pre-rename one', () => {
     expect(isChartFormat(CHART_FORMAT)).toBe(true);
     expect(isChartFormat('go-go-harmoniyo.chart')).toBe(true);
@@ -85,11 +107,19 @@ describe('buildTeamChart', () => {
     for (const [, c] of songs) {
       for (const p of c.parts) {
         const t = buildTeamChart(c, p);
-        expect(t.chart.notes.length + t.chart.backing.length).toBe(p.notes.length);
+        expect(t.chart.notes.length + t.chart.backing.length).toBe(p.notes.length + (p.guide?.length ?? 0));
         for (const r of t.ringers) expect(r.bells.length).toBeLessThanOrEqual(4);
         expect(t.ringers.length).toBe(p.ringerCount);
         for (let i = 1; i < t.chart.notes.length; i++) expect(t.chart.notes[i].time).toBeGreaterThanOrEqual(t.chart.notes[i - 1].time);
       }
     }
+  });
+});
+
+describe('shortestIoiMs', () => {
+  it('finds the shortest gap between strokes, a chord counting once', () => {
+    expect(shortestIoiMs([0, 0.5, 1, 1.25, 1.5])).toBe(250);
+    expect(shortestIoiMs([0, 0.01, 0.3])).toBe(300);
+    expect(shortestIoiMs([1])).toBeNull();
   });
 });

@@ -283,3 +283,133 @@ export function clinkSession(seed: number, count: number, sensor: SensorModel): 
   const segsB = impacts.map((t) => impactSegment(r, t));
   return { a: sample(rng(seed + 1), segsA, durationMs, sensor), b: sample(rng(seed + 2), segsB, durationMs, sensor), impacts, durationMs };
 }
+
+// ── fast passages (eighth / sixteenth notes) ──────────────────────────────────
+
+/**
+ * How a ringer plays notes closer than SLOW_IOI_MS apart:
+ *  - 'shake': back-and-forth, every half-cycle stops abruptly (forward ring, backward ring, …),
+ *    the way real handbell ringers play fast repeated notes on one bell;
+ *  - 'flick': forward-only small strokes with a quick smooth return in between.
+ */
+export type FastTechnique = 'shake' | 'flick';
+
+/** Notes at least this far apart are played as a full forward stroke + smooth return. */
+export const SLOW_IOI_MS = 500;
+
+/** Small, quick strokes: lower peak speed than a full ring, short stop. */
+export const FAST_STROKES: Record<string, { peak: [number, number]; stop: [number, number] }> = {
+  adult: { peak: [260, 520], stop: [20, 35] },
+  child: { peak: [170, 320], stop: [28, 48] },
+  sloppy: { peak: [190, 460], stop: [25, 55] },
+};
+
+function strokeSegment(start: number, R: number, S: number, P: number, bounce: number, axis: Vec3, accDir: Vec3): Segment {
+  const Bd = 40;
+  const A = (P / 500) * 15;
+  return {
+    start,
+    dur: R + S + Bd,
+    axis,
+    accDir,
+    f: (tau) => {
+      if (tau < R) return { w: P * Math.sin(((Math.PI / 2) * tau) / R) ** 2, a: 3 * Math.sin((Math.PI * tau) / R) };
+      if (tau < R + S) {
+        const x = (tau - R) / S;
+        return { w: P * Math.cos((Math.PI / 2) * x) ** 2, a: -A * Math.sin(Math.PI * x) };
+      }
+      return { w: -bounce * P * Math.sin((Math.PI * (tau - R - S)) / Bd), a: 0 };
+    },
+  };
+}
+
+/** A chart rhythm: `bars` phrases of one bar of quarters then one bar of 8ths (sub 2) or 16ths (sub 4), 4/4. */
+export function passageBeats(bpm: number, sub: 2 | 4, phrases: number, t0 = 2000): { times: number[]; fast: boolean[] } {
+  const q = 60_000 / bpm;
+  const times: number[] = [];
+  const fast: boolean[] = [];
+  let t = t0;
+  for (let p = 0; p < phrases; p++) {
+    for (let b = 0; b < 4; b++, t += q) {
+      times.push(t);
+      fast.push(false);
+    }
+    for (let k = 0; k < 4 * sub; k++, t += q / sub) {
+      times.push(t);
+      fast.push(true);
+    }
+  }
+  return { times, fast };
+}
+
+export interface NoteSession extends RingSession {
+  /** Direction of each ring's stroke along the forward axis (+1 forward, −1 backward half of a shake). */
+  dirs: number[];
+}
+
+/**
+ * Motion for a sequence of note times: notes ≥ SLOW_IOI_MS apart are full rings + smooth returns
+ * (as in ringSession); closer notes are played with `technique`. Human timing jitter is scaled to
+ * the local IOI (nobody is 45 ms off on sixteenths and still in time).
+ */
+export function noteSession(seed: number, prof: RingerProfile, beats: readonly number[], technique: FastTechnique, sensor: SensorModel): NoteSession {
+  const r = rng(seed);
+  const axis = unitNear(r, [1, 0, 0], 0.2);
+  const accDir = unitNear(r, [0, 0, 1], 0.2);
+  const fp = FAST_STROKES[prof.name] ?? FAST_STROKES.adult;
+  const rings: number[] = [];
+  for (let i = 0; i < beats.length; i++) {
+    const gap = Math.min(i > 0 ? beats[i] - beats[i - 1] : Infinity, i + 1 < beats.length ? beats[i + 1] - beats[i] : Infinity);
+    const sd = Math.min(prof.timingSd, 0.12 * gap);
+    let t = beats[i] + gauss(r) * sd;
+    if (i > 0) t = Math.max(t, rings[i - 1] + 0.6 * (beats[i] - beats[i - 1]));
+    rings.push(t);
+  }
+  const segs: Segment[] = [];
+  const dirs: number[] = [];
+  let prevStop = 0;
+  for (let i = 0; i < rings.length; i++) {
+    const ring = rings[i];
+    const gPrev = i > 0 ? ring - rings[i - 1] : Infinity;
+    const gNext = i + 1 < rings.length ? rings[i + 1] - ring : Infinity;
+    // Technique follows the written rhythm, not the jittered ring times.
+    const slowPrev = i === 0 || beats[i] - beats[i - 1] >= SLOW_IOI_MS;
+    const slowNext = i + 1 >= beats.length || beats[i + 1] - beats[i] >= SLOW_IOI_MS;
+    const ax = unitNear(r, axis, 12);
+    const ad = unitNear(r, accDir, 12);
+    let dir = 1;
+    let S: number;
+    if (slowPrev) {
+      const seg = ringSegment(r, ring, prof, ax, ad);
+      segs.push(seg);
+      // ringSegment ends its stop at ring + S/2, followed by a 60 ms bounce.
+      S = 2 * (seg.start + seg.dur - 60 - ring);
+    } else {
+      dir = technique === 'shake' ? -dirs[i - 1] : 1;
+      S = uniform(r, fp.stop[0], fp.stop[1]);
+      const P = uniform(r, fp.peak[0], fp.peak[1]) * Math.min(1, 0.55 + gPrev / 400);
+      const startAfter = technique === 'shake' ? rings[i - 1] + prevStop / 2 + uniform(r, 3, 12) : rings[i - 1] + gPrev * 0.5;
+      const R = Math.max(30, ring - S / 2 - startAfter);
+      const d: Vec3 = [dir * ax[0], dir * ax[1], dir * ax[2]];
+      segs.push(strokeSegment(ring - S / 2 - R, R, S, P, uniform(r, 0.03, 0.15), d, ad));
+    }
+    dirs.push(dir);
+    // Bring the bell back before the next stroke when that stroke is forward again.
+    const nextForward = slowNext || technique === 'flick';
+    if (dir === 1 && nextForward && Number.isFinite(gNext)) {
+      const retStart = ring + S / 2 + (slowNext ? uniform(r, 100, 160) : 0.06 * gNext);
+      const nextStart = slowNext ? rings[i + 1] - 280 : ring + gNext * 0.5;
+      if (slowNext) segs.push(returnSegment(r, retStart, nextStart - retStart - 40, prof, ax, ad));
+      else {
+        const D = Math.max(30, nextStart - retStart);
+        const Q = uniform(r, 0.35, 0.6) * uniform(r, fp.peak[0], fp.peak[1]);
+        const neg: Vec3 = [-ax[0], -ax[1], -ax[2]];
+        segs.push({ start: retStart, dur: D, axis: neg, accDir: ad, f: (tau) => ({ w: Q * Math.sin((Math.PI * tau) / D), a: 0 }) });
+      }
+    }
+    // (A shake that ends on a backward ring leaves the bell back, ready for the next forward ring.)
+    prevStop = S;
+  }
+  const durationMs = rings[rings.length - 1] + 1500;
+  return { samples: sample(r, segs, durationMs, sensor), rings, beats: [...beats], axis, durationMs, dirs };
+}

@@ -1,7 +1,8 @@
 // One backing track for one play-through: generated events + count-in, wrapped as Session
 // `extraEvents` so they are scheduled on the AudioContext clock with the chart (one timeline:
 // no drift between backing, bells, highways and judging).
-import { exclusionsFrom, generateBacking, resolveStyle, type BackingEvent, type BellNote, type StylePreset } from './patterns';
+import { exclusionsFrom, generateBacking, resolveStyle, scaleEvents, type BackingEvent, type BellNote, type StylePreset } from './patterns';
+import { phrases, type Phrase } from './phrases';
 import { BackingSynth } from './synth';
 import { backingTimeline, countIn, type Click, type HarmonyChart, type Timeline } from './timeline';
 
@@ -25,6 +26,15 @@ export const MIN_LEAD_IN = 3;
 const CLICK_LEVEL = 0.55;
 const REVERB = 0.18;
 
+export interface TrackOptions {
+  /**
+   * Practice speed (1 = as written, 0.75 = slower). Use it when the song timeline handed to the
+   * Session is the chart's timeline stretched by 1/speed: backing events, their lengths and the
+   * count-in are stretched the same way. Leave it at 1 if the chart passed in is already scaled.
+   */
+  speed?: number;
+}
+
 export interface ScheduledEvent {
   time: number;
   play: (when: number) => void;
@@ -37,6 +47,9 @@ export class BackingTrack {
   readonly clicks: Click[];
   /** Seconds from start() to song time 0: room for the count-in. */
   readonly leadIn: number;
+  /** 4-bar phrases in song seconds (after speed scaling): fills here, perfect-phrase SFX in main.ts. */
+  readonly phrases: Phrase[];
+  readonly speed: number;
   private synth: BackingSynth | null = null;
   private disconnect: (() => void) | null = null;
 
@@ -45,13 +58,18 @@ export class BackingTrack {
     chart: HarmonyChart & { song?: { id?: string } },
     bellNotes: BellNote[],
     readonly settings: BackingSettings,
+    opts: TrackOptions = {},
   ) {
+    const speed = opts.speed && opts.speed > 0 ? opts.speed : 1;
+    this.speed = speed;
     this.timeline = backingTimeline(chart);
     this.style = this.timeline ? resolveStyle(this.timeline) : null;
+    // Bell notes are on the written timeline: generate there, then scale.
     this.events = this.timeline && settings.enabled && settings.volume > 0
-      ? generateBacking(this.timeline, { exclusions: exclusionsFrom(bellNotes), seed: chart.song?.id })
+      ? scaleEvents(generateBacking(this.timeline, { exclusions: exclusionsFrom(bellNotes), seed: chart.song?.id }), speed)
       : [];
-    this.clicks = settings.countIn ? countIn(chart) : [];
+    this.phrases = this.timeline ? phrases(this.timeline).map((p) => ({ ...p, start: p.start / speed, end: p.end / speed })) : [];
+    this.clicks = settings.countIn ? countIn(chart).map((k) => ({ ...k, time: k.time / speed })) : [];
     const first = this.clicks[0]?.time ?? 0;
     this.leadIn = Math.max(MIN_LEAD_IN, -first + 1);
   }

@@ -47,6 +47,8 @@ const scenarios = [
   { name: 'joy-easy-2-with-host', song: 'joy-to-the-world', diff: 'easy', ringers: 3, phones: ['Alice', 'Bob'], hostRingers: 1, shot: 'i2-2-phones-plus-host' },
   { name: 'silent-night-late60', song: 'silent-night', diff: 'easy', ringers: 3, phones: ['Alice', 'Bob', 'Cara'], late: 60 },
   // Practice speed 50 %: the song takes twice as long; rings are still judged in real time.
+  // Full song form (intro, developing verses, coda; ~2:15) with the super easy tier: drift over a long song.
+  { name: 'we-wish-full-super-easy-4', song: 'we-wish-you-a-merry-christmas', diff: 'super-easy', ringers: 4, phones: ['Alice', 'Bob', 'Cara', 'Dan'], form: 'full' },
   { name: 'holly-easy-2-speed50', song: 'the-holly-and-the-ivy', diff: 'easy', ringers: 2, phones: ['Alice', 'Bob'], speed: 50 },
 ].filter((s) => !only || only.split(',').includes(s.name));
 
@@ -157,7 +159,7 @@ for (let run = 1; run <= repeat; run++) {
     const errors = [];
     page.on('pageerror', (e) => errors.push(String(e)));
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-    const url = `http://127.0.0.1:${port}/game/?song=${sc.song}&diff=${sc.diff}&ringers=${sc.ringers}&waitPhones=${sc.phones.length}&start=play${sc.speed ? `&speed=${sc.speed}` : ''}${qs}${sc.shot && shots ? '&startDelay=4000' : ''}`;
+    const url = `http://127.0.0.1:${port}/game/?song=${sc.song}&diff=${sc.diff}&ringers=${sc.ringers}&waitPhones=${sc.phones.length}&form=${sc.form ?? 'short'}${sc.parts ? `&parts=${sc.parts}` : ''}&start=play${sc.speed ? `&speed=${sc.speed}` : ''}${qs}${sc.shot && shots ? '&startDelay=4000' : ''}`;
     await page.goto(url);
     if (shots && sc.shot) {
       await page.waitForFunction((n) => document.querySelectorAll('#phones li:not(.off):not(.dim)').length >= n, sc.phones.length, { timeout: 20000 });
@@ -214,7 +216,7 @@ for (let run = 1; run <= repeat; run++) {
     if (r.speed !== wantSpeed) fails.push(`practice speed ${r.speed}, expected ${wantSpeed}`);
     if (sc.speed) {
       // The chart is stretched (song length = written length / speed) and so is the time the round took.
-      const written = JSON.parse(readFileSync(join(root, 'public', 'charts', `${sc.song}.json`), 'utf8')).timing.durationSec;
+      const written = JSON.parse(readFileSync(join(root, 'public', 'charts', ...((sc.form ?? 'short') === 'short' ? ['short'] : []), `${sc.song}.json`), 'utf8')).timing.durationSec;
       const want = written / wantSpeed;
       if (!(r.chartDurationSec >= want - 0.01 && r.chartDurationSec <= want + 1 / wantSpeed)) fails.push(`stretched song ${r.chartDurationSec} s, expected ${want.toFixed(1)} s (${written} s at ${sc.speed} %)`);
       if (!(wallS > want)) fails.push(`round took ${wallS.toFixed(1)} s, shorter than the ${want.toFixed(1)} s stretched song`);

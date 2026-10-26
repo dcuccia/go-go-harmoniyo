@@ -92,17 +92,17 @@ repository "MIT" in a way that hides them.
 | [Away in a Manger (tune MUELLER), Mutopia edition (SATB)](#mutopia-away-in-a-manger) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [O Come, O Come, Emmanuel (tune VENI EMMANUEL), Mutopia edition (SATB)](#mutopia-o-come-o-come-emmanuel) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
 | [In the Bleak Midwinter (tune CRANHAM), Mutopia edition (SATB)](#mutopia-in-the-bleak-midwinter) | third-party | LicenseRef-Mutopia-PublicDomain | 2 | approved |
-| [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 30 | approved (legacy) |
-| [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
-| [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 6 | approved (legacy) |
+| [S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets](#s5-charts-from-cc0-lead-sheets) | derived | CC0-1.0 | 35 | approved (legacy) |
+| [S5 charts and exports for 'It Came Upon the Midnight Clear'](#s5-charts-carol) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
+| [S5 charts and exports for 'Good King Wenceslas'](#s5-charts-good-king-wenceslas) | derived | LicenseRef-Mutopia-PublicDomain | 7 | approved (legacy) |
 | [S6 AI candidate lead sheets (Deck the Halls intro/ending; The Holly and the Ivy descant)](#s6-candidate-lead-sheets) | ai-generated | CC0-1.0 | 2 | pending |
 | [S6 candidate charts (chart format 0.2.0)](#s6-candidate-charts) | derived | CC0-1.0 | 2 | pending |
 | [Deck the Halls melody MIDI (AMT input)](#s6-amt-melody-deck-the-halls) | derived | CC0-1.0 | 1 | approved |
 | [The Holly and the Ivy melody MIDI (AMT input)](#s6-amt-melody-the-holly-and-the-ivy) | derived | LicenseRef-Mutopia-PublicDomain | 1 | approved |
 | [S6 AMT accompaniments (Deck the Halls, The Holly and the Ivy)](#s6-amt-accompaniments) | ai-generated | CC0-1.0 | 4 | pending |
 | [S6 blind-listening previews (procedural vs qwen3:8b vs AMT)](#s6-blind-listening-previews) | ai-generated | CC0-1.0 | 6 | pending |
-| [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 48 | approved |
-| [S5 charts and exports for the CC0 self-encoded carols added 2026-10-25 (8 lead sheets/arrangements + Holly and the Ivy SATB)](#s5-charts-self-encoded-2026-10-25) | derived | CC0-1.0 | 54 | pending |
+| [S5 charts and exports for the Mutopia SATB carols added 2026-10-25](#s5-charts-mutopia-satb-2026-10-25) | derived | LicenseRef-Mutopia-PublicDomain | 56 | approved |
+| [S5 charts and exports for the CC0 self-encoded carols added 2026-10-25 (8 lead sheets/arrangements + Holly and the Ivy SATB)](#s5-charts-self-encoded-2026-10-25) | derived | CC0-1.0 | 63 | pending |
 
 ### project-ui-captures
 
@@ -320,7 +320,7 @@ repository "MIT" in a way that hides them.
 - Authors: Mykola Leontovych ('Shchedryk', 1916, public domain), on a Ukrainian folk chant; Go Go HarmoniYo S5 agent session (encoding and chord symbols)
 - Copyright: Melody public domain; encoding 2026 Go Go HarmoniYo contributors, dedicated to the public domain
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
-- Modifications: New three-voice arrangement (lead, inner, bass) of the public-domain Shchedryk ostinato and phrases; the bass and inner parts, section order, interlude and ending were written by the agent. Tempo set to 160 qpm so the ostinato's eighths stay above the handbell profile's 0.18 s repeat limit.
+- Modifications: New three-voice arrangement (lead, inner, bass) of the public-domain Shchedryk ostinato and phrases; the bass and inner parts, section order, interlude and ending were written by the agent. Tempo 138 qpm (eighths 0.22 s): with S5 0.3's balanced parts this leaves no playability violations on the phone game's Easy tier (4 ringers).
 - AI provenance: GitHub Copilot (Copilot App coding agent session); model Claude Opus 5.5 (claude-opus-5.5) (Copilot App 1.0.99-2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-10-25); prompt: Task brief (S5 content PR 2, coordinator session, 2026-10-25; quoted with arranger, franchise and game names removed per ADR-0008): Encode public-domain Christmas carols for the S5 chart pipeline as ABC files dedicated CC0. Correctness is the main risk: for every melody check octave placement (ABC uppercase C-B = C4-B4, lowercase = C5-B5), the key signature's accidentals and tonicizations, pickups and bar sums, and verify it against a public-domain reference (a PD hymnal or collection scan, or a reliable transcription used only as a reference; don't copy files). Record what you checked against. If you can't verify a song confidently, leave it out rather than ship a guess. The parser has no repeats, broken rhythm or inline fields; write music out in full. Carol of the Bells: Leontovych's 'Shchedryk' (1916) melody is public domain; the 1936 English arrangement and lyrics are not. Create our own arrangement from the public-domain Shchedryk material. Don't copy any published handbell or choral arrangement, and document the provenance. Use the folk ostinato (in G minor: B-flat A B-flat G, eighths in 3/4), with entries of the melody and our own bass and inner parts as multiple ABC voices. Write it from the public-domain material; do not reproduce the 1936 arrangement's or any handbell edition's layering, voicings, dynamics or structure. Document provenance in the ABC header and register.; resemblance review: pending, pending
 - Review: pending. Owner: (1) play exports/carol-of-the-bells/audition-easy-r4.mid or read the ABC and check the melody against a public-domain edition (the references named in notes): every pitch and octave, accidentals, pickup, rhythm; (2) confirm the chord symbols are plain functional harmony and do not reproduce any published arrangement. Then set ai.reviewer/ai.reviewDate and review.status/reviewer/date. Resemblance: compare with the 1936 English choral arrangement and common handbell editions (section order, which voices carry the ostinato, bass line, ending) and confirm it is not a copy. Melody: compare the ostinato and phrases with a public-domain edition of Leontovych (1916).
 - Notes: Melody verified (agent, 2026-10-25) against: a transcription of Leontovych's 1916 choral setting (the LilyPond score in the English Wikipedia article 'Shchedryk (song)', read as a reference only): ostinato B-flat A B-flat G and the melodic phrases (upper motif, descending phrase, rising scale with E natural and F sharp) match it. Bass and inner parts, form, interlude and ending are new; no English words and no 1936-or-later arrangement used.
@@ -530,7 +530,7 @@ repository "MIT" in a way that hides them.
 
 **S5 handbell charts and Clone Hero/YARG exports generated from the CC0 lead sheets**
 
-- Files: `spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json`, `spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*` (30 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}.json`, `spikes/s5-chart-pipeline/exports/{deck-the-halls,jingle-bells,joy-to-the-world,silent-night,we-wish-you-a-merry-christmas}/*` (35 file(s))
 - Origin: derived — from [s5-jingle-bells-abc](#s5-jingle-bells-abc), [s5-joy-to-the-world-abc](#s5-joy-to-the-world-abc), [s5-silent-night-abc](#s5-silent-night-abc), [s5-deck-the-halls-abc](#s5-deck-the-halls-abc), [s5-we-wish-you-a-merry-christmas-abc](#s5-we-wish-you-a-merry-christmas-abc) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: 2026 Go Go HarmoniYo contributors (generated), dedicated to the public domain
@@ -543,7 +543,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for 'It Came Upon the Midnight Clear'**
 
-- Files: `spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json`, `spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*` (6 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/it-came-upon-the-midnight-clear.json`, `spikes/s5-chart-pipeline/exports/it-came-upon-the-midnight-clear/*` (7 file(s))
 - Origin: derived — from [mutopia-carol](#mutopia-carol) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project (Mutopia-2008/01/13-1231), placed in the public domain
@@ -556,7 +556,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for 'Good King Wenceslas'**
 
-- Files: `spikes/s5-chart-pipeline/charts/good-king-wenceslas.json`, `spikes/s5-chart-pipeline/exports/good-king-wenceslas/*` (6 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/good-king-wenceslas.json`, `spikes/s5-chart-pipeline/exports/good-king-wenceslas/*` (7 file(s))
 - Origin: derived — from [mutopia-good-king-wenceslas](#mutopia-good-king-wenceslas) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by James Kilfiger for the Mutopia Project (Mutopia-2007/01/10-905), placed in the public domain
@@ -644,7 +644,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for the Mutopia SATB carols added 2026-10-25**
 
-- Files: `spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json`, `spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*` (48 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}.json`, `spikes/s5-chart-pipeline/exports/{o-come-all-ye-faithful,hark-the-herald-angels-sing,the-first-noel,o-little-town-of-bethlehem,what-child-is-this,away-in-a-manger,o-come-o-come-emmanuel,in-the-bleak-midwinter}/*` (56 file(s))
 - Origin: derived — from [mutopia-o-come-all-ye-faithful](#mutopia-o-come-all-ye-faithful), [mutopia-hark-the-herald-angels-sing](#mutopia-hark-the-herald-angels-sing), [mutopia-the-first-noel](#mutopia-the-first-noel), [mutopia-o-little-town-of-bethlehem](#mutopia-o-little-town-of-bethlehem), [mutopia-what-child-is-this](#mutopia-what-child-is-this), [mutopia-away-in-a-manger](#mutopia-away-in-a-manger), [mutopia-o-come-o-come-emmanuel](#mutopia-o-come-o-come-emmanuel), [mutopia-in-the-bleak-midwinter](#mutopia-in-the-bleak-midwinter) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: Typeset by Steve Dunlop for the Mutopia Project, placed in the public domain (per-song ids in the source entries)
@@ -656,7 +656,7 @@ repository "MIT" in a way that hides them.
 
 **S5 charts and exports for the CC0 self-encoded carols added 2026-10-25 (8 lead sheets/arrangements + Holly and the Ivy SATB)**
 
-- Files: `spikes/s5-chart-pipeline/charts/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}.json`, `spikes/s5-chart-pipeline/exports/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}/*` (54 file(s))
+- Files: `spikes/s5-chart-pipeline/charts/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}.json`, `spikes/s5-chart-pipeline/exports/{god-rest-ye-merry-gentlemen,we-three-kings,angels-we-have-heard-on-high,o-christmas-tree,jolly-old-st-nicholas,ding-dong-merrily-on-high,auld-lang-syne,the-holly-and-the-ivy,carol-of-the-bells}/*` (63 file(s))
 - Origin: derived — from [s5-god-rest-ye-merry-gentlemen-abc](#s5-god-rest-ye-merry-gentlemen-abc), [s5-we-three-kings-abc](#s5-we-three-kings-abc), [s5-angels-we-have-heard-on-high-abc](#s5-angels-we-have-heard-on-high-abc), [s5-o-christmas-tree-abc](#s5-o-christmas-tree-abc), [s5-jolly-old-st-nicholas-abc](#s5-jolly-old-st-nicholas-abc), [s5-ding-dong-merrily-on-high-abc](#s5-ding-dong-merrily-on-high-abc), [s5-auld-lang-syne-abc](#s5-auld-lang-syne-abc), [s5-the-holly-and-the-ivy-abc](#s5-the-holly-and-the-ivy-abc), [s5-carol-of-the-bells-abc](#s5-carol-of-the-bells-abc) via `node spikes/s5-chart-pipeline/build.mjs`
 - Authors: Go Go HarmoniYo S5 chart pipeline
 - Copyright: 2026 Go Go HarmoniYo contributors (generated), dedicated to the public domain

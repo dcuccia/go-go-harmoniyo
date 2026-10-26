@@ -1,10 +1,12 @@
 import { DEFAULT_BELLS, midiToHz, type Bell, type DetectMode, type Parts, type SoundMode } from '../core/hgp.ts';
 import { isAccidental } from '../../../shared/pitch-palette.ts';
 import { ImpactDetector } from '../core/impact-detector.ts';
-import { learnAxis, RingDetector, type MotionSample, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
+import { expectedIoi, isSensitivity, learnAxis, RingDetector, type MotionSample, type Sensitivity, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
 import { bell as playBell, click, perfToCtx, testBeep, unlockAudio } from './audio.ts';
 import { deviceId, HgpClient } from './hgp-client.ts';
 import { MotionSource } from './motion.ts';
+import { TabGuard } from './tab-guard.ts';
+import { takeoverScreen } from './takeover.ts';
 
 const q = new URLSearchParams(location.search);
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -42,13 +44,50 @@ for (const k of ['armOmega', 'minPeakOmega', 'minDecel', 'releaseRatio', 'rearmO
 }
 const savedAxis = localStorage.getItem(AXIS_KEY);
 const ring = new RingDetector({ ...detectorOverrides, axis: savedAxis ? (JSON.parse(savedAxis) as Vec3) : null });
+/** Ring hints from the game (HGP `assign.ring`); `?sens=quick` forces Quick for testing. */
+let ringHint: { sens?: Sensitivity; ioi?: number } = {};
+const sensOverride = isSensitivity(q.get('sens')) ? (q.get('sens') as Sensitivity) : undefined;
+let ctxAt = -Infinity;
+/** Fast-passage context for the ring detector: local IOI from cues, else the song-wide hint while playing. */
+function updateRingContext(t: number): void {
+  if (t - ctxAt < 50 && t >= ctxAt) return;
+  ctxAt = t;
+  let ioi: number | null = null;
+  const clk = client.clock;
+  if (cueTimes.length && clk.ready) ioi = expectedIoi(cueTimes, clk.toHost(t));
+  else if (!cueTimes.length && ringHint.ioi && lobby?.phase !== 'lobby') ioi = ringHint.ioi;
+  ring.setContext({ sensitivity: sensOverride ?? ringHint.sens ?? 'normal', ioiMs: ioi });
+}
 const impact = new ImpactDetector();
 const motion = new MotionSource();
+/** One controller tab per phone (the deviceId is shared by every tab of this browser). */
+const tabGuard = new TabGuard('go-go-harmoniyo/controller');
 const client = new HgpClient({
   kind: 'phone',
   deviceId: deviceId(),
   name: localStorage.getItem(NAME_KEY) ?? 'phone',
-  hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true },
+  hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true, tab: tabGuard.tab },
+});
+
+// ── one tab per phone: "connected in another tab — [Use this tab]" ──────────
+let started = false;
+const takeover = takeoverScreen(() => void useThisTab());
+async function useThisTab(): Promise<void> {
+  if (!started) return start(true);
+  await tabGuard.acquire(true);
+  client.takeover();
+}
+tabGuard.onLost = () => {
+  // The user took over in another tab: stand by (the host also tells us `replaced`).
+  client.goStandby('another tab took over');
+  takeover.show('replaced');
+};
+client.onReplaced = () => {
+  tabGuard.release();
+  takeover.show('replaced');
+};
+void tabGuard.otherActive().then((other) => {
+  if (other && !started) takeover.show('other-tab');
 });
 
 // ── UI ──────────────────────────────────────────────────────────────────────
@@ -62,6 +101,7 @@ function render(): void {
     e ? `sync ±${e.errBound.toFixed(1)} ms, rtt ${e.rttP50.toFixed(0)} ms` : 'sync…',
     `sound: ${soundMode}`,
     `mode: ${mode}${ring.params.axis ? '' : ' (uncalibrated)'}`,
+    `rings: ${ring.context.sensitivity ?? 'normal'}${ring.context.ioiMs ? ` · fast ${Math.round(ring.context.ioiMs)} ms` : ''}`,
   ].join(' · ');
   $('debug').textContent = `|ω| ${lastOmega.toFixed(0)} deg/s (peak ${peakOmega.toFixed(0)}) · gestures ${gestureCount} · ${lastInfo}`;
   const banner = $('banner');
@@ -116,6 +156,7 @@ function onSample(s: MotionSample): void {
     }
     return;
   }
+  updateRingContext(s.t);
   const e = ring.push(s);
   if (!e) return;
   lastInfo = `ring ω ${e.peakOmega.toFixed(0)}, decel ${(e.maxDecel / 1000).toFixed(1)}k, det ${(e.firedAt - e.t).toFixed(0)} ms`;
@@ -205,6 +246,8 @@ function expectedBell(): string | null {
 /** Game cues (host time + bell id of each upcoming note for this phone), sent by a game host. */
 let cues: { at: number[]; bells: string[] } | null = null;
 let cueIdx = 0;
+/** Cue times, sorted (fast-passage context for the ring detector). */
+let cueTimes: number[] = [];
 
 function select(i: number, t: number): void {
   if (i === selIdx) return;
@@ -287,6 +330,7 @@ window.setInterval(() => {
     visible: document.visibilityState === 'visible',
     mode,
     axis: ring.params.axis,
+    sens: ring.context.sensitivity ?? 'normal',
     wakeLock: wakeLock !== null,
   });
   render();
@@ -307,6 +351,11 @@ client.onMessage = (m) => {
       }
       soundMode = (m.sound as SoundMode) ?? soundMode;
       ringer = (m.ringer as typeof ringer) ?? null;
+      {
+        const rg = (m.ring ?? {}) as { sens?: unknown; ioi?: unknown };
+        ringHint = { sens: isSensitivity(rg.sens) ? rg.sens : undefined, ioi: typeof rg.ioi === 'number' && rg.ioi > 0 ? rg.ioi : undefined };
+        ctxAt = -Infinity;
+      }
       $('ringer').hidden = !ringer;
       $('ringer').textContent = ringer ? `🎮 ${ringer.title}${ringer.song ? ` — ${ringer.song}` : ''}` : '';
       if (bells && bells.length > 0) buildZones();
@@ -323,6 +372,8 @@ client.onMessage = (m) => {
       break;
     case 'cues':
       cues = Array.isArray(m.at) && m.at.length ? { at: m.at as number[], bells: (m.bells as string[]) ?? [] } : null;
+      cueTimes = cues ? cues.at.filter((x) => Number.isFinite(x)).sort((a, b) => a - b) : [];
+      ctxAt = -Infinity;
       cueIdx = 0;
       renderZones();
       break;
@@ -443,19 +494,37 @@ async function requestWakeLock(): Promise<void> {
   }
 }
 
-async function start(): Promise<void> {
+let starting = false;
+async function start(takeoverTab = false): Promise<void> {
+  if (started || starting) return; // a double tap must not open a second connection
+  starting = true;
+  try {
+    await startController(takeoverTab);
+  } finally {
+    starting = false;
+  }
+}
+
+async function startController(takeoverTab: boolean): Promise<void> {
   const name = ($('name') as HTMLInputElement).value.trim() || 'phone';
   localStorage.setItem(NAME_KEY, name);
   // Both must be *called* synchronously inside the tap handler (iOS user-activation rules).
   const permP = MotionSource.requestPermission().catch((e: unknown) => `error: ${String(e)}`);
   const audioP = unlockAudio().catch((e: unknown) => ({ state: `error: ${String(e)}`, audioSession: '?', baseLatency: NaN, outputLatency: NaN }));
+  // Another tab of this phone is playing (e.g. the TV's QR scanned again): let it keep playing.
+  if (!(await tabGuard.acquire(takeoverTab))) {
+    takeover.show('other-tab');
+    return;
+  }
   const perm = await permP;
   const audioInfo = await audioP;
   await requestWakeLock();
   const api = await motion.start(q.get('api') === 'generic' ? 'generic' : 'auto', Number(q.get('hz') ?? 60));
   motion.onSample = onSample;
   client.setName(name);
-  client.connect();
+  if (takeoverTab) client.takeover();
+  else client.connect();
+  started = true;
   $('start-screen').hidden = true;
   $('main').hidden = false;
   recording = q.get('record') === '1';

@@ -75,6 +75,15 @@ drive any host.
     ≤ 4 bells per phone on easy/medium for most carols, but 1–2 ringers and hard tiers still
     overflow; I2 lets the host ring the least-used overflow bells. Host `cues` make the
     next zone glow; zones laid out as a lane row (I1's `assign.ringer`) match the TV highway.
+  - Fast repeated rings (owner, 4-player session: "a little too difficult to do multiple rings
+    in rapid succession"): the S1 detector caught only the forward half of a back-and-forth
+    shake (~45 % of 8ths, ~25 % of 16ths at 140 bpm in emulation). The phone now adapts to its
+    own `cues`: in fast passages the refractory follows the note spacing, flick-sized strokes
+    count and both directions of a shake ring → 92–98 % of 8ths/16ths at 100–140 bpm at 60 Hz,
+    with false rings while idle unchanged. A per-phone Normal/Quick sensitivity is set in the I2
+    lobby (`assign.ring`). Open: re-tune on real fast-passage traces (the stroke model is
+    synthetic); whether players shake or flick; whether the max-rate (~9 rings/s emulated) holds
+    on iPhone at 60 Hz. See the [S1 report](../spikes/S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes).
 - Spikes: S1.
 
 ## E03 Game host & engine
@@ -254,6 +263,14 @@ audience reactions, festive themes (holiday theme for M5).
     GH/RB is mostly scene/environment art, authored models/animation and UI design, not the engine.
   - Aural juice (I2): a procedural festive backing track (see E05) turns melody-only Easy into a
     fuller song; lobby has Backing on/off + volume and a Count-in toggle (defaults: on, 50 %).
+  - Owner feedback (4-player session): *"more sophisticated backing tracks and special sound
+    effects for feedback on performance"*. The backing now reads 4-bar phrases (fills, crash,
+    sleigh-bell rolls, glockenspiel glissandos, bass variations, celesta, strings lift) and ends
+    with a ritardando tag over a fermata. Performance SFX, all synthesised: streak sparkles,
+    multiplier whoosh, a soft miss "boop", a perfect-phrase fanfare on the current chord (a first
+    taste of E06's "team-wide perfect phrase") and accuracy-scaled applause; 10–25 dB under a
+    bell and ducked while bells ring; lobby on/off + volume. Open: does the miss cue feel kind
+    to kids in practice; should applause be per ringer; recorded (CC0) crowd sounds later?
     Next ideas: sleigh-bell swells on streaks, a cymbal/bell tree on full-team perfect phrases,
     the backing thinning out on misses (classic "band drops out") — all procedural.
 

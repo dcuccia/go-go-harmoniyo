@@ -52,9 +52,23 @@
           <div class="row">
             <label>Difficulty
               <select id="sel-diff">
+                <option value="super-easy">Super easy</option>
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
+              </select>
+            </label>
+            <label title="Balanced: everyone plays one musical role (bass, harmony or a slice of the tune) with similar effort. Chord split: up to three players share each chord, one note each. By range: bells cut by pitch range (older charts).">Parts
+              <select id="sel-parts">
+                <option value="balanced">Balanced</option>
+                <option value="chord-split">Chord split</option>
+                <option value="by-range">By range</option>
+              </select>
+            </label>
+            <label title="Full: intro, verses that build up, ending (about 2–3 minutes). Short: the song once.">Length
+              <select id="sel-form">
+                <option value="full">Full</option>
+                <option value="short">Short</option>
               </select>
             </label>
             <label>Ringers
@@ -81,6 +95,12 @@
             <label title="Woodblock clicks on the beat before the song starts">
               <input type="checkbox" id="chk-countin" /> Count-in
             </label>
+          </div>
+          <div class="row backing-row">
+            <label title="Sparkles for streaks, a whoosh when the multiplier goes up, a fanfare for a perfect phrase, a soft boop for a miss and applause at the end. Quieter than the bells and ducked while they ring.">
+              <input type="checkbox" id="chk-sfx" /> Sound effects
+            </label>
+            <label>Volume <input type="range" id="rng-sfx" min="0" max="100" step="5" /> <span id="sfx-vol" class="dim"></span></label>
           </div>
           <div class="row backing-row speed-row">
             <label title="Play the song slower to learn it: bells, highways, backing and count-in all slow down; timing is judged the same">

@@ -8,6 +8,7 @@
  *    audio clock internally; devices never see the audio clock.
  */
 import { pitchColor } from '../../../shared/pitch-palette.ts';
+import type { Sensitivity } from './ring-detector.ts';
 
 export const HGP_VERSION = 0;
 
@@ -56,6 +57,10 @@ export interface Hello {
   gestures?: GestureType[];
   /** Device can play sound locally. */
   sound?: boolean;
+  /** Per-page id (a new one each page load): tells two tabs with the same `deviceId` apart in logs. */
+  tab?: string;
+  /** The user chose "Use this tab": this connection takes over the `deviceId` from another tab. */
+  takeover?: boolean;
 }
 
 export interface SyncReq {
@@ -173,6 +178,14 @@ export interface Assign {
    * of that ringer's YARG highway.
    */
   ringer?: { slot: number; title: string; song?: string };
+  /**
+   * Ring detection hints (I2 lobby). `sens`: the player's sensitivity, Normal (default) or Quick.
+   * `ioi`: the part's shortest inter-onset interval, ms — a song-wide fallback for hosts that send
+   * no `cues` (devices derive the local IOI from `cues` when they have them, and ignore `ioi` while
+   * `parts.phase` is `lobby`). Fast passages shorten the refractory period, accept smaller strokes
+   * and ring on both directions of a shake (ring-detector.ts `adaptParams`).
+   */
+  ring?: { sens?: Sensitivity; ioi?: number };
 }
 
 export interface Config {
@@ -197,7 +210,21 @@ export interface TestCmd {
   expect?: string[];
 }
 
-export type HostToDevice = Welcome | SyncRes | Assign | Config | TestCmd | RtcSignal | Parts;
+/**
+ * A newer connection claimed this `deviceId` (newest wins): sent to the old connection just before
+ * the host closes it with {@link HGP_CLOSE_REPLACED}. The device must not auto-reconnect (that would
+ * kick the newer connection back, forever); it offers "Use this tab" instead.
+ */
+export interface Replaced {
+  type: 'replaced';
+  reason: string;
+  hostTime: number;
+}
+
+/** WebSocket close code for a connection replaced by a newer one with the same `deviceId`. */
+export const HGP_CLOSE_REPLACED = 4001;
+
+export type HostToDevice = Welcome | SyncRes | Assign | Config | TestCmd | RtcSignal | Parts | Replaced;
 
 /** Who plays a part: a phone (deviceId + name), the game PC's keyboard, or the TV (host rings it). */
 export interface PartPlayer {

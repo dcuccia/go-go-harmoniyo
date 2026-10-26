@@ -1,8 +1,9 @@
-// Arrangement: label notes with roles (melody / bass / inner), realize lead-sheet chord symbols,
-// and derive difficulty tiers.
-import { beatGrid, measureStarts } from './score.mjs';
+// Arrangement: label notes with roles (melody / bass / inner) and realize lead-sheet chord symbols
+// (one pass of the song, used for chord inference and the role tests). The playable parts — song
+// form, tiers, role-aware balancing — are built by form.mjs and parts.mjs.
+import { beatGrid } from './score.mjs';
 
-export const ROLE_PRIORITY = { melody: 3, bass: 2, inner: 1 };
+export const ROLE_PRIORITY = { melody: 3, descant: 2.5, bass: 2, inner: 1 };
 
 // Outer line of a (possibly polyphonic) voice: a note is on the top line if no other note in the
 // voice that is sounding at its onset is higher (bottom line: lower).
@@ -90,24 +91,4 @@ export function realizeLeadSheet(score, melody) {
     });
   }
   return dedupe(out);
-}
-
-export const TIERS = ['easy', 'medium', 'hard'];
-
-// easy: melody only. medium: melody + bass on strong beats (or the first bass note of a measure
-// without one). hard: everything.
-export function tierNotes(score, notes, tier) {
-  if (tier === 'easy') return notes.filter((n) => n.role === 'melody');
-  if (tier === 'hard') return notes.slice();
-  const strong = new Set(beatGrid(score).filter((b) => b.strong).map((b) => b.tick));
-  const starts = measureStarts(score);
-  const measureOf = (t) => { let k = 0; for (let i = 0; i < starts.length; i++) if (starts[i] <= t) k = i; return k; };
-  const bass = notes.filter((n) => n.role === 'bass');
-  const keep = new Set(bass.filter((n) => strong.has(n.tick)));
-  const seen = new Set([...keep].map((n) => measureOf(n.tick)));
-  for (const n of bass) {
-    const m = measureOf(n.tick);
-    if (!seen.has(m)) { keep.add(n); seen.add(m); }
-  }
-  return notes.filter((n) => n.role === 'melody' || keep.has(n));
 }

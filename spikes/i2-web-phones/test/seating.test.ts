@@ -193,11 +193,13 @@ describe('part cards', () => {
   });
 
   const jingle = (import.meta.glob('../public/charts/jingle-bells.json', { eager: true, import: 'default' }) as Record<string, S5Chart>)['../public/charts/jingle-bells.json'];
-  it.skipIf(!jingle)('real charts: Jingle Bells hard ×3 is Bass / Harmony / Melody with ranges, colours and a sensible meter', () => {
+  it.skipIf(!jingle)('real charts: Jingle Bells hard ×3 is Bass + tune parts (balanced) with ranges, colours and a sensible meter', () => {
     const c = jingle;
     const part = findPart(c, 'hard', 3)!;
+    expect(part.arrangement).toBe('balanced');
     const cards = partCards(c, part, buildTeamChart(c, part));
-    expect(cards.map((p) => p.name)).toEqual(['Bass', 'Harmony', 'Melody']);
+    expect(cards.map((p) => p.name)).toEqual(part.ringers.map((r) => r.name));
+    expect(cards[0].name).toBe('Bass');
     for (const p of cards) {
       expect(p.bells.length).toBeGreaterThan(0);
       expect(p.bells.length).toBeLessThanOrEqual(4);
@@ -208,7 +210,15 @@ describe('part cards', () => {
     }
     const easy = findPart(c, 'easy', 3)!;
     const ec = partCards(c, easy, buildTeamChart(c, easy));
-    expect(ec.map((p) => p.name)).toEqual(['Low melody', 'Middle melody', 'High melody']);
+    expect(ec.map((p) => p.name)).toEqual(easy.ringers.map((r) => r.name));
+    expect(ec.every((p) => /^(Bass|Harmony|Melody|(Low|Middle|High) melody)$/.test(p.name))).toBe(true);
+    // By range (S5 0.2) is still there, named from its note roles.
+    const byRange = findPart(c, 'easy', 3, 'by-range')!;
+    expect(byRange.arrangement).toBe('by-range');
+    expect(partCards(c, byRange, buildTeamChart(c, byRange)).map((p) => p.name)).toEqual(['Low melody', 'Middle melody', 'High melody']);
+    // Chord split: chord ringers named low → high.
+    const chord = findPart(c, 'medium', 4, 'chord-split')!;
+    expect(chord.ringers.some((r) => r.role === 'chord')).toBe(true);
     expect(Math.max(...ec.map((p) => p.level))).toBeLessThanOrEqual(Math.max(...cards.map((p) => p.level)));
   });
 });
