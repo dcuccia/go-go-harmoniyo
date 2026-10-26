@@ -10,6 +10,6 @@
     "chords": "node scripts/exp-chords.ts",
     "descant": "node scripts/exp-descant.ts",
     "candidates": "node scripts/build-candidates.ts",
-    "test": "node --test test/*.test.ts"
+    "test": "node --import ./test/offline-guard.ts --test test/*.test.ts"
   }
 }
