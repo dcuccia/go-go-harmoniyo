@@ -1186,8 +1186,10 @@
       "modifications": "none",
       "credit": false,
       "review": {
-        "status": "pending",
-        "notes": "Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity."
+        "status": "approved",
+        "reviewer": "@dcuccia (owner)",
+        "date": "2026-10-25",
+        "notes": "Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted on 2026-10-25 alongside G2 + Y1. After seeing them in-game (PR #70), the owner confirmed them (\"all sounds good\"). Same procedural method and resemblance check as brand-identity."
       }
     }
   ]

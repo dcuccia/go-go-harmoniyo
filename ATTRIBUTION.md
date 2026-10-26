@@ -108,7 +108,7 @@ repository "MIT" in a way that hides them.
 | [Brand options: G vamps not selected (other lockups and Yo versions), with preview boards and overviews](#brand-option-g-vamps) | derived | CC-BY-4.0 | 163 | pending |
 | [Brand options: the selected G vamps (lockup G2 and Yo Y1), preview boards](#brand-option-g-vamps-selected) | derived | CC-BY-4.0 | 32 | approved |
 | [Go Go HarmoniYo brand identity: logo lockups, Yo mark, app icons, social card and asset sheet](#brand-identity) | derived | CC-BY-4.0 | 24 | approved |
-| [Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)](#brand-yo-defaults) | derived | CC-BY-4.0 | 7 | pending |
+| [Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)](#brand-yo-defaults) | derived | CC-BY-4.0 | 7 | approved |
 
 ### project-ui-captures
 
@@ -789,7 +789,7 @@ repository "MIT" in a way that hides them.
 - Copyright: 2026 David Cuccia and Go Go HarmoniYo contributors
 - License: [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/) (`CC-BY-4.0`)
 - Modifications: none
-- Review: pending. Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity.
+- Review: approved by @dcuccia (owner) on 2026-10-25. Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted on 2026-10-25 alongside G2 + Y1. After seeing them in-game (PR #70), the owner confirmed them ("all sounds good"). Same procedural method and resemblance check as brand-identity.
 
 ## Open items
 
@@ -828,7 +828,6 @@ repository "MIT" in a way that hides them.
 - brand-options-overviews: review pending (Rendered in headless Chromium from the six options' SVGs; labels use the system UI font. Agent self-check against Guitar Hero, Rock Band, Harmonix, Rhythm Heaven, Beat Saber, Taiko no Tatsujin, DDR, the Bell System/AT&T bell, Taco Bell, Bell Canada, the Wi-Fi and notification-bell icons (see docs/design/brand-options/README.md#resemblance-check); a human resemblance review is still required before any option is adopted.)
 - brand-option-mashups: review pending (Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as variants of directions 2 and 6. Wordmarks are Outfit and Grandstander glyph outlines (OFL-FAQ 1.1); marks and mascot sketches are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks and the generic ringing-bell UI icon (see docs/design/brand-options/mashups/README.md#resemblance-re-check); a human resemblance review is still required.)
 - brand-option-g-vamps: review pending (Procedural design exploration (not adopted), requested by the owner on 2026-10-25 as vamps on mashup G. Wordmarks are Grandstander glyph outlines (OFL-FAQ 1.1); Yo versions are hand-written SVG geometry; no image-generation model or reference images (the generator was written with an AI coding agent). Agent self-check against Harmonix (dotted O), Guitar Hero, Rock Band, Rhythm Heaven, Beat Saber, Taiko, DDR, bell marks, bow-wearing character brands and the ringing-bell UI icon (see docs/design/brand-options/g-vamps/README.md#resemblance-re-check); a human resemblance review is still required.)
-- brand-yo-defaults: review pending (Recommended defaults from docs/design/brand-options/g-vamps/README.md, adopted for use on 2026-10-25 while the owner chose G2 + Y1; the owner hasn't picked these individually and may change them. Same procedural method and resemblance check as brand-identity.)
 
 ## Required record for each new asset
 
