@@ -30,7 +30,7 @@ CC0 AI provenance and a pending human review ([ADR-0008](../../docs/decisions/00
 
 | Command | What |
 |---|---|
-| `node --test test/*.test.ts` | Client (retries, auth, jobs) against the mock node; ABC writer round trips for all 8 S5 songs; theory checks |
+| `npm test` | Client (retries, auth, jobs) against the mock node; ABC writer round trips for all 8 S5 songs; theory checks. Offline: preloads `test/offline-guard.ts` (drops `CUCCIA_AI_*`, refuses non-loopback connections); CI runs it on S5/S6 changes (`.github/workflows/s6-ai-arranging.yml`) |
 | `node scripts/smoke.ts [--mock]` | Health, status, models, 2 chats, a `smoke-file` job → `results/smoke.json` |
 | `node scripts/exp-chords.ts [--mock]` | Experiment 2a: chords for the 3 Mutopia carols → `results/chords-<tag>.{md,json}`, `results/runs/chords-<tag>.jsonl` |
 | `node scripts/exp-descant.ts [--mock]` | Experiment 2b: descant (prompts v1 + v2) and intro/ending for Deck the Halls and The Holly and the Ivy → `results/descant-<tag>.*` |

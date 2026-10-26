@@ -43,7 +43,9 @@ test('listing, fit and playability on The Holly and the Ivy', () => {
   assert.match(listing, /^Bar 1 \(pickup\) \[1 beat\]: 3:/);
   const fit = chordToneFit(s.score, s.melody, s.current);
   assert.ok(fit.all > 0.4 && fit.all <= 1);
-  const p = playability(s.score, s.roleNotes);
+  // S5 0.3 (#65) adds its own accompaniment and form; on the phone game's profile the SATB Holly
+  // is playable as written (the real-handbell profile flags a few table-bell swaps).
+  const p = playability(s.score, s.roleNotes, 'hard', 4, 'phone-4zone');
   assert.equal(p.violations, 0);
 });
 

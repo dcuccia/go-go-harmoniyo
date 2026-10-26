@@ -5,7 +5,7 @@
 // @ts-ignore -- S5 JS modules
 import { beatGrid, makeTimeMap, parseChordSymbol, pitchName } from '../../s5-chart-pipeline/src/score.mjs';
 // @ts-ignore
-import { buildPart, fitHandbellSet } from '../../s5-chart-pipeline/src/chart.mjs';
+import { buildPart, fitHandbellSet, formSong } from '../../s5-chart-pipeline/src/chart.mjs';
 import { tonicPc, type Chord, type Note, type Score } from './abc-io.ts';
 
 export { beatGrid, makeTimeMap, parseChordSymbol, pitchName };
@@ -135,7 +135,8 @@ export function range(notes: Note[]): { low: number; high: number; lowName: stri
 
 /** Handbell playability of an arrangement (S5 buildPart: assignment + repair, profile handbell). */
 export function playability(score: Score, roleNotes: Note[], tier = 'hard', ringers = 4, profile = 'handbell') {
-  const part = buildPart(score, roleNotes, tier, ringers, profile);
+  // S5 0.3 (#65): parts are built from a formed song; 'short' = the song once, as before.
+  const part = buildPart(formSong(score, roleNotes, 'short'), tier, ringers, profile);
   const set = fitHandbellSet([...new Set(roleNotes.map((n) => n.midi))]);
   return {
     strikes: part.metrics.strikes as number,
