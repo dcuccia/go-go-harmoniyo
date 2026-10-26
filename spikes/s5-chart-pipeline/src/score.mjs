@@ -30,6 +30,13 @@ export function naturalSlot(midi) {
   return isNatural(midi) ? midi : midi - 1;
 }
 
+// "F#4" / "Bb3" -> MIDI number (C4 = 60).
+export function parsePitch(name) {
+  const m = /^([A-G][#b]?)(-?\d+)$/.exec(name);
+  if (!m) throw new Error(`bad pitch name ${name}`);
+  return NATURAL_PC[m[1][0]] + (m[1][1] === '#' ? 1 : m[1][1] === 'b' ? -1 : 0) + 12 * (Number(m[2]) + 1);
+}
+
 export function parsePitchClass(name) {
   const m = /^([A-Ga-g])([#b]?)/.exec(name);
   if (!m) throw new Error(`bad pitch name ${name}`);

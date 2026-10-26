@@ -10,7 +10,7 @@ MIDI writer, so they can be bundled for a browser later.
 
 ```sh
 node build.mjs            # regenerate charts/, exports/, results/ (~30–90 s: the metrics build every arrangement)
-node --test               # 26 tests: importers, assignment, schema, determinism, export, harmony, form, fairness
+node --test               # 29 tests: importers, corrections, assignment, schema, determinism, export, harmony, form, fairness, melody fidelity
 node build.mjs --ringers 3,4,5 --arrangements balanced,chord-split,by-range --export-ringers 5 --form short
 ```
 
@@ -78,7 +78,7 @@ it still validate.
 | Path | What |
 |---|---|
 | `songs/*.abc` | 5 self-encoded public-domain carol lead sheets (melody + chord symbols), CC0-1.0 |
-| `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style). The I2 game's song list is generated from it |
+| `songs/manifest.json` | Per-file source + license register; import options (melody/bass voice, pickup, tempo, `timeSig` meter override, backing style, `corrections` — proofread pitch fixes applied on import, each naming the pitches it replaces, so pinned sources stay byte-identical). The I2 game's song list is generated from it |
 | `sources/mutopia/` | 11 Mutopia Project files (`.mid` input + `.ly` provenance), public domain; 9 are SATB hymn settings. A test checks each SATB melody against the `.ly` soprano line |
 | `src/abc.mjs`, `src/midi.mjs`, `src/musicxml.mjs` | Importers → common score model (`src/score.mjs`) |
 | `src/arrange.mjs` | Melody/bass/inner role detection (one pass of the song) |
