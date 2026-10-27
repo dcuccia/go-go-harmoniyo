@@ -69,8 +69,8 @@ Working conventions learned so far:
 | #30: proofread carols | Jingle Bells, Deck the Halls and O Come All Ye Faithful fixed | Owner |
 | #31: first iPhone test | WebKit emulation passes 15/15 | Owner |
 | #45: reserve domain and handles | gogoharmoniyo.com and handles were free on 2026-10-23 | Owner |
-| #47: AI node token | **Done**: User env vars set on the laptop 2026-10-24 (`CUCCIA_AI_BASE_URL=https://north.local`, `CUCCIA_AI_CA_CERT`, `CUCCIA_AI_TOKEN`; the token is never logged). Can close once the node is verified live | Coordinator |
-| AI node live runs (S6) | The node sleeps and Wake-on-LAN from sleep did not work. qwen3:8b experiments and AMT on GPU are still pending | Owner wakes the node; owner submits the AMT manifest to cuccia-infra |
+| #47: AI node token | **Closed 2026-10-27** after a live authenticated smoke (healthz, models, chat, `smoke-file` job) | — |
+| AI node live runs (S6) | qwen3:8b chord/descant experiments **done on the node 2026-10-27** (S6 report §d; verdict unchanged). AMT image rebuilt with the duration clamp (#73, #74). **AMT on GPU waits for cuccia-infra to register `sha256:93e86a83…ec21`**; then the coordinator runs 3 carols × 3 seeds and updates the S6 report | Owner sends the infra note; coordinator runs AMT |
 | #26: TV cert/network help | Held for the owner (new TV UI) | Coordinator, after owner OK |
 | #28: alpha release | After #29 | Coordinator |
 | Holiday milestone (#17, #20, #33, #34, #36–#39, #41–#44, #48, #55, #59) | v0.2 holiday, Dec 18 | Mixed |
@@ -78,15 +78,27 @@ Working conventions learned so far:
 
 ## AI compute node (cuccia-infra contract v0)
 
-- Base `https://north.local` (private CA; ca.crt fingerprint SHA-256
-  `78F6AA75…3357CC`, file in `%USERPROFILE%\.cuccia\ai-worker\`). The node is at
-  192.168.70.202, MAC `08-BF-B8-29-4D-46`.
-- LLM `qwen3:8b` via `/v1` (`reasoning_effort: "none"`). Batch jobs via `/jobs`.
-- Containers must be registered by infra from a manifest.
-- AMT image: `ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097`.
-  The manifest and the handoff text for infra are in `spikes/s6-ai-arranging/amt/`.
-- S6 finding: qwen3:8b can't arrange; procedural/rule-based is the path. The owner's
-  blind-listening favourite was Deck the Halls B (LLM intro/ending only).
+- Base `https://north.local` (private CA). The published value `78F6AA75…3357CC` is the CA
+  certificate's SHA-256 **fingerprint**, not a hash of the PEM file; since #73 the client
+  accepts either. The file is in `%USERPROFILE%\.cuccia\ai-worker\`. User-scope env vars
+  `CUCCIA_AI_BASE_URL`, `CUCCIA_AI_CA_CERT` and `CUCCIA_AI_TOKEN` are set on the laptop. The
+  client reads them from the User scope if the process lacks them. Never print the token.
+- The node `dcuccia-north` resolves to **192.168.70.11** (192.168.70.202 was stale), RTX 3080 Ti
+  12 GB, VRAM budget 10 GiB. It **drops ICMP echo**, so ping fails while HTTPS works. ARP answers
+  from MAC `A0-36-9F-A2-89-B6`, but `/node/status` advertises Wake-on-LAN MAC
+  `08-BF-B8-29-4D-46` (another NIC), which may be why wake from sleep failed. The node is
+  LAN-only and may sleep.
+- LLM `qwen3:8b` via `/v1` (`reasoning_effort: "none"`): ~110 tokens/s, 1–1.6 s median per
+  call. Batch jobs via `/jobs`.
+- Containers must be registered by infra from a manifest. There's no endpoint to list
+  registered workloads, so the owner confirms registration.
+- AMT image: `ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:93e86a83279711321a9e85c931ba5e0107c36fe621862acd24879c8578fcec21`
+  (run 40565289683, with the duration clamp). The old `a3df2566…f097` crashes on over-long
+  durations; don't use it. The manifest and the note for infra are in
+  `spikes/s6-ai-arranging/amt/`. Run per seed with
+  `node scripts/amt-run.ts --node --songs … --seed N --out amt-node/seed-N`.
+- S6 finding (local and live): qwen3:8b can't arrange; procedural/rule-based is the path. The
+  owner's blind-listening favourite was Deck the Halls B (LLM intro/ending only).
 - Infra follow-ups: dcuccia/cuccia-infra#8 (wake, VPN, registry, CA, larger LLM tier).
 
 ## Owner preferences
