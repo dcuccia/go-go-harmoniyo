@@ -43,6 +43,26 @@ def cpu_threads() -> int:
     return int(os.environ.get("AMT_THREADS", n))
 
 
+def clamp_durations(tokens, vocab):
+    """Clamp over-long note durations (dur >= MAX_DUR) to MAX_DUR - 1; returns (tokens, count).
+
+    anticipation's sampler (safe_logits at af37397) leaves the REST token sampleable in the
+    duration slot, which decodes to a duration >= MAX_DUR and fails the assert in
+    events_to_compound, losing the whole job. Clamping keeps every note (10 s is far longer
+    than any carol note). Works on events and on controls (anticipated tokens)."""
+    out = list(tokens)
+    clamped = 0
+    for i in range(1, len(out), 3):
+        tok = out[i]
+        if tok == vocab.SEPARATOR:
+            continue
+        base = vocab.ADUR_OFFSET if tok >= vocab.CONTROL_OFFSET else vocab.DUR_OFFSET
+        if tok - base >= vocab.MAX_DUR:
+            out[i] = base + vocab.MAX_DUR - 1
+            clamped += 1
+    return out, clamped
+
+
 def main() -> int:
     inputs = os.environ.get("AMT_INPUTS", "/inputs")
     outputs = os.environ.get("AMT_OUTPUTS", "/outputs")
@@ -56,7 +76,7 @@ def main() -> int:
     t0 = time.perf_counter()
     import torch
     from transformers import AutoModelForCausalLM
-    from anticipation import ops
+    from anticipation import ops, vocab
     from anticipation.config import TIME_RESOLUTION, MAX_TIME_IN_SECONDS
     from anticipation.convert import events_to_midi, midi_to_events
     from anticipation.sample import generate
@@ -96,6 +116,7 @@ def main() -> int:
 
     # generate() returns history + new events (controls are not included); drop the history.
     acc_only = keep(ops.clip(accompaniment, start, end, clip_duration=False) if history else accompaniment)
+    acc_only, clamped = clamp_durations(acc_only, vocab)
     os.makedirs(outputs, exist_ok=True)
     events_to_midi(acc_only).save(os.path.join(outputs, "accompaniment.mid"))
     events_to_midi(ops.combine(acc_only, melody)).save(os.path.join(outputs, "combined.mid"))
@@ -113,6 +134,7 @@ def main() -> int:
         "generated_until_seconds": end,
         "melody_events": len(melody) // 3,
         "accompaniment_events": len(acc_only) // 3,
+        "clamped_durations": clamped,
         "accompaniment_instruments": {str(k): v for k, v in acc_instr.items()},
         "seconds": {"load": round(t_load - t0, 2), "generate": round(t_gen - t_load, 2), "total": round(time.perf_counter() - t0, 2)},
         "time_resolution": TIME_RESOLUTION,

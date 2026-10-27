@@ -11,7 +11,8 @@ accompaniment for a melody.
 | File | What |
 |---|---|
 | [`Dockerfile`](Dockerfile) | Base image pinned by digest; weights downloaded at build time and checked against a pinned SHA-256; runs as UID 10001 with no network; works on a read-only root filesystem |
-| [`amt_accompany.py`](amt_accompany.py) | The runner. `args.json` keys: `top_p`, `seed`, `end_seconds`, `history_seconds`, `drop_drums`, `keep_programs`, `device` |
+| [`amt_accompany.py`](amt_accompany.py) | The runner. `args.json` keys: `top_p`, `seed`, `end_seconds`, `history_seconds`, `drop_drums`, `keep_programs`, `device`. Over-long sampled durations (anticipation's sampler can emit the REST token as a duration) are clamped to 9.99 s instead of crashing; `report.json` counts them in `clamped_durations` |
+| [`test_amt_accompany.py`](test_amt_accompany.py) | Regression tests (`python -m unittest discover` here; needs `mido` and `anticipation`, not torch). CI runs them in the `s6-ai-arranging` workflow |
 | [`requirements.txt`](requirements.txt) | Pinned Python dependencies (torch is installed from the CUDA 12.4 or CPU wheel index) |
 | [`manifest.json`](manifest.json) | Workload manifest for cuccia-infra: image digest, command, GPU class, limits, model version, hash and license |
 
