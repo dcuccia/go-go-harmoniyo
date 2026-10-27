@@ -50,18 +50,23 @@ To build locally instead (CPU smoke tests and so on), see the comments at the to
 
 ### Current image
 
-Published 2026-10-25 by [run 40237996285](https://github.com/dcuccia/go-go-harmoniyo/actions/runs/40237996285)
-from commit `cf4e96e` (about 10 minutes on `ubuntu-latest`):
+Published 2026-10-27 by [run 40565289683](https://github.com/dcuccia/go-go-harmoniyo/actions/runs/40565289683)
+from commit `f5787be` (about 10 minutes on `ubuntu-latest`). This build includes the
+duration clamp (`clamped_durations` in `report.json`):
 
 ```text
-ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097
+ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:93e86a83279711321a9e85c931ba5e0107c36fe621862acd24879c8578fcec21
 ```
 
 4.5 GB compressed, 7.0 GB unpacked; `linux/amd64` manifest
-`sha256:89d10fa46b868933b3eb883673de33ef83a8c47d3f48d69c0cab9f836e54b336`. The workflow checked
+`sha256:2d0319b8bef8e0137b4c1e56fc3c9c4a29bc8d395552608f2a9fd01f51c7565a`. The workflow checked
 the pulled digest: UID 10001, torch 2.6.0+cu124, transformers 4.51.3, and the
-`music-medium-800k` weights' SHA-256 matches. It has not run on the node's GPU yet; the first
-node job records `max_vram_mib` in `report.json`.
+`music-medium-800k` weights' SHA-256 matches. The first node job records `max_vram_mib` in
+`report.json`.
+
+The previous image (`sha256:a3df2566…f097`, run 40237996285, commit `cf4e96e`) lacks the clamp:
+it fails with `AssertionError` in `events_to_compound` whenever the model samples an
+over-long duration. Don't use it.
 
 ### Handing off to infrastructure
 
@@ -69,7 +74,7 @@ Send [`manifest.json`](manifest.json) with a note like this:
 
 > Please register the `go-go-harmoniyo-amt` batch workload (contract v0). Manifest:
 > `spikes/s6-ai-arranging/amt/manifest.json` in dcuccia/go-go-harmoniyo. Image
-> `ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:a3df25660696ed39d9c12f4e156738b906858891b341f822ec21f94c28a0f097`
+> `ghcr.io/dcuccia/go-go-harmoniyo-amt@sha256:93e86a83279711321a9e85c931ba5e0107c36fe621862acd24879c8578fcec21`
 > (public on GHCR, no pull credential; built by GitHub Actions with SBOM and provenance).
 > Command `python /app/amt_accompany.py`, `gpu: exclusive`, about 3 GiB VRAM (fp16 360M
 > model), memory 8g, 4 CPUs, timeout 900 s, no caches, no network. Weights are baked in:
