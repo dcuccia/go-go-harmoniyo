@@ -70,7 +70,7 @@ Working conventions learned so far:
 | #31: first iPhone test | WebKit emulation passes 15/15 | Owner |
 | #45: reserve domain and handles | gogoharmoniyo.com and handles were free on 2026-10-23 | Owner |
 | #47: AI node token | **Closed 2026-10-27** after a live authenticated smoke (healthz, models, chat, `smoke-file` job) | — |
-| AI node live runs (S6) | qwen3:8b chord/descant experiments **done on the node 2026-10-27** (S6 report §d; verdict unchanged). AMT image rebuilt with the duration clamp (#73, #74). **AMT on GPU waits for cuccia-infra to register `sha256:93e86a83…ec21`**; then the coordinator runs 3 carols × 3 seeds and updates the S6 report | Owner sends the infra note; coordinator runs AMT |
+| AI node live runs (S6) | qwen3:8b chord/descant experiments **done on the node 2026-10-27** (S6 report §d; verdict unchanged). AMT image rebuilt with the duration clamp (#73, #74). AMT digest `sha256:93e86a83…ec21` **registered by cuccia-infra 2026-10-27** (workload `go-go-harmoniyo-amt`, old `a3df2566…f097` retired; infra's seeds 1–3 succeeded, `clamped_durations` 1/1/0). **Blocked 2026-11-09: north unreachable** (no mDNS, TCP 443 timeout, no ARP; WoL to both MACs didn't wake it; tracked in dcuccia/cuccia-infra#8). Once it's back, the coordinator runs 3 carols × 3 seeds and updates the S6 report | Owner wakes north; coordinator runs AMT |
 | #26: TV cert/network help | Held for the owner (new TV UI) | Coordinator, after owner OK |
 | #28: alpha release | After #29 | Coordinator |
 | Holiday milestone (#17, #20, #33, #34, #36–#39, #41–#44, #48, #55, #59) | v0.2 holiday, Dec 18 | Mixed |
