@@ -4,7 +4,7 @@
 //   node scripts/amt-run.ts --local [--python <venv python>] [--model-dir <snapshot>] [--songs a,b]
 //   node scripts/amt-run.ts --node  [--workload go-go-harmoniyo-amt]
 //   node scripts/amt-run.ts --mock
-//   common: [--seed N] [--top-p P] [--out <dir under results/, default amt>]
+//   common: [--seed N] [--top-p P] [--device cuda|cpu] [--end-seconds S] [--history-seconds S] [--keep-drums] [--out <dir under results/, default amt>]
 // Outputs: results/<out>/<song>/{melody.mid,args.json,accompaniment.mid,combined.mid,report.json}
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -24,7 +24,10 @@ const opt = (k: string, d?: string) => {
 };
 const mode = argv.includes('--node') ? 'node' : argv.includes('--mock') ? 'mock' : 'local';
 const songs = (opt('songs', 'the-holly-and-the-ivy,deck-the-halls') as string).split(',');
-const args = { top_p: Number(opt('top-p', '0.95')), seed: Number(opt('seed', '1')), drop_drums: true };
+const args: Record<string, unknown> = { top_p: Number(opt('top-p', '0.95')), seed: Number(opt('seed', '1')), drop_drums: !argv.includes('--keep-drums') };
+if (opt('device', '')) args.device = opt('device', '');
+if (opt('end-seconds', '')) args.end_seconds = Number(opt('end-seconds', ''));
+if (opt('history-seconds', '')) args.history_seconds = Number(opt('history-seconds', ''));
 
 for (const id of songs) {
   const s = loadS5Song(id);

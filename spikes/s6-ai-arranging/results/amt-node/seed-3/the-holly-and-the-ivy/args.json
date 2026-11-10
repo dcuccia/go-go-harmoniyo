@@ -1,0 +1,5 @@
+{
+  "top_p": 0.95,
+  "seed": 3,
+  "drop_drums": true
+}

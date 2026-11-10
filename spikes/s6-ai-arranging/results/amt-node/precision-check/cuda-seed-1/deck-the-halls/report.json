@@ -1,0 +1,37 @@
+{
+  "model_dir": "/opt/models/music-medium-800k",
+  "device": "cuda",
+  "threads": 4,
+  "torch": "2.6.0+cu124",
+  "cuda_device": "NVIDIA GeForce RTX 3080 Ti",
+  "max_vram_mib": 1504,
+  "args": {
+    "top_p": 0.95,
+    "seed": 1,
+    "end_seconds": 12,
+    "history_seconds": 0,
+    "drop_drums": true,
+    "keep_programs": null,
+    "device": "cuda"
+  },
+  "melody_seconds": 32.07,
+  "generated_until_seconds": 12,
+  "melody_events": 68,
+  "accompaniment_events": 9,
+  "clamped_durations": 0,
+  "accompaniment_instruments": {
+    "0": 3,
+    "25": 2,
+    "52": 1,
+    "54": 1,
+    "68": 2
+  },
+  "seconds": {
+    "load": 11.07,
+    "generate": 0.82,
+    "total": 11.88
+  },
+  "time_resolution": 100,
+  "wallMs": 21049,
+  "mode": "node"
+}

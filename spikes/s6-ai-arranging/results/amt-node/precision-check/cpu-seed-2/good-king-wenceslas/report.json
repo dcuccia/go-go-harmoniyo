@@ -1,0 +1,38 @@
+{
+  "model_dir": "/opt/models/music-medium-800k",
+  "device": "cpu",
+  "threads": 4,
+  "torch": "2.6.0+cu124",
+  "cuda_device": null,
+  "max_vram_mib": null,
+  "args": {
+    "top_p": 0.95,
+    "seed": 2,
+    "end_seconds": 12,
+    "history_seconds": 0,
+    "drop_drums": true,
+    "keep_programs": null,
+    "device": "cpu"
+  },
+  "melody_seconds": 32,
+  "generated_until_seconds": 12,
+  "melody_events": 53,
+  "accompaniment_events": 9,
+  "clamped_durations": 0,
+  "accompaniment_instruments": {
+    "0": 3,
+    "1": 1,
+    "3": 1,
+    "4": 2,
+    "45": 1,
+    "71": 1
+  },
+  "seconds": {
+    "load": 9.46,
+    "generate": 5.3,
+    "total": 14.75
+  },
+  "time_resolution": 100,
+  "wallMs": 21052,
+  "mode": "node"
+}
