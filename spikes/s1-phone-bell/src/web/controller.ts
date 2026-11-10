@@ -67,6 +67,8 @@ const client = new HgpClient({
   deviceId: deviceId(),
   name: localStorage.getItem(NAME_KEY) ?? 'phone',
   hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true, tab: tabGuard.tab },
+  // ?rtc=1 always tries the direct link, ?rtc=0 never does; default: when the host offers it (ADR-0012).
+  rtc: q.get('rtc') === '1' ? 'force' : q.get('rtc') === '0' ? 'off' : 'auto',
 });
 
 // ── one tab per phone: "connected in another tab — [Use this tab]" ──────────
@@ -96,7 +98,7 @@ function render(): void {
   const e = client.clock.estimate;
   const st = motion.stats();
   $('status').textContent = [
-    client.connected ? (client.transport === 'rtc' ? 'connected (WebRTC)' : 'connected') : 'offline',
+    client.connected ? (client.transport === 'rtc' ? 'connected (direct)' : client.rtcState === 'trying' ? 'connected (trying direct…)' : 'connected') : 'offline',
     `${motion.api} ${st.rateHz.toFixed(0)} Hz${motion.hasGyro ? '' : ' (no gyro!)'}`,
     e ? `sync ±${e.errBound.toFixed(1)} ms, rtt ${e.rttP50.toFixed(0)} ms` : 'sync…',
     `sound: ${soundMode}`,
@@ -335,6 +337,8 @@ window.setInterval(() => {
     rttP50: e?.rttP50,
     syncN: e?.n,
     transport: client.transport,
+    rtc: client.rtcState,
+    rtcReason: client.rtcReason || undefined,
     visible: document.visibilityState === 'visible',
     mode,
     axis: ring.params.axis,
@@ -547,7 +551,6 @@ async function startController(takeoverTab: boolean): Promise<void> {
   };
   lastInfo = `permission ${perm}`;
   window.setTimeout(() => client.send({ type: 'result', test: 'environment', data: env }), 1500);
-  if (q.get('rtc') === '1') window.setTimeout(() => void client.startRtc(), 2000);
   if (!ring.params.axis) startCalibration();
   render();
 }

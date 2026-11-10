@@ -19,13 +19,22 @@ const USAGE = `Go Go HarmoniYo — start the game on this PC (the TV) and let ph
   npm start [-- options]
 
   --check              Run the preflight checks only, then exit (exit code 1 if something blocks the start)
-  --ip <address>       Address phones use to reach this PC (default: the best Wi-Fi/LAN address)
-  --tunnel             Cloud tunnel via cloudflared: works on guest Wi-Fi or mobile data, no certificate warning
+  --ip <address>       Address phones use to reach this PC on the Wi-Fi (default: the best Wi-Fi/LAN address)
   --http-port <n>      TV page port, only used on this PC (default 18900; if it is busy, the next free one)
-  --port <n>           Phone HTTPS port (default 8443)
+  --port <n>           Phone HTTPS port on the Wi-Fi (default 8443)
   --no-build           Reuse the last build (dist/) if there is one
   --no-open            Don't open the browser
-  Other S1 host flags (--cert/--key/--hostname, --public-url, --no-https) pass through.
+
+  How phones connect (ADR-0012). By default, when cloudflared is installed and the internet is up,
+  the QR code is a cloud-tunnel link (no certificate warning, works on guest Wi-Fi and mobile data);
+  each phone then switches to a direct link to this PC when the Wi-Fi allows it, and stays on the
+  tunnel otherwise. Without cloudflared or internet, the QR code is this PC's Wi-Fi address.
+  --lan-only           Never use the tunnel: phones join on this Wi-Fi (alias: --no-tunnel)
+  --tunnel             Tunnel only: fail if cloudflared is missing, never fall back to the Wi-Fi address
+  --rtc auto|on|off    Direct link: auto (phones that joined via the tunnel; default), on (all phones), off
+  --cloudflared <path> Use this cloudflared. Otherwise: $GOGOHARMONIYO_CLOUDFLARED, then next to the
+                       program, then PATH, then the usual install folders
+  Other S1 host flags (--cert/--key/--hostname, --public-url, --no-https) pass through; they imply --lan-only.
 `;
 
 const npmCli = process.env.npm_execpath && /npm-cli\.js$/.test(process.env.npm_execpath) ? process.env.npm_execpath : null;
@@ -117,7 +126,9 @@ export async function main(argv, packaged = null) {
 
 function startHost(opts, pre, warnings, packaged, say) {
   const hostArgs = [...opts.hostArgs];
-  if (pre.ip && !opts.ip && !opts.tunnel) hostArgs.push('--ip', pre.ip);
+  if (pre.ip && !opts.ip && opts.mode !== 'tunnel') hostArgs.push('--ip', pre.ip);
+  // Hand the host the cloudflared preflight found, so both use the same one.
+  if (pre.cloudflared && opts.mode !== 'lan' && !hostArgs.some((a) => a === '--cloudflared' || a.startsWith('--cloudflared='))) hostArgs.push('--cloudflared', pre.cloudflared);
   // The S1 host's own default is 8080; always pass the port preflight chose (#53).
   if (!opts.httpPortGiven) hostArgs.push('--http-port', String(pre.httpPort));
   const tsx = join(s1, 'node_modules', 'tsx', 'dist', 'cli.mjs');
@@ -148,7 +159,9 @@ function startHost(opts, pre, warnings, packaged, say) {
     process.stdout.write(`\n  ${line}\n  Go Go HarmoniYo is running\n` +
       `    TV:     ${tv}    (opens in the browser; drag it to the TV, F11 for full screen)\n` +
       `    Phones: ${phones}    (or scan the QR code on the TV)\n` +
-      (opts.tunnel ? '' : say('    Phones need the same Wi-Fi as this PC. If they can\'t connect: npm start -- --tunnel\n')) +
+      (/\.trycloudflare\.com/.test(phones)
+        ? '    Phones join through the cloud tunnel, then switch to a direct Wi-Fi link when they can (the TV shows which).\n'
+        : say('    Phones need the same Wi-Fi as this PC. If they can\'t connect: install cloudflared, or npm start -- --tunnel\n')) +
       (warnings ? `    Preflight: ${warnings} warning(s) above.\n` : '') +
       `    Stop:   Ctrl+C${packaged ? ' (or close this window)' : ''}\n  ${line}\n\n`);
   };
@@ -168,7 +181,7 @@ function startHost(opts, pre, warnings, packaged, say) {
     clearTimeout(bannerTimer);
     bannerTimer = setTimeout(banner, 300);
   });
-  if (opts.tunnel) {
+  if (opts.mode === 'tunnel') {
     setTimeout(() => {
       if (!phones) console.log('\n  ! No tunnel address from cloudflared after 45 s. Check this PC\'s internet connection, or start without --tunnel.\n');
     }, 45000).unref();

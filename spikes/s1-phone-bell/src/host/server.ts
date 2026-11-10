@@ -2,9 +2,15 @@
  * S1 host harness: serves the phone controller + dashboard, speaks HGP v0 over WebSocket
  * (and optionally a WebRTC data channel), runs scripted timing tests, and logs everything.
  *
- *   npm start                      # HTTPS (self-signed) on the LAN + http://localhost dashboard
- *   npm start -- --cert c.pem --key k.pem --hostname bells.example.com   # publicly trusted cert
- *   npm run tunnel                 # Cloudflare quick tunnel (cloud relay), no cert needed
+ *   npm start                      # auto (ADR-0012): Cloudflare quick tunnel QR if cloudflared + internet,
+ *                                  #   else HTTPS (self-signed) on the LAN; tunnel phones upgrade to a
+ *                                  #   direct WebRTC data channel when the LAN allows it
+ *   npm start -- --lan-only        # LAN only (self-signed HTTPS), no tunnel (alias --no-tunnel)
+ *   npm start -- --cert c.pem --key k.pem --hostname bells.example.com   # publicly trusted cert (LAN)
+ *   npm run tunnel                 # tunnel only (--tunnel), no LAN HTTPS listener
+ *
+ * cloudflared is looked up: --cloudflared <path>, $GOGOHARMONIYO_CLOUDFLARED, next to the running
+ * executable, PATH, then the usual install folders (see transport.ts cloudflaredCandidates).
  */
 import { spawn } from 'node:child_process';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -31,6 +37,21 @@ import {
   type DeviceLabel,
   type LoggedGesture,
 } from './analysis.ts';
+import {
+  chooseJoinUrl,
+  classifyWsRoute,
+  deviceRoute,
+  findCloudflared,
+  GestureDedupe,
+  rtcPolicy,
+  shouldOfferRtc,
+  transportMode,
+  TUNNEL_GRACE_MS,
+  type CloudflaredFound,
+  type TunnelState,
+  type WsRoute,
+} from './transport.ts';
+import { internetReachable, QuickTunnel } from './tunnel.ts';
 import { ChartLibrary, percentile, YARG_DEFAULT_PORT, YargLink, YargRoom, type Seat } from './yarg.ts';
 
 /**
@@ -54,7 +75,13 @@ const { values: args } = parseArgs({
     key: { type: 'string' },
     hostname: { type: 'string' },
     'public-url': { type: 'string' },
+    /** Tunnel only (no LAN listener). Default is auto: tunnel when possible, else LAN (ADR-0012). */
     tunnel: { type: 'boolean', default: false },
+    'lan-only': { type: 'boolean', default: false },
+    'no-tunnel': { type: 'boolean', default: false },
+    cloudflared: { type: 'string' },
+    /** Direct WebRTC upgrade: auto (phones that joined via the tunnel), on (all phones), off. */
+    rtc: { type: 'string', default: 'auto' },
     'no-open': { type: 'boolean', default: false },
     'no-https': { type: 'boolean', default: false },
     // I1: forward rings to the YARG fork's HgpBridge (see docs/spikes/I1-yarg-phones.md)
@@ -70,6 +97,15 @@ const { values: args } = parseArgs({
   },
 });
 const GAME_DIR = args.game ? resolve(args.game) : null;
+let MODE: ReturnType<typeof transportMode>;
+let RTC_POLICY: ReturnType<typeof rtcPolicy>;
+try {
+  MODE = transportMode(args);
+  RTC_POLICY = rtcPolicy(args.rtc);
+} catch (e) {
+  console.error(`\n  ${(e as Error).message}\n`);
+  process.exit(2);
+}
 
 const now = () => performance.now();
 const SESSION = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
@@ -178,6 +214,15 @@ const MIME: Record<string, string> = {
 
 let joinUrl = '';
 let tlsMode = 'none';
+/** Join URL state (ADR-0012): see transport.ts chooseJoinUrl. */
+const TUNNEL_TLS = 'cloud tunnel (trycloudflare.com)';
+let lanUrl = '';
+let lanTlsMode = 'none';
+let tunnelState: TunnelState = 'off';
+let tunnelUrl = '';
+let tunnelReason = '';
+let graceOver = false;
+let cloudflared: CloudflaredFound | null = null;
 
 function sendFile(res: http.ServerResponse, path: string): void {
   if (!existsSync(path)) {
@@ -259,7 +304,12 @@ interface Device {
   hello: Record<string, unknown>;
   status: Record<string, unknown>;
   ws: WebSocket | null;
+  /** How the current WebSocket reached the host (tunnel / lan / local). */
+  wsRoute?: WsRoute;
+  /** Open direct data channel; null while the game runs over the WebSocket. */
   rtc: { send: (s: string) => void; close: () => void } | null;
+  /** Peer connection being negotiated or open (closed when replaced, failed or the socket drops). */
+  pc?: { close: () => Promise<void> | void } | null;
   bells: Bell[];
   /** Ringer seat shown on the phone (HGP `assign.ringer`, shared with I1's YARG mode). */
   ringer?: { slot: number; title: string; song?: string };
@@ -277,6 +327,7 @@ interface Device {
 const devices = new Map<string, Device>();
 const dashboards = new Set<WebSocket>();
 const gestures: LoggedGesture[] = [];
+const gestureDedupe = new GestureDedupe();
 let soundMode: SoundMode = 'device';
 /** Last lobby state from the game (HGP `parts`), re-sent to phones that join later. */
 let lobby: { phase: 'lobby' | 'play'; song?: string; parts: PartCard[]; waiting: string[] } | null = null;
@@ -354,6 +405,7 @@ function info() {
     hostTime: now(),
     soundMode,
     rtcAvailable: werift !== null,
+    transport: { mode: MODE, tunnel: tunnelState, tunnelUrl, tunnelReason, lanUrl, rtc: RTC_POLICY, cloudflared: cloudflared?.path ?? null },
     test: running,
     yarg: yargSummary(),
   };
@@ -382,13 +434,16 @@ function deviceLabel(d: Device): DeviceLabel {
 }
 
 function deviceSummary(d: Device) {
+  const online = d.ws?.readyState === WebSocket.OPEN;
   return {
     id: d.id,
     name: d.name,
     kind: d.kind,
     ua: d.ua,
-    online: d.ws?.readyState === WebSocket.OPEN,
+    online,
     rtc: d.rtc !== null,
+    /** Active game path: direct (WebRTC) | tunnel | lan | local | offline (ADR-0012). */
+    route: deviceRoute(online, d.rtc !== null, d.wsRoute),
     bells: d.bells,
     status: d.status,
     ready: d.ready,
@@ -427,7 +482,7 @@ let lastBroadcast = -Infinity;
 
 /** Coarse status fields whose change is worth a broadcast (not rtt/rate jitter). */
 function statusKey(st: Record<string, unknown>): string {
-  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null, st.sens ?? null]);
+  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null, st.rtc ?? null, st.sens ?? null]);
 }
 
 /** HGP `parts`: the game's lobby state, with this device's own part index and Ready state. */
@@ -464,6 +519,11 @@ function handleDeviceMessage(d: Device, m: Record<string, unknown> & { type: str
       reply({ type: 'sync', id: m.id, t0: m.t0, t1: rx, t2: now() });
       return;
     case 'gesture': {
+      // Sent on both the data channel and the WebSocket while a direct path is open: keep the first.
+      if (!gestureDedupe.first(d.id, m.seq, m.th, rx)) {
+        logEvent({ dir: 'in', via, rx, deviceId: d.id, dup: true, seq: m.seq });
+        return;
+      }
       d.events++;
       const th = typeof m.th === 'number' ? m.th : NaN;
       const lead = typeof m.t === 'number' && typeof m.sel === 'number' ? m.t - m.sel : undefined;
@@ -711,19 +771,57 @@ const weriftLoaded = (async () => {
   }
 })();
 
+/** A data channel that hasn't opened by then is given up (the phone has its own, shorter timeout). */
+const RTC_HOST_TIMEOUT_MS = 20_000;
+
+function dropRtc(d: Device, pc: unknown, why: string): void {
+  if (d.pc !== pc) return;
+  const wasOpen = d.rtc !== null;
+  d.pc = null;
+  d.rtc = null;
+  void Promise.resolve((pc as { close: () => Promise<void> | void }).close()).catch(() => {});
+  logEvent({ type: 'rtc-closed', at: now(), deviceId: d.id, why, wasOpen });
+  if (wasOpen) {
+    console.log(`  ${d.name}: direct link closed (${why}); using the ${d.wsRoute ?? 'WebSocket'} connection`);
+    broadcastDevices();
+  }
+}
+
 async function answerRtc(d: Device, offerSdp: string): Promise<void> {
   if (!werift) {
     send(d.ws, { type: 'rtc', kind: 'error', error: 'werift not installed on host' });
     return;
   }
   try {
-    d.rtc?.close();
+    if (d.pc) dropRtc(d, d.pc, 'replaced by a new offer');
     const pc = new werift.RTCPeerConnection({ iceServers: [] });
-    pc.onDataChannel.subscribe((dc: { onMessage: { subscribe: (f: (data: string | Buffer) => void) => void }; send: (s: string) => void }) => {
-      const replyRtc = (o: unknown) => dc.send(JSON.stringify(o));
-      d.rtc = { send: (s) => dc.send(s), close: () => void pc.close() };
+    d.pc = pc;
+    const timer = setTimeout(() => {
+      if (d.pc === pc && !d.rtc) dropRtc(d, pc, 'no data channel in time');
+    }, RTC_HOST_TIMEOUT_MS);
+    timer.unref();
+    pc.connectionStateChange.subscribe((state: string) => {
+      if (state === 'failed' || state === 'closed') dropRtc(d, pc, `connection ${state}`);
+    });
+    pc.onDataChannel.subscribe((dc: { onMessage: { subscribe: (f: (data: string | Buffer) => void) => void }; stateChanged: { subscribe: (f: (s: string) => void) => void }; send: (s: string) => void }) => {
+      if (d.pc !== pc) return;
+      clearTimeout(timer);
+      const replyRtc = (o: unknown) => {
+        try {
+          dc.send(JSON.stringify(o));
+        } catch {
+          // channel closing: the WebSocket carries the next one
+        }
+      };
+      d.rtc = { send: (s) => dc.send(s), close: () => dropRtc(d, pc, 'closed by host') };
+      logEvent({ type: 'rtc-open', at: now(), deviceId: d.id, wsRoute: d.wsRoute });
+      console.log(`  ${d.name}: direct link open (WebRTC data channel)`);
       broadcastDevices();
+      dc.stateChanged.subscribe((s) => {
+        if (s === 'closed' || s === 'closing') dropRtc(d, pc, `data channel ${s}`);
+      });
       dc.onMessage.subscribe((data) => {
+        if (d.pc !== pc) return;
         const rx = now();
         const m = parseMessage(typeof data === 'string' ? data : data.toString());
         if (m) handleDeviceMessage(d, m, rx, replyRtc, 'rtc');
@@ -733,6 +831,7 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
     await pc.setLocalDescription(await pc.createAnswer());
     const t0 = Date.now();
     while (pc.iceGatheringState !== 'complete' && Date.now() - t0 < 3000) await new Promise((r) => setTimeout(r, 50));
+    if (d.pc !== pc) return;
     send(d.ws, { type: 'rtc', kind: 'answer', sdp: pc.localDescription.sdp });
   } catch (e) {
     console.error('rtc error', e);
@@ -744,9 +843,10 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
 
 const wss = new WebSocketServer({ noServer: true });
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
   let dev: Device | null = null;
   let isDashboard = false;
+  const wsRoute = classifyWsRoute(req.headers, req.socket.remoteAddress);
   ws.on('message', (raw) => {
     const rx = now();
     const m = parseMessage(raw.toString());
@@ -774,6 +874,7 @@ wss.on('connection', (ws) => {
         logEvent({ type: 'replaced', at: rx, deviceId: id, oldTab: existing.hello.tab, tab: m.tab, takeover: m.takeover === true });
       }
       const prevName = existing?.name;
+      const prevRoute = existing?.wsRoute;
       const prevBells = existing ? JSON.stringify(existing.bells) : '';
       dev = existing ?? {
         id,
@@ -791,6 +892,11 @@ wss.on('connection', (ws) => {
         events: 0,
       };
       dev.ws = ws;
+      dev.wsRoute = wsRoute;
+      // A new socket starts on the WebSocket path; the phone re-offers a direct link if invited.
+      if (dev.pc) dropRtc(dev, dev.pc, 'phone reconnected');
+      // Duplicates only happen within one connection (dual-send); a reloaded page restarts seq.
+      gestureDedupe.forget(id);
       dev.hello = m;
       dev.name = String(m.name ?? dev.name);
       dev.ua = String(m.ua ?? dev.ua);
@@ -799,8 +905,9 @@ wss.on('connection', (ws) => {
         const seat = yarg.room.join(id, dev.name);
         if (seat) dev.bells = seat.bells;
       }
-      logEvent({ dir: 'in', via: 'ws', rx, deviceId: id, msg: m });
-      send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: id, session: SESSION, hostTime: now() });
+      logEvent({ dir: 'in', via: 'ws', rx, deviceId: id, wsRoute, msg: m });
+      const upgrade = kind === 'phone' && shouldOfferRtc(RTC_POLICY, wsRoute, werift !== null) ? 'rtc' : undefined;
+      send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: id, session: SESSION, hostTime: now(), route: wsRoute, ...(upgrade ? { upgrade } : {}) });
       sendAssign(dev);
       sendParts(dev);
       if (running) {
@@ -810,7 +917,7 @@ wss.on('connection', (ws) => {
       }
       // A reconnect/takeover of a phone that was online with the same name and bells changes
       // nothing the game (TV) cares about: skip the device broadcast so its lobby doesn't churn.
-      if (!existing || !wasOnline || prevName !== dev.name || prevBells !== JSON.stringify(dev.bells)) broadcastDevices();
+      if (!existing || !wasOnline || prevName !== dev.name || prevRoute !== wsRoute || prevBells !== JSON.stringify(dev.bells)) broadcastDevices();
       return;
     }
     if (isDashboard) {
@@ -828,6 +935,7 @@ wss.on('connection', (ws) => {
     // A socket replaced by a newer one with the same deviceId: the device never went offline.
     if (!dev || dev.ws !== ws) return;
     dev.ws = null;
+    if (dev.pc) dropRtc(dev, dev.pc, 'WebSocket closed');
     logEvent({ type: 'disconnect', at: now(), deviceId: dev.id });
     const seat = yarg?.room.leave(dev.id);
     if (seat) console.log(`YARG: ${dev.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
@@ -859,26 +967,71 @@ function openBrowser(url: string): void {
   }
 }
 
+let printedJoin = '';
 async function printJoin(url: string): Promise<void> {
-  joinUrl = url;
+  if (!url || url === printedJoin) return;
+  printedJoin = url;
   console.log(`\n  Phones: scan this or open ${url}\n`);
   console.log(await QRCode.toString(url, { type: 'terminal', small: true }));
+}
+
+/** Recompute the join URL (tunnel when up, else LAN; see chooseJoinUrl) and tell the TV if it changed. */
+function updateJoin(): void {
+  const next = chooseJoinUrl({ mode: MODE, lanUrl, tunnel: tunnelState, tunnelUrl, graceOver });
+  const nextTls = next && next === tunnelUrl ? TUNNEL_TLS : next ? lanTlsMode : MODE === 'tunnel' ? TUNNEL_TLS : lanTlsMode;
+  if (next === joinUrl && nextTls === tlsMode) return;
+  joinUrl = next;
+  tlsMode = nextTls;
+  void printJoin(next);
   toDashboards({ type: 'info', info: info() });
 }
 
-function startTunnel(): void {
-  console.log('Starting Cloudflare quick tunnel (cloudflared)…');
-  const child = spawn('cloudflared', ['tunnel', '--no-autoupdate', '--url', `http://127.0.0.1:${HTTP_PORT}`], { stdio: ['ignore', 'pipe', 'pipe'] });
-  child.on('error', () => {
-    console.error('\n  cloudflared not found. Install it (Windows: winget install --id Cloudflare.cloudflared; macOS: brew install cloudflared) and retry.\n');
+let tunnel: QuickTunnel | null = null;
+
+async function startTunnel(): Promise<void> {
+  const lanFallback = MODE === 'auto' ? ' Phones join on this Wi-Fi instead (certificate warning once).' : '';
+  cloudflared = findCloudflared({ flag: args.cloudflared });
+  if (!cloudflared) {
+    tunnelState = 'down';
+    tunnelReason = 'cloudflared not found';
+    console.log(MODE === 'tunnel'
+      ? '\n  cloudflared not found. Install it (Windows: winget install --id Cloudflare.cloudflared; macOS: brew install cloudflared) and retry.\n'
+      : `  Tunnel:    cloudflared not found.${lanFallback}`);
+    return updateJoin();
+  }
+  if (MODE === 'auto' && !(await internetReachable())) {
+    tunnelState = 'down';
+    tunnelReason = 'no internet';
+    console.log(`  Tunnel:    no internet (api.trycloudflare.com does not resolve).${lanFallback}`);
+    return updateJoin();
+  }
+  console.log(`  Tunnel:    starting a Cloudflare quick tunnel (${cloudflared.path})…`);
+  tunnel = new QuickTunnel({
+    cloudflared: cloudflared.path,
+    originPort: HTTP_PORT,
+    onChange: (state, url, reason) => {
+      const wasUp = tunnelState === 'up';
+      tunnelState = state;
+      tunnelUrl = url;
+      tunnelReason = reason;
+      logEvent({ type: 'tunnel', at: now(), state, url, reason });
+      if (state === 'up') console.log(`  Tunnel:    up at ${url}`);
+      if (state === 'down') {
+        console.log(`  Tunnel:    ${reason}.${wasUp ? ' Phones that joined through it must scan the QR code again.' : ''}${lanFallback}`);
+        if (tunnel && tunnel.restarts < 3 && /exited/.test(reason)) console.log('             Restarting cloudflared in 5 s…');
+      }
+      updateJoin();
+    },
   });
-  const scan = (buf: Buffer) => {
-    const m = /https:\/\/[a-z0-9-]+\.trycloudflare\.com/.exec(buf.toString());
-    if (m && !joinUrl.startsWith(m[0])) void printJoin(`${m[0]}/`);
-  };
-  child.stdout.on('data', scan);
-  child.stderr.on('data', scan);
-  process.on('exit', () => child.kill());
+  if (MODE === 'auto') {
+    setTimeout(() => {
+      graceOver = true;
+      if (tunnelState !== 'up') console.log(`  Tunnel:    no address after ${TUNNEL_GRACE_MS / 1000} s; showing the Wi-Fi address until it arrives.`);
+      updateJoin();
+    }, TUNNEL_GRACE_MS).unref();
+  }
+  tunnel.start();
+  process.on('exit', () => tunnel?.stop());
 }
 
 /** A failing request must never take down the host (players would all drop). */
@@ -932,7 +1085,7 @@ async function main(): Promise<void> {
   console.log(`S1 host — session ${SESSION}`);
   console.log(`  Data:      ${DATA}`);
   console.log(`  LAN IPs:   ${candidates.map((c) => `${c.address} (${c.name})`).join(', ') || 'none'}  → using ${LAN_IP} (override with --ip)`);
-  console.log(`  RTC:       ${werift ? 'werift available (experimental)' : 'werift not installed — WebRTC disabled'}`);
+  console.log(`  RTC:       ${werift ? `direct-link upgrade ${RTC_POLICY === 'off' ? 'off (--rtc off)' : RTC_POLICY === 'on' ? 'offered to every phone (--rtc on)' : 'offered to phones that join through the tunnel'}` : 'werift not installed — phones stay on the WebSocket'}`);
   if (yarg) {
     const { room, link } = yarg;
     await link.start(() => room.announce());
@@ -955,25 +1108,31 @@ async function main(): Promise<void> {
     }, 5000);
   }
 
-  if (args.tunnel) {
-    tlsMode = 'cloud tunnel (trycloudflare.com)';
-    startTunnel();
+  const modeLine = {
+    auto: 'cloud tunnel when available (no certificate warning), direct Wi-Fi link when the phone can reach this computer',
+    lan: 'this Wi-Fi only (--lan-only)',
+    tunnel: 'cloud tunnel only (--tunnel)',
+  }[MODE];
+  console.log(`  Phones join: ${modeLine}`);
+  if (MODE === 'tunnel') {
+    tlsMode = TUNNEL_TLS;
   } else if (!args['no-https']) {
     const tls = await tlsOptions();
-    tlsMode = tls.mode;
+    lanTlsMode = tls.mode;
     await assertPortFree(HTTPS_PORT);
     const secure = https.createServer({ key: tls.key, cert: tls.cert }, (req, res) => serveHttp(req, res));
     attach(secure);
     listenOrExit(secure, HTTPS_PORT, '0.0.0.0');
     const host = args.hostname ?? LAN_IP;
-    const url = args['public-url'] ?? `https://${host}${HTTPS_PORT === 443 ? '' : `:${HTTPS_PORT}`}/`;
+    lanUrl = args['public-url'] ?? `https://${host}${HTTPS_PORT === 443 ? '' : `:${HTTPS_PORT}`}/`;
     console.log(`  TLS:       ${tls.mode}`);
-    if (!args.cert) console.log('             Phones will show a certificate warning once: tap "Show Details/Advanced" → visit/proceed.');
-    await printJoin(url);
+    if (!args.cert) console.log(`             ${MODE === 'auto' ? 'If phones join on this Wi-Fi address they' : 'Phones'} will show a certificate warning once: tap "Show Details/Advanced" → visit/proceed.`);
   } else {
-    tlsMode = 'none (plain HTTP — motion sensors will not work on phones)';
-    await printJoin(args['public-url'] ?? `http://${LAN_IP}:${HTTP_PORT}/`);
+    lanTlsMode = 'none (plain HTTP — motion sensors will not work on phones)';
+    lanUrl = args['public-url'] ?? `http://${LAN_IP}:${HTTP_PORT}/`;
   }
+  if (MODE === 'lan') updateJoin();
+  else await startTunnel();
   console.log(`  Dashboard: ${dashboardUrl}\n`);
   if (GAME_DIR) {
     const gameUrl = `http://127.0.0.1:${HTTP_PORT}/game/`;
@@ -984,6 +1143,7 @@ async function main(): Promise<void> {
 
 process.on('SIGINT', () => {
   stopTest(true);
+  tunnel?.stop();
   console.log(`\nLogs and results: ${DATA}`);
   if (yarg) {
     // Remove the virtual bell devices from YARG, then give the datagrams a moment to leave.

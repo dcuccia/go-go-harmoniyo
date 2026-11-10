@@ -26,12 +26,12 @@ const OWN_FLAGS = new Set(['--check', '--no-build', '--help', '-h']);
 
 /** The S1 host's options (spikes/s1-phone-bell/src/host/server.ts parseArgs; a test keeps them in sync). */
 export const HOST_OPTIONS = Object.fromEntries([
-  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game'].map((k) => [k, { type: 'string' }]),
-  ...['tunnel', 'no-open', 'no-https', 'yarg'].map((k) => [k, { type: 'boolean' }]),
+  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'cloudflared', 'rtc', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game'].map((k) => [k, { type: 'string' }]),
+  ...['tunnel', 'lan-only', 'no-tunnel', 'no-open', 'no-https', 'yarg'].map((k) => [k, { type: 'boolean' }]),
 ]);
 
 /** npm keeps `npm start --tunnel` (no `--`) for itself as npm_config_tunnel; map those back to our flags. */
-const NPM_SWALLOWED = { tunnel: '--tunnel', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url' };
+const NPM_SWALLOWED = { tunnel: '--tunnel', lan_only: '--lan-only', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url', cloudflared: '--cloudflared', rtc: '--rtc' };
 
 /**
  * Options the S1 host would reject (it exits with a stack trace, after the install and build), or
@@ -41,7 +41,9 @@ export function argProblems(argv, env = process.env) {
   const out = [];
   const example = 'npm start -- --ip 192.168.1.20   or   npm start -- --tunnel';
   if (env.npm_lifecycle_event) {
-    const lost = Object.entries(NPM_SWALLOWED).filter(([k]) => env[`npm_config_${k}`] !== undefined).map(([, flag]) => flag);
+    const lost = Object.entries(NPM_SWALLOWED).filter(([k]) => env[`npm_config_${k}`] !== undefined)
+      // `npm start --no-tunnel` arrives as npm_config_tunnel=false
+      .map(([k, flag]) => (k === 'tunnel' && env.npm_config_tunnel === 'false' ? '--no-tunnel' : flag));
     if (lost.length) {
       out.push({ level: 'error', title: `npm kept ${lost.join(', ')} for itself: put game options after --`, fix: [`npm start -- ${lost.join(' ')} …   (e.g. ${example})`] });
       return out;
@@ -51,7 +53,13 @@ export function argProblems(argv, env = process.env) {
     parseArgs({ args: argv.filter((a) => !OWN_FLAGS.has(a)), options: HOST_OPTIONS, strict: true, allowPositionals: false });
   } catch (e) {
     out.push({ level: 'error', title: String(e.message).split(/\.\s|\n/)[0], fix: [`See npm start -- --help. Options go after --, e.g. ${example}`] });
+    return out;
   }
+  if (argv.includes('--tunnel') && (argv.includes('--lan-only') || argv.includes('--no-tunnel'))) {
+    out.push({ level: 'error', title: '--tunnel and --lan-only/--no-tunnel contradict each other', fix: ['Pick one, or neither: by default the tunnel is used when it can be, and the Wi-Fi address when it can\'t'] });
+  }
+  const rtc = flagValue(argv, 'rtc');
+  if (rtc !== undefined && !/^(auto|on|off)$/i.test(rtc)) out.push({ level: 'error', title: `--rtc must be auto, on or off (got "${rtc}")` });
   return out;
 }
 
@@ -84,6 +92,13 @@ export function parseStartArgs(argv) {
     httpPortGiven: flagValue(hostArgs, 'http-port') !== undefined,
     httpsPort: port('port', DEFAULT_HTTPS_PORT),
     tunnel: hostArgs.includes('--tunnel'),
+    lanOnly: hostArgs.includes('--lan-only') || hostArgs.includes('--no-tunnel'),
+    /** Same rule as the host's transportMode (spikes/s1-phone-bell/src/host/transport.ts, ADR-0012). */
+    mode: hostArgs.includes('--tunnel')
+      ? 'tunnel'
+      : ['--lan-only', '--no-tunnel', '--no-https'].some((f) => hostArgs.includes(f)) || flagValue(hostArgs, 'public-url') !== undefined || flagValue(hostArgs, 'cert') !== undefined
+        ? 'lan'
+        : 'auto',
     noHttps: hostArgs.includes('--no-https'),
     publicUrl: flagValue(hostArgs, 'public-url'),
   };
@@ -203,7 +218,7 @@ export async function portOwners(port, platform = process.platform) {
   return owners;
 }
 
-// ── cloudflared (for --tunnel) ──────────────────────────────────────────────
+// ── cloudflared (the cloud tunnel, ADR-0012) ────────────────────────────────
 
 export function findOnPath(cmd, env = process.env, platform = process.platform) {
   const exts = platform === 'win32' ? (env.PATHEXT ?? '.EXE;.CMD;.BAT').split(';').filter(Boolean) : [''];
@@ -217,10 +232,19 @@ export function findOnPath(cmd, env = process.env, platform = process.platform) 
   return null;
 }
 
-/** cloudflared on PATH, else in a usual install folder (the host then gets that folder on PATH). */
-export function findCloudflared(env = process.env, platform = process.platform) {
+/**
+ * Same order as the host (transport.ts cloudflaredCandidates): $GOGOHARMONIYO_CLOUDFLARED, next to
+ * the running executable (the portable zip ships cloudflared.exe beside go-go-harmoniyo.exe), PATH,
+ * then a usual install folder (the host then gets that folder on PATH).
+ */
+export function findCloudflared(env = process.env, platform = process.platform, execPath = process.execPath) {
+  const exe = platform === 'win32' ? 'cloudflared.exe' : 'cloudflared';
+  const fromEnv = env.GOGOHARMONIYO_CLOUDFLARED;
+  if (fromEnv && existsSync(fromEnv)) return { path: fromEnv, onPath: false, source: 'env' };
+  const beside = execPath ? join(dirname(execPath), exe) : '';
+  if (beside && existsSync(beside)) return { path: beside, onPath: false, source: 'beside-exe' };
   const onPath = findOnPath('cloudflared', env, platform);
-  if (onPath) return { path: onPath, onPath: true };
+  if (onPath) return { path: onPath, onPath: true, source: 'path' };
   const home = env.USERPROFILE ?? env.HOME ?? homedir();
   const places = platform === 'win32'
     ? [
@@ -231,7 +255,7 @@ export function findCloudflared(env = process.env, platform = process.platform) 
       ]
     : ['/opt/homebrew/bin/cloudflared', '/usr/local/bin/cloudflared', '/usr/bin/cloudflared', join(home, '.local', 'bin', 'cloudflared')];
   const found = places.find((p) => existsSync(p));
-  return found ? { path: found, onPath: false } : null;
+  return found ? { path: found, onPath: false, source: 'install-folder' } : null;
 }
 
 // ── Windows: network profile and firewall ───────────────────────────────────
@@ -409,9 +433,10 @@ export async function windowsFindings({ adapter, ports, nodePath = process.execP
  * `httpPort` is the TV page port to use (the default, or the next free one), and
  * `env` carries cloudflared's folder on PATH when it isn't there already.
  */
-export async function runPreflight(opts, { platform = process.platform, env = process.env, ifaces } = {}) {
+export async function runPreflight(opts, { platform = process.platform, env = process.env, ifaces, execPath = process.execPath } = {}) {
   const findings = [];
   const childEnv = { ...env };
+  const mode = opts.mode ?? (opts.tunnel ? 'tunnel' : 'auto');
 
   // Ports
   const bad = [opts.httpPort, opts.httpsPort].filter((p) => Number.isNaN(p));
@@ -419,7 +444,7 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
   const httpBind = opts.noHttps ? '0.0.0.0' : '127.0.0.1';
   // The TV page port falls back to the next free one when it is the default and loopback-only (#53).
   const wanted = [{ port: opts.httpPort, bind: httpBind, flag: '--http-port', use: 'TV page', fallback: !opts.httpPortGiven && !opts.noHttps }];
-  if (!opts.tunnel && !opts.noHttps) wanted.push({ port: opts.httpsPort, bind: '0.0.0.0', flag: '--port', use: 'phones, HTTPS' });
+  if (mode !== 'tunnel' && !opts.noHttps) wanted.push({ port: opts.httpsPort, bind: '0.0.0.0', flag: '--port', use: 'phones, HTTPS' });
   let httpPort = opts.httpPort;
   for (const w of wanted.filter((x) => !Number.isNaN(x.port))) {
     const st = await probePort(w.port, w.bind);
@@ -459,7 +484,7 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
   const ignored = all.filter((c) => !c.usable);
   let ip = opts.ip;
   let adapter = null;
-  if (opts.tunnel) {
+  if (mode === 'tunnel') {
     findings.push({ level: 'ok', title: 'Network: cloud tunnel — phones can use any network with internet (Wi-Fi or mobile data)' });
   } else if (opts.ip) {
     adapter = all.find((c) => c.address === opts.ip) ?? null;
@@ -486,27 +511,43 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
     }
   }
 
-  // cloudflared
-  if (opts.tunnel) {
-    const cf = findCloudflared(env, platform);
-    if (!cf) {
+  // cloudflared: required with --tunnel, used when present by default (auto), skipped with --lan-only
+  let cloudflared = null;
+  if (mode !== 'lan') {
+    const cf = findCloudflared(env, platform, execPath);
+    const install = platform === 'win32' ? 'Install it: winget install --id Cloudflare.cloudflared   (then open a new terminal)' : platform === 'darwin' ? 'Install it: brew install cloudflared' : 'Install it: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/';
+    if (!cf && mode === 'tunnel') {
       findings.push({
         level: 'error', title: 'cloudflared was not found (needed for --tunnel)',
-        fix: [platform === 'win32' ? 'Install it: winget install --id Cloudflare.cloudflared   (then open a new terminal)' : platform === 'darwin' ? 'Install it: brew install cloudflared' : 'Install it: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/',
-          'Or leave out --tunnel when the phones and this PC share a home Wi-Fi'],
+        fix: [install, 'Or leave out --tunnel: without cloudflared, phones join on this Wi-Fi (with a certificate warning)'],
       });
-    } else if (cf.onPath) {
-      findings.push({ level: 'ok', title: `cloudflared: ${cf.path}` });
+    } else if (!cf) {
+      findings.push({
+        level: 'info', title: 'cloudflared not found: phones will join on this Wi-Fi (with a certificate warning)',
+        lines: ['With cloudflared, the QR code opens a cloud link with no warning that also works on guest Wi-Fi,', 'and phones then connect directly to this PC when the Wi-Fi allows it.'],
+        fix: [install],
+      });
     } else {
-      const key = Object.keys(childEnv).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH';
-      childEnv[key] = `${dirname(cf.path)}${delimiter}${childEnv[key] ?? ''}`;
-      findings.push({ level: 'ok', title: `cloudflared: ${cf.path} (not on PATH; using it from there)` });
+      cloudflared = cf.path;
+      const where = { env: ' (from GOGOHARMONIYO_CLOUDFLARED)', 'beside-exe': ' (next to the program)', path: '', 'install-folder': ' (not on PATH; using it from there)' }[cf.source] ?? '';
+      if (!cf.onPath) {
+        const key = Object.keys(childEnv).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH';
+        childEnv[key] = `${dirname(cf.path)}${delimiter}${childEnv[key] ?? ''}`;
+      }
+      findings.push({ level: 'ok', title: `cloudflared: ${cf.path}${where}` });
+      if (mode === 'auto') {
+        findings.push({
+          level: 'info', title: 'Phones join through the cloud tunnel when the internet is up, then switch to a direct Wi-Fi link when they can',
+          lines: ['No internet? The QR code falls back to this PC\'s Wi-Fi address. To skip the tunnel: npm start -- --lan-only',
+            'The direct link uses UDP: a firewall that blocks it only means phones stay on the tunnel (a little more lag).'],
+        });
+      }
     }
   }
 
   // Firewall / network profile
   let later = Promise.resolve([]);
-  if (!opts.tunnel) {
+  if (mode !== 'tunnel') {
     if (platform === 'win32') {
       later = windowsFindings({ adapter, ports: wanted.map((w) => w.port) }).catch(() => [firewallFinding({ net: null, ports: [], nodePath: process.execPath })]);
     } else if (platform === 'darwin') {
@@ -517,7 +558,7 @@ export async function runPreflight(opts, { platform = process.platform, env = pr
       later = Promise.resolve([{ level: 'info', title: `Linux firewall: if one is on (ufw, firewalld), allow TCP ${lan.join(' and ')} from your LAN, e.g. sudo ufw allow ${lan.join(',')}/tcp` }]);
     }
   }
-  return { findings, later, ip, adapter, httpPort, env: childEnv };
+  return { findings, later, ip, adapter, httpPort, env: childEnv, cloudflared };
 }
 
 // ── output ──────────────────────────────────────────────────────────────────

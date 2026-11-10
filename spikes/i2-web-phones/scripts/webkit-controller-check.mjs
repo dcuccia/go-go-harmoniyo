@@ -201,7 +201,7 @@ function phoneInit() {
 
 // ── run ─────────────────────────────────────────────────────────────────────────────────────────
 const host = await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(httpsPort)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--lan-only', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(httpsPort)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   let buf = '';
   const t = setTimeout(() => {
     p.kill();

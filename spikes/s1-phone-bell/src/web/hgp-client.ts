@@ -11,12 +11,29 @@ export interface ClientOptions {
   hello?: Record<string, unknown>;
   /** steady-state sync ping interval */
   syncIntervalMs?: number;
+  /**
+   * Direct-link upgrade (ADR-0012): 'auto' tries a WebRTC data channel when the host's welcome
+   * offers one, 'force' always tries, 'off' never does. The WebSocket stays up either way.
+   */
+  rtc?: RtcMode;
 }
+
+export type RtcMode = 'auto' | 'force' | 'off';
+/** off: not attempted; trying: ICE/DTLS in progress; open: direct link up; failed: gave up, WebSocket only. */
+export type RtcState = 'off' | 'trying' | 'open' | 'failed';
+
+/** A phone that can't reach the host directly within this time stays on the WebSocket. */
+export const RTC_TIMEOUT_MS = 10_000;
+/** After an open direct link drops, retry this much later, at most RTC_MAX_ATTEMPTS per connection. */
+export const RTC_RETRY_MS = 5_000;
+export const RTC_MAX_ATTEMPTS = 3;
 
 /**
  * Browser HGP client: WebSocket with auto-reconnect, device-initiated clock sync (burst then
- * steady pings, which also keep the Wi-Fi radio out of power-save), optional WebRTC data
- * channel (unordered, maxRetransmits 0) for the timing-critical messages.
+ * steady pings, which also keep the Wi-Fi radio out of power-save), and an automatic upgrade to a
+ * WebRTC data channel (unordered, maxRetransmits 0) when the host offers one (ADR-0012). Gestures
+ * are sent on both paths while the direct link is up and the host keeps the first copy, so a
+ * link that dies mid-song loses nothing; a link that never connects leaves the WebSocket alone.
  *
  * Reconnects: one socket at a time (a pending retry is cancelled by any newer connect), events from
  * an old socket are ignored, and the back-off only resets after a connection stayed up 5 s. When
@@ -32,6 +49,9 @@ export class HgpClient {
   dc: RTCDataChannel | null = null;
   pc: RTCPeerConnection | null = null;
   transport: 'ws' | 'rtc' = 'ws';
+  rtcState: RtcState = 'off';
+  /** Why the last direct-link attempt ended (for the status line), e.g. 'timeout'. */
+  rtcReason = '';
   onMessage: (m: Msg) => void = () => {};
   onState: (s: string) => void = () => {};
   /** The host handed this deviceId to a newer connection (another tab); the client is in standby. */
@@ -45,6 +65,10 @@ export class HgpClient {
   private seq = 0;
   private closedByUser = false;
   private takeoverNext = false;
+  private rtcInvited = false;
+  private rtcAttempts = 0;
+  private rtcTimer: number | undefined;
+  private rtcRetryTimer: number | undefined;
 
   constructor(private opts: ClientOptions) {}
 
@@ -73,6 +97,10 @@ export class HgpClient {
     this.retryTimer = undefined;
     // One socket at a time: a second chain would kick this one off at the host (same deviceId).
     if (this.ws && this.ws.readyState <= WebSocket.OPEN) return;
+    // The direct link belongs to a WebSocket session: a new socket negotiates its own.
+    this.stopRtc('off', '');
+    this.rtcAttempts = 0;
+    this.rtcInvited = false;
     const ws = new WebSocket(this.url);
     this.ws = ws;
     this.onState('connecting');
@@ -95,6 +123,7 @@ export class HgpClient {
       if (ws !== this.ws) return; // an old socket: a newer one already took over
       this.backoff.closed(performance.now());
       window.clearInterval(this.syncTimer);
+      this.stopRtc('off', '');
       if (e.code === HGP_CLOSE_REPLACED && !this.standby) this.enterStandby(e.reason || 'replaced');
       this.onState(this.standby ? 'replaced' : 'closed');
       if (!this.closedByUser && !this.standby) this.scheduleReconnect();
@@ -150,6 +179,7 @@ export class HgpClient {
     this.closedByUser = true;
     window.clearTimeout(this.retryTimer);
     this.retryTimer = undefined;
+    this.stopRtc('off', '');
     this.ws?.close();
   }
 
@@ -157,10 +187,20 @@ export class HgpClient {
     if (this.ws?.readyState === WebSocket.OPEN) this.ws.send(JSON.stringify(o));
   }
 
-  /** Send on the timing transport (data channel if active, else WebSocket). */
+  /**
+   * Send a timing-critical message (gestures). With the direct link up it goes on both paths: the
+   * data channel copy usually arrives first, the WebSocket copy covers a link dying mid-flight, and
+   * the host keeps whichever arrives first (deduped by seq + th).
+   */
   sendFast(o: unknown): void {
-    if (this.transport === 'rtc' && this.dc?.readyState === 'open') this.dc.send(JSON.stringify(o));
-    else this.send(o);
+    if (this.dc?.readyState === 'open') {
+      try {
+        this.dc.send(JSON.stringify(o));
+      } catch {
+        // closing under us: the WebSocket copy below still goes
+      }
+    }
+    this.send(o);
   }
 
   nextSeq(): number {
@@ -203,45 +243,119 @@ export class HgpClient {
       this.goStandby(typeof m.reason === 'string' ? m.reason : 'replaced');
       return;
     }
+    if (m.type === 'welcome' && via === 'ws') {
+      this.rtcInvited = m.upgrade === 'rtc';
+      this.maybeStartRtc();
+    }
     this.onMessage(m);
   }
 
-  /** Experimental: open an unordered, unreliable data channel to the host (signalled over the WebSocket). */
+  private maybeStartRtc(): void {
+    const mode = this.opts.rtc ?? 'auto';
+    if (mode === 'off' || (mode === 'auto' && !this.rtcInvited)) return;
+    if (!this.connected || this.pc || this.rtcAttempts >= RTC_MAX_ATTEMPTS) return;
+    if (typeof RTCPeerConnection === 'undefined') {
+      this.stopRtc('failed', 'WebRTC not supported');
+      return;
+    }
+    this.rtcAttempts++;
+    void this.startRtc();
+  }
+
+  /** Tear down the data channel (if any) and record why; the WebSocket is untouched. */
+  private stopRtc(state: RtcState, reason: string): void {
+    window.clearTimeout(this.rtcTimer);
+    window.clearTimeout(this.rtcRetryTimer);
+    this.rtcTimer = this.rtcRetryTimer = undefined;
+    const { pc, dc } = this;
+    this.pc = null;
+    this.dc = null;
+    this.transport = 'ws';
+    try {
+      dc?.close();
+      pc?.close();
+    } catch {
+      // already closed
+    }
+    const changed = this.rtcState !== state || this.rtcReason !== reason;
+    this.rtcState = state;
+    this.rtcReason = reason;
+    if (changed && (pc || state !== 'off')) this.onState(state === 'failed' ? `rtc-failed: ${reason}` : 'rtc-off');
+  }
+
+  /** Open an unordered, unreliable data channel to the host, signalled over the WebSocket. */
   async startRtc(): Promise<void> {
-    this.pc?.close();
+    this.stopRtc('off', '');
     const pc = new RTCPeerConnection({ iceServers: [] });
     this.pc = pc;
+    const fail = (why: string) => {
+      if (this.pc === pc) this.stopRtc('failed', why);
+    };
+    this.rtcState = 'trying';
+    this.onState('rtc-trying');
+    this.rtcTimer = window.setTimeout(() => fail('timeout'), RTC_TIMEOUT_MS);
+    pc.addEventListener('connectionstatechange', () => {
+      if (pc.connectionState === 'failed') fail('no direct route');
+    });
     const dc = pc.createDataChannel('hgp', { ordered: false, maxRetransmits: 0 });
     this.dc = dc;
     dc.onopen = () => {
+      if (this.dc !== dc) return;
+      window.clearTimeout(this.rtcTimer);
+      this.rtcTimer = undefined;
       this.rtcSync.reset();
       this.transport = 'rtc';
+      this.rtcState = 'open';
+      this.rtcReason = '';
       this.onState('rtc-open');
+      // Warm the direct-link clock so `clock` can switch to it within a fraction of a second.
+      let n = 0;
+      const burst = window.setInterval(() => {
+        if (this.dc !== dc || dc.readyState !== 'open' || ++n > 10) return window.clearInterval(burst);
+        dc.send(JSON.stringify({ type: 'sync', id: -++this.syncId, t0: performance.now() }));
+      }, 50);
     };
     dc.onclose = () => {
-      this.transport = 'ws';
-      this.onState('rtc-closed');
+      if (this.dc !== dc) return; // torn down on purpose
+      const wasOpen = this.rtcState === 'open';
+      this.stopRtc(wasOpen ? 'off' : 'failed', wasOpen ? 'direct link closed' : 'closed before opening');
+      if (wasOpen && this.connected) {
+        this.rtcRetryTimer = window.setTimeout(() => {
+          this.rtcRetryTimer = undefined;
+          this.maybeStartRtc();
+        }, RTC_RETRY_MS);
+      }
     };
     dc.onmessage = (e) => this.receive(typeof e.data === 'string' ? e.data : '', 'rtc');
-    await pc.setLocalDescription(await pc.createOffer());
-    await new Promise<void>((resolve) => {
-      if (pc.iceGatheringState === 'complete') return resolve();
-      const t = window.setTimeout(resolve, 2000);
-      pc.addEventListener('icegatheringstatechange', () => {
-        if (pc.iceGatheringState === 'complete') {
-          window.clearTimeout(t);
-          resolve();
-        }
+    try {
+      await pc.setLocalDescription(await pc.createOffer());
+      await new Promise<void>((resolve) => {
+        if (pc.iceGatheringState === 'complete') return resolve();
+        const t = window.setTimeout(resolve, 2000);
+        pc.addEventListener('icegatheringstatechange', () => {
+          if (pc.iceGatheringState === 'complete') {
+            window.clearTimeout(t);
+            resolve();
+          }
+        });
       });
-    });
-    this.send({ type: 'rtc', kind: 'offer', sdp: pc.localDescription?.sdp ?? '' });
+      if (this.pc !== pc) return;
+      this.send({ type: 'rtc', kind: 'offer', sdp: pc.localDescription?.sdp ?? '' });
+    } catch (e) {
+      fail(e instanceof Error ? e.message : String(e));
+    }
   }
 
   private async onRtcSignal(m: Msg): Promise<void> {
-    if (m.kind === 'answer' && this.pc && typeof m.sdp === 'string') {
-      await this.pc.setRemoteDescription({ type: 'answer', sdp: m.sdp });
-    } else if (m.kind === 'error') {
-      this.onState(`rtc-error: ${String(m.error)}`);
+    const pc = this.pc;
+    if (m.kind === 'answer' && pc && typeof m.sdp === 'string') {
+      try {
+        await pc.setRemoteDescription({ type: 'answer', sdp: m.sdp });
+      } catch (e) {
+        if (this.pc === pc) this.stopRtc('failed', e instanceof Error ? e.message : String(e));
+      }
+    } else if (m.kind === 'error' && pc) {
+      this.stopRtc('failed', `host: ${String(m.error)}`);
     }
   }
 }

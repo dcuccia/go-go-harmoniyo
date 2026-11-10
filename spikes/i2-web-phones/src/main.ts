@@ -418,20 +418,37 @@ function renderStatus(): void {
       const part = seating.partOf(p.id);
       const sync = typeof st.rttP50 === 'number' ? `rtt ${st.rttP50.toFixed(0)} ms` : 'syncing…';
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
+      const path = p.online ? routeLabel(p) : '';
       const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
       li.classList.toggle('off', !p.online);
       const quick = sensOf(p.id) === 'quick';
       const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
       setHtml(
         li,
-        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small><img class="yo-rang" src="${BRAND}yo-ring.svg" alt="" />`,
+        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'}${path ? ` · ${path}` : ''} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small><img class="yo-rang" src="${BRAND}yo-ring.svg" alt="" />`,
       );
     });
   }
   const hostOk = link.state === 'open';
-  $('host-state').textContent = hostOk ? `S1 host ${link.info.lanIp ?? ''} · ${link.info.tlsMode ?? ''} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
+  $('host-state').textContent = hostOk ? `S1 host ${link.info.lanIp ?? ''} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
   $('host-state').classList.toggle('error', !hostOk);
-  $('join-url').textContent = link.info.joinUrl ?? 'waiting for host…';
+  $('join-url').textContent = link.info.joinUrl || (hostOk ? 'starting the cloud tunnel…' : 'waiting for host…');
+}
+
+/** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
+function routeLabel(p: PhoneInfo): string {
+  const st = p.status ?? {};
+  const base = p.route === 'direct' ? 'direct' : p.route === 'tunnel' ? 'via tunnel' : p.route === 'lan' ? 'Wi-Fi' : '';
+  if (p.route === 'tunnel' && st.rtc === 'trying') return `${base} (trying direct…)`;
+  return base;
+}
+
+function transportLabel(): string {
+  const t = link.info.transport;
+  if (!t?.mode) return '';
+  if (t.mode === 'lan') return ' · Wi-Fi only';
+  const tunnel = t.tunnel === 'up' ? 'tunnel up' : t.tunnel === 'starting' ? 'tunnel starting' : 'no tunnel';
+  return ` · ${t.mode === 'tunnel' ? 'tunnel only' : 'auto'}: ${tunnel}`;
 }
 
 /** Results screen: who plays what next round (claims, swaps and 🔁 apply on Again). */
@@ -451,7 +468,7 @@ function renderSpeed(): void {
 
 /**
  * Corner QR + join URL while a round is on screen (song or results), so people can join at any
- * time; hidden in the lobby (it has the big QR), while there is no join URL yet (--tunnel still
+ * time; hidden in the lobby (it has the big QR), while there is no join URL yet (the tunnel still
  * starting) and while the phone host is unreachable. "+N waiting" lists phones that joined mid-round.
  */
 function renderCornerJoin(): void {
@@ -589,7 +606,8 @@ link.onClaim = (deviceId, part) => {
   seatingChanged();
 };
 link.onInfo = () => {
-  $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl ?? '')}`;
+  // The join URL is empty for a few seconds while the cloud tunnel starts (ADR-0012).
+  if (link.info.joinUrl) $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl)}`;
   renderLobby();
   renderCornerJoin();
 };

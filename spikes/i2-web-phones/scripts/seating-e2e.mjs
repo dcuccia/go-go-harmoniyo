@@ -24,7 +24,7 @@ const port = Number(opt('port', '18500'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const host = await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--lan-only', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   let buf = '';
   const t = setTimeout(() => reject(new Error(`host did not start:\n${buf}`)), 30000);
   const on = (d) => {
