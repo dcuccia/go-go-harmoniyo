@@ -1,7 +1,7 @@
 {
   "name": "i2-web-phones",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0-alpha",
   "type": "module",
   "description": "Integration I2: phones (S1 HGP host) driving the S4 web host with S5 charts, multi-ringer (spike code).",
   "license": "MIT",

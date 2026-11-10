@@ -27,7 +27,7 @@ import { JoinQueue, waitingLabel } from './join-queue';
 import { beatAt } from './backing/phrases';
 import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
 import { SfxSynth } from './sfx/synth';
-
+import { version as APP_VERSION } from '../package.json';
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
 const flag = (k: string, d: boolean): boolean => (params.has(k) ? params.get(k) !== '0' : d);
@@ -36,6 +36,7 @@ const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getEl
 const BRAND = `${import.meta.env.BASE_URL}brand/`;
 /** Results cheer: Y5 (cheer with hands) from this team accuracy, Y2 (joy) below it. Both celebrate. */
 const BIG_CHEER_ACCURACY = 0.8;
+$('app-version').textContent = `v${APP_VERSION}`;
 
 // ── offsets (same semantics as S4; separate storage key) ───────────────────
 const OFFSETS_KEY = 'i2.offsets';

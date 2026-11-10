@@ -32,7 +32,7 @@ const USAGE = `Go Go HarmoniYo — start the game on this PC (the TV) and let ph
   --lan-only           Never use the tunnel: phones join on this Wi-Fi (alias: --no-tunnel)
   --tunnel             Tunnel only: fail if cloudflared is missing, never fall back to the Wi-Fi address
   --rtc auto|on|off    Direct link: auto (phones that joined via the tunnel; default), on (all phones), off
-  --lan-qr-after <s>   While the tunnel is getting ready, wait this many seconds (default 15) before
+  --lan-qr-after <s>   While the tunnel is getting ready, wait this many seconds (default 60) before
                        showing the Wi-Fi QR code instead (certificate warning); "never": only if the
                        tunnel gives up
   --cloudflared <path> Use this cloudflared. Otherwise: $GOGOHARMONIYO_CLOUDFLARED, then next to the

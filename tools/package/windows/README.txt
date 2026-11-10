@@ -7,8 +7,9 @@ bells with their phones. Nothing to install: no Node.js, no npm, no admin.
 You need
 --------
 - Windows 10 or 11, 64-bit, connected to the TV (HDMI) or just its own screen.
-- Phones with a web browser (iPhone Safari or Android Chrome), on the same
-  Wi-Fi as this PC. Guest Wi-Fi or mobile data: see "Phones can't connect".
+- An internet connection on this PC (best), or the phones on the same Wi-Fi.
+- Phones with a web browser (iPhone/iPad Safari or Android Chrome), 1 to 4
+  ringers.
 
 Start
 -----
@@ -18,6 +19,24 @@ Start
 3. The game opens in the browser. Drag that window to the TV and press F11.
 4. Phones scan the QR code on the TV (or type the address it shows).
 5. To stop: close the black window, or press Ctrl+C in it.
+
+How the phones connect
+----------------------
+A plain double-click picks the best way by itself:
+- With internet, the QR code is a secure https://....trycloudflare.com
+  address, made by the included cloudflared.exe through Cloudflare. Phones
+  get no certificate warning and can join from any network (home Wi-Fi,
+  guest Wi-Fi, mobile data). Phones on the same Wi-Fi as this PC then switch
+  to a direct link within a few seconds (the TV shows "direct"); the others
+  stay "via tunnel", which plays just as well. While phones use the tunnel,
+  the game's traffic passes through Cloudflare's servers.
+  The address is new each time, so always scan the QR on the TV.
+- Without internet, or if the tunnel isn't ready within 60 seconds, the QR
+  shows this PC's Wi-Fi address instead (https://192.168...). Phones must
+  then be on the same Wi-Fi, and each phone shows a certificate warning
+  the first time (the PC makes its own certificate): Safari: "Show Details"
+  > "visit this website". Chrome: "Advanced" > "Proceed". If the tunnel
+  comes up later, the QR switches to it.
 
 What Windows asks the first time
 --------------------------------
@@ -31,20 +50,28 @@ What Windows asks the first time
   features of this app": it names "Node.js JavaScript Runtime" (the engine
   inside go-go-harmoniyo.exe; the path shown ends in this folder's
   go-go-harmoniyo.exe). Tick "Private networks" (home Wi-Fi) and click
-  "Allow access". This lets phones reach this PC.
-  Windows asks for an administrator password here; on an account without one,
-  click Cancel and use the tunnel (below).
-- On each phone, the first visit shows a certificate warning (the PC makes its
-  own certificate). Safari: "Show Details" > "visit this website". Chrome:
-  "Advanced" > "Proceed". The tunnel address doesn't need this.
+  "Allow access". This lets phones on the Wi-Fi reach this PC directly.
+  Windows asks for an administrator password here. Without one, click
+  Cancel: phones still join through the tunnel (they just stay "via
+  tunnel"), but the Wi-Fi address won't work.
 
 Phones can't connect?
 ---------------------
-Start with the tunnel instead: open a Command Prompt in this folder and run
-    "Play Go Go HarmoniYo.cmd" --tunnel
-It uses the included cloudflared.exe to make a public https address through
-Cloudflare, so it works on guest Wi-Fi and mobile data. The game's traffic
-then passes through Cloudflare's servers.
+- Check this PC is online, then scan the QR on the TV again (the address
+  changes each time the game starts).
+- Phones stay "via tunnel" on home Wi-Fi: check they are on the same Wi-Fi
+  as this PC (not mobile data) and that the firewall allows the program on
+  Private networks. It still plays fine.
+- No internet, or you'd rather keep everything on your own network: open a
+  Command Prompt in this folder and run
+      "Play Go Go HarmoniYo.cmd" --lan-only
+  The QR is then always the Wi-Fi address (phones on the same Wi-Fi, one
+  certificate warning each). Guest Wi-Fi usually keeps phones apart from
+  the PC: use your home Wi-Fi.
+- To use only the tunnel (and stop with an error if it can't start):
+      "Play Go Go HarmoniYo.cmd" --tunnel
+- If the internet drops mid-game, everyone rescans the QR on the TV. If it
+  stays down, restart with --lan-only.
 Other options:  "Play Go Go HarmoniYo.cmd" --help
 Check the setup without starting:  "Play Go Go HarmoniYo.cmd" --check
 

@@ -6,7 +6,7 @@
  *                                  #   else HTTPS (self-signed) on the LAN; tunnel phones upgrade to a
  *                                  #   direct WebRTC data channel when the LAN allows it
  *   npm start -- --lan-only        # LAN only (self-signed HTTPS), no tunnel (alias --no-tunnel)
- *   npm start -- --lan-qr-after 60 # auto: wait up to 60 s (default 15, or "never") for the tunnel before the Wi-Fi QR
+ *   npm start -- --lan-qr-after 60 # auto: wait up to 60 s (default 60, or "never") for the tunnel before the Wi-Fi QR
  *   npm start -- --cert c.pem --key k.pem --hostname bells.example.com   # publicly trusted cert (LAN)
  *   npm run tunnel                 # tunnel only (--tunnel), no LAN HTTPS listener
  *

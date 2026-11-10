@@ -103,9 +103,9 @@ test('chooseJoinUrl: tunnel when up, LAN fallback in auto, nothing while waiting
   assert.equal(j('lan', 'up'), lanUrl);
 });
 
-test('lanQrAfterMs: seconds or "never", default 15 s', () => {
+test('lanQrAfterMs: seconds or "never", default 60 s', () => {
   assert.equal(lanQrAfterMs(undefined), TUNNEL_GRACE_MS);
-  assert.equal(TUNNEL_GRACE_MS, 15_000);
+  assert.equal(TUNNEL_GRACE_MS, 60_000);
   assert.equal(lanQrAfterMs('60'), 60_000);
   assert.equal(lanQrAfterMs('0'), 0);
   assert.equal(lanQrAfterMs('2.5'), 2500);

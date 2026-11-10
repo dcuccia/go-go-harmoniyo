@@ -154,7 +154,7 @@ the TV says *starting the cloud tunnel…* meanwhile). Showing it any earlier ma
 scans at once get "server not found", which its DNS then remembers for a minute. If every public
 resolver says the name doesn't exist yet (each would then remember that for a minute), the host
 gives up on that address after about 12 s and restarts cloudflared for a new one; the TV keeps
-*starting…* during the restart. If the tunnel isn't ready within 15 s (`--lan-qr-after <s>`, or
+*starting…* during the restart. If the tunnel isn't ready within 60 s (`--lan-qr-after <s>`, or
 `never` to wait until the tunnel gives up), or the internet is down, the QR shows the Wi-Fi
 address, and switches to the tunnel when it is ready. With `--tunnel` the launcher warns if no
 address arrives in 45 s.
@@ -198,7 +198,7 @@ Nobody has to choose a route in advance ([ADR-0012](../../docs/decisions/0012-au
 | `--lan-only` (or `--no-tunnel`) | Never start the tunnel; Wi-Fi QR only |
 | `--tunnel` | Tunnel only; stop with an error if cloudflared is missing |
 | `--rtc auto\|on\|off` | Direct upgrade: only for tunnel phones (default), for every phone, or never |
-| `--lan-qr-after <s>\|never` | How long the TV waits for the tunnel before showing the Wi-Fi QR (default 15 s; [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md) open choice) |
+| `--lan-qr-after <s>\|never` | How long the TV waits for the tunnel before showing the Wi-Fi QR (default 60 s, the owner's choice in [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)) |
 | `--cloudflared <path>` | Use this cloudflared |
 
 **Where cloudflared is found:** `--cloudflared <path>`, then the `GOGOHARMONIYO_CLOUDFLARED`
