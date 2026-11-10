@@ -1,2 +1,4 @@
 results/mock/
 
+# Node AMT MIDI outputs: near-empty, kept local (not registered as assets); reports and analysis are committed
+results/amt-node/**/*.mid

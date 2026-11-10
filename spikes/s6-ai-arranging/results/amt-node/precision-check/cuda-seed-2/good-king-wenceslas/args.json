@@ -1,0 +1,7 @@
+{
+  "top_p": 0.95,
+  "seed": 2,
+  "drop_drums": true,
+  "device": "cuda",
+  "end_seconds": 12
+}

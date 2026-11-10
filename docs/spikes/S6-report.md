@@ -14,9 +14,11 @@ node on 2026-10-27, at ~5× lower latency): it infers worse chords
 than S5's algorithm, and its descants either fail basic bar and range checks or are degenerate
 (the tune copied a third higher, or the prompt's format example looped). A 30-line rule-based
 descant beats it on every metric. Intros and endings work only in 4/4, and they quote the tune.
-**AMT is undecided.** Its license is clean, the container runs under the node's sandbox rules,
-and the small model's CPU output is weak (chord fit 0.30–0.40). A medium-model GPU run on the
-node is the open question. It's waiting for cuccia-infra to register the fixed image.
+**AMT, as wired today, is also a "no" for now.** Its license is clean, the container runs under
+the node's sandbox rules, and on the node's GPU it's fast (~18 s per carol end to end, under
+1 s of generation). But the medium model's output is almost empty: 0–18 notes per 23–32 s carol,
+nearly all in the first ~4 s, across 3 carols × 3 seeds ([live node runs](#live-node-runs-medium-model-gpu-2026-11-10)).
+The small model's CPU output was fuller but weak (chord fit 0.30–0.40).
 
 > **Update 2026-10-27: the experiments were rerun on the real node** (token set, client CA pin
 > fixed in [#73](https://github.com/dcuccia/go-go-harmoniyo/pull/73)). Latency dropped about 5×
@@ -195,7 +197,7 @@ from the image is vendored into this MIT repo.
 | Local CPU (venv), small model, The Holly and the Ivy (23 s) | 118 notes, 15 instruments, load 82 s, **generate 824 s** |
 | Local CPU (venv), small model, Deck the Halls (32 s) | 163 notes, 14 instruments, generate 593 s |
 | **Container smoke** (`go-go-harmoniyo-amt:cpu-small`, the node's sandbox flags: `--network none --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges`, non-root, 4 CPUs) | OK: 85 notes for an 8 s excerpt, 1071 s on 4 threads. The first attempt oversubscribed torch threads under the CPU quota (stopped after 75 min); fixed by sizing threads from cgroup `cpu.max` |
-| Node GPU (medium) | **Not run yet.** The first published image (`sha256:a3df2566…f097`) could crash with `AssertionError` in `events_to_compound`: anticipation's sampler can emit the REST token in a duration slot, which decodes to a duration ≥ `MAX_DUR`. Fixed in [#73](https://github.com/dcuccia/go-go-harmoniyo/pull/73) by clamping to `MAX_DUR - 1` (count in `report.json` `clamped_durations`), and rebuilt as `sha256:93e86a83…ec21` ([#74](https://github.com/dcuccia/go-go-harmoniyo/pull/74)). Waiting for cuccia-infra to register that digest |
+| Node GPU (medium) | **Ran 2026-11-10**, 9/9 jobs succeeded; see [Live node runs](#live-node-runs-medium-model-gpu-2026-11-10). The first published image (`sha256:a3df2566…f097`) could crash with `AssertionError` in `events_to_compound`: anticipation's sampler can emit the REST token in a duration slot, which decodes to a duration ≥ `MAX_DUR`. Fixed in [#73](https://github.com/dcuccia/go-go-harmoniyo/pull/73) by clamping to `MAX_DUR - 1` (count in `report.json` `clamped_durations`), and rebuilt as `sha256:93e86a83…ec21` ([#74](https://github.com/dcuccia/go-go-harmoniyo/pull/74)), which cuccia-infra registered |
 
 Output quality (small model, CPU, seed 1; [`results/amt/analysis.md`](../../spikes/s6-ai-arranging/results/amt/analysis.md)):
 chord fit 0.30 (Deck) and 0.40 (Holly); 33–38 % of onsets clash with the tune; 14–15 GM
@@ -207,6 +209,47 @@ carol plus ~10–20 s load and ~1.3 s container start**, VRAM ≈ 1.5–3 GiB (m
 
 Container: CPU image 2.58 GB. The GPU image will be larger (CUDA wheels). The manifest asks for
 `gpu: exclusive`, `memory: 8g`, `cpus: 4`, `timeout_s: 900`, no caches, no network.
+
+### Live node runs (medium model, GPU, 2026-11-10)
+
+Setup: `dcuccia-north` (RTX 3080 Ti 12 GB), workload `go-go-harmoniyo-amt` at
+`sha256:93e86a83…ec21`, `music-medium-800k`, fp16, top_p 0.95, drums dropped, laptop on the same
+LAN. Command, for N = 1, 2, 3:
+`node scripts/amt-run.ts --node --songs deck-the-halls,the-holly-and-the-ivy,good-king-wenceslas --seed N --out amt-node/seed-N`,
+then `node scripts/amt-analyze.ts --dir amt-node/seed-N`. Outputs and per-seed `analysis.md` are in
+[`results/amt-node/`](../../spikes/s6-ai-arranging/results/amt-node/).
+
+**Latency.** 17.9–21 s wall per carol (submit to downloaded MIDI): model load 9.9–12.2 s,
+generation 0.36–1.0 s, the rest is container start and polling. Max VRAM 1504 MiB in every run.
+`clamped_durations` was 0 or 1, so the #73 clamp matters but rarely fires.
+
+**Output (accompaniment notes / chord fit / clash with the tune):**
+
+| Seed | Deck the Halls (32 s) | Good King Wenceslas (32 s) | The Holly and the Ivy (23 s) |
+|---|---|---|---|
+| 1 | 10 / 0.26 / 0.60 | 17 / 0.18 / 0.24 | 0 / – / – |
+| 2 | 11 / 0.53 / 0.46 | 17 / 0.18 / 0.41 | 9 / 0.18 / 0.22 |
+| 3 | 11 / 0.37 / 0.27 | 5 / 0.57 / 0.40 | 3 / 0.65 / 0.33 |
+
+For comparison: the small model on CPU gave 112–163 notes spread through the song (chord fit
+0.30–0.40), and S5's procedural chart fills every bar with chord tones by construction.
+
+**What goes wrong.** `generated_until_seconds` reaches the song end, but nearly every note lands in
+the first ~4 s; only 2 of 9 runs place any note after 8 s. Generation taking under 1 s for 32 s of
+music means the model is emitting mostly time-advancing tokens, not notes. Things ruled out
+(seed 1 unless noted):
+
+- **fp16:** matched CPU fp32 vs CUDA fp16 runs (Deck and Wenceslas, first 12 s, seeds 1–3) are
+  equally sparse (CPU 4–10 notes, CUDA 5–18); [`precision-check/`](../../spikes/s6-ai-arranging/results/amt-node/precision-check/).
+- **Dropping drums:** `--keep-drums` gives 10 and 20 events (2 of them drums); [`keep-drums-check/`](../../spikes/s6-ai-arranging/results/amt-node/keep-drums-check/).
+- **top_p 0.98:** 6 and 15 notes; [`topp098-check/`](../../spikes/s6-ai-arranging/results/amt-node/topp098-check/).
+- **Melody history:** `--history-seconds 4` fails inside the `anticipation` library
+  (`ValueError: max() arg is an empty sequence`), so this path is untested.
+
+Likely causes, untested within the time box: the medium checkpoint conditioned only on
+anticipated controls (no history) drifts into silence; or the controls we pass (every melody note,
+piano) need a different layout from the upstream demos, which seed a few seconds of real
+accompaniment. **All AMT outputs are candidates only, `review: pending`; none are promoted.**
 
 ## Procedural vs LLM vs AMT: blind-listening set
 
@@ -277,11 +320,10 @@ resemblance review; the owner has not done that review (see owner actions).
    the client now accepts either.
 2. ~~**Publish the AMT image**~~ Done by the `s6-amt-image` workflow. The current digest is
    `sha256:93e86a83…ec21` (with the duration clamp, [#74](https://github.com/dcuccia/go-go-harmoniyo/pull/74)).
-   Still to do: **cuccia-infra registers that digest** (not self-service, per the consumer guide).
-3. Then run AMT for three carols over three seeds (separate output dirs via `--out`):
-   `node scripts/amt-run.ts --node --songs deck-the-halls,the-holly-and-the-ivy,good-king-wenceslas --seed N --out amt-node/seed-N`
-   for N = 1, 2, 3. Then run `node scripts/amt-analyze.ts`, optionally
-   `node scripts/render-previews.ts --ogg-python …`, and listen again.
+   cuccia-infra registered it on 2026-10-27.
+3. ~~Run AMT for three carols over three seeds~~ Done 2026-11-10 (see
+   [Live node runs](#live-node-runs-medium-model-gpu-2026-11-10)). The output is too sparse to be
+   worth a listening round.
 4. ~~**Listen to the blind set**~~ Done 2026-10-25 (see
    [Owner listening result](#owner-listening-result-2026-10-25)).
 5. ~~Decide on ADR-0011~~ Accepted 2026-10-25.
@@ -302,7 +344,10 @@ resemblance review; the owner has not done that review (see owner actions).
 
 - Would a larger instruction model (or a music-specific one) do better on descants? qwen3:8b's
   failures (bar arithmetic, copying the example) look like model limits, not prompt wording.
-- Is AMT-medium on GPU, restricted to 1–3 instruments (`keep_programs`) and fed a few seconds of
-  history, good enough for an optional "AI backing" toggle? It's the only generative option left.
+- Why does AMT-medium go nearly silent after ~4 s when conditioned only on melody controls
+  (2026-11-10)? Next things to try: fix the `history_seconds` path (it raises inside
+  `anticipation`), seed it with a few bars of S5's procedural accompaniment as history, and
+  compare the small checkpoint on GPU. Only then is it worth asking whether it's good enough for
+  an optional "AI backing" toggle. It's the only generative option left.
 - A better rule-based descant (passing tones, contrary motion, phrase shapes) is probably the
   cheapest real improvement, together with SATB sources for harmony.
