@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import type { ChildProcess } from 'node:child_process';
-import { join } from 'node:path';
 import { test } from 'node:test';
 import {
   chooseJoinUrl,
@@ -49,16 +48,16 @@ test('cloudflared lookup order: flag, env, beside the executable, PATH, install 
     [
       ['flag', 'E:\\cf.exe'],
       ['env', 'D:\\tools\\cf.exe'],
-      ['beside-exe', join('C:\\GoGo', 'cloudflared.exe')],
-      ['path', join('C:\\bin', 'cloudflared.exe')],
-      ['path', join('C:\\bin', 'cloudflared.cmd')],
+      ['beside-exe', 'C:\\GoGo\\cloudflared.exe'],
+      ['path', 'C:\\bin\\cloudflared.exe'],
+      ['path', 'C:\\bin\\cloudflared.cmd'],
     ],
   );
   assert.ok(c.some((x) => x.source === 'install-folder' && x.path.includes('WinGet')));
 
   // The portable zip: cloudflared.exe next to go-go-harmoniyo.exe wins over a PATH copy.
-  const beside = join('C:\\GoGo', 'cloudflared.exe');
-  const found = findCloudflared({ env: { PATH: 'C:\\bin' }, platform: 'win32', execPath: 'C:\\GoGo\\go-go-harmoniyo.exe', exists: (p) => p === beside || p === join('C:\\bin', 'cloudflared.exe') });
+  const beside = 'C:\\GoGo\\cloudflared.exe';
+  const found = findCloudflared({ env: { PATH: 'C:\\bin' }, platform: 'win32', execPath: 'C:\\GoGo\\go-go-harmoniyo.exe', exists: (p) => p === beside || p === 'C:\\bin\\cloudflared.exe' });
   assert.deepEqual(found, { path: beside, source: 'beside-exe' });
 
   // The env var beats beside-exe; nothing found → null.
@@ -67,7 +66,7 @@ test('cloudflared lookup order: flag, env, beside the executable, PATH, install 
 
   // POSIX: no extension, ':' separated PATH, Homebrew folder.
   const posix = cloudflaredCandidates({ env: { PATH: '/a:/b', HOME: '/home/u' }, platform: 'darwin', execPath: '/opt/node/bin/node' });
-  assert.deepEqual(posix.filter((x) => x.source === 'path').map((x) => x.path), [join('/a', 'cloudflared'), join('/b', 'cloudflared')]);
+  assert.deepEqual(posix.filter((x) => x.source === 'path').map((x) => x.path), ['/a/cloudflared', '/b/cloudflared']);
   assert.ok(posix.some((x) => x.path === '/opt/homebrew/bin/cloudflared'));
 });
 

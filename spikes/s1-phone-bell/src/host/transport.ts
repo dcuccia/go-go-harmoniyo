@@ -8,7 +8,7 @@
  */
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { posix, win32 } from 'node:path';
 
 /** `auto`: tunnel if possible, LAN otherwise. `tunnel`: tunnel only (`--tunnel`). `lan`: LAN only. */
 export type TransportMode = 'auto' | 'tunnel' | 'lan';
@@ -81,6 +81,8 @@ export function cloudflaredCandidates(o: CloudflaredLookup = {}): CloudflaredFou
   const platform = o.platform ?? process.platform;
   const win = platform === 'win32';
   const exe = win ? 'cloudflared.exe' : 'cloudflared';
+  // Path rules follow the target platform, not the OS running this (tests cover both everywhere).
+  const { dirname, join } = win ? win32 : posix;
   const out: CloudflaredFound[] = [];
   if (o.flag) out.push({ path: o.flag, source: 'flag' });
   if (env[TUNNEL_ENV]) out.push({ path: env[TUNNEL_ENV]!, source: 'env' });
