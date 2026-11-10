@@ -181,9 +181,10 @@ Use a fresh local *standard* (non-admin) user, or Windows Sandbox / a clean VM, 
   [prototype](../../../spikes/s8-store-delivery/README.md)) compared them and signed this exe
   with a test certificate. It still passes `smoke.mjs`, but only if Node's signature is removed
   *before* `postject`. `build.mjs` must then fail, not warn, when signtool is missing. Proposed
-  [ADR-0013](../../../docs/decisions/0013-windows-code-signing.md) recommends Azure Artifact
-  Signing. The `.cmd` launcher can't be signed, so signed releases should start the exe
-  directly.
+  [ADR-0013](../../../docs/decisions/0013-windows-code-signing.md) (revised 2026-11-10): apply to
+  SignPath Foundation now (free; the owner submits the application), Certum Open Source as the
+  fallback, a Microsoft Store (MSIX) listing later; Azure is rejected on cost. The `.cmd`
+  launcher can't be signed, so signed releases should start the exe directly.
 - **Exe icon and version resource.** The exe still shows Node's icon and "Node.js JavaScript
   Runtime" (Explorer, Task Manager, firewall). Changing them (e.g. rcedit) would break Node's
   signature anyway, so it's best done together with our own signing. S8 checked that rcedit

@@ -1,7 +1,8 @@
 # S8 — Store delivery and code signing (brief)
 
 - Feeds: E11 (distribution), E02 (phone controller), E03 (host), E10 (licensing/brand)
-- Requested: 2026-11-09 by the owner, via the coordinator session
+- Requested: 2026-11-09 by the owner, via the coordinator session. The report was revised on
+  2026-11-10 with the owner's decisions; this brief is unchanged.
 - Time box: research plus at most one small feasibility prototype (~1 session)
 - Report: [S8-report.md](S8-report.md); prototype: [`spikes/s8-store-delivery/`](../../spikes/s8-store-delivery/README.md)
 

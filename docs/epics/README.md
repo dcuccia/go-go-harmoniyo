@@ -153,9 +153,11 @@ drive any host.
   - The Node host doesn't fit well inside Android TV or iOS apps: nodejs-mobile is on Node 18,
     cloudflared has no Android build, iOS servers run only in the foreground, and tvOS has no web
     view.
-  - Proposed [ADR-0014](../decisions/0014-store-era-host-architecture.md): run the host in the
-    TV page, with WebRTC data channels and hosted signalling. A follow-up S9 spike would prove
-    it first.
+  - Proposed [ADR-0014](../decisions/0014-store-era-host-architecture.md) (revised 2026-11-10,
+    the owner's direction): the TV or tablet app is the host, with no PC. It runs the game and
+    the TypeScript host logic in its WebView; phones use the hosted web controller; a small free
+    signalling service connects them over WebRTC data channels. The PC zip stays the offline
+    option. The S9 working prototype (a separate session) informs acceptance.
 - Spikes: S2, S3, S4, (S7, formerly S6), S8.
 
 ## E04 Songs, charts & arrangement pipeline
@@ -353,10 +355,10 @@ audience reactions, festive themes (holiday theme for M5).
   - Code signing: unsigned builds get a SmartScreen warning, and Smart App Control blocks them.
     S8 ([report](../spikes/S8-report.md#1-code-signing-for-the-windows-zip)) signed the SEA exe
     with a test certificate and it still works, if Node's signature is removed before
-    `postject`. **Proposed [ADR-0013](../decisions/0013-windows-code-signing.md):** Azure
-    Artifact Signing now, SignPath Foundation after the first public release, Microsoft Store
-    later. Waiting on the owner: accept the ADR, and is his legal name on the certificate OK? No
-    option removes SmartScreen's "unrecognized" warning on day one.
+    `postject`. **Proposed [ADR-0013](../decisions/0013-windows-code-signing.md)** (revised
+    2026-11-10): apply to SignPath Foundation now (free; the owner submits the application);
+    Certum Open Source as the fallback; a Microsoft Store (MSIX) listing later. Azure is rejected
+    on cost. No option except the Store removes SmartScreen's "unrecognized" warning on day one.
   - Our own exe icon and name. The firewall dialog says "Node.js JavaScript Runtime". S8:
     rcedit before `postject` works and is required for SignPath.
   - macOS and Linux packages (the same SEA approach). macOS needs Developer ID and notarization
@@ -364,11 +366,12 @@ audience reactions, festive themes (holiday theme for M5).
     advised (S8).
   - Listing cloudflared's Go dependency notices.
   - App stores and TV boxes (S8):
-    - The DIRECTV Gemini is Android TV with Google Play. Sideloading on it is unverified (owner
-      check).
+    - The DIRECTV Gemini is Android TV with Google Play. The owner's (probably the V2, Android
+      TV 14) has no browser, so it needs our app. Sideloading on it is unverified (owner check).
     - Running today's Node host inside store apps is fragile. **Proposed
-      [ADR-0014](../decisions/0014-store-era-host-architecture.md)** would move the host into
-      the page, so store apps become thin shells. It needs the S9 spike first.
+      [ADR-0014](../decisions/0014-store-era-host-architecture.md)**: the TV or tablet app is the
+      host (no PC), running the host logic in its WebView. The S9 working prototype comes first.
+    - Test builds (sideloaded APKs on GitHub Releases, TestFlight) don't wait for clearance.
     - Before any public store listing:
       - trademark clearance (ADR-0009);
       - the account and ownership questions in the
