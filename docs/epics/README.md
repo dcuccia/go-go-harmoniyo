@@ -84,7 +84,11 @@ drive any host.
     lobby (`assign.ring`). Open: re-tune on real fast-passage traces (the stroke model is
     synthetic); whether players shake or flick; whether the max-rate (~9 rings/s emulated) holds
     on iPhone at 60 Hz. See the [S1 report](../spikes/S1-report.md#fast-repeated-rings-eighth-and-sixteenth-notes).
-- Spikes: S1.
+  - Native controller apps (S8, [report §3](../spikes/S8-report.md#3-phone-controllers)): keep
+    the web controller via QR. Native apps would add iOS haptics but bring App Store 4.2
+    ("repackaged website") risk, a local-network prompt and store accounts. Revisit only if
+    haptics or sensor rates prove necessary.
+- Spikes: S1, S8.
 
 ## E03 Game host & engine
 
@@ -144,7 +148,17 @@ drive any host.
     headless on the owner's laptop; one shared-lane-group highway was not tried. Phone rings
     reach the game page through the S1 Node host (dashboard WebSocket relay, ~35 ms p50 in
     simulation); a production host would embed the HGP server or run it as a sidecar.
-- Spikes: S2, S3, S4, (S7, formerly S6).
+- Open (S8, [report §2](../spikes/S8-report.md#2-which-device-is-the-host-in-a-store-world)):
+  which device hosts in a store world.
+  - The Node host doesn't fit well inside Android TV or iOS apps: nodejs-mobile is on Node 18,
+    cloudflared has no Android build, iOS servers run only in the foreground, and tvOS has no web
+    view.
+  - Proposed [ADR-0014](../decisions/0014-store-era-host-architecture.md) (revised 2026-11-10,
+    the owner's direction): the TV or tablet app is the host, with no PC. It runs the game and
+    the TypeScript host logic in its WebView; phones use the hosted web controller; a small free
+    signalling service connects them over WebRTC data channels. The PC zip stays the offline
+    option. The S9 working prototype (a separate session) informs acceptance.
+- Spikes: S2, S3, S4, (S7, formerly S6), S8.
 
 ## E04 Songs, charts & arrangement pipeline
 
@@ -339,7 +353,27 @@ audience reactions, festive themes (holiday theme for M5).
   state lives in `%LOCALAPPDATA%\GoGoHarmoniYo`. CI builds it as an artifact.
 - Open questions:
   - Code signing: unsigned builds get a SmartScreen warning, and Smart App Control blocks them.
-    Options: Azure Trusted Signing, SignPath for open source, or an OV/EV certificate.
-  - Our own exe icon and name. The firewall dialog says "Node.js JavaScript Runtime".
-  - macOS and Linux packages (the same SEA approach; macOS needs notarization).
+    S8 ([report](../spikes/S8-report.md#1-code-signing-for-the-windows-zip)) signed the SEA exe
+    with a test certificate and it still works, if Node's signature is removed before
+    `postject`. **[ADR-0013](../decisions/0013-windows-code-signing.md), Accepted
+    2026-11-10**: apply to SignPath Foundation now (free; the owner submits the application);
+    Certum Open Source as the fallback; a Microsoft Store (MSIX) listing later. Azure is rejected
+    on cost. No option except the Store removes SmartScreen's "unrecognized" warning on day one.
+  - Our own exe icon and name. The firewall dialog says "Node.js JavaScript Runtime". S8:
+    rcedit before `postject` works and is required for SignPath.
+  - macOS and Linux packages (the same SEA approach). macOS needs Developer ID and notarization
+    (an Apple Developer account; the SEA needs the JIT entitlements). The Mac App Store is not
+    advised (S8).
   - Listing cloudflared's Go dependency notices.
+  - App stores and TV boxes (S8):
+    - The DIRECTV Gemini is Android TV with Google Play. The owner's (probably the V2, Android
+      TV 14) has no browser, so it needs our app. Sideloading on it is unverified (owner check).
+    - Running today's Node host inside store apps is fragile. **Proposed
+      [ADR-0014](../decisions/0014-store-era-host-architecture.md)**: the TV or tablet app is the
+      host (no PC), running the host logic in its WebView. The S9 working prototype comes first.
+    - Test builds (sideloaded APKs on GitHub Releases, TestFlight) don't wait for clearance.
+    - Before any public store listing:
+      - trademark clearance (ADR-0009);
+      - the account and ownership questions in the
+        [S8 report §4](../spikes/S8-report.md#4-account-and-ownership).
+

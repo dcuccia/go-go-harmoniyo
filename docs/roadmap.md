@@ -47,6 +47,7 @@ lane; the room rings it together and the game celebrates streaks and team accura
 | M8 | Digital-handbell integration | follows hardware | ESP32-S3 bells speak HGP over Wi-Fi |
 | M9 | Listener + RP2040 coaching | 2027 | Mic pitch/onset scoring of real bells/chimes; non-interactive coaching mode |
 | M10 | Community charts | 2027 | Import/map Clone Hero/YARG charts; arrangement tools |
+| M11 | Store and TV delivery (stretch; proposed by [S8](spikes/S8-report.md), revised 2026-11-10) | Test builds 2026; public listings after name clearance | SignPath-signed Windows releases (ADR-0013); after the S9 prototype: the TV/tablet app as host (ADR-0014) as sideloaded APKs (Gemini, Android tablets) and iPad TestFlight builds; after trademark clearance: Play, App Store and Microsoft Store listings; web controller stays |
 
 ## Naming
 
@@ -71,7 +72,10 @@ The evidence is in the [name check](research/naming-go-go-harmonio.md). We moved
   [rollout checklist](design/brand.md#6-rollout-checklist)). Visible spike titles are renamed in
   #12.
 - **Before a public app-store launch:** do a full clearance search and consider a USPTO filing in
-  classes 9 and 41. Not legal advice; consult counsel.
+  classes 9 and 41. Not legal advice; consult counsel. S8
+  ([report](spikes/S8-report.md#4-account-and-ownership)) adds publisher-name, IP-ownership and
+  Play 12-tester questions for the owner's personal Play and Apple accounts. Test builds
+  (sideloaded APKs, TestFlight) don't wait for clearance.
 
 The Nov 15 alpha is deliberately ambitious; if a spike shows it is not achievable, cut
 scope (fewer carols, Android-only, keyboard fallback) rather than move the date.
