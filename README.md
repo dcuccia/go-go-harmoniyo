@@ -124,6 +124,9 @@ Go Go HarmoniYo has no accounts, analytics, ads or telemetry, and it doesn't upl
   keeps them in `%LOCALAPPDATA%\GoGoHarmoniYo`. To uninstall the zip, delete the game folder and
   that folder (see `README.txt` in the zip).
 
+The Windows zip's `README.txt` repeats this notice, and the program prints a one-line summary
+each time it starts.
+
 ## License
 
 Code and docs are [MIT](LICENSE), matching digital-handbell. Original art, audio, models and

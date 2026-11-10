@@ -150,8 +150,8 @@ Notes:
     default**, so the privacy text names it and the `--lan-only` way to turn it off.
 
     SignPath also wants the privacy policy **shown during install**. The zip has no installer, so
-    a follow-up should add the privacy paragraph to `README.txt` and the launcher's first-run
-    output.
+    the zip's `README.txt` has a Privacy section and the launcher prints a privacy line at every
+    start (done 2026-11-10).
 - SignPath enforces file metadata (product name and version). The rcedit step above is required.
 - SignPath signs only our own binaries. `cloudflared.exe` is already signed by Cloudflare.
 
@@ -483,7 +483,7 @@ Today is Tuesday 2026-11-10.
 | **By Thanksgiving (2026-11-26)** | Merge this PR (README code signing policy and privacy) | — | Review, merge |
 | | Add the release-notes line to v0.1.0-alpha (§1 step 2); check GitHub MFA | — | ~10 min |
 | | **Submit the SignPath application** (§1) | — | ~30 min, then wait (about a week in one report, secondary) |
-| | Privacy paragraph in the zip's `README.txt` and the launcher output (a SignPath term) | ~0.5 | Review |
+| | Privacy paragraph in the zip's `README.txt` and the launcher output (a SignPath term; done 2026-11-10) | ~0.5 | Review |
 | | **Check the Gemini:** model and Android TV version, Developer Options, ADB/sideload of a test APK | — | ~30 min |
 | | **S9 working prototype** under way (separate session): Android TV app hosting in its WebView, hosted web controller, free signalling Worker | 3–5 | Device tests |
 | | Answer the §4 questions | — | Owner time |
@@ -635,7 +635,7 @@ Accessed 2026-11-09 unless marked 2026-11-10 (the revision). "Secondary" marks c
 
 ### Agent follow-ups
 
-- Privacy paragraph in the zip's `README.txt` and the launcher output (a SignPath term).
+- Done 2026-11-10: privacy paragraph in the zip's `README.txt` and the launcher output (a SignPath term).
 - After SignPath accepts: `build.mjs` signing hook (`SIGNTOOL`, fail closed, rcedit metadata) and
   the SignPath release workflow (~1.5 agent-days).
 - S9 working prototype (separate session).

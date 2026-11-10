@@ -84,6 +84,25 @@ To remove Go Go HarmoniYo, delete this folder and that one. Nothing else is
 installed. If you allowed it in the firewall, you can remove that rule in
 Windows Security > Firewall & network protection > Allow an app.
 
+Privacy
+-------
+Go Go HarmoniYo has no accounts, analytics, ads or telemetry, and it doesn't
+upload logs.
+- Local web server: the program runs a web server on this PC so that phones
+  can join. Phones on the same network can connect to this PC directly.
+- Cloudflare tunnel (on by default): the program also starts a Cloudflare
+  quick tunnel (trycloudflare.com) with the included cloudflared.exe, so that
+  phones on any network can join without a certificate warning. Game traffic
+  between the phones and this PC then passes through Cloudflare, under
+  Cloudflare's privacy policy (https://www.cloudflare.com/privacypolicy/).
+  While the tunnel starts, the program asks public DNS resolvers (1.1.1.1,
+  8.8.8.8, 9.9.9.9, 208.67.222.222) whether the tunnel's address is ready.
+- To keep everything on your own network, start with --lan-only (see
+  "Phones can't connect?" above).
+- The certificate and session logs stay on this PC, in
+  %LOCALAPPDATA%\GoGoHarmoniYo (see "Files" above).
+Full policy: https://github.com/dcuccia/go-go-harmoniyo#privacy
+
 Licenses
 --------
 Go Go HarmoniYo's code: MIT (LICENSE.txt). Art, songs and charts: see
