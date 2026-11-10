@@ -1,0 +1,22 @@
+# Go Go HarmoniYo S9: signalling Worker + static web build, on the Cloudflare Workers free plan.
+# Nothing is deployed by the spike. Owner steps (docs/spikes/S9-report.md):
+#   npm ci && npm run build          # builds dist/web
+#   npx wrangler login               # the owner's existing Cloudflare account
+#   npx wrangler deploy              # → https://go-go-harmoniyo.<account>.workers.dev
+# Local: `npx wrangler@4 dev` (wrangler is not a dependency: see README).
+name = "go-go-harmoniyo"
+main = "worker/index.js"
+compatibility_date = "2026-11-01"
+
+[assets]
+directory = "./dist/web"
+binding = "ASSETS"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "SignalRoom"
+
+# The free plan only allows SQLite-backed Durable Objects.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalRoom"]

@@ -1,0 +1,85 @@
+{
+  "when": "2026-11-10T07:05:36.811Z",
+  "browser": "chromium 157.0.8103.39",
+  "relay": false,
+  "song": "silent-night",
+  "diff": "easy",
+  "tvReadyMs": 299,
+  "joinMs": 1673,
+  "phoneTimings": {
+    "start": 1522.5,
+    "ice": 1.8,
+    "iceSource": "none",
+    "signalOpen": 24.7,
+    "hostSeen": 25.3,
+    "pcCreated": 26.6,
+    "offerCreated": 29.2,
+    "offerSent": 30.7,
+    "answer": 96.1,
+    "relOpen": 116.5,
+    "fastOpen": 116.5,
+    "open": 116.6,
+    "route": "direct",
+    "path": "host/udp → host/udp"
+  },
+  "zones": [
+    "E4",
+    "G4",
+    "A4",
+    "C5"
+  ],
+  "notes": 32,
+  "hit": 32,
+  "perfect": 32,
+  "miss": 0,
+  "strays": 0,
+  "offsetMs": {
+    "n": 32,
+    "mean": 10.1,
+    "p50": 10.3,
+    "p95abs": 16.1
+  },
+  "input": {
+    "rings": 32,
+    "unsynced": 0,
+    "unmapped": 0,
+    "nonRing": 0,
+    "latencyMs": {
+      "n": 32,
+      "mean": 14.3,
+      "p50": 14.4,
+      "p95abs": 20.8
+    }
+  },
+  "host": {
+    "stats": {
+      "offers": 1,
+      "open": 1,
+      "failed": 0,
+      "joinMs": [
+        78
+      ],
+      "routes": {
+        "direct": 1
+      }
+    },
+    "phones": [
+      {
+        "name": "Pixel",
+        "route": "direct"
+      }
+    ],
+    "gestures": 32,
+    "via": {
+      "dc-fast": 32
+    },
+    "arrivalMs": {
+      "n": 32,
+      "p50": 14.1,
+      "p95": 20.65,
+      "max": 23.75
+    }
+  },
+  "errors": [],
+  "signal": "http://127.0.0.1:18961"
+}

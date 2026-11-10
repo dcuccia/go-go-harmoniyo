@@ -1,0 +1,186 @@
+{
+  "when": "2026-11-10T07:01:19.235Z",
+  "env": {
+    "browser": "chromium 157.0.8103.39 (headless)",
+    "os": "win32 10.0.26200",
+    "cpu": "Intel(R) Core(TM) Ultra 7 155H",
+    "node": "v22.18.0",
+    "setup": "all endpoints on one PC over loopback (127.0.0.1); no Wi-Fi, no real phones",
+    "syncN": 500,
+    "syncIntervalMs": 20
+  },
+  "sync": {
+    "ws": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 0.74,
+        "p50": 1.15,
+        "p95": 2.26,
+        "p99": 3.87,
+        "max": 12.43
+      },
+      "jitterMs": 0.43,
+      "offsetSpreadMs": 0.42
+    },
+    "werift": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 1.17,
+        "p50": 1.76,
+        "p95": 3.26,
+        "p99": 9.35,
+        "max": 20.15
+      },
+      "jitterMs": 0.78,
+      "offsetSpreadMs": 0.71
+    },
+    "s9-rel": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 0.7,
+        "p50": 1.3,
+        "p95": 2.7,
+        "p99": 4.5,
+        "max": 12.5
+      },
+      "jitterMs": 0.63,
+      "offsetSpreadMs": 0.65,
+      "syncErrorMs": {
+        "minRttSample": 0.25,
+        "p50": 0.25,
+        "p95": 0.65
+      }
+    },
+    "s9-fast": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 0.8,
+        "p50": 1.4,
+        "p95": 3.2,
+        "p99": 7.1,
+        "max": 20.4
+      },
+      "jitterMs": 0.79,
+      "offsetSpreadMs": 0.85,
+      "syncErrorMs": {
+        "minRttSample": 0.2,
+        "p50": 0.25,
+        "p95": 0.8
+      }
+    },
+    "s9-relay-rel": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 1.9,
+        "p50": 2.8,
+        "p95": 4.5,
+        "p99": 11.8,
+        "max": 25
+      },
+      "jitterMs": 0.99,
+      "offsetSpreadMs": 1.05,
+      "syncErrorMs": {
+        "minRttSample": 0.25,
+        "p50": 0.4,
+        "p95": 0.9
+      }
+    },
+    "s9-relay": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 1.6,
+        "p50": 2.6,
+        "p95": 4.1,
+        "p99": 7.2,
+        "max": 15
+      },
+      "jitterMs": 0.68,
+      "offsetSpreadMs": 0.85,
+      "syncErrorMs": {
+        "minRttSample": 0.4,
+        "p50": 0.35,
+        "p95": 0.75
+      }
+    },
+    "s9-play": {
+      "sent": 500,
+      "received": 500,
+      "lossPct": 0,
+      "rttMs": {
+        "min": 0.7,
+        "p50": 1.4,
+        "p95": 3.3,
+        "p99": 5.3,
+        "max": 19.1
+      },
+      "jitterMs": 0.84,
+      "offsetSpreadMs": 1.05,
+      "syncErrorMs": {
+        "minRttSample": 0.05,
+        "p50": 0.15,
+        "p95": 0.85
+      },
+      "songPlaying": true
+    }
+  },
+  "join": {
+    "werift": {
+      "tries": 10,
+      "ok": 10,
+      "successPct": 100,
+      "msToOpen": {
+        "p50": 338.5,
+        "p95": 2250.6,
+        "max": 2250.6
+      },
+      "routes": [
+        "direct"
+      ],
+      "failures": []
+    },
+    "s9-direct": {
+      "tries": 20,
+      "ok": 20,
+      "successPct": 100,
+      "msToOpen": {
+        "p50": 22.3,
+        "p95": 65.7,
+        "max": 65.7
+      },
+      "routes": [
+        "direct"
+      ],
+      "failures": []
+    },
+    "s9-relay": {
+      "tries": 10,
+      "ok": 10,
+      "successPct": 100,
+      "msToOpen": {
+        "p50": 154.4,
+        "p95": 170,
+        "max": 170
+      },
+      "routes": [
+        "relay"
+      ],
+      "failures": []
+    }
+  },
+  "notes": [
+    "werift join = offer created → data channel open, over an already-open WebSocket (non-trickle, gathers first; the WS join itself is extra).",
+    "s9-play: TV page was playing a song (three.js render loop, headless SwiftShader) during the run."
+  ]
+}

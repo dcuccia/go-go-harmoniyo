@@ -18,6 +18,30 @@ export interface ClientOptions {
   rtc?: RtcMode;
 }
 
+/**
+ * The reliable HGP connection: a WebSocket, or anything that behaves like one (readyState uses the
+ * WebSocket numbers). S9's in-page host (ADR-0014, Proposed) supplies a pair of WebRTC data channels
+ * instead: `fast` is an already-negotiated unordered, unreliable channel to the same host, adopted
+ * as the direct link once the socket opens (gestures dual-sent, its own clock sync).
+ */
+export interface HgpSocket {
+  readonly readyState: number;
+  send(text: string): void;
+  close(code?: number, reason?: string): void;
+  onopen: ((e: unknown) => void) | null;
+  onmessage: ((e: { data: unknown }) => void) | null;
+  onclose: ((e: { code: number; reason: string }) => void) | null;
+  onerror: ((e: unknown) => void) | null;
+  readonly fast?: RTCDataChannel | null;
+}
+
+let socketFactory: (url: string) => HgpSocket = (url) => new WebSocket(url) as unknown as HgpSocket;
+
+/** Replace how clients open their connection (call before the first {@link HgpClient.connect}). */
+export function setHgpSocketFactory(f: (url: string) => HgpSocket): void {
+  socketFactory = f;
+}
+
 export type RtcMode = 'auto' | 'force' | 'off';
 /** off: not attempted; trying: ICE/DTLS in progress; open: direct link up; failed: gave up, WebSocket only. */
 export type RtcState = 'off' | 'trying' | 'open' | 'failed';
@@ -45,7 +69,7 @@ export class HgpClient {
   readonly sync = new ClockSync();
   readonly rtcSync = new ClockSync();
   readonly backoff = new Backoff();
-  ws: WebSocket | null = null;
+  ws: HgpSocket | null = null;
   dc: RTCDataChannel | null = null;
   pc: RTCPeerConnection | null = null;
   transport: 'ws' | 'rtc' = 'ws';
@@ -101,7 +125,7 @@ export class HgpClient {
     this.stopRtc('off', '');
     this.rtcAttempts = 0;
     this.rtcInvited = false;
-    const ws = new WebSocket(this.url);
+    const ws = socketFactory(this.url);
     this.ws = ws;
     this.onState('connecting');
     ws.onopen = () => {
@@ -114,6 +138,11 @@ export class HgpClient {
         JSON.stringify({ type: 'hello', v: HGP_VERSION, deviceId: this.opts.deviceId, kind: this.opts.kind, name: this.opts.name, ua: navigator.userAgent, ...this.opts.hello, ...(takeover ? { takeover: true } : {}) }),
       );
       this.onState('open');
+      if (ws.fast?.readyState === 'open') {
+        this.dc = ws.fast;
+        this.watchDc(ws.fast);
+        this.adoptDc(ws.fast);
+      }
       this.startSync();
     };
     ws.onmessage = (e) => {
@@ -300,33 +329,9 @@ export class HgpClient {
     const dc = pc.createDataChannel('hgp', { ordered: false, maxRetransmits: 0 });
     this.dc = dc;
     dc.onopen = () => {
-      if (this.dc !== dc) return;
-      window.clearTimeout(this.rtcTimer);
-      this.rtcTimer = undefined;
-      this.rtcSync.reset();
-      this.transport = 'rtc';
-      this.rtcState = 'open';
-      this.rtcReason = '';
-      this.onState('rtc-open');
-      // Warm the direct-link clock so `clock` can switch to it within a fraction of a second.
-      let n = 0;
-      const burst = window.setInterval(() => {
-        if (this.dc !== dc || dc.readyState !== 'open' || ++n > 10) return window.clearInterval(burst);
-        dc.send(JSON.stringify({ type: 'sync', id: -++this.syncId, t0: performance.now() }));
-      }, 50);
+      if (this.dc === dc) this.adoptDc(dc);
     };
-    dc.onclose = () => {
-      if (this.dc !== dc) return; // torn down on purpose
-      const wasOpen = this.rtcState === 'open';
-      this.stopRtc(wasOpen ? 'off' : 'failed', wasOpen ? 'direct link closed' : 'closed before opening');
-      if (wasOpen && this.connected) {
-        this.rtcRetryTimer = window.setTimeout(() => {
-          this.rtcRetryTimer = undefined;
-          this.maybeStartRtc();
-        }, RTC_RETRY_MS);
-      }
-    };
-    dc.onmessage = (e) => this.receive(typeof e.data === 'string' ? e.data : '', 'rtc');
+    this.watchDc(dc);
     try {
       await pc.setLocalDescription(await pc.createOffer());
       await new Promise<void>((resolve) => {
@@ -344,6 +349,38 @@ export class HgpClient {
     } catch (e) {
       fail(e instanceof Error ? e.message : String(e));
     }
+  }
+
+  /** The direct link is open: use it for gestures and warm its clock. */
+  private adoptDc(dc: RTCDataChannel): void {
+    window.clearTimeout(this.rtcTimer);
+    this.rtcTimer = undefined;
+    this.rtcSync.reset();
+    this.transport = 'rtc';
+    this.rtcState = 'open';
+    this.rtcReason = '';
+    this.onState('rtc-open');
+    // Warm the direct-link clock so `clock` can switch to it within a fraction of a second.
+    let n = 0;
+    const burst = window.setInterval(() => {
+      if (this.dc !== dc || dc.readyState !== 'open' || ++n > 10) return window.clearInterval(burst);
+      dc.send(JSON.stringify({ type: 'sync', id: -++this.syncId, t0: performance.now() }));
+    }, 50);
+  }
+
+  private watchDc(dc: RTCDataChannel): void {
+    dc.onclose = () => {
+      if (this.dc !== dc) return; // torn down on purpose
+      const wasOpen = this.rtcState === 'open';
+      this.stopRtc(wasOpen ? 'off' : 'failed', wasOpen ? 'direct link closed' : 'closed before opening');
+      if (wasOpen && this.connected) {
+        this.rtcRetryTimer = window.setTimeout(() => {
+          this.rtcRetryTimer = undefined;
+          this.maybeStartRtc();
+        }, RTC_RETRY_MS);
+      }
+    };
+    dc.onmessage = (e) => this.receive(typeof e.data === 'string' ? e.data : '', 'rtc');
   }
 
   private async onRtcSignal(m: Msg): Promise<void> {

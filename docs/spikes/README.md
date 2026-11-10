@@ -17,6 +17,7 @@ questions for the [M2 decision gate](../roadmap.md#decision-gate-inputs-m2). Cod
 | S6 | AI-assisted arranging on the home AI node (qwen3:8b, Anticipatory Music Transformer) | E04, E05 | **Done** — [report](S6-report.md): qwen3:8b arranging is a "no" (rerun live on the node 2026-10-27); AMT license-clean and containerized, but the medium model on the node GPU (2026-11-10) gives near-empty output | — | Blind listen done and [ADR-0011](../decisions/0011-ai-assisted-arranging.md) Accepted (2026-10-25). Still: resemblance review before promoting any candidate; optional AMT follow-up (history path, seeding) |
 | S7 | Other .NET hosts: Avalonia (desktop + browser) and osu! ruleset (was S6 until 2026-10-24) | E03 | Not run (optional; not needed after [ADR-0004](../decisions/0004-host-strategy.md)) | — | — |
 | S8 | Store delivery (iOS, Android, Android TV/DIRECTV Gemini, desktop stores) and Windows code signing ([brief](S8-store-delivery-and-signing.md)) | E11, E02, E03, E10 | **Done** (2026-11-09; revised 2026-11-10 with the owner's decisions): [report](S8-report.md). The SEA exe signs and still runs. Apply to SignPath Foundation now, Certum fallback, Microsoft Store later ([ADR-0013](../decisions/0013-windows-code-signing.md), Accepted 2026-11-10). The TV/tablet app is the host, no PC ([ADR-0014](../decisions/0014-store-era-host-architecture.md), Proposed; the S9 prototype informs acceptance) | `main` ([`spikes/s8-store-delivery`](../../spikes/s8-store-delivery/README.md)) | Owner: add the release-notes line, submit the [SignPath application](S8-report.md#signpath-foundation-application-ready-to-submit), check the Gemini sideload, answer [§4](S8-report.md#4-account-and-ownership) (publisher name, IP, 12-tester rule) |
+| S9 | The host in the page: TV/tablet app, no PC ([brief](S9-page-host.md)) | E03, E02, E11, E01 | **Done** (2026-11-10, emulated on one PC): [report](S9-report.md). S1's host logic runs in the TV page; phones join through a Cloudflare Worker + Durable Object (run locally) and talk over WebRTC data channels: join 22 ms p50, clock-sync error < 1 ms p95, 32/32 hits. Capacitor 8 shells: Android TV APK and iPad simulator build in CI. Supports [ADR-0014](../decisions/0014-store-era-host-architecture.md) (c); status unchanged | `main` ([`spikes/s9-page-host`](../../spikes/s9-page-host/README.md)) | Owner: [`wrangler login` + `wrangler deploy`](S9-report.md#deploy-the-signalling-worker-your-existing-cloudflare-account), run the APK workflow, [sideload on the Gemini](S9-report.md#install-it-on-the-gemini), TestFlight build; then accept or reject ADR-0014 |
 | I1 | Integration: phones → YARG fork | E01, E03 | **Done** — sidecar + fork bridge; simulated phones verified against the built YARG ([report](I1-yarg-phones.md)) | [`integration/i1-yarg-phones`](https://github.com/dcuccia/go-go-harmoniyo/tree/integration/i1-yarg-phones) | Play one carol with real phones — [owner runbook](I1-yarg-phones.md#owner-runbook-phones--yarg) |
 | I2 | Integration: phones → web host (S1 + S4 + S5) | E02, E03, E06 | **Done** — verified with simulated phones ([report](I2-web-phones.md)); the alpha path per ADR-0004 | [`integration/i2-web-phones`](https://github.com/dcuccia/go-go-harmoniyo/tree/integration/i2-web-phones) | Play it on the TV with real phones: [runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes) |
 
@@ -195,3 +196,23 @@ through the iOS, Android, Android TV (DIRECTV Gemini) and desktop stores? Which 
 3. Web vs native phone controllers and store policy risks.
 4. Account and ownership questions.
 5. A sequence for Thanksgiving, Dec 18 and later.
+
+---
+
+## S9 — The host in the page: TV/tablet app, no PC
+
+Requested by the owner on 2026-11-10 to inform Proposed ADR-0014. The full brief is a separate
+file: [S9-page-host.md](S9-page-host.md). The report is [S9-report.md](S9-report.md).
+
+**Question:** Can the TV or tablet page host the game with no PC: host logic in the page, phones
+on a trusted HTTPS controller introduced by a small free signalling service, and HGP plus clock
+sync over WebRTC data channels? At what cost in join time, connection success and timing?
+
+**Report must answer:**
+
+1. Does the host run in the page (what was reused, how HGP rides the data channels)?
+2. The trusted controller and signalling design, free-tier fit, privacy, and when TURN is needed.
+3. The app shells (framework choice, Android TV APK, iPad/TestFlight path, CI options).
+4. Measurements against today's WebSocket and werift paths.
+5. Owner steps: Worker deploy, APK on the Gemini, TestFlight.
+6. A recommendation for ADR-0014.

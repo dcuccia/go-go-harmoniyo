@@ -1,0 +1,187 @@
+name: s9-page-host
+
+# Spike S9 (docs/spikes/S9-page-host.md): the HGP host in the TV/tablet page, phones over WebRTC data
+# channels via a small signalling service, and Capacitor app shells. Builds a debug APK for sideloading
+# (Android TV / Gemini) as an artifact, and an informational iOS simulator build. Nothing is deployed
+# or uploaded anywhere. Ports used by the e2e scripts: 18960-18968.
+on:
+  pull_request:
+    paths:
+      - 'spikes/s9-page-host/**'
+      - 'spikes/i2-web-phones/**'
+      - 'spikes/s1-phone-bell/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - 'spikes/shared/**'
+      - 'docs/design/pitch-class-palette.json'
+      - 'docs/design/brand/**'
+      - '.github/workflows/s9-page-host.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'spikes/s9-page-host/**'
+      - 'spikes/i2-web-phones/**'
+      - 'spikes/s1-phone-bell/**'
+      - 'spikes/s5-chart-pipeline/**'
+      - 'spikes/shared/**'
+      - 'docs/design/pitch-class-palette.json'
+      - 'docs/design/brand/**'
+      - '.github/workflows/s9-page-host.yml'
+  workflow_dispatch:
+    inputs:
+      signal_origin:
+        description: 'Signalling Worker origin baked into the app (e.g. https://go-go-harmoniyo.<account>.workers.dev). Empty: set it on the TV with ?signal= or the badge.'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: s9-page-host-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  S9_SIGNAL_ORIGIN: ${{ github.event.inputs.signal_origin || vars.S9_SIGNAL_ORIGIN || '' }}
+
+jobs:
+  test:
+    name: typecheck, unit tests, song e2e (direct + TURN relay)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: spikes/s9-page-host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/s9-page-host/package-lock.json
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+      - name: npm ci (S9, plus I2 for the TV game and S1 for the controller)
+        run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../i2-web-phones
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+      - name: I2 charts and brand (gitignored inputs of the web build)
+        working-directory: spikes/i2-web-phones
+        run: npm run charts && npm run brand
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      # Headless Chrome (preinstalled on ubuntu-latest): TV page hosts, one phone page joins over
+      # WebRTC, taps every note of a song; the game judges.
+      - name: Song e2e (direct)
+        run: node scripts/e2e.mjs
+      - name: Song e2e (forced through a local TURN relay)
+        run: node scripts/e2e.mjs --relay
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: s9-e2e
+          path: spikes/s9-page-host/results/e2e*.json
+          if-no-files-found: ignore
+
+  android:
+    name: Android TV / tablet debug APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      S9_DEBUG_KEYSTORE_B64: ${{ secrets.S9_DEBUG_KEYSTORE_B64 }}
+    defaults:
+      run:
+        working-directory: spikes/s9-page-host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/s9-page-host/package-lock.json
+            spikes/s9-page-host/app/package-lock.json
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../i2-web-phones
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+          npm ci --no-audit --no-fund --prefix app
+      - working-directory: spikes/i2-web-phones
+        run: npm run charts && npm run brand
+      - name: Web build (signal origin baked in when set)
+        run: npm run build
+      # The native project is generated, not committed: cap add + an idempotent patch (leanback launcher,
+      # banner, optional touchscreen, keep-screen-on, autoplay, brand art from the committed SVGs).
+      - name: Generate and patch the Android project
+        working-directory: spikes/s9-page-host/app
+        run: npx cap add android && node patch-android.mjs
+      # Optional stable debug key (repo secret, base64 of a debug.keystore) so `adb install -r` can
+      # update an earlier build; without it each run signs with the runner's fresh debug key.
+      - name: Stable debug keystore (optional)
+        if: env.S9_DEBUG_KEYSTORE_B64 != ''
+        run: mkdir -p ~/.android && echo "$S9_DEBUG_KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
+      - name: assembleDebug
+        working-directory: spikes/s9-page-host/app/android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Rename and describe the APK
+        working-directory: spikes/s9-page-host/app/android/app/build/outputs/apk/debug
+        run: |
+          mv app-debug.apk go-go-harmoniyo-s9-debug.apk
+          {
+            echo "### S9 debug APK"
+            echo "- signal origin baked in: \`${S9_SIGNAL_ORIGIN:-none (set on the TV)}\`"
+            echo "- size: $(du -h go-go-harmoniyo-s9-debug.apk | cut -f1)"
+            echo "- sha256: \`$(sha256sum go-go-harmoniyo-s9-debug.apk | cut -d' ' -f1)\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: go-go-harmoniyo-s9-debug-apk
+          path: spikes/s9-page-host/app/android/app/build/outputs/apk/debug/go-go-harmoniyo-s9-debug.apk
+          if-no-files-found: error
+
+  # Informational: proves the iPad shell compiles. Unsigned simulator build; TestFlight needs the
+  # owner's Apple signing (docs/spikes/S9-report.md, "iPad and TestFlight").
+  ios:
+    name: iOS simulator build (unsigned, informational)
+    runs-on: macos-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: spikes/s9-page-host
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/s9-page-host/package-lock.json
+            spikes/s9-page-host/app/package-lock.json
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+      - run: |
+          npm ci --no-audit --no-fund
+          npm ci --no-audit --no-fund --prefix ../i2-web-phones
+          npm ci --no-audit --no-fund --prefix ../s1-phone-bell
+          npm ci --no-audit --no-fund --prefix app
+      - working-directory: spikes/i2-web-phones
+        run: npm run charts && npm run brand
+      - run: npm run build
+      - name: Generate and patch the iOS project
+        working-directory: spikes/s9-page-host/app
+        run: npx cap add ios && node patch-ios.mjs
+      - name: xcodebuild (iphonesimulator, no signing)
+        working-directory: spikes/s9-page-host/app/ios/App
+        run: >-
+          set -o pipefail;
+          xcodebuild -project App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator
+          -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build | tail -n 40

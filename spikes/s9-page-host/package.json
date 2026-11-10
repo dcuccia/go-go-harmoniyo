@@ -1,0 +1,36 @@
+{
+  "name": "s9-page-host",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Spike S9: the HGP host in the TV/tablet page, phones over WebRTC data channels via a tiny signalling service; Android TV / iPad app shells (throwaway spike code).",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "tsx server/dev-server.ts",
+    "tunnel": "tsx server/dev-server.ts --tunnel",
+    "worker": "npx --yes wrangler@4 dev --port 18961",
+    "test": "tsx --test test/relay.test.ts test/page-host.test.ts",
+    "e2e": "node scripts/e2e.mjs",
+    "measure": "node scripts/measure.mjs",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/qrcode": "^1.5.6",
+    "@types/ws": "^8.18.2",
+    "esbuild": "^0.28.2",
+    "node-turn": "^0.0.6",
+    "playwright-core": "^1.64.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "ws": "^8.22.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

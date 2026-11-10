@@ -27,8 +27,8 @@ import { parseArgs } from 'node:util';
 import QRCode from 'qrcode';
 import { generate as generateCert } from 'selfsigned';
 import { WebSocket, WebSocketServer } from 'ws';
-import { bellBlock, DEFAULT_BELLS, HGP_CLOSE_REPLACED, HGP_VERSION, parseMessage, type Bell, type PartCard, type SoundMode, type TestKind } from '../core/hgp.ts';
-import { isSensitivity, type Sensitivity } from '../core/ring-detector.ts';
+import { parseMessage, type TestKind } from '../core/hgp.ts';
+import { HostSession, type HostConn, type HostDevice } from '../core/host-session.ts';
 import {
   analyzeClink,
   analyzeIdle,
@@ -44,7 +44,6 @@ import {
   classifyWsRoute,
   deviceRoute,
   findCloudflared,
-  GestureDedupe,
   lanQrAfterMs,
   rtcPolicy,
   shouldOfferRtc,
@@ -308,41 +307,16 @@ async function handleHttp(req: http.IncomingMessage, res: http.ServerResponse): 
 
 // ── devices & HGP ───────────────────────────────────────────────────────────
 
-interface Device {
-  id: string;
-  name: string;
-  kind: string;
-  ua: string;
-  hello: Record<string, unknown>;
-  status: Record<string, unknown>;
-  ws: WebSocket | null;
-  /** How the current WebSocket reached the host (tunnel / lan / local). */
-  wsRoute?: WsRoute;
+/** A device of the shared HGP session (src/core/host-session.ts) plus this host's WebRTC side path. */
+interface Device extends HostDevice {
+  route?: WsRoute;
   /** Open direct data channel; null while the game runs over the WebSocket. */
   rtc: { send: (s: string) => void; close: () => void } | null;
   /** Peer connection being negotiated or open (closed when replaced, failed or the socket drops). */
   pc?: { close: () => Promise<void> | void } | null;
-  bells: Bell[];
-  /** Ringer seat shown on the phone (HGP `assign.ringer`, shared with I1's YARG mode). */
-  ringer?: { slot: number; title: string; song?: string };
-  /** Ring detection hints from the game (HGP `assign.ring`). */
-  ring?: { sens?: Sensitivity; ioi?: number };
-  /** Lobby ✓ Ready toggle (HGP `ready`, I2 seating chart). */
-  ready: boolean;
-  /** Coarse status (api, synced, calibrated, …): a change triggers a device broadcast. */
-  statusKey?: string;
-  connectedAt: number;
-  lastSeen: number;
-  events: number;
 }
 
-const devices = new Map<string, Device>();
-const dashboards = new Set<WebSocket>();
 const gestures: LoggedGesture[] = [];
-const gestureDedupe = new GestureDedupe();
-let soundMode: SoundMode = 'device';
-/** Last lobby state from the game (HGP `parts`), re-sent to phones that join later. */
-let lobby: { phase: 'lobby' | 'play'; song?: string; parts: PartCard[]; waiting: string[] } | null = null;
 
 interface RunningTest {
   id: string;
@@ -396,9 +370,9 @@ function applySeats(seats: Seat[]): void {
     const d = s.phoneId ? devices.get(s.phoneId) : undefined;
     if (!d) continue;
     d.bells = s.bells;
-    sendAssign(d);
+    session.sendAssign(d);
   }
-  broadcastDevices();
+  session.broadcastDevices();
 }
 
 function yargSummary() {
@@ -415,21 +389,12 @@ function info() {
     lanIp: LAN_IP,
     candidates,
     hostTime: now(),
-    soundMode,
+    soundMode: session.soundMode,
     rtcAvailable: werift !== null,
     transport: { mode: MODE, tunnel: tunnelState, tunnelUrl, tunnelReason, lanUrl, rtc: RTC_POLICY, cloudflared: cloudflared?.path ?? null },
     test: running,
     yarg: yargSummary(),
   };
-}
-
-function send(ws: WebSocket | null, o: unknown): void {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(o));
-}
-
-function toDashboards(o: unknown): void {
-  const s = JSON.stringify(o);
-  for (const d of dashboards) if (d.readyState === WebSocket.OPEN) d.send(s);
 }
 
 function deviceLabel(d: Device): DeviceLabel {
@@ -445,159 +410,99 @@ function deviceLabel(d: Device): DeviceLabel {
   };
 }
 
-function deviceSummary(d: Device) {
-  const online = d.ws?.readyState === WebSocket.OPEN;
-  return {
-    id: d.id,
-    name: d.name,
-    kind: d.kind,
-    ua: d.ua,
-    online,
+const session = new HostSession<Device>(SESSION, {
+  now,
+  log: logEvent,
+  info,
+  summary: (d, online) => ({
     rtc: d.rtc !== null,
     /** Active game path: direct (WebRTC) | tunnel | lan | local | offline (ADR-0012). */
-    route: deviceRoute(online, d.rtc !== null, d.wsRoute),
-    bells: d.bells,
-    status: d.status,
-    ready: d.ready,
-    events: d.events,
-    lastSeen: d.lastSeen,
-  };
-}
-
-/**
- * Device list to dashboards/the game. Sent when something meaningful changes (join, leave, rename,
- * assignment, Ready, sync/sensor state) plus a slow heartbeat for the diagnostics (rtt, rates):
- * a game must not rebuild its lobby on every frame of this. Bursts (a phone reconnecting, a lobby
- * update touching every phone) are coalesced: the first change goes out at once, later ones within
- * BROADCAST_MIN_MS are sent together at the end of that window.
- */
-function broadcastDevices(): void {
-  if (broadcastTimer) return;
-  const wait = lastBroadcast + BROADCAST_MIN_MS - now();
-  if (wait <= 0) {
-    flushDevices();
-    return;
-  }
-  broadcastTimer = setTimeout(() => {
-    broadcastTimer = null;
-    flushDevices();
-  }, wait);
-}
-function flushDevices(): void {
-  lastBroadcast = now();
-  toDashboards({ type: 'devices', hostTime: now(), devices: [...devices.values()].map(deviceSummary), soundMode, bellsPerPhone, test: running, yarg: yargSummary() });
-}
-const HEARTBEAT_MS = 3000;
-const BROADCAST_MIN_MS = 200;
-let broadcastTimer: NodeJS.Timeout | null = null;
-let lastBroadcast = -Infinity;
-
-/** Coarse status fields whose change is worth a broadcast (not rtt/rate jitter). */
-function statusKey(st: Record<string, unknown>): string {
-  return JSON.stringify([st.api ?? null, typeof st.syncN === 'number' && st.syncN > 0, !!st.axis, st.visible ?? null, st.mode ?? null, st.transport ?? null, st.rtc ?? null, st.sens ?? null]);
-}
-
-/** HGP `parts`: the game's lobby state, with this device's own part index and Ready state. */
-function sendParts(d: Device): void {
-  if (!lobby || !d.ws || d.kind === 'dashboard' || d.kind === 'meter') return;
-  const you = lobby.parts.findIndex((p) => p.player?.kind === 'phone' && p.player.id === d.id);
-  send(d.ws, { type: 'parts', phase: lobby.phase, song: lobby.song, parts: lobby.parts, you, ready: d.ready, next: lobby.waiting.includes(d.id) });
-}
-
-let bellsPerPhone = 1;
-
-/** Next free block of `bellsPerPhone` consecutive bells. */
-function nextBells(): Bell[] {
-  const used = new Set([...devices.values()].flatMap((d) => d.bells.map((b) => b.id)));
-  for (let start = 0; start < DEFAULT_BELLS.length; start += bellsPerPhone) {
-    const block = bellBlock(start, bellsPerPhone);
-    if (block.every((b) => !used.has(b.id))) return block;
-  }
-  return bellBlock(devices.size * bellsPerPhone, bellsPerPhone);
-}
-
-function sendAssign(d: Device): void {
-  const seat = yarg?.room.seatOf(d.id);
-  const ringer = !yarg ? d.ringer : seat ? { slot: seat.slot, title: yarg.room.seatTitle(seat), song: yarg.room.chart?.song.title } : { slot: -1, title: 'All ringer seats are taken: free play (not sent to YARG)' };
-  const msg = { type: 'assign', bells: d.bells, sound: soundMode, select: d.bells.length > 1 ? 'zones' : 'single', ringer, ring: d.ring };
-  send(d.ws, msg);
-}
-
-/** Handle a device message from any transport. `reply` answers on the same transport. */
-function handleDeviceMessage(d: Device, m: Record<string, unknown> & { type: string }, rx: number, reply: (o: unknown) => void, via: string): void {
-  d.lastSeen = rx;
-  switch (m.type) {
-    case 'sync':
-      reply({ type: 'sync', id: m.id, t0: m.t0, t1: rx, t2: now() });
-      return;
-    case 'gesture': {
-      // Sent on both the data channel and the WebSocket while a direct path is open: keep the first.
-      if (!gestureDedupe.first(d.id, m.seq, m.th, rx)) {
-        logEvent({ dir: 'in', via, rx, deviceId: d.id, dup: true, seq: m.seq });
+    route: deviceRoute(online, d.rtc !== null, d.route),
+  }),
+  devicesExtra: () => ({ test: running, yarg: yargSummary() }),
+  ringerFor: (d) => {
+    if (!yarg) return d.ringer;
+    const seat = yarg.room.seatOf(d.id);
+    return seat ? { slot: seat.slot, title: yarg.room.seatTitle(seat), song: yarg.room.chart?.song.title } : { slot: -1, title: 'All ringer seats are taken: free play (not sent to YARG)' };
+  },
+  // YARG mode: bells come from the chart part
+  bellsLocked: () => yarg !== null,
+  onJoin: (d, m) => {
+    d.rtc ??= null;
+    if (yarg && (d.kind === 'phone' || d.kind === 'sim')) {
+      const seat = yarg.room.join(d.id, d.name);
+      if (seat) d.bells = seat.bells;
+    }
+  },
+  welcomeExtra: (d) => (d.kind === 'phone' && shouldOfferRtc(RTC_POLICY, d.route ?? 'local', werift !== null) ? { upgrade: 'rtc' } : {}),
+  onJoined: (d) => {
+    if (!running) return;
+    const t = running;
+    if (!t.deviceIds.includes(d.id)) t.deviceIds.push(d.id);
+    session.send(d, { type: 'test', action: 'start', id: t.id, test: t.kind, start: t.beats?.[0] ?? t.start, period: t.period, count: t.beats?.length, durationMs: t.end - t.start });
+  },
+  onDetach: (d, why) => {
+    // A new socket starts on the WebSocket path; the phone re-offers a direct link if invited.
+    if (d.pc) dropRtc(d, d.pc, why === 'replaced' ? 'phone reconnected' : 'WebSocket closed');
+    if (why !== 'closed') return;
+    const seat = yarg?.room.leave(d.id);
+    if (seat) console.log(`YARG: ${d.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
+  },
+  onGesture: (d, g) => {
+    gestures.push(g);
+    if (yarg && (g.g === 'ring' || g.g === 'tap')) {
+      const lane = yarg.room.ring(d.id, g.bell, Number.isFinite(g.th) ? g.th : g.rx - (g.det ?? 0), g.rx);
+      if (lane !== null) logEvent({ type: 'yarg-ring', at: now(), deviceId: d.id, bell: g.bell, lane, th: g.th });
+    }
+  },
+  onMessage: (d, m, rx, _reply, via) => {
+    switch (m.type) {
+      case 'raw':
+        appendFileSync(join(DATA, `raw-${d.id}.ndjson`), JSON.stringify({ rx, ...m }) + '\n');
         return;
-      }
-      d.events++;
-      const th = typeof m.th === 'number' ? m.th : NaN;
-      const lead = typeof m.t === 'number' && typeof m.sel === 'number' ? m.t - m.sel : undefined;
-      const bellId = typeof m.bell === 'string' ? m.bell : d.bells[0].id;
-      const g: LoggedGesture = { deviceId: d.id, g: String(m.g), seq: Number(m.seq), th, rx, det: typeof m.det === 'number' ? m.det : undefined, via, bell: bellId, lead };
-      gestures.push(g);
-      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      if (yarg && (g.g === 'ring' || g.g === 'tap')) {
-        const lane = yarg.room.ring(d.id, bellId, Number.isFinite(th) ? th : rx - (g.det ?? 0), rx);
-        if (lane !== null) logEvent({ type: 'yarg-ring', at: now(), deviceId: d.id, bell: bellId, lane, th });
-      }
-      const bell = d.bells.find((b) => b.id === bellId) ?? DEFAULT_BELLS.find((b) => b.id === bellId) ?? d.bells[0];
-      toDashboards({ type: 'event', deviceId: d.id, name: d.name, bell, msg: m, rx, via, soundMode });
-      return;
+      case 'result':
+        logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
+        appendFileSync(SUMMARY, `\n### ${String(m.test)} result from ${d.name} (${new Date().toLocaleString()})\n\n\`\`\`json\n${JSON.stringify(m.data, null, 2)}\n\`\`\`\n`);
+        session.toGame({ type: 'device-result', deviceId: d.id, name: d.name, msg: m });
+        return;
+      case 'rtc':
+        if (m.kind === 'offer' && typeof m.sdp === 'string') void answerRtc(d, m.sdp);
+        return;
+      default:
+        logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
     }
-    case 'raw':
-      appendFileSync(join(DATA, `raw-${d.id}.ndjson`), JSON.stringify({ rx, ...m }) + '\n');
-      return;
-    case 'status': {
-      d.status = m;
-      const key = statusKey(m);
-      if (key !== d.statusKey) {
-        d.statusKey = key;
-        broadcastDevices();
-      }
-      return;
+  },
+  onCommand: (m) => {
+    switch (m.cmd) {
+      case 'test':
+        startTest(m);
+        break;
+      case 'stop':
+        stopTest(true);
+        break;
+      case 'yarg-song':
+        if (yarg) applySeats(yarg.room.setSong(m.song ? String(m.song) : null, m.difficulty ? String(m.difficulty) : undefined));
+        break;
+      case 'yarg-remove':
+        // Free a ringer seat (removes its YARG bell device); an online phone there becomes free play.
+        if (yarg) {
+          const seat = yarg.room.seats[Number(m.slot)];
+          yarg.room.remove(Number(m.slot));
+          const d = seat?.phoneId ? session.devices.get(seat.phoneId) : undefined;
+          if (d) {
+            d.bells = session.nextBells();
+            session.sendAssign(d);
+          }
+        }
+        break;
     }
-    case 'claim': {
-      // Lobby: relay to the game, which owns the seating chart (and answers with a new `parts`).
-      const part = Number(m.part);
-      if (!Number.isInteger(part) || part < -1) return;
-      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      toDashboards({ type: 'claim', deviceId: d.id, name: d.name, part });
-      return;
-    }
-    case 'ready': {
-      const ready = m.ready === true;
-      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      if (ready === d.ready) return;
-      d.ready = ready;
-      sendParts(d);
-      broadcastDevices();
-      return;
-    }
-    case 'result':
-      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-      appendFileSync(SUMMARY, `\n### ${String(m.test)} result from ${d.name} (${new Date().toLocaleString()})\n\n\`\`\`json\n${JSON.stringify(m.data, null, 2)}\n\`\`\`\n`);
-      toDashboards({ type: 'device-result', deviceId: d.id, name: d.name, msg: m });
-      return;
-    case 'rtc':
-      if (m.kind === 'offer' && typeof m.sdp === 'string') void answerRtc(d, m.sdp);
-      return;
-    default:
-      logEvent({ dir: 'in', via, rx, deviceId: d.id, msg: m });
-  }
-}
+  },
+});
+const devices = session.devices;
 
 // ── tests ───────────────────────────────────────────────────────────────────
 
-function phones(): Device[] {
-  return [...devices.values()].filter((d) => d.kind !== 'dashboard' && d.kind !== 'meter' && d.ws?.readyState === WebSocket.OPEN);
-}
+const phones = (): Device[] => session.phones();
 
 function startTest(cmd: Record<string, unknown>): void {
   stopTest(false);
@@ -625,17 +530,17 @@ function startTest(cmd: Record<string, unknown>): void {
         });
         expect[d.id] = e;
       }
-      send(d.ws, { type: 'test', action: 'start', id, test: kind, start, period, count, expect: e });
+      session.send(d, { type: 'test', action: 'start', id, test: kind, start, period, count, expect: e });
     }
   } else {
     const durationMs = Number(cmd.durationMs ?? 60_000);
     const start = now() + 1500;
     t = { id, kind, start, end: start + durationMs, deviceIds };
-    for (const d of phones()) send(d.ws, { type: 'test', action: 'start', id, test: kind, start, durationMs });
+    for (const d of phones()) session.send(d, { type: 'test', action: 'start', id, test: kind, start, durationMs });
   }
   running = t;
   logEvent({ type: 'test-start', at: now(), test: t, devices: phones().map(deviceLabel) });
-  toDashboards({ type: 'test-state', test: t, hostTime: now() });
+  session.toGame({ type: 'test-state', test: t, hostTime: now() });
   testTimer = setTimeout(() => stopTest(true), t.end - now() + 1500);
 }
 
@@ -645,8 +550,8 @@ function stopTest(analyze: boolean): void {
   const t = running;
   if (!t) return;
   running = null;
-  for (const d of phones()) send(d.ws, { type: 'test', action: 'stop', id: t.id, test: t.kind });
-  toDashboards({ type: 'test-state', test: null, hostTime: now() });
+  for (const d of phones()) session.send(d, { type: 'test', action: 'stop', id: t.id, test: t.kind });
+  session.toGame({ type: 'test-state', test: null, hostTime: now() });
   if (!analyze) return;
   const labels = t.deviceIds.map((id) => devices.get(id)).filter((d): d is Device => !!d).map(deviceLabel);
   let md = '';
@@ -666,101 +571,9 @@ function stopTest(analyze: boolean): void {
   }
   const header = `\n## ${t.kind} test ${t.id} (${new Date().toLocaleString()})\n\n`;
   appendFileSync(SUMMARY, header + md + '\n');
-  writeFileSync(join(DATA, `results-${t.id}.json`), JSON.stringify({ test: t, devices: [...devices.values()].map(deviceSummary), data }, null, 2));
-  toDashboards({ type: 'results', test: t, markdown: md, data });
+  writeFileSync(join(DATA, `results-${t.id}.json`), JSON.stringify({ test: t, devices: [...devices.values()].map((d) => session.deviceSummary(d)), data }, null, 2));
+  session.toGame({ type: 'results', test: t, markdown: md, data });
   console.log(header + md);
-}
-
-function handleDashboardCommand(m: Record<string, unknown>): void {
-  switch (m.cmd) {
-    case 'test':
-      startTest(m);
-      break;
-    case 'stop':
-      stopTest(true);
-      break;
-    case 'sound':
-      soundMode = String(m.sound) as SoundMode;
-      for (const d of devices.values()) sendAssign(d);
-      break;
-    case 'assign': {
-      if (yarg) break; // YARG mode: bells come from the chart part
-      // Give this phone the block of bells starting at `bellId`.
-      const d = devices.get(String(m.deviceId));
-      const start = DEFAULT_BELLS.findIndex((x) => x.id === m.bellId);
-      if (d && start >= 0) {
-        d.bells = bellBlock(start, bellsPerPhone);
-        sendAssign(d);
-      }
-      break;
-    }
-    case 'bells': {
-      if (yarg) break;
-      // Re-deal consecutive blocks of n bells to every phone.
-      bellsPerPhone = Math.max(1, Math.min(4, Number(m.n) || 1));
-      [...devices.values()]
-        .filter((d) => d.kind === 'phone')
-        .forEach((d, i) => {
-          d.bells = bellBlock(i * bellsPerPhone, bellsPerPhone);
-          sendAssign(d);
-        });
-      break;
-    }
-    case 'assign-bells': {
-      // Explicit bell list for one phone (e.g. a ringer's part from a chart, I2), 1–5 bells, plus
-      // an optional ringer seat label (same `assign.ringer` shape as I1's YARG mode).
-      const d = devices.get(String(m.deviceId));
-      const bells = Array.isArray(m.bells) ? (m.bells as Bell[]).filter((b) => b && typeof b.id === 'string' && typeof b.midi === 'number').slice(0, 5) : [];
-      if (d && bells.length) {
-        d.bells = bells.map((b) => ({ id: b.id, label: String(b.label ?? b.id), midi: b.midi, color: String(b.color ?? '#888') }));
-        const r = m.ringer as { slot?: unknown; title?: unknown; song?: unknown } | undefined;
-        d.ringer = r && typeof r.title === 'string' ? { slot: Number(r.slot ?? 0), title: r.title, song: typeof r.song === 'string' ? r.song : undefined } : undefined;
-        const rg = m.ring as { sens?: unknown; ioi?: unknown } | undefined;
-        d.ring = rg && typeof rg === 'object' ? { sens: isSensitivity(rg.sens) ? rg.sens : undefined, ioi: typeof rg.ioi === 'number' && rg.ioi > 0 ? rg.ioi : undefined } : undefined;
-        sendAssign(d);
-      }
-      break;
-    }
-    case 'cues': {
-      // Upcoming notes for one phone (host time + bell id) so it can glow the next zone.
-      const d = devices.get(String(m.deviceId));
-      if (d) send(d.ws, { type: 'cues', at: Array.isArray(m.at) ? m.at : [], bells: Array.isArray(m.bells) ? m.bells : [] });
-      return; // high volume: skip event log + device broadcast
-    }
-    case 'parts': {
-      // Lobby state from the game (I2 seating chart) → every phone (HGP `parts`). Starting a song
-      // clears everyone's Ready. `waiting`: phones that joined mid-round (each gets `next: true`).
-      const phase = m.phase === 'play' ? 'play' : 'lobby';
-      if (phase === 'play' && lobby?.phase !== 'play') for (const d of devices.values()) d.ready = false;
-      const parts = Array.isArray(m.parts) ? (m.parts as PartCard[]).filter((p) => p && typeof p.name === 'string').slice(0, 8) : [];
-      const waiting = Array.isArray(m.waiting) ? m.waiting.filter((x): x is string => typeof x === 'string') : [];
-      lobby = { phase, song: typeof m.song === 'string' ? m.song : undefined, parts, waiting };
-      for (const d of devices.values()) sendParts(d);
-      break;
-    }
-    case 'config': {
-      const targets = m.deviceId === 'all' ? phones() : [devices.get(String(m.deviceId))].filter((d): d is Device => !!d);
-      for (const d of targets) send(d.ws, { type: 'config', ...(m.config as object) });
-      break;
-    }
-    case 'yarg-song':
-      if (yarg) applySeats(yarg.room.setSong(m.song ? String(m.song) : null, m.difficulty ? String(m.difficulty) : undefined));
-      break;
-    case 'yarg-remove':
-      // Free a ringer seat (removes its YARG bell device); an online phone there becomes free play.
-      if (yarg) {
-        const seat = yarg.room.seats[Number(m.slot)];
-        yarg.room.remove(Number(m.slot));
-        const d = seat?.phoneId ? devices.get(seat.phoneId) : undefined;
-        if (d) {
-          d.bells = nextBells();
-          sendAssign(d);
-        }
-      }
-      break;
-  }
-  logEvent({ type: 'cmd', at: now(), m });
-  broadcastDevices();
 }
 
 // ── WebRTC (optional, experimental) ─────────────────────────────────────────
@@ -794,14 +607,14 @@ function dropRtc(d: Device, pc: unknown, why: string): void {
   void Promise.resolve((pc as { close: () => Promise<void> | void }).close()).catch(() => {});
   logEvent({ type: 'rtc-closed', at: now(), deviceId: d.id, why, wasOpen });
   if (wasOpen) {
-    console.log(`  ${d.name}: direct link closed (${why}); using the ${d.wsRoute ?? 'WebSocket'} connection`);
-    broadcastDevices();
+    console.log(`  ${d.name}: direct link closed (${why}); using the ${d.route ?? 'WebSocket'} connection`);
+    session.broadcastDevices();
   }
 }
 
 async function answerRtc(d: Device, offerSdp: string): Promise<void> {
   if (!werift) {
-    send(d.ws, { type: 'rtc', kind: 'error', error: 'werift not installed on host' });
+    session.send(d, { type: 'rtc', kind: 'error', error: 'werift not installed on host' });
     return;
   }
   try {
@@ -826,9 +639,9 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
         }
       };
       d.rtc = { send: (s) => dc.send(s), close: () => dropRtc(d, pc, 'closed by host') };
-      logEvent({ type: 'rtc-open', at: now(), deviceId: d.id, wsRoute: d.wsRoute });
+      logEvent({ type: 'rtc-open', at: now(), deviceId: d.id, wsRoute: d.route });
       console.log(`  ${d.name}: direct link open (WebRTC data channel)`);
-      broadcastDevices();
+      session.broadcastDevices();
       dc.stateChanged.subscribe((s) => {
         if (s === 'closed' || s === 'closing') dropRtc(d, pc, `data channel ${s}`);
       });
@@ -836,7 +649,7 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
         if (d.pc !== pc) return;
         const rx = now();
         const m = parseMessage(typeof data === 'string' ? data : data.toString());
-        if (m) handleDeviceMessage(d, m, rx, replyRtc, 'rtc');
+        if (m) session.deviceMessage(d, m, rx, replyRtc, 'rtc');
       });
     });
     await pc.setRemoteDescription({ type: 'offer', sdp: offerSdp });
@@ -844,10 +657,10 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
     const t0 = Date.now();
     while (pc.iceGatheringState !== 'complete' && Date.now() - t0 < 3000) await new Promise((r) => setTimeout(r, 50));
     if (d.pc !== pc) return;
-    send(d.ws, { type: 'rtc', kind: 'answer', sdp: pc.localDescription.sdp });
+    session.send(d, { type: 'rtc', kind: 'answer', sdp: pc.localDescription.sdp });
   } catch (e) {
     console.error('rtc error', e);
-    send(d.ws, { type: 'rtc', kind: 'error', error: String(e) });
+    session.send(d, { type: 'rtc', kind: 'error', error: String(e) });
   }
 }
 
@@ -856,106 +669,23 @@ async function answerRtc(d: Device, offerSdp: string): Promise<void> {
 const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', (ws: WebSocket, req: http.IncomingMessage) => {
-  let dev: Device | null = null;
-  let isDashboard = false;
-  const wsRoute = classifyWsRoute(req.headers, req.socket.remoteAddress);
-  ws.on('message', (raw) => {
-    const rx = now();
-    const m = parseMessage(raw.toString());
-    if (!m) return;
-    if (m.type === 'hello') {
-      const kind = String(m.kind ?? 'phone');
-      if (kind === 'dashboard') {
-        isDashboard = true;
-        dashboards.add(ws);
-        send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: 'dashboard', session: SESSION, hostTime: now(), info: info() });
-        broadcastDevices();
-        return;
-      }
-      const id = String(m.deviceId ?? `dev-${Math.random().toString(36).slice(2, 8)}`);
-      const existing = devices.get(id);
-      // Newest connection wins. Tell the old one first so its client goes to standby ("Use this
-      // tab") instead of reconnecting and kicking this one back (the 2026-10-25 ping-pong).
-      const wasOnline = existing?.ws?.readyState === WebSocket.OPEN;
-      if (existing?.ws && existing.ws !== ws) {
-        const old = existing.ws;
-        if (old.readyState === WebSocket.OPEN) {
-          send(old, { type: 'replaced', reason: 'This phone connected again (another tab or page)', hostTime: now() });
-          old.close(HGP_CLOSE_REPLACED, 'replaced');
-        } else if (old.readyState === WebSocket.CONNECTING) old.terminate();
-        logEvent({ type: 'replaced', at: rx, deviceId: id, oldTab: existing.hello.tab, tab: m.tab, takeover: m.takeover === true });
-      }
-      const prevName = existing?.name;
-      const prevRoute = existing?.wsRoute;
-      const prevBells = existing ? JSON.stringify(existing.bells) : '';
-      dev = existing ?? {
-        id,
-        name: String(m.name ?? id),
-        kind,
-        ua: String(m.ua ?? ''),
-        hello: m,
-        status: {},
-        ws,
-        rtc: null,
-        bells: nextBells(),
-        ready: false,
-        connectedAt: rx,
-        lastSeen: rx,
-        events: 0,
-      };
-      dev.ws = ws;
-      dev.wsRoute = wsRoute;
-      // A new socket starts on the WebSocket path; the phone re-offers a direct link if invited.
-      if (dev.pc) dropRtc(dev, dev.pc, 'phone reconnected');
-      // Duplicates only happen within one connection (dual-send); a reloaded page restarts seq.
-      gestureDedupe.forget(id);
-      dev.hello = m;
-      dev.name = String(m.name ?? dev.name);
-      dev.ua = String(m.ua ?? dev.ua);
-      devices.set(id, dev);
-      if (yarg && (kind === 'phone' || kind === 'sim')) {
-        const seat = yarg.room.join(id, dev.name);
-        if (seat) dev.bells = seat.bells;
-      }
-      logEvent({ dir: 'in', via: 'ws', rx, deviceId: id, wsRoute, msg: m });
-      const upgrade = kind === 'phone' && shouldOfferRtc(RTC_POLICY, wsRoute, werift !== null) ? 'rtc' : undefined;
-      send(ws, { type: 'welcome', v: HGP_VERSION, deviceId: id, session: SESSION, hostTime: now(), route: wsRoute, ...(upgrade ? { upgrade } : {}) });
-      sendAssign(dev);
-      sendParts(dev);
-      if (running) {
-        const t = running;
-        if (!t.deviceIds.includes(id)) t.deviceIds.push(id);
-        send(ws, { type: 'test', action: 'start', id: t.id, test: t.kind, start: t.beats?.[0] ?? t.start, period: t.period, count: t.beats?.length, durationMs: t.end - t.start });
-      }
-      // A reconnect/takeover of a phone that was online with the same name and bells changes
-      // nothing the game (TV) cares about: skip the device broadcast so its lobby doesn't churn.
-      if (!existing || !wasOnline || prevName !== dev.name || prevRoute !== wsRoute || prevBells !== JSON.stringify(dev.bells)) broadcastDevices();
-      return;
-    }
-    if (isDashboard) {
-      if (m.type === 'cmd') handleDashboardCommand(m);
-      else if (m.type === 'sync') send(ws, { type: 'sync', id: m.id, t0: m.t0, t1: rx, t2: now() });
-      return;
-    }
-    if (dev) handleDeviceMessage(dev, m, rx, (o) => send(ws, o), 'ws');
-  });
-  ws.on('close', () => {
-    if (isDashboard) {
-      dashboards.delete(ws);
-      return;
-    }
-    // A socket replaced by a newer one with the same deviceId: the device never went offline.
-    if (!dev || dev.ws !== ws) return;
-    dev.ws = null;
-    if (dev.pc) dropRtc(dev, dev.pc, 'WebSocket closed');
-    logEvent({ type: 'disconnect', at: now(), deviceId: dev.id });
-    const seat = yarg?.room.leave(dev.id);
-    if (seat) console.log(`YARG: ${dev.name} left Ringer ${seat.slot + 1} (seat kept for a rejoin or another phone)`);
-    broadcastDevices();
-  });
+  const conn: HostConn = {
+    get open() {
+      return ws.readyState === WebSocket.OPEN;
+    },
+    get connecting() {
+      return ws.readyState === WebSocket.CONNECTING;
+    },
+    send: (text) => ws.send(text),
+    close: (code, reason) => ws.close(code, reason),
+    terminate: () => ws.terminate(),
+  };
+  const h = session.connect(conn, classifyWsRoute(req.headers, req.socket.remoteAddress));
+  ws.on('message', (raw) => h.message(raw.toString(), now()));
+  ws.on('close', () => h.closed());
 });
 
-setInterval(broadcastDevices, HEARTBEAT_MS);
+session.start();
 
 // ── listeners ───────────────────────────────────────────────────────────────
 
@@ -995,7 +725,7 @@ function updateJoin(): void {
   joinUrl = next;
   tlsMode = nextTls;
   void printJoin(next);
-  toDashboards({ type: 'info', info: info() });
+  session.toGame({ type: 'info', info: info() });
 }
 
 let tunnel: QuickTunnel | null = null;
@@ -1123,7 +853,7 @@ async function main(): Promise<void> {
         lastConnected = link.connected;
         console.log(lastConnected ? `YARG: bridge connected (localhost round trip ${link.rtt.toFixed(2)} ms)` : 'YARG: bridge not answering — is YARG running with -hgp?');
         if (lastConnected) room.announce();
-        broadcastDevices();
+        session.broadcastDevices();
       }
       if (room.ringsSent !== lastRings) {
         lastRings = room.ringsSent;
