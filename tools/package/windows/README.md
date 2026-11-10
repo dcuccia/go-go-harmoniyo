@@ -15,7 +15,7 @@ GoGoHarmoniYo\
   app\controller\            the phone controller page and its esbuild bundle
   app\brand\                 logos served at /brand/
   app\build-info.json        version, commit, Node and cloudflared versions
-  README.txt                 for players: start, Windows prompts, tunnel, uninstall
+  README.txt                 for players: start, Windows prompts, tunnel, uninstall, privacy
   LICENSE.txt                MIT (the repo's LICENSE)
   ATTRIBUTION.md             art, songs and charts (generated from attribution/register.json)
   THIRD_PARTY_NOTICES.md     everything bundled, with full license texts (bundle gate)

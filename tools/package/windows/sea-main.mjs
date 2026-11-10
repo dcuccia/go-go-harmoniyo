@@ -16,6 +16,19 @@ import { dirname, join } from 'node:path';
 // How people start it (README.txt); the launcher's advice ("… --tunnel") uses this name.
 const LAUNCHER = '"Play Go Go HarmoniYo.cmd"';
 
+// Flags that keep the host off the tunnel (launch.mjs: --lan-only, its alias, and the S1 host
+// flags that imply it).
+const LAN_ONLY_FLAGS = ['--lan-only', '--no-tunnel', '--cert', '--key', '--hostname', '--public-url', '--no-https'];
+
+/** One-line privacy notice, kept in step with README.txt and the repo README's Privacy section. */
+function privacyNotice(argv) {
+  const lanOnly = argv.some((a) => LAN_ONLY_FLAGS.some((f) => a === f || a.startsWith(`${f}=`)));
+  return lanOnly
+    ? '  Privacy: no accounts, analytics or telemetry. LAN-only mode: everything stays on your network.'
+    : '  Privacy: no accounts, analytics or telemetry. Phones may join through a Cloudflare tunnel\n' +
+      '           (trycloudflare.com); start with --lan-only to stay on your network. See README.txt.';
+}
+
 const exeDir = dirname(process.execPath);
 const appDir = process.env.GOGOHARMONIYO_APP_DIR || join(exeDir, 'app');
 const stateDir = process.env.GOGOHARMONIYO_STATE_DIR ||
@@ -43,7 +56,9 @@ async function launcher(argv) {
     process.env[pathKey] = `${exeDir};${process.env[pathKey] ?? ''}`;
   }
   const { main } = await import('../../../spikes/i2-web-phones/scripts/launch.mjs');
-  if (!argv.some((a) => a === '--help' || a === '-h')) console.log(`\n  Files: game ${appDir}\n         logs and certificates ${stateDir}`);
+  if (!argv.some((a) => a === '--help' || a === '-h')) {
+    console.log(`\n  Files: game ${appDir}\n         logs and certificates ${stateDir}\n${privacyNotice(argv)}`);
+  }
   return main(argv, {
     name: LAUNCHER,
     command: process.execPath,
