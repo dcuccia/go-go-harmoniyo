@@ -22,64 +22,79 @@ Licenses are as declared in package metadata; they are not legal advice.
 | YARC-Official/YARG.Core | LGPL-3.0-or-later | `spikes/s2-yarg-core`, `spikes/s3-yarg-handbell` | `spikes/s2-yarg-core/external/`, `spikes/s3-yarg-handbell/external/` | EX-003 (accepted) |
 | dcuccia/YARG (branch handbell-spike) | LGPL-3.0-or-later | `spikes/s3-yarg-handbell`, `tools/setup` | `spikes/s3-yarg-handbell/external/` | EX-004 (accepted) |
 
-## npm packages (227)
+## npm packages (363)
 
-Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0), `spikes/s6-ai-arranging` (0), `tools/package/windows` (2). Scope comes from the lockfile:
+Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0), `spikes/s6-ai-arranging` (0), `spikes/s9-page-host/app` (100), `spikes/s9-page-host` (143), `tools/package/windows` (2). Scope comes from the lockfile:
 *runtime* ships with the app; *dev* is build/test tooling only; *optional* installs only when available.
 
 | Package | Version | License | Scope | Used by |
 |---|---|---|---|---|
-| @esbuild/aix-ppc64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/aix-ppc64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/android-arm | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/android-arm | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/android-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/android-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/android-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/android-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/darwin-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/darwin-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/darwin-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/darwin-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/freebsd-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/freebsd-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/freebsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/freebsd-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-arm | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-arm | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-ia32 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-ia32 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-loong64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-loong64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-mips64el | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-mips64el | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-ppc64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-ppc64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-riscv64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-riscv64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-s390x | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-s390x | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/linux-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/linux-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/netbsd-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/netbsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/netbsd-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/openbsd-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/openbsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/openbsd-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/openharmony-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/sunos-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/sunos-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/win32-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/win32-arm64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/win32-ia32 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/win32-ia32 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
-| @esbuild/win32-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @esbuild/win32-x64 | 0.28.2 | MIT | optional | `spikes/s1-phone-bell` |
+| @capacitor/android | 8.6.0 | MIT | runtime | `spikes/s9-page-host/app` |
+| @capacitor/app | 8.1.2 | MIT | runtime | `spikes/s9-page-host/app` |
+| @capacitor/cli | 8.6.0 | MIT | dev | `spikes/s9-page-host/app` |
+| @capacitor/core | 8.6.0 | MIT | runtime | `spikes/s9-page-host/app` |
+| @capacitor/ios | 8.6.0 | MIT | runtime | `spikes/s9-page-host/app` |
+| @esbuild/aix-ppc64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/aix-ppc64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/android-arm | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/android-arm | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/android-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/android-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/android-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/android-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/darwin-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/darwin-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/darwin-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/darwin-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/freebsd-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/freebsd-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/freebsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/freebsd-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-arm | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-arm | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-ia32 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-ia32 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-loong64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-loong64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-mips64el | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-mips64el | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-ppc64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-ppc64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-riscv64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-riscv64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-s390x | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-s390x | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/linux-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/linux-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/netbsd-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/netbsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/netbsd-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/openbsd-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/openbsd-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/openbsd-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/openharmony-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/sunos-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/sunos-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/win32-arm64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/win32-arm64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/win32-ia32 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/win32-ia32 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @esbuild/win32-x64 | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| @esbuild/win32-x64 | 0.28.2 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | @fidm/asn1 | 1.0.4 | MIT | optional | `spikes/s1-phone-bell` |
 | @fidm/x509 | 1.2.1 | MIT | optional | `spikes/s1-phone-bell` |
+| @ionic/cli-framework-output | 2.2.8 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-array | 2.1.6 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-fs | 3.1.7 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-object | 2.1.6 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-process | 2.1.12 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-stream | 3.1.7 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-subprocess | 3.0.1 | MIT | dev | `spikes/s9-page-host/app` |
+| @ionic/utils-terminal | 2.3.5 | MIT | dev | `spikes/s9-page-host/app` |
+| @isaacs/fs-minipass | 4.0.1 | ISC | dev | `spikes/s9-page-host/app` |
+| @isaacs/nonrecursive-glob-match | 1.1.0 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
 | @jridgewell/sourcemap-codec | 1.6.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @leichtgewicht/ip-codec | 2.0.5 | MIT | optional | `spikes/s1-phone-bell` |
 | @napi-rs/lzma-linux-x64-gnu | 1.5.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
@@ -98,40 +113,70 @@ Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `
 | @peculiar/utils | 2.0.3 | MIT | runtime | `spikes/s1-phone-bell` |
 | @peculiar/x509 | 1.14.3 | MIT | runtime | `spikes/s1-phone-bell` |
 | @rollup/rollup-android-arm-eabi | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-android-arm-eabi | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-android-arm64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-android-arm64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
+| @rollup/rollup-android-x64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-darwin-arm64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-darwin-arm64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-darwin-x64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-darwin-x64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-freebsd-arm64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-freebsd-arm64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-freebsd-x64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-freebsd-x64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-arm-gnueabihf | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-arm-gnueabihf | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-arm-musleabihf | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-arm-musleabihf | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-arm64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-arm64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-arm64-musl | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-arm64-musl | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-loong64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-loong64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-loong64-musl | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-loong64-musl | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-ppc64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-ppc64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-ppc64-musl | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-ppc64-musl | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-riscv64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-riscv64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-riscv64-musl | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-riscv64-musl | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-s390x-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-s390x-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-x64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-x64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-linux-x64-musl | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-linux-x64-musl | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-openbsd-x64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-openbsd-x64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-openharmony-arm64 | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-openharmony-arm64 | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-win32-arm64-msvc | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-win32-arm64-msvc | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-win32-ia32-msvc | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-win32-ia32-msvc | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-win32-x64-gnu | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-win32-x64-gnu | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @rollup/rollup-win32-x64-msvc | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| @rollup/rollup-win32-x64-msvc | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
 | @tweenjs/tween.js | 23.1.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @types/dom-mediacapture-transform | 0.1.12 | MIT | optional | `spikes/s1-phone-bell` |
 | @types/dom-webcodecs | 0.1.13 | MIT | optional | `spikes/s1-phone-bell` |
 | @types/estree | 1.0.9 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @types/node | 22.20.5 | MIT | dev | `spikes/s1-phone-bell` |
-| @types/qrcode | 1.5.6 | MIT | dev | `spikes/s1-phone-bell` |
+| @types/estree | 1.0.10 | MIT | dev | `spikes/s9-page-host` |
+| @types/fs-extra | 8.1.5 | MIT | dev | `spikes/s9-page-host/app` |
+| @types/node | 22.20.5 | MIT | dev | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @types/node | 26.6.6 | MIT | dev | `spikes/s9-page-host/app` |
+| @types/qrcode | 1.5.6 | MIT | dev | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| @types/slice-ansi | 4.0.0 | MIT | dev | `spikes/s9-page-host/app` |
 | @types/stats.js | 0.17.4 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @types/three | 0.170.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @types/webxr | 0.5.24 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| @types/ws | 8.18.2 | MIT | dev | `spikes/s1-phone-bell` |
+| @types/ws | 8.18.2 | MIT | dev | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | @typescript/typescript-aix-ppc64 | 7.0.2 | Apache-2.0 | dev | `spikes/s1-phone-bell` |
 | @typescript/typescript-darwin-arm64 | 7.0.2 | Apache-2.0 | dev | `spikes/s1-phone-bell` |
 | @typescript/typescript-darwin-x64 | 7.0.2 | Apache-2.0 | dev | `spikes/s1-phone-bell` |
@@ -160,102 +205,193 @@ Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `
 | @vitest/spy | 2.1.9 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @vitest/utils | 2.1.9 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | @webgpu/types | 0.1.74 | BSD-3-Clause | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| ansi-regex | 5.0.1 | MIT | runtime | `spikes/s1-phone-bell` |
-| ansi-styles | 4.3.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| @xmldom/xmldom | 0.9.12 | MIT | dev | `spikes/s9-page-host/app` |
+| ansi-regex | 5.0.1 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| ansi-styles | 4.3.0 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| argparse | 1.0.10 | MIT | dev | `spikes/s9-page-host` |
 | asn1js | 3.1.0 | BSD-3-Clause | runtime | `spikes/s1-phone-bell` |
 | assertion-error | 2.0.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| base64-js | 1.5.1 | MIT | optional | `spikes/s1-phone-bell` |
+| astral-regex | 2.0.0 | MIT | dev | `spikes/s9-page-host/app` |
+| at-least-node | 1.0.0 | ISC | dev | `spikes/s9-page-host/app` |
+| balanced-match | 4.0.4 | MIT | dev | `spikes/s9-page-host/app` |
+| base64-js | 1.5.1 | MIT | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| big-integer | 1.6.52 | Unlicense | dev | `spikes/s9-page-host/app` |
+| bplist-creator | 0.1.0 | MIT | dev | `spikes/s9-page-host/app` |
+| bplist-parser | 0.3.1 | MIT | dev | `spikes/s9-page-host/app` |
+| bplist-parser | 0.3.2 | MIT | dev | `spikes/s9-page-host/app` |
+| brace-expansion | 5.0.12 | MIT | dev | `spikes/s9-page-host/app` |
+| buffer | 5.7.1 | MIT | dev | `spikes/s9-page-host` |
 | buffer | 6.0.3 | MIT | optional | `spikes/s1-phone-bell` |
+| buffer-crc32 | 0.2.13 | MIT | dev | `spikes/s9-page-host/app` |
 | bytestreamjs | 2.0.1 | BSD-3-Clause | runtime | `spikes/s1-phone-bell` |
 | cac | 6.7.14 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| camelcase | 5.3.1 | MIT | runtime | `spikes/s1-phone-bell` |
+| camelcase | 5.3.1 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | chai | 5.3.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | check-error | 2.1.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| cliui | 6.0.0 | ISC | runtime | `spikes/s1-phone-bell` |
-| color-convert | 2.0.1 | MIT | runtime | `spikes/s1-phone-bell` |
-| color-name | 1.1.4 | MIT | runtime | `spikes/s1-phone-bell` |
+| chownr | 3.0.0 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| cliui | 6.0.0 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| color-convert | 2.0.1 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| color-name | 1.1.4 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
 | commander | 9.5.0 | MIT | dev | `tools/package/windows` |
+| commander | 12.1.0 | MIT | dev | `spikes/s9-page-host/app` |
+| crc | 3.8.0 | MIT | dev | `spikes/s9-page-host` |
+| cross-spawn | 7.0.6 | MIT | dev | `spikes/s9-page-host/app` |
+| date-format | 2.1.0 | MIT | dev | `spikes/s9-page-host` |
+| date-format | 3.0.0 | MIT | dev | `spikes/s9-page-host` |
 | debug | 4.4.0 | MIT | optional | `spikes/s1-phone-bell` |
-| debug | 4.4.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| decamelize | 1.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| debug | 4.4.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| decamelize | 1.2.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | deep-eql | 5.0.2 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| dijkstrajs | 1.0.3 | MIT | runtime | `spikes/s1-phone-bell` |
+| define-lazy-prop | 2.0.0 | MIT | dev | `spikes/s9-page-host/app` |
+| dijkstrajs | 1.0.3 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | dns-packet | 5.6.1 | MIT | optional | `spikes/s1-phone-bell` |
-| emoji-regex | 8.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| elementtree | 0.1.7 | Apache-2.0 | dev | `spikes/s9-page-host/app` |
+| emoji-regex | 8.0.0 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| env-paths | 2.2.1 | MIT | dev | `spikes/s9-page-host/app` |
 | es-module-lexer | 1.7.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| esbuild | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| esbuild | 0.28.2 | MIT | runtime | `spikes/s1-phone-bell` |
+| esbuild | 0.21.5 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| esbuild | 0.28.2 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| esprima | 4.0.1 | BSD-2-Clause | dev | `spikes/s9-page-host` |
 | estree-walker | 3.0.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | expect-type | 1.4.0 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| fd-slicer | 1.1.0 | MIT | dev | `spikes/s9-page-host/app` |
 | fflate | 0.8.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| find-up | 4.1.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| fsevents | 2.3.3 | MIT | dev, optional | `spikes/i2-web-phones`, `spikes/s1-phone-bell`, `spikes/s4-web-host` |
-| get-caller-file | 2.0.5 | ISC | runtime | `spikes/s1-phone-bell` |
+| find-up | 4.1.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| flatted | 2.0.2 | ISC | dev | `spikes/s9-page-host` |
+| fs-extra | 8.1.0 | MIT | dev | `spikes/s9-page-host` |
+| fs-extra | 9.1.0 | MIT | dev | `spikes/s9-page-host/app` |
+| fs-extra | 11.4.1 | MIT | dev | `spikes/s9-page-host/app` |
+| fsevents | 2.3.3 | MIT | dev, optional | `spikes/i2-web-phones`, `spikes/s1-phone-bell`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| get-caller-file | 2.0.5 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | gifenc | 1.0.3 | MIT | dev | `spikes/s4-web-host` |
-| ieee754 | 1.2.1 | BSD-3-Clause | optional | `spikes/s1-phone-bell` |
-| is-fullwidth-code-point | 3.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| glob | 14.0.4 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| graceful-fs | 4.2.11 | ISC | dev | `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| ieee754 | 1.2.1 | BSD-3-Clause | dev, optional | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| inherits | 2.0.4 | ISC | dev | `spikes/s9-page-host/app` |
+| ini | 4.1.3 | ISC | dev | `spikes/s9-page-host/app` |
+| is-docker | 2.2.1 | MIT | dev | `spikes/s9-page-host/app` |
+| is-fullwidth-code-point | 3.0.0 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| is-wsl | 2.2.0 | MIT | dev | `spikes/s9-page-host/app` |
+| isexe | 2.0.0 | ISC | dev | `spikes/s9-page-host/app` |
 | jpeg-js | 0.4.4 | BSD-3-Clause | dev | `spikes/s4-web-host` |
-| locate-path | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| js-yaml | 3.14.2 | MIT | dev | `spikes/s9-page-host` |
+| jsonfile | 4.0.0 | MIT | dev | `spikes/s9-page-host` |
+| jsonfile | 6.2.1 | MIT | dev | `spikes/s9-page-host/app` |
+| kleur | 3.0.3 | MIT | dev | `spikes/s9-page-host/app` |
+| kleur | 4.1.5 | MIT | dev | `spikes/s9-page-host/app` |
+| locate-path | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| log4js | 6.3.0 | Apache-2.0 | dev | `spikes/s9-page-host` |
 | loupe | 3.2.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| lru-cache | 11.5.3 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
 | magic-string | 0.30.21 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | mediabunny | 1.62.1 | MPL-2.0 (CG-001) | optional | `spikes/s1-phone-bell` |
 | meshoptimizer | 0.18.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| ms | 2.1.3 | MIT | dev, optional | `spikes/i2-web-phones`, `spikes/s1-phone-bell`, `spikes/s4-web-host` |
+| minimatch | 11.0.5 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| minipass | 7.1.3 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| minizlib | 3.1.0 | MIT | dev | `spikes/s9-page-host/app` |
+| ms | 2.1.3 | MIT | dev, optional | `spikes/i2-web-phones`, `spikes/s1-phone-bell`, `spikes/s4-web-host`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
 | multicast-dns | 7.2.5 | MIT | optional | `spikes/s1-phone-bell` |
-| nanoid | 3.3.20 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| p-limit | 2.3.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| p-locate | 4.1.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| p-try | 2.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| path-exists | 4.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| nanoid | 3.3.20 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| native-run | 2.1.0 | MIT | dev | `spikes/s9-page-host/app` |
+| node-turn | 0.0.6 | MIT | dev | `spikes/s9-page-host` |
+| open | 8.4.2 | MIT | dev | `spikes/s9-page-host/app` |
+| p-limit | 2.3.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| p-locate | 4.1.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| p-try | 2.2.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| package-json-from-dist | 1.0.1 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| path-exists | 4.0.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| path-key | 3.1.1 | MIT | dev | `spikes/s9-page-host/app` |
+| path-scurry | 3.0.0 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
 | pathe | 1.1.2 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | pathval | 2.0.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| picocolors | 1.1.1 | ISC | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| pend | 1.2.0 | MIT | dev | `spikes/s9-page-host/app` |
+| picocolors | 1.1.1 | ISC | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
 | pkijs | 3.4.3 | BSD-3-Clause | runtime | `spikes/s1-phone-bell` |
 | playwright-core | 1.64.1 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| pngjs | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| playwright-core | 1.65.0 | Apache-2.0 | dev | `spikes/s9-page-host` |
+| plist | 3.1.1 | MIT | dev | `spikes/s9-page-host/app` |
+| pngjs | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | postcss | 8.5.31 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| postcss | 8.5.32 | MIT | dev | `spikes/s9-page-host` |
 | postject | 1.0.0-alpha.6 | MIT | dev | `tools/package/windows` |
+| prompts | 2.4.2 | MIT | dev | `spikes/s9-page-host/app` |
 | pvtsutils | 1.3.6 | MIT | runtime | `spikes/s1-phone-bell` |
 | pvutils | 1.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| qrcode | 1.5.4 | MIT | runtime | `spikes/s1-phone-bell` |
+| qrcode | 1.5.4 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| readable-stream | 3.6.2 | MIT | dev | `spikes/s9-page-host/app` |
 | reflect-metadata | 0.2.2 | Apache-2.0 | runtime | `spikes/s1-phone-bell` |
-| require-directory | 2.1.1 | MIT | runtime | `spikes/s1-phone-bell` |
-| require-main-filename | 2.0.0 | ISC | runtime | `spikes/s1-phone-bell` |
+| require-directory | 2.1.1 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| require-main-filename | 2.0.0 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| rfdc | 1.4.1 | MIT | dev | `spikes/s9-page-host` |
+| rimraf | 6.1.4 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
 | rollup | 4.65.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| rollup | 4.68.2 | MIT | dev | `spikes/s9-page-host` |
+| safe-buffer | 5.2.1 | MIT | dev | `spikes/s9-page-host/app` |
+| sax | 1.1.4 | ISC | dev | `spikes/s9-page-host/app` |
 | selfsigned | 5.5.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| set-blocking | 2.0.0 | ISC | runtime | `spikes/s1-phone-bell` |
+| semver | 7.8.6 | ISC | dev | `spikes/s9-page-host/app` |
+| set-blocking | 2.0.0 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| shebang-command | 2.0.0 | MIT | dev | `spikes/s9-page-host/app` |
+| shebang-regex | 3.0.0 | MIT | dev | `spikes/s9-page-host/app` |
 | siginfo | 2.0.0 | ISC | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| source-map-js | 1.2.2 | BSD-3-Clause | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| signal-exit | 3.0.7 | ISC | dev | `spikes/s9-page-host/app` |
+| simple-plist | 1.3.1 | MIT | dev | `spikes/s9-page-host/app` |
+| sisteransi | 1.0.5 | MIT | dev | `spikes/s9-page-host/app` |
+| slice-ansi | 4.0.0 | MIT | dev | `spikes/s9-page-host/app` |
+| source-map-js | 1.2.2 | BSD-3-Clause | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
+| split2 | 4.2.0 | ISC | dev | `spikes/s9-page-host/app` |
+| sprintf-js | 1.0.3 | BSD-3-Clause | dev | `spikes/s9-page-host` |
 | stackback | 0.0.2 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | std-env | 3.10.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| string-width | 4.2.3 | MIT | runtime | `spikes/s1-phone-bell` |
-| strip-ansi | 6.0.1 | MIT | runtime | `spikes/s1-phone-bell` |
+| stream-buffers | 2.2.0 | Unlicense | dev | `spikes/s9-page-host/app` |
+| streamroller | 2.2.4 | MIT | dev | `spikes/s9-page-host` |
+| string_decoder | 1.3.0 | MIT | dev | `spikes/s9-page-host/app` |
+| string-width | 4.2.3 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| strip-ansi | 6.0.1 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host`, `spikes/s9-page-host/app` |
+| tar | 7.5.22 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
 | three | 0.170.0 | MIT | runtime | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| through2 | 4.0.2 | MIT | dev | `spikes/s9-page-host/app` |
 | thunky | 1.1.0 | MIT | optional | `spikes/s1-phone-bell` |
 | tinybench | 2.9.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | tinyexec | 0.3.2 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | tinypool | 1.1.1 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | tinyrainbow | 1.2.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | tinyspy | 3.0.2 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| tree-kill | 1.2.2 | MIT | dev | `spikes/s9-page-host/app` |
 | tslib | 1.14.1 | 0BSD | runtime | `spikes/s1-phone-bell` |
 | tslib | 2.8.1 | 0BSD | runtime | `spikes/s1-phone-bell` |
-| tsx | 4.23.15 | MIT | runtime | `spikes/s1-phone-bell` |
+| tslib | 2.9.1 | 0BSD | runtime | `spikes/s9-page-host/app` |
+| tsx | 4.23.15 | MIT | dev, runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | tsyringe | 4.10.0 | MIT | runtime | `spikes/s1-phone-bell` |
 | tweetnacl | 1.0.3 | Unlicense | optional | `spikes/s1-phone-bell` |
-| typescript | 5.9.3 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| typescript | 5.9.3 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
 | typescript | 7.0.2 | Apache-2.0 | dev | `spikes/s1-phone-bell` |
-| undici-types | 6.21.0 | MIT | dev | `spikes/s1-phone-bell` |
-| vite | 5.4.21 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| undici-types | 6.21.0 | MIT | dev | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| undici-types | 8.9.0 | MIT | dev | `spikes/s9-page-host/app` |
+| universalify | 0.1.2 | MIT | dev | `spikes/s9-page-host` |
+| universalify | 2.0.1 | MIT | dev | `spikes/s9-page-host/app` |
+| untildify | 4.0.0 | MIT | dev | `spikes/s9-page-host/app` |
+| util-deprecate | 1.0.2 | MIT | dev | `spikes/s9-page-host/app` |
+| vite | 5.4.21 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host`, `spikes/s9-page-host` |
 | vite-node | 2.1.9 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | vitest | 2.1.9 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | werift | 0.25.1 | MIT | optional | `spikes/s1-phone-bell` |
-| which-module | 2.0.1 | ISC | runtime | `spikes/s1-phone-bell` |
+| which | 2.0.2 | ISC | dev | `spikes/s9-page-host/app` |
+| which-module | 2.0.1 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
 | why-is-node-running | 2.3.0 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
-| wrap-ansi | 6.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
+| wrap-ansi | 6.2.0 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| wrap-ansi | 7.0.0 | MIT | dev | `spikes/s9-page-host/app` |
 | ws | 8.22.0 | MIT | runtime | `spikes/s1-phone-bell` |
-| y18n | 4.0.3 | ISC | runtime | `spikes/s1-phone-bell` |
-| yargs | 15.4.1 | MIT | runtime | `spikes/s1-phone-bell` |
-| yargs-parser | 18.1.3 | ISC | runtime | `spikes/s1-phone-bell` |
+| ws | 8.22.2 | MIT | dev | `spikes/s9-page-host` |
+| xcode | 4.0.0 | Apache-2.0 | dev | `spikes/s9-page-host/app` |
+| xml2js | 0.6.2 | MIT | dev | `spikes/s9-page-host/app` |
+| xmlbuilder | 11.0.1 | MIT | dev | `spikes/s9-page-host/app` |
+| xmlbuilder | 15.1.1 | MIT | dev | `spikes/s9-page-host/app` |
+| y18n | 4.0.3 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| yallist | 5.0.0 | BlueOak-1.0.0 | dev | `spikes/s9-page-host/app` |
+| yargs | 15.4.1 | MIT | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| yargs-parser | 18.1.3 | ISC | runtime | `spikes/s1-phone-bell`, `spikes/s9-page-host` |
+| yauzl | 2.10.0 | MIT | dev | `spikes/s9-page-host/app` |
 
 ## NuGet packages (0)
 
@@ -294,7 +430,9 @@ distribution, a compliance ADR is required ([ADR-0008](docs/decisions/0008-asset
 
 - **0BSD**: https://spdx.org/licenses/0BSD.html
 - **Apache-2.0**: https://spdx.org/licenses/Apache-2.0.html
+- **BSD-2-Clause**: https://spdx.org/licenses/BSD-2-Clause.html
 - **BSD-3-Clause**: https://spdx.org/licenses/BSD-3-Clause.html
+- **BlueOak-1.0.0**: https://spdx.org/licenses/BlueOak-1.0.0.html
 - **ISC**: https://spdx.org/licenses/ISC.html
 - **MIT**: https://spdx.org/licenses/MIT.html
 - **MPL-2.0**: https://spdx.org/licenses/MPL-2.0.html

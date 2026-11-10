@@ -431,15 +431,15 @@ function renderStatus(): void {
     });
   }
   const hostOk = link.state === 'open';
-  $('host-state').textContent = hostOk ? `S1 host ${link.info.lanIp ?? ''} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
+  $('host-state').textContent = hostOk ? `${link.info.transport?.mode === 'page' ? 'Host' : `S1 host ${link.info.lanIp ?? ''}`} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
   $('host-state').classList.toggle('error', !hostOk);
-  $('join-url').textContent = link.info.joinUrl || (hostOk ? 'starting the cloud tunnel…' : 'waiting for host…');
+  $('join-url').textContent = link.info.joinUrl || (hostOk ? (link.info.transport?.mode === 'page' ? 'waiting for the signalling service…' : 'starting the cloud tunnel…') : 'waiting for host…');
 }
 
 /** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
 function routeLabel(p: PhoneInfo): string {
   const st = p.status ?? {};
-  const base = p.route === 'direct' ? 'direct' : p.route === 'tunnel' ? 'via tunnel' : p.route === 'lan' ? 'Wi-Fi' : '';
+  const base = p.route === 'direct' ? 'direct' : p.route === 'tunnel' ? 'via tunnel' : p.route === 'lan' ? 'Wi-Fi' : p.route === 'relay' ? 'via TURN relay' : '';
   if (p.route === 'tunnel' && st.rtc === 'trying') return `${base} (trying direct…)`;
   return base;
 }
@@ -448,6 +448,7 @@ function transportLabel(): string {
   const t = link.info.transport;
   if (!t?.mode) return '';
   if (t.mode === 'lan') return ' · Wi-Fi only';
+  if (t.mode === 'page') return ' · WebRTC, host in this page (S9)';
   const tunnel = t.tunnel === 'up' ? 'tunnel up' : t.tunnel === 'starting' ? 'tunnel starting' : 'no tunnel';
   return ` · ${t.mode === 'tunnel' ? 'tunnel only' : 'auto'}: ${tunnel}`;
 }
@@ -483,7 +484,7 @@ function renderCornerJoin(): void {
   const img = $<HTMLImageElement>('corner-qr');
   if (img.dataset.u !== url) {
     img.dataset.u = url;
-    img.src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(url)}`;
+    img.src = link.qrSrc(url);
   }
   $('corner-url').textContent = url.replace(/\/$/, '');
   $('corner-hint').textContent = /self-signed/i.test(link.info.tlsMode ?? '') ? 'scan · accept the warning once' : 'scan to join';
@@ -608,7 +609,7 @@ link.onClaim = (deviceId, part) => {
 };
 link.onInfo = () => {
   // The join URL is empty for a few seconds while the cloud tunnel starts (ADR-0012).
-  if (link.info.joinUrl) $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl)}`;
+  if (link.info.joinUrl) $<HTMLImageElement>('qr').src = link.qrSrc(link.info.joinUrl);
   renderLobby();
   renderCornerJoin();
 };

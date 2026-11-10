@@ -88,7 +88,12 @@ drive any host.
     the web controller via QR. Native apps would add iOS haptics but bring App Store 4.2
     ("repackaged website") risk, a local-network prompt and store accounts. Revisit only if
     haptics or sensor rates prove necessary.
-- Spikes: S1, S8.
+  - Hosted controller (S9, [report §2](../spikes/S9-report.md#2-trusted-controller-and-signalling)):
+    the same web controller served from the Worker's HTTPS origin (no certificate warning,
+    motion sensors allowed) joins the TV by room code over WebRTC. Open: iOS motion permission
+    and sensor rate on that origin with a real iPhone; phones on mobile data or guest Wi-Fi
+    (TURN).
+- Spikes: S1, S8, S9.
 
 ## E03 Game host & engine
 
@@ -158,7 +163,14 @@ drive any host.
     the TypeScript host logic in its WebView; phones use the hosted web controller; a small free
     signalling service connects them over WebRTC data channels. The PC zip stays the offline
     option. The S9 working prototype (a separate session) informs acceptance.
-- Spikes: S2, S3, S4, (S7, formerly S6), S8.
+  - S9 ([report](../spikes/S9-report.md)), emulated on one PC: S1's host logic (now
+    `HostSession`, shared with the Node host) runs in the TV page; phones join through a
+    Cloudflare Worker + Durable Object and talk over two WebRTC data channels. Join 22 ms p50,
+    clock-sync error < 1 ms p95, Silent Night 32/32 hits; rings reach the game in 13–14 ms p50
+    (33–37 ms through the Node host). Open: real-device runs (Gemini, iPad, phones on guest
+    Wi-Fi and mobile data); a host secret per room; the data-channel transport in the HGP
+    contract.
+- Spikes: S2, S3, S4, (S7, formerly S6), S8, S9.
 
 ## E04 Songs, charts & arrangement pipeline
 
@@ -371,6 +383,11 @@ audience reactions, festive themes (holiday theme for M5).
     - Running today's Node host inside store apps is fragile. **Proposed
       [ADR-0014](../decisions/0014-store-era-host-architecture.md)**: the TV or tablet app is the
       host (no PC), running the host logic in its WebView. The S9 working prototype comes first.
+    - S9 ([report](../spikes/S9-report.md#3-app-shells)): **Capacitor 8** shells. CI
+      (`s9-page-host.yml`) builds a debug-signed Android TV/tablet APK (leanback launcher,
+      banner, D-pad) and an unsigned iPad simulator build. Open: a release keystore as a CI
+      secret; a TestFlight job (App Store Connect API key) or the owner's Mac; Maven (AndroidX,
+      Cordova) notices for the APK; D-pad and WebView performance on the real Gemini.
     - Test builds (sideloaded APKs on GitHub Releases, TestFlight) don't wait for clearance.
     - Before any public store listing:
       - trademark clearance (ADR-0009);
