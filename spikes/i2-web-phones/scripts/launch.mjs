@@ -40,39 +40,48 @@ function npm(args, cwd) {
 
 const rel = (p) => relative(repo, p).replace(/\\/g, '/') || '.';
 
-export async function main(argv) {
+/**
+ * `packaged` (the portable Windows package, tools/package/windows): nothing to install or build;
+ * `{ name, command, args, cwd, env, gameDir }` says how to run the prebuilt host, and `name`
+ * replaces "npm start --" in the advice we print.
+ */
+export async function main(argv, packaged = null) {
+  const say = packaged
+    ? (s) => s.replace(/npm start -- /g, `${packaged.name} `).replace(/npm start \[-- options\]/g, `${packaged.name} [options]`).replace(/npm start/g, packaged.name).replace(/ \(then open a new terminal\)/g, '')
+    : (s) => s;
+  const fmt = (findings) => say(formatFindings(findings));
   const opts = parseStartArgs(argv);
   if (opts.help) {
-    console.log(USAGE);
+    console.log(say(USAGE).replace(/\n  --no-build[^\n]*/, ''));
     return 0;
   }
 
-  console.log(`\nGo Go HarmoniYo — preflight checks (Node.js ${process.versions.node})`);
+  console.log(`\nGo Go HarmoniYo — preflight checks (${packaged ? 'portable package, ' : ''}Node.js ${process.versions.node})`);
   const argErrors = argProblems(argv);
   if (argErrors.length) {
-    console.error(formatFindings(argErrors) + '\n');
+    console.error(fmt(argErrors) + '\n');
     return 1;
   }
   const pre = await runPreflight(opts);
-  const toInstall = PROJECTS.filter(needsInstall);
-  const willBuild = !opts.noBuild || !existsSync(join(root, 'dist', 'index.html'));
+  const toInstall = packaged ? [] : PROJECTS.filter(needsInstall);
+  const willBuild = !packaged && (!opts.noBuild || !existsSync(join(root, 'dist', 'index.html')));
   const steps = [];
   if (toInstall.length) steps.push(`install packages in ${toInstall.map(rel).join(', ')} (first run: about a minute)`);
   if (willBuild) steps.push('build the game');
-  pre.findings.unshift({ level: 'ok', title: `Node.js ${process.versions.node} (22 or newer)` });
-  console.log(formatFindings(pre.findings));
+  if (!packaged) pre.findings.unshift({ level: 'ok', title: `Node.js ${process.versions.node} (22 or newer)` });
+  console.log(fmt(pre.findings));
   const errors = pre.findings.filter((f) => f.level === 'error').length;
 
   if (opts.check) {
     const later = await pre.later;
-    if (later.length) console.log(formatFindings(later));
+    if (later.length) console.log(fmt(later));
     const warns = [...pre.findings, ...later].filter((f) => f.level === 'warn').length;
     console.log(`\n  ${errors ? `${errors} problem(s) block the start.` : 'Ready to start.'}${warns ? ` ${warns} warning(s).` : ''}` +
       `${steps.length ? ` npm start will ${steps.join(', then ')}.` : ''}\n`);
     return errors ? 1 : 0;
   }
   if (errors) {
-    console.error('\n  Fix the problem(s) marked ✗ above, then run npm start again.\n');
+    console.error(say('\n  Fix the problem(s) marked ✗ above, then run npm start again.\n'));
     return 1;
   }
 
@@ -95,29 +104,35 @@ export async function main(argv) {
   const late = await Promise.race([pre.later, new Promise((r) => setTimeout(() => r(null), 10000).unref())]);
   if (late?.length) {
     console.log('\nNetwork and firewall:');
-    console.log(formatFindings(late));
+    console.log(fmt(late));
   } else if (!late) {
     console.log('\nStill checking the network profile and firewall; results will follow the host\'s start-up lines.');
     void pre.later.then((f) => {
-      if (f.length) console.log(`\nNetwork and firewall (preflight):\n${formatFindings(f)}\n`);
+      if (f.length) console.log(`\nNetwork and firewall (preflight):\n${fmt(f)}\n`);
     });
   }
   const warnings = [...pre.findings, ...(late ?? [])].filter((f) => f.level === 'warn').length;
-  return startHost(opts, pre, warnings);
+  return startHost(opts, pre, warnings, packaged, say);
 }
 
-function startHost(opts, pre, warnings) {
+function startHost(opts, pre, warnings, packaged, say) {
   const hostArgs = [...opts.hostArgs];
   if (pre.ip && !opts.ip && !opts.tunnel) hostArgs.push('--ip', pre.ip);
   // The S1 host's own default is 8080; always pass the port preflight chose (#53).
   if (!opts.httpPortGiven) hostArgs.push('--http-port', String(pre.httpPort));
   const tsx = join(s1, 'node_modules', 'tsx', 'dist', 'cli.mjs');
   console.log('\nStarting the phone host…');
-  const child = spawn(process.execPath, [tsx, 'src/host/server.ts', '--game', join(root, 'dist'), ...hostArgs], {
-    cwd: s1,
-    env: pre.env,
-    stdio: ['inherit', 'pipe', 'inherit'],
-  });
+  const child = packaged
+    ? spawn(packaged.command, [...packaged.args, '--game', packaged.gameDir, ...hostArgs], {
+      cwd: packaged.cwd,
+      env: { ...pre.env, ...packaged.env },
+      stdio: ['inherit', 'pipe', 'inherit'],
+    })
+    : spawn(process.execPath, [tsx, 'src/host/server.ts', '--game', join(root, 'dist'), ...hostArgs], {
+      cwd: s1,
+      env: pre.env,
+      stdio: ['inherit', 'pipe', 'inherit'],
+    });
 
   // Pass the host's output through and watch it for the two URLs, then print a short summary.
   let tv = '';
@@ -133,9 +148,9 @@ function startHost(opts, pre, warnings) {
     process.stdout.write(`\n  ${line}\n  Go Go HarmoniYo is running\n` +
       `    TV:     ${tv}    (opens in the browser; drag it to the TV, F11 for full screen)\n` +
       `    Phones: ${phones}    (or scan the QR code on the TV)\n` +
-      (opts.tunnel ? '' : '    Phones need the same Wi-Fi as this PC. If they can\'t connect: npm start -- --tunnel\n') +
+      (opts.tunnel ? '' : say('    Phones need the same Wi-Fi as this PC. If they can\'t connect: npm start -- --tunnel\n')) +
       (warnings ? `    Preflight: ${warnings} warning(s) above.\n` : '') +
-      `    Stop:   Ctrl+C\n  ${line}\n\n`);
+      `    Stop:   Ctrl+C${packaged ? ' (or close this window)' : ''}\n  ${line}\n\n`);
   };
   child.stdout.on('data', (chunk) => {
     process.stdout.write(chunk);

@@ -1,0 +1,17 @@
+{
+  "name": "go-go-harmoniyo-windows-package",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Builds the portable Windows download-and-play package of Go Go HarmoniYo (see README.md).",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "postject": "1.0.0-alpha.6"
+  }
+}

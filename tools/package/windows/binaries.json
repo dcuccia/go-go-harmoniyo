@@ -1,0 +1,35 @@
+{
+  "$comment": "Third-party binaries redistributed in the portable Windows package (tools/package/windows/README.md). build.mjs downloads each file and refuses it unless the SHA-256 matches; tools/licensing/license-gate.mjs checks each license against the allowlist and lists it in THIRD_PARTY_NOTICES.md. To update: change version, url and sha256 (from the upstream SHASUMS256.txt / release page) together, and the license text pin too.",
+  "binaries": [
+    {
+      "name": "Node.js",
+      "version": "22.23.4",
+      "role": "Runtime of go-go-harmoniyo.exe (Node.js single executable application: node.exe with the game's code injected).",
+      "file": "node.exe",
+      "url": "https://nodejs.org/dist/v22.23.4/win-x64/node.exe",
+      "sha256": "dccc52de28d8df2ee22d2062424f8c563070d95d8ad70c54c4bf01d590dec14f",
+      "source": "https://github.com/nodejs/node/tree/v22.23.4",
+      "license": "MIT",
+      "licenseNote": "Node.js's LICENSE also carries the notices of the components built into node.exe (V8, OpenSSL, ICU, libuv, llhttp, …).",
+      "licenseText": {
+        "url": "https://raw.githubusercontent.com/nodejs/node/v22.23.4/LICENSE",
+        "sha256": "c738ae413cf561f174e34f6961f8ca458aae2369a73640dda6234c629b98bcc4"
+      }
+    },
+    {
+      "name": "cloudflared",
+      "version": "2026.10.7",
+      "role": "Optional quick tunnel (https://….trycloudflare.com) for phones that can't reach the PC on the local network; shipped unmodified next to the exe.",
+      "file": "cloudflared.exe",
+      "url": "https://github.com/cloudflare/cloudflared/releases/download/2026.10.7/cloudflared-windows-amd64.exe",
+      "sha256": "2493dbc168923bb3e59e5e7716f71deced92992eea9acd6e9d74f84ac7751343",
+      "source": "https://github.com/cloudflare/cloudflared/tree/2026.10.7",
+      "license": "Apache-2.0",
+      "licenseNote": "No NOTICE file upstream. The Go modules compiled into it are listed in its go.mod; their notices are not enumerated in this package (open question in tools/package/windows/README.md).",
+      "licenseText": {
+        "url": "https://raw.githubusercontent.com/cloudflare/cloudflared/2026.10.7/LICENSE",
+        "sha256": "58d1e17ffe5109a7ae296caafcadfdbe6a7d176f0bc4ab01e12a689b0499d8bd"
+      }
+    }
+  ]
+}

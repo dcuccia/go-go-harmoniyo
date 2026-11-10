@@ -39,6 +39,9 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 > **Play the prototype:** with Node.js 22+, run `npm start` at the repo root. It checks the setup
 > (ports, network, firewall), installs, builds and opens the game; scan the QR code with the
 > phones. See the [runbook](spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes).
+> Without Node.js on Windows, use the portable zip
+> ([tools/package/windows](tools/package/windows/README.md)): unzip and double-click
+> `Play Go Go HarmoniYo.cmd`.
 
 ## Guiding principles
 

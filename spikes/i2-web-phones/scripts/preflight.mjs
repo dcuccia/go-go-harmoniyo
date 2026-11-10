@@ -6,7 +6,7 @@ import { execFile } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import net from 'node:net';
 import { homedir, networkInterfaces } from 'node:os';
-import { delimiter, dirname, join } from 'node:path';
+import { basename, delimiter, dirname, join } from 'node:path';
 import { parseArgs } from 'node:util';
 
 export const MIN_NODE = 22;
@@ -387,10 +387,11 @@ async function windowsNetworkProfiles() {
 export async function windowsFindings({ adapter, ports, nodePath = process.execPath }) {
   const RULES = 'HKLM\\SYSTEM\\CurrentControlSet\\Services\\SharedAccess\\Parameters\\FirewallPolicy';
   const POLICY = 'HKLM\\SOFTWARE\\Policies\\Microsoft\\WindowsFirewall';
+  const exe = basename(nodePath); // go-go-harmoniyo.exe in the portable Windows package
   const [profiles, local, gpo, state, gpoState] = await Promise.all([
     windowsNetworkProfiles(),
-    run('reg', ['query', `${RULES}\\FirewallRules`, '/f', 'node.exe', '/d']),
-    run('reg', ['query', `${POLICY}\\FirewallRules`, '/f', 'node.exe', '/d']),
+    run('reg', ['query', `${RULES}\\FirewallRules`, '/f', exe, '/d']),
+    run('reg', ['query', `${POLICY}\\FirewallRules`, '/f', exe, '/d']),
     run('reg', ['query', RULES, '/s', '/v', 'EnableFirewall']),
     run('reg', ['query', POLICY, '/s', '/v', 'EnableFirewall']),
   ]);
