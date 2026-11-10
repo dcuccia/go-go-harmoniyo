@@ -16,7 +16,7 @@ import {
   TUNNEL_ENV,
   type TunnelState,
 } from '../src/host/transport.ts';
-import { internetReachable, QuickTunnel } from '../src/host/tunnel.ts';
+import { internetReachable, QuickTunnel, waitTunnelReady, type TunnelReady, type TunnelReadyOptions } from '../src/host/tunnel.ts';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -222,4 +222,153 @@ test('internetReachable: DNS answer → true, failure or timeout → false', asy
   const keep = setTimeout(() => {}, 1000);
   assert.equal(await internetReachable(20, () => new Promise(() => {})), false);
   clearTimeout(keep);
+});
+
+/** A fake clock: sleep() just advances it, so a 45 s budget runs instantly. */
+function readyHarness(resolveScript: (server: string, t: number) => string[] | Error, probeScript: (t: number) => { status: number; body: string } | Error) {
+  let t = 0;
+  const queries: [number, string, string][] = [];
+  const probes: [number, string, string][] = [];
+  const o: TunnelReadyOptions = {
+    expect: 'go-go-harmoniyo token-1',
+    now: () => t,
+    sleep: async (ms) => {
+      t += ms;
+    },
+    resolve: async (server, host) => {
+      queries.push([t, server, host]);
+      t += 20;
+      const r = resolveScript(server, t);
+      if (r instanceof Error) throw r;
+      return r;
+    },
+    probe: async (url, address) => {
+      probes.push([t, url, address]);
+      t += 300;
+      const r = probeScript(t);
+      if (r instanceof Error) throw r;
+      return r;
+    },
+  };
+  return { o, queries, probes };
+}
+const nx = () => Object.assign(new Error('queryA ENOTFOUND'), { code: 'ENOTFOUND' });
+
+test('waitTunnelReady: no DNS query in the first 3 s, rotates public resolvers, then HTTPS must reach this host', async () => {
+  // 1.1.1.1 cached an early NXDOMAIN; 8.8.8.8 has the name. The tunnel's origin answers 530 at first.
+  let probeCount = 0;
+  const { o, queries, probes } = readyHarness(
+    (server) => (server === '1.1.1.1' ? nx() : ['104.16.230.132']),
+    () => (++probeCount < 3 ? { status: 530, body: 'error 1033' } : { status: 200, body: 'go-go-harmoniyo token-1\n' }),
+  );
+  const r: TunnelReady = await waitTunnelReady('https://abc-def.trycloudflare.com/', o);
+  assert.equal(r.ok, true, r.reason);
+  assert.equal(queries[0]![0], 3000, 'first query waits 3 s (an earlier NXDOMAIN is cached for 60 s)');
+  assert.deepEqual(queries.map((q) => q[1]), ['1.1.1.1', '8.8.8.8'], 'a resolver that said "no" does not block the next one');
+  assert.equal(queries[0]![2], 'abc-def.trycloudflare.com');
+  assert.equal(r.resolver, '8.8.8.8');
+  assert.equal(r.address, '104.16.230.132');
+  assert.deepEqual(probes.map((p) => [p[1], p[2]]), Array(3).fill(['https://abc-def.trycloudflare.com/tunnel-check', '104.16.230.132']), 'HTTPS pinned to the DNS answer');
+  assert.equal(r.dnsMs, 3000 + 20 + 1000 + 20);
+  assert.equal(r.httpMs, 3 * 300 + 2 * 1000);
+  assert.equal(r.totalMs, r.dnsMs + r.httpMs);
+});
+
+test('waitTunnelReady: AAAA-only answer is used as is', async () => {
+  const { o, probes } = readyHarness(() => ['2606:4700::6810:e684'], () => ({ status: 200, body: 'go-go-harmoniyo token-1' }));
+  const r = await waitTunnelReady('https://v6-only.trycloudflare.com', o);
+  assert.equal(r.ok, true);
+  assert.equal(probes[0]![2], '2606:4700::6810:e684');
+});
+
+test('waitTunnelReady: gives up after the timeout, saying which step failed', async () => {
+  const dnsDown = readyHarness(() => nx(), () => ({ status: 200, body: '' }));
+  const a = await waitTunnelReady('https://never.trycloudflare.com/', dnsDown.o);
+  assert.equal(a.ok, false);
+  assert.match(a.reason, /no DNS answer for never\.trycloudflare\.com from 1\.1\.1\.1 or 8\.8\.8\.8 in 45 s \(last: ENOTFOUND\)/);
+  assert.ok(a.totalMs <= 45_000, `stops within the budget (${a.totalMs} ms)`);
+  assert.equal(dnsDown.probes.length, 0);
+
+  const other = readyHarness(() => ['104.16.0.1'], () => ({ status: 200, body: 'someone else' }));
+  const b = await waitTunnelReady('https://other.trycloudflare.com/', { ...other.o, timeoutMs: 10_000 });
+  assert.equal(b.ok, false);
+  assert.match(b.reason, /resolves but HTTPS through it failed for 10 s \(last: answered, but not by this host\)/);
+  assert.ok(other.probes.length > 3, 'kept retrying HTTPS');
+
+  const refused = readyHarness(() => ['104.16.0.1'], () => Object.assign(new Error('connect ECONNRESET'), { code: 'ECONNRESET' }));
+  const c = await waitTunnelReady('https://reset.trycloudflare.com/', { ...refused.o, timeoutMs: 6_000 });
+  assert.match(c.reason, /last: ECONNRESET/);
+});
+
+test('QuickTunnel: stays "starting" while the address is checked; up only once it is reachable', async () => {
+  let finish!: (r: TunnelReady) => void;
+  const checked: string[] = [];
+  const { t, children, changes } = fakeTunnel({
+    verify: (url) => {
+      checked.push(url);
+      return new Promise((r) => (finish = r));
+    },
+  });
+  t.start();
+  children[0]!.log('INF |  https://slow-dns.trycloudflare.com  |');
+  children[0]!.log('INF Registered tunnel connection connIndex=0');
+  children[0]!.log('INF Registered tunnel connection connIndex=1');
+  assert.deepEqual(checked, ['https://slow-dns.trycloudflare.com/'], 'checked once');
+  assert.equal(t.state, 'starting');
+  assert.equal(t.reason, 'checking the address');
+  assert.equal(t.url, '', 'the address is not published while unchecked');
+  await sleep(40);
+  assert.equal(checked.length, 1, 'the register fallback does not start a second check');
+  const ready = { ok: true, dnsMs: 3020, httpMs: 300, totalMs: 3320, address: '104.16.0.1', resolver: '1.1.1.1', reason: '' };
+  finish(ready);
+  await sleep(0);
+  assert.deepEqual(changes.at(-1), ['up', 'https://slow-dns.trycloudflare.com/', '']);
+  assert.deepEqual(t.ready, ready);
+  assert.ok(t.upAfterMs >= 0);
+  t.stop();
+});
+
+test('QuickTunnel: an address that never becomes reachable restarts cloudflared for a new one', async () => {
+  const results: TunnelReady[] = [
+    { ok: false, dnsMs: 45_000, httpMs: 0, totalMs: 45_000, address: '', resolver: '', reason: 'no DNS answer' },
+    { ok: true, dnsMs: 3000, httpMs: 400, totalMs: 3400, address: '104.16.0.2', resolver: '8.8.8.8', reason: '' },
+  ];
+  const { t, children, changes } = fakeTunnel({ verify: async () => results.shift()!, restartDelayMs: 100 });
+  t.start();
+  children[0]!.log('INF https://unlucky.trycloudflare.com');
+  children[0]!.log('INF Registered tunnel connection connIndex=0');
+  await sleep(0);
+  assert.ok(children[0]!.killed, 'the unreachable tunnel is stopped');
+  await sleep(0);
+  assert.equal(t.state, 'down');
+  assert.equal(t.reason, 'the address https://unlucky.trycloudflare.com/ did not become reachable (no DNS answer)');
+  assert.equal(t.restartPending, true);
+  assert.ok(!changes.some((c) => c[0] === 'up'), 'never published');
+  await sleep(150);
+  assert.equal(children.length, 2, 'restarted');
+  children[1]!.log('INF https://lucky.trycloudflare.com');
+  children[1]!.log('INF Registered tunnel connection connIndex=0');
+  await sleep(0);
+  assert.deepEqual(changes.at(-1), ['up', 'https://lucky.trycloudflare.com/', '']);
+  t.stop();
+});
+
+test('QuickTunnel: a check for an address that was replaced meanwhile is ignored', async () => {
+  const pending: ((r: TunnelReady) => void)[] = [];
+  const ok = { ok: true, dnsMs: 1, httpMs: 1, totalMs: 2, address: 'x', resolver: 'y', reason: '' };
+  const { t, children, changes } = fakeTunnel({ verify: () => new Promise((r) => pending.push(r)) });
+  t.start();
+  children[0]!.log('INF https://first.trycloudflare.com');
+  children[0]!.log('INF Registered tunnel connection connIndex=0');
+  children[0]!.emit('exit', 1, null);
+  await sleep(30);
+  children[1]!.log('INF https://second.trycloudflare.com');
+  children[1]!.log('INF Registered tunnel connection connIndex=0');
+  pending[0]!(ok);
+  await sleep(0);
+  assert.equal(t.state, 'starting', 'the old check does not publish the old (dead) address');
+  pending[1]!(ok);
+  await sleep(0);
+  assert.deepEqual(changes.at(-1), ['up', 'https://second.trycloudflare.com/', '']);
+  t.stop();
 });

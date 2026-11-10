@@ -55,11 +55,24 @@ route in advance.
    - `--tunnel` together with `--lan-only` is an error.
 2. **Auto join URL** (`chooseJoinUrl`):
    - When cloudflared is found and `api.trycloudflare.com` resolves, the host starts a quick
-     tunnel. The QR/join URL becomes the tunnel URL once cloudflared reports a registered
-     connection, or 8 s after the URL appears.
+     tunnel. Once cloudflared reports a registered connection (or 8 s after the URL appears),
+     the host checks the address is reachable before showing it (`waitTunnelReady`):
+     - Wait 3 s, then ask public resolvers (1.1.1.1, 8.8.8.8, taking turns; never the OS
+       resolver) until the hostname has an A/AAAA record.
+     - Then `GET /tunnel-check` over HTTPS, connecting to that address, until it returns 200
+       with this host's per-run token (≈ 45 s budget for both steps).
+     - Only then does the QR/join URL become the tunnel URL, and the console prints the time to
+       ready. If the check fails, cloudflared is restarted for a fresh address.
+     - Why: measured 2026-11-09 (cloudflared 2026.10.7, Windows), the hostname resolves about
+       2 s after cloudflared prints it. Any query in the first ~1 s gets NXDOMAIN, and every
+       resolver (1.1.1.1, 8.8.8.8, the phone's and the OS's cache) keeps that answer for the
+       zone's 60 s negative TTL. Publishing the URL at once made a scan straight away fail for a
+       minute. With the check, a live run was ready 7.3 s after start-up (URL at 3.7 s, DNS
+       answered on the first query at +3.0 s, HTTPS 0.5 s), and the first navigation from
+       Windows (OS resolver, curl, Chrome) worked.
    - The TV shows "Starting the cloud tunnel…" for up to 15 s.
-   - With no cloudflared, no internet, or a tunnel that is not up after 15 s, the QR is the LAN
-     self-signed URL, as in ADR-0006 (a1).
+   - With no cloudflared, no internet, or a tunnel that is not ready after 15 s, the QR is the
+     LAN self-signed URL, as in ADR-0006 (a1). It switches to the tunnel URL once that is ready.
    - The LAN HTTPS listener always runs. Phones that already joined over the LAN keep working
      if the tunnel appears later.
    - cloudflared is supervised: up to 3 restarts, 5 s apart. A new tunnel URL changes the QR.

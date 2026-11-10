@@ -13,6 +13,7 @@
  * executable, PATH, then the usual install folders (see transport.ts cloudflaredCandidates).
  */
 import { spawn } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
@@ -51,7 +52,7 @@ import {
   type TunnelState,
   type WsRoute,
 } from './transport.ts';
-import { internetReachable, QuickTunnel } from './tunnel.ts';
+import { internetReachable, QuickTunnel, TUNNEL_CHECK_PATH, waitTunnelReady } from './tunnel.ts';
 import { ChartLibrary, percentile, YARG_DEFAULT_PORT, YargLink, YargRoom, type Seat } from './yarg.ts';
 
 /**
@@ -223,6 +224,8 @@ let tunnelUrl = '';
 let tunnelReason = '';
 let graceOver = false;
 let cloudflared: CloudflaredFound | null = null;
+/** Answer to GET /tunnel-check: proves a request through the tunnel reached this host (not a secret). */
+const TUNNEL_CHECK_TOKEN = `go-go-harmoniyo ${randomUUID()}`;
 
 function sendFile(res: http.ServerResponse, path: string): void {
   if (!existsSync(path)) {
@@ -243,6 +246,10 @@ async function handleHttp(req: http.IncomingMessage, res: http.ServerResponse): 
   if (p === '/style.css') return sendFile(res, join(WEB, 'style.css'));
   if (p === '/favicon.ico') return sendFile(res, join(BRAND, 'favicon.ico'));
   if (p === '/manifest.webmanifest') return sendFile(res, join(WEB, 'manifest.webmanifest'));
+  if (p === TUNNEL_CHECK_PATH) {
+    res.writeHead(200, { 'content-type': 'text/plain', 'cache-control': 'no-store' }).end(TUNNEL_CHECK_TOKEN);
+    return;
+  }
   // Flat names only (e.g. /brand/logo-line-dark.svg, /brand/yo/yo-ring.svg): no "..", no other folders.
   if (/^\/brand\/(yo\/)?[\w-]+\.(svg|png|ico)$/.test(p)) return sendFile(res, join(BRAND, p.slice('/brand/'.length)));
   if (p.startsWith('/dist/') && /^[\w./-]+$/.test(p) && !p.includes('..')) return sendFile(res, join(DIST, p.slice('/dist/'.length)));
@@ -1006,19 +1013,29 @@ async function startTunnel(): Promise<void> {
     return updateJoin();
   }
   console.log(`  Tunnel:    starting a Cloudflare quick tunnel (${cloudflared.path})…`);
+  const startedAt = Date.now();
   tunnel = new QuickTunnel({
     cloudflared: cloudflared.path,
     originPort: HTTP_PORT,
+    // Only publish the address (QR, join URL) once phones can actually open it: see waitTunnelReady.
+    verify: (url) => {
+      console.log(`  Tunnel:    got ${url} after ${((Date.now() - startedAt) / 1000).toFixed(1)} s; checking it is reachable before showing it…`);
+      return waitTunnelReady(url, { expect: TUNNEL_CHECK_TOKEN });
+    },
     onChange: (state, url, reason) => {
       const wasUp = tunnelState === 'up';
       tunnelState = state;
       tunnelUrl = url;
       tunnelReason = reason;
-      logEvent({ type: 'tunnel', at: now(), state, url, reason });
-      if (state === 'up') console.log(`  Tunnel:    up at ${url}`);
+      logEvent({ type: 'tunnel', at: now(), state, url, reason, ...(state === 'up' || state === 'down' ? { ready: tunnel?.ready ?? null } : {}) });
+      if (state === 'up') {
+        const r = tunnel?.ready;
+        const s = (ms: number) => (ms / 1000).toFixed(1);
+        console.log(`  Tunnel:    ready at ${url} after ${s(Date.now() - startedAt)} s${r ? ` (DNS answered after ${s(r.dnsMs)} s via ${r.resolver}, HTTPS check ${s(r.httpMs)} s)` : ''}`);
+      }
       if (state === 'down') {
         console.log(`  Tunnel:    ${reason}.${wasUp ? ' Phones that joined through it must scan the QR code again.' : ''}${lanFallback}`);
-        if (tunnel && tunnel.restarts < 3 && /exited/.test(reason)) console.log('             Restarting cloudflared in 5 s…');
+        if (tunnel?.restartPending) console.log('             Restarting cloudflared in 5 s…');
       }
       updateJoin();
     },
@@ -1026,7 +1043,7 @@ async function startTunnel(): Promise<void> {
   if (MODE === 'auto') {
     setTimeout(() => {
       graceOver = true;
-      if (tunnelState !== 'up') console.log(`  Tunnel:    no address after ${TUNNEL_GRACE_MS / 1000} s; showing the Wi-Fi address until it arrives.`);
+      if (tunnelState !== 'up') console.log(`  Tunnel:    not ready after ${TUNNEL_GRACE_MS / 1000} s; showing the Wi-Fi address until it is.`);
       updateJoin();
     }, TUNNEL_GRACE_MS).unref();
   }

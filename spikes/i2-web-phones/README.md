@@ -147,9 +147,13 @@ problem prints a fix for you to run.
 
 The Windows network and firewall checks can take a few seconds on a busy PC; they run while
 the game builds, and if they take over 10 s more, their result is printed after the host starts.
-In the default mode the QR shows the tunnel address once it arrives (usually 3–10 s; the TV says
-*starting the cloud tunnel…*). If it isn't up within 15 s, or the internet is down, the QR falls
-back to the Wi-Fi address. With `--tunnel` the launcher warns if no address arrives in 45 s.
+In the default mode the QR shows the tunnel address once phones can open it: the host waits until
+public DNS (1.1.1.1 / 8.8.8.8) knows the new name and an HTTPS request through the tunnel reaches
+it, then prints `Tunnel: ready at … after N s` (about 7 s in testing; the TV says *starting the
+cloud tunnel…* meanwhile). Showing it any earlier makes a phone that scans at once get "server not
+found", which its DNS then remembers for a minute. If it isn't ready within 15 s, or the internet
+is down, the QR shows the Wi-Fi address, and switches to the tunnel when it is ready. With
+`--tunnel` the launcher warns if no address arrives in 45 s.
 
 Not detected: client isolation on a Wi-Fi that isn't named like a guest network, and third-party
 firewalls. If the phones can't open a Wi-Fi join page, install cloudflared (or try
