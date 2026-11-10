@@ -174,12 +174,20 @@ Use a fresh local *standard* (non-admin) user, or Windows Sandbox / a clean VM, 
 
 - **Code signing.** Unsigned means a SmartScreen warning for each new build until it earns
   reputation, and Smart App Control blocks it outright. Options: an OV/EV certificate, Azure
-  Trusted Signing (about $10/month; needs an identity-verified individual or organization), or
-  SignPath's free tier for open source. All need owner action outside the repo. Signing would
-  also give the exe our own name and publisher in the firewall dialog.
+  Artifact Signing (formerly Trusted Signing; about $10/month; needs an identity-verified
+  individual or organization), or SignPath's free tier for open source. All need owner action
+  outside the repo. Signing would also give the exe our own name and publisher in the firewall
+  dialog. **S8** ([report](../../../docs/spikes/S8-report.md),
+  [prototype](../../../spikes/s8-store-delivery/README.md)) compared them and signed this exe
+  with a test certificate. It still passes `smoke.mjs`, but only if Node's signature is removed
+  *before* `postject`. `build.mjs` must then fail, not warn, when signtool is missing. Proposed
+  [ADR-0013](../../../docs/decisions/0013-windows-code-signing.md) recommends Azure Artifact
+  Signing. The `.cmd` launcher can't be signed, so signed releases should start the exe
+  directly.
 - **Exe icon and version resource.** The exe still shows Node's icon and "Node.js JavaScript
   Runtime" (Explorer, Task Manager, firewall). Changing them (e.g. rcedit) would break Node's
-  signature anyway, so it's best done together with our own signing.
+  signature anyway, so it's best done together with our own signing. S8 checked that rcedit
+  4.0.1, run before `postject`, works.
 - **macOS and Linux.** The same SEA approach works with `node` for those platforms. macOS also
   needs ad-hoc or Developer ID signing (`codesign`), notarization and quarantine handling. Linux
   needs a tarball and a `.sh`. Not built yet. ChromeOS needs the hosted PWA instead.
