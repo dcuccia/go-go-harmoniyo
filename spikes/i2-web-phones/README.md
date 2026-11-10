@@ -12,7 +12,7 @@ phones ──WSS via cloud tunnel ──▶ S1 Node host ◀──WS (127.0.0.1)
 ```
 
 How phones connect is [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)
-(Proposed, amends ADR-0006); see [How phones connect](#how-phones-connect) below.
+(Accepted 2026-11-09, amends ADR-0006); see [How phones connect](#how-phones-connect) below.
 
 Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hud`,
 `AudioEngine`, `KeyboardSource`; S1 `ClockSync` + HGP types; S5 `loadSong`/`buildChart`
@@ -174,7 +174,7 @@ on. cloudflared is found on PATH or in `/opt/homebrew/bin`, `/usr/local/bin`, `/
 
 ### How phones connect
 
-Nobody has to choose a route in advance ([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Proposed):
+Nobody has to choose a route in advance ([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Accepted):
 
 1. **Cloud tunnel first.** If cloudflared is found and the internet is reachable, the host starts
    a Cloudflare quick tunnel and the QR shows its `https://….trycloudflare.com` address. It has a

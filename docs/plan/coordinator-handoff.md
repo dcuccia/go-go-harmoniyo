@@ -42,7 +42,7 @@ Working conventions learned so far:
   and the HGP protocol), S4 (renderer, judge), S5 (chart pipeline) and procedural backing.
   Start with `npm start` from the repo root (preflight checks). With cloudflared installed it
   joins phones through a cloud tunnel and upgrades them to a direct WebRTC link on the same
-  Wi-Fi, falling back to the LAN QR without it (ADR-0012, Proposed). `--lan-only` / `--tunnel`
+  Wi-Fi, falling back to the LAN QR without it (ADR-0012, Accepted 2026-11-09). `--lan-only` / `--tunnel`
   force one route.
 - **Features in place:** seating chart and phone part picker; drop-in join with a corner QR;
   practice speed 50–100 %; Super easy / Easy / Medium / Hard; balanced role-aware parts with

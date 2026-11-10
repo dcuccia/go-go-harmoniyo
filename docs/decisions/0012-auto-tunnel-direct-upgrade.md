@@ -1,11 +1,11 @@
 # 0012 — Auto tunnel with a direct-LAN upgrade (amends ADR-0006)
 
-- Status: Proposed
+- Status: Accepted (owner, 2026-11-09; [#78](https://github.com/dcuccia/go-go-harmoniyo/pull/78)).
+  The LAN-QR wait ("Open follow-up" below) is not part of the accepted decision.
 - Date: 2026-11-09
 - Deciders: @dcuccia (owner); proposed by the auto-tunnel session (S6 coordinator)
 - Amends: [ADR-0006](0006-phone-host-transport.md), decision point 1 and the 2026-10-25 holiday
-  default. If accepted, ADR-0006 becomes "Amended by 0012". The owner changes ADR-0006's status
-  when accepting this ADR.
+  default. ADR-0006 is now "Accepted, amended by 0012".
 
 ## Context
 
@@ -41,7 +41,7 @@ changes feedback latency only (tunnel ≈ +50 ms; see the
 | (3) Tunnel page that redirects to the LAN HTTPS URL | No WebRTC | The redirect lands on the certificate warning again, which defeats the point; it still fails on isolated networks |
 | (4) Publicly trusted LAN certificate (ADR-0006 a2) | No warnings, LAN latency, no internet at play time | Needs a domain + DNS-01 automation ([#45](https://github.com/dcuccia/go-go-harmoniyo/issues/45)); not ready for 2026-11-26; still fails on isolated networks |
 
-## Decision (proposed)
+## Decision
 
 Option (2). The runner just runs `npm start` (or the portable package, #43). Nobody chooses a
 route in advance.
@@ -86,7 +86,7 @@ route in advance.
        Residual risk: a router or ISP that intercepts port-53 traffic to public resolvers shares
        one cache for all four, and phones behind it could cache our early "no" too.
    - The TV shows "Starting the cloud tunnel…" for up to 15 s (`--lan-qr-after`, see "Open
-     choice" below). A restart for a fresh address within that time keeps showing it instead of
+     follow-up" below). A restart for a fresh address within that time keeps showing it instead of
      flashing the LAN QR.
    - With no cloudflared, no internet, or a tunnel that is not ready after 15 s, the QR is the
      LAN self-signed URL, as in ADR-0006 (a1). It switches to the tunnel URL once that is ready.
@@ -137,7 +137,10 @@ route in advance.
    WebKit's page-wide undo stack (`forget-typing.ts`). Multi-finger touches and pinch gestures on
    the play surface are cancelled.
 
-## Open choice for the owner: how long the TV waits for the tunnel
+## Open follow-up for the owner: how long the TV waits for the tunnel
+
+Not part of the decision accepted on 2026-11-09: the accepted default stays 15 s. Changing it is
+a separate owner choice (a one-line default change, or `--lan-qr-after` per run).
 
 While the tunnel is getting ready, the TV either shows "Starting the cloud tunnel…" (no QR) or
 falls back to the Wi-Fi QR (self-signed: each first-time phone gets a certificate warning, and
@@ -207,7 +210,10 @@ at once under every option.
 - ADR-0006 a2 (trusted LAN certificate, #45) would remove the internet dependency of the first
   load.
 
-## Owner checks before accepting
+## Owner checks (before the event)
+
+Accepted 2026-11-09; item 1 is partly done (iPad and Pixel, see Platform limits). The rest stay
+as pre-event checks.
 
 These need real devices, cloudflared and a real network; they can't be done in CI:
 
@@ -227,7 +233,7 @@ These need real devices, cloudflared and a real network; they can't be done in C
    Shake to Undo left on). Repeat in Chrome on the iPad.
 8. Start-up a few times: note the "Tunnel: ready … after N s" line, and that the TV never shows
    the Wi-Fi QR while the tunnel is restarting for a fresh address (unless it takes longer than
-   `--lan-qr-after`). Then pick option A, B or C above.
+   `--lan-qr-after`). Then pick option A, B or C in the open follow-up above.
 
 ## Evidence
 
