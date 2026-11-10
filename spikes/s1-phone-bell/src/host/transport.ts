@@ -138,20 +138,36 @@ export interface JoinState {
   lanUrl: string;
   tunnel: TunnelState;
   tunnelUrl: string;
-  /** In `auto`, the grace period for the tunnel to come up has passed. */
+  /** In `auto`, the grace period for the tunnel to come up has passed (see lanQrAfterMs). */
   graceOver: boolean;
+  /** The tunnel is `down` but cloudflared will be restarted for a new address (still worth waiting for). */
+  restarting?: boolean;
 }
 
 /**
  * The address the QR code shows. The tunnel when it is up (no certificate warning, works through
- * Wi-Fi client isolation); in `auto` the LAN URL when the tunnel is down or slow to start; '' while
- * waiting (the TV shows "getting the address", /qr.svg answers 503).
+ * Wi-Fi client isolation); in `auto` the LAN URL when the tunnel is down for good or slow to start;
+ * '' while waiting (the TV shows "starting the cloud tunnel…", /qr.svg answers 503).
  */
 export function chooseJoinUrl(s: JoinState): string {
   if (s.mode === 'lan') return s.lanUrl;
   if (s.tunnel === 'up' && s.tunnelUrl) return s.tunnelUrl;
   if (s.mode === 'tunnel') return '';
-  return s.tunnel === 'starting' && !s.graceOver ? '' : s.lanUrl;
+  const waiting = s.tunnel === 'starting' || (s.tunnel === 'down' && !!s.restarting);
+  return waiting && !s.graceOver ? '' : s.lanUrl;
+}
+
+/**
+ * `--lan-qr-after <seconds>|never`: in `auto`, how long the TV shows "starting the cloud tunnel…"
+ * before falling back to the Wi-Fi (self-signed) QR code while the tunnel is still getting ready.
+ * `never`: only once the tunnel has given up. Default TUNNEL_GRACE_MS. Returns ms (Infinity = never).
+ */
+export function lanQrAfterMs(v: string | undefined): number {
+  if (v === undefined) return TUNNEL_GRACE_MS;
+  if (/^never$/i.test(v.trim())) return Infinity;
+  const s = Number(v);
+  if (v.trim() === '' || !Number.isFinite(s) || s < 0) throw new Error(`--lan-qr-after must be a number of seconds or "never" (got "${v}")`);
+  return Math.round(s * 1000);
 }
 
 // ── per-phone route ─────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@
  *                                  #   else HTTPS (self-signed) on the LAN; tunnel phones upgrade to a
  *                                  #   direct WebRTC data channel when the LAN allows it
  *   npm start -- --lan-only        # LAN only (self-signed HTTPS), no tunnel (alias --no-tunnel)
+ *   npm start -- --lan-qr-after 60 # auto: wait up to 60 s (default 15, or "never") for the tunnel before the Wi-Fi QR
  *   npm start -- --cert c.pem --key k.pem --hostname bells.example.com   # publicly trusted cert (LAN)
  *   npm run tunnel                 # tunnel only (--tunnel), no LAN HTTPS listener
  *
@@ -44,15 +45,15 @@ import {
   deviceRoute,
   findCloudflared,
   GestureDedupe,
+  lanQrAfterMs,
   rtcPolicy,
   shouldOfferRtc,
   transportMode,
-  TUNNEL_GRACE_MS,
   type CloudflaredFound,
   type TunnelState,
   type WsRoute,
 } from './transport.ts';
-import { internetReachable, QuickTunnel, TUNNEL_CHECK_PATH, waitTunnelReady } from './tunnel.ts';
+import { internetReachable, QuickTunnel, TUNNEL_CHECK_PATH, tunnelFirstQueryDelayMs, waitTunnelReady } from './tunnel.ts';
 import { ChartLibrary, percentile, YARG_DEFAULT_PORT, YargLink, YargRoom, type Seat } from './yarg.ts';
 
 /**
@@ -83,6 +84,8 @@ const { values: args } = parseArgs({
     cloudflared: { type: 'string' },
     /** Direct WebRTC upgrade: auto (phones that joined via the tunnel), on (all phones), off. */
     rtc: { type: 'string', default: 'auto' },
+    /** auto: seconds the TV waits for the tunnel before showing the Wi-Fi QR, or "never" (ADR-0012). */
+    'lan-qr-after': { type: 'string' },
     'no-open': { type: 'boolean', default: false },
     'no-https': { type: 'boolean', default: false },
     // I1: forward rings to the YARG fork's HgpBridge (see docs/spikes/I1-yarg-phones.md)
@@ -100,9 +103,11 @@ const { values: args } = parseArgs({
 const GAME_DIR = args.game ? resolve(args.game) : null;
 let MODE: ReturnType<typeof transportMode>;
 let RTC_POLICY: ReturnType<typeof rtcPolicy>;
+let LAN_QR_AFTER_MS: number;
 try {
   MODE = transportMode(args);
   RTC_POLICY = rtcPolicy(args.rtc);
+  LAN_QR_AFTER_MS = lanQrAfterMs(args['lan-qr-after']);
 } catch (e) {
   console.error(`\n  ${(e as Error).message}\n`);
   process.exit(2);
@@ -984,7 +989,7 @@ async function printJoin(url: string): Promise<void> {
 
 /** Recompute the join URL (tunnel when up, else LAN; see chooseJoinUrl) and tell the TV if it changed. */
 function updateJoin(): void {
-  const next = chooseJoinUrl({ mode: MODE, lanUrl, tunnel: tunnelState, tunnelUrl, graceOver });
+  const next = chooseJoinUrl({ mode: MODE, lanUrl, tunnel: tunnelState, tunnelUrl, graceOver, restarting: !!tunnel?.restartPending });
   const nextTls = next && next === tunnelUrl ? TUNNEL_TLS : next ? lanTlsMode : MODE === 'tunnel' ? TUNNEL_TLS : lanTlsMode;
   if (next === joinUrl && nextTls === tlsMode) return;
   joinUrl = next;
@@ -1018,9 +1023,10 @@ async function startTunnel(): Promise<void> {
     cloudflared: cloudflared.path,
     originPort: HTTP_PORT,
     // Only publish the address (QR, join URL) once phones can actually open it: see waitTunnelReady.
-    verify: (url) => {
-      console.log(`  Tunnel:    got ${url} after ${((Date.now() - startedAt) / 1000).toFixed(1)} s; checking it is reachable before showing it…`);
-      return waitTunnelReady(url, { expect: TUNNEL_CHECK_TOKEN });
+    verify: (url, attempt) => {
+      const firstQueryDelayMs = tunnelFirstQueryDelayMs(attempt);
+      console.log(`  Tunnel:    got ${url} after ${((Date.now() - startedAt) / 1000).toFixed(1)} s; checking it is reachable (first DNS query in ${firstQueryDelayMs / 1000} s) before showing it…`);
+      return waitTunnelReady(url, { expect: TUNNEL_CHECK_TOKEN, firstQueryDelayMs });
     },
     onChange: (state, url, reason) => {
       const wasUp = tunnelState === 'up';
@@ -1034,18 +1040,20 @@ async function startTunnel(): Promise<void> {
         console.log(`  Tunnel:    ready at ${url} after ${s(Date.now() - startedAt)} s${r ? ` (DNS answered after ${s(r.dnsMs)} s via ${r.resolver}, HTTPS check ${s(r.httpMs)} s)` : ''}`);
       }
       if (state === 'down') {
-        console.log(`  Tunnel:    ${reason}.${wasUp ? ' Phones that joined through it must scan the QR code again.' : ''}${lanFallback}`);
-        if (tunnel?.restartPending) console.log('             Restarting cloudflared in 5 s…');
+        const retry = !!tunnel?.restartPending;
+        const showingLan = MODE === 'auto' && (!retry || graceOver);
+        console.log(`  Tunnel:    ${reason}.${wasUp ? ' Phones that joined through it must scan the QR code again.' : ''}${showingLan ? lanFallback : ''}`);
+        if (retry) console.log(`             Restarting cloudflared in ${(tunnel!.restartInMs / 1000).toFixed(0)} s for a new address…`);
       }
       updateJoin();
     },
   });
-  if (MODE === 'auto') {
+  if (MODE === 'auto' && Number.isFinite(LAN_QR_AFTER_MS)) {
     setTimeout(() => {
       graceOver = true;
-      if (tunnelState !== 'up') console.log(`  Tunnel:    not ready after ${TUNNEL_GRACE_MS / 1000} s; showing the Wi-Fi address until it is.`);
+      if (tunnelState !== 'up') console.log(`  Tunnel:    not ready after ${LAN_QR_AFTER_MS / 1000} s; showing the Wi-Fi address until it is (--lan-qr-after).`);
       updateJoin();
-    }, TUNNEL_GRACE_MS).unref();
+    }, LAN_QR_AFTER_MS).unref();
   }
   tunnel.start();
   process.on('exit', () => tunnel?.stop());

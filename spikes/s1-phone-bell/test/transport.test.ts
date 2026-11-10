@@ -9,14 +9,16 @@ import {
   deviceRoute,
   findCloudflared,
   GestureDedupe,
+  lanQrAfterMs,
   parseCloudflaredOutput,
   rtcPolicy,
   shouldOfferRtc,
   transportMode,
   TUNNEL_ENV,
+  TUNNEL_GRACE_MS,
   type TunnelState,
 } from '../src/host/transport.ts';
-import { internetReachable, QuickTunnel, waitTunnelReady, type TunnelReady, type TunnelReadyOptions } from '../src/host/tunnel.ts';
+import { internetReachable, QuickTunnel, tunnelFirstQueryDelayMs, waitTunnelReady, type TunnelReady, type TunnelReadyOptions } from '../src/host/tunnel.ts';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -90,6 +92,8 @@ test('chooseJoinUrl: tunnel when up, LAN fallback in auto, nothing while waiting
   assert.equal(j('auto', 'up'), tunnelUrl);
   assert.equal(j('auto', 'up', false, ''), lanUrl, 'up without an address is not usable → LAN');
   assert.equal(j('auto', 'down'), lanUrl, 'no cloudflared / no internet / tunnel died → LAN at once');
+  assert.equal(chooseJoinUrl({ mode: 'auto', lanUrl, tunnel: 'down', tunnelUrl: '', graceOver: false, restarting: true }), '', 'a restart for a new address does not flash the LAN QR');
+  assert.equal(chooseJoinUrl({ mode: 'auto', lanUrl, tunnel: 'down', tunnelUrl: '', graceOver: true, restarting: true }), lanUrl, '…until the grace period is over');
   assert.equal(j('auto', 'off'), lanUrl);
   // tunnel only
   assert.equal(j('tunnel', 'starting'), '');
@@ -97,6 +101,17 @@ test('chooseJoinUrl: tunnel when up, LAN fallback in auto, nothing while waiting
   assert.equal(j('tunnel', 'down', true), '');
   // lan only ignores any tunnel
   assert.equal(j('lan', 'up'), lanUrl);
+});
+
+test('lanQrAfterMs: seconds or "never", default 15 s', () => {
+  assert.equal(lanQrAfterMs(undefined), TUNNEL_GRACE_MS);
+  assert.equal(TUNNEL_GRACE_MS, 15_000);
+  assert.equal(lanQrAfterMs('60'), 60_000);
+  assert.equal(lanQrAfterMs('0'), 0);
+  assert.equal(lanQrAfterMs('2.5'), 2500);
+  assert.equal(lanQrAfterMs('never'), Infinity);
+  assert.equal(lanQrAfterMs('NEVER'), Infinity);
+  for (const bad of ['', 'soon', '-1', '1m']) assert.throws(() => lanQrAfterMs(bad), /--lan-qr-after must be a number of seconds or "never"/, bad);
 });
 
 test('classifyWsRoute / shouldOfferRtc / deviceRoute', () => {
@@ -269,7 +284,7 @@ test('waitTunnelReady: no DNS query in the first 3 s, rotates public resolvers, 
   assert.equal(r.resolver, '8.8.8.8');
   assert.equal(r.address, '104.16.230.132');
   assert.deepEqual(probes.map((p) => [p[1], p[2]]), Array(3).fill(['https://abc-def.trycloudflare.com/tunnel-check', '104.16.230.132']), 'HTTPS pinned to the DNS answer');
-  assert.equal(r.dnsMs, 3000 + 20 + 1000 + 20);
+  assert.equal(r.dnsMs, 3000 + 20 + 2000 + 20, 'waits 2 s after a "no such name" before asking the next resolver');
   assert.equal(r.httpMs, 3 * 300 + 2 * 1000);
   assert.equal(r.totalMs, r.dnsMs + r.httpMs);
 });
@@ -281,14 +296,46 @@ test('waitTunnelReady: AAAA-only answer is used as is', async () => {
   assert.equal(probes[0]![2], '2606:4700::6810:e684');
 });
 
-test('waitTunnelReady: gives up after the timeout, saying which step failed', async () => {
+test('waitTunnelReady: when every public resolver says "no such name", gives up at once for a new address', async () => {
+  // The owner's run 2026-11-10: the name did not exist yet at 3 s and NXDOMAIN is cached for 60 s,
+  // longer than the 45 s budget. Asking the same resolvers again could never succeed.
   const dnsDown = readyHarness(() => nx(), () => ({ status: 200, body: '' }));
   const a = await waitTunnelReady('https://never.trycloudflare.com/', dnsDown.o);
   assert.equal(a.ok, false);
-  assert.match(a.reason, /no DNS answer for never\.trycloudflare\.com from 1\.1\.1\.1 or 8\.8\.8\.8 in 45 s \(last: ENOTFOUND\)/);
-  assert.ok(a.totalMs <= 45_000, `stops within the budget (${a.totalMs} ms)`);
+  assert.deepEqual(dnsDown.queries.map((q) => q[1]), ['1.1.1.1', '8.8.8.8', '9.9.9.9', '208.67.222.222'], 'each resolver asked once, never again');
+  assert.deepEqual(dnsDown.queries.map((q) => q[0]), [3000, 5020, 8040, 12060], 'growing gaps give the name time to appear');
+  assert.match(a.reason, /never\.trycloudflare\.com did not exist yet when 1\.1\.1\.1, 8\.8\.8\.8, 9\.9\.9\.9, 208\.67\.222\.222 were asked/);
+  assert.deepEqual(a.negative, ['1.1.1.1', '8.8.8.8', '9.9.9.9', '208.67.222.222']);
+  assert.ok(a.totalMs < 13_000, `fails fast, not after 45 s (${a.totalMs} ms)`);
   assert.equal(dnsDown.probes.length, 0);
+  assert.ok(!dnsDown.queries.some((q) => q[1] === 'system'), 'the OS resolver (shared with the TV browser) is not poisoned');
+});
 
+test('waitTunnelReady: public resolvers unreachable (blocked network) → falls back to the OS resolver', async () => {
+  const timeout = () => Object.assign(new Error('queryA ETIMEOUT'), { code: 'ETIMEOUT' });
+  const blocked = readyHarness((server) => (server === 'system' ? ['104.16.0.9'] : timeout()), () => ({ status: 200, body: 'go-go-harmoniyo token-1' }));
+  const r = await waitTunnelReady('https://blocked.trycloudflare.com/', blocked.o);
+  assert.equal(r.ok, true, r.reason);
+  assert.deepEqual(blocked.queries.map((q) => q[1]), ['1.1.1.1', '8.8.8.8', '9.9.9.9', '208.67.222.222', 'system']);
+  assert.equal(r.resolver, 'system');
+  assert.equal(r.address, '104.16.0.9');
+
+  const offline = readyHarness(() => timeout(), () => ({ status: 200, body: '' }));
+  const o = await waitTunnelReady('https://offline.trycloudflare.com/', offline.o);
+  assert.equal(o.ok, false);
+  assert.match(o.reason, /no DNS answer for offline\.trycloudflare\.com from 1\.1\.1\.1, 8\.8\.8\.8, 9\.9\.9\.9, 208\.67\.222\.222 in 45 s \(last: ETIMEOUT\)/);
+  assert.ok(o.totalMs <= 45_000, `stops within the budget (${o.totalMs} ms)`);
+  assert.ok(offline.queries.filter((q) => q[1] === '1.1.1.1').length > 1, 'unreachable resolvers are retried (unlike a "no" answer)');
+});
+
+test('waitTunnelReady: a later address waits longer before its first DNS query', async () => {
+  assert.deepEqual([0, 1, 2, 3, 9].map(tunnelFirstQueryDelayMs), [3000, 6000, 9000, 12000, 12000]);
+  const { o, queries } = readyHarness(() => ['104.16.0.1'], () => ({ status: 200, body: 'go-go-harmoniyo token-1' }));
+  await waitTunnelReady('https://second.trycloudflare.com/', { ...o, firstQueryDelayMs: tunnelFirstQueryDelayMs(1) });
+  assert.equal(queries[0]![0], 6000);
+});
+
+test('waitTunnelReady: gives up after the timeout, saying which step failed', async () => {
   const other = readyHarness(() => ['104.16.0.1'], () => ({ status: 200, body: 'someone else' }));
   const b = await waitTunnelReady('https://other.trycloudflare.com/', { ...other.o, timeoutMs: 10_000 });
   assert.equal(b.ok, false);
@@ -328,12 +375,20 @@ test('QuickTunnel: stays "starting" while the address is checked; up only once i
   t.stop();
 });
 
-test('QuickTunnel: an address that never becomes reachable restarts cloudflared for a new one', async () => {
+test('QuickTunnel: an address that never becomes reachable restarts cloudflared for a new one, quickly', async () => {
   const results: TunnelReady[] = [
-    { ok: false, dnsMs: 45_000, httpMs: 0, totalMs: 45_000, address: '', resolver: '', reason: 'no DNS answer' },
-    { ok: true, dnsMs: 3000, httpMs: 400, totalMs: 3400, address: '104.16.0.2', resolver: '8.8.8.8', reason: '' },
+    { ok: false, dnsMs: 12_000, httpMs: 0, totalMs: 12_000, address: '', resolver: '', reason: 'no DNS answer' },
+    { ok: true, dnsMs: 6000, httpMs: 400, totalMs: 6400, address: '104.16.0.2', resolver: '8.8.8.8', reason: '' },
   ];
-  const { t, children, changes } = fakeTunnel({ verify: async () => results.shift()!, restartDelayMs: 100 });
+  const attempts: number[] = [];
+  const { t, children, changes } = fakeTunnel({
+    verify: async (_url, attempt) => {
+      attempts.push(attempt);
+      return results.shift()!;
+    },
+    restartDelayMs: 10_000,
+    notReadyRestartDelayMs: 100,
+  });
   t.start();
   children[0]!.log('INF https://unlucky.trycloudflare.com');
   children[0]!.log('INF Registered tunnel connection connIndex=0');
@@ -343,6 +398,7 @@ test('QuickTunnel: an address that never becomes reachable restarts cloudflared 
   assert.equal(t.state, 'down');
   assert.equal(t.reason, 'the address https://unlucky.trycloudflare.com/ did not become reachable (no DNS answer)');
   assert.equal(t.restartPending, true);
+  assert.equal(t.restartInMs, 100, 'cloudflared itself is fine: no 5 s crash back-off');
   assert.ok(!changes.some((c) => c[0] === 'up'), 'never published');
   await sleep(150);
   assert.equal(children.length, 2, 'restarted');
@@ -350,6 +406,16 @@ test('QuickTunnel: an address that never becomes reachable restarts cloudflared 
   children[1]!.log('INF Registered tunnel connection connIndex=0');
   await sleep(0);
   assert.deepEqual(changes.at(-1), ['up', 'https://lucky.trycloudflare.com/', '']);
+  assert.deepEqual(attempts, [0, 1], 'the second address knows it is a retry (waits longer before DNS)');
+  assert.equal(t.notReady, 0, 'reset once up');
+  t.stop();
+});
+
+test('QuickTunnel: a cloudflared crash keeps the longer restart delay', async () => {
+  const { t, children } = fakeTunnel({ restartDelayMs: 50, notReadyRestartDelayMs: 1 });
+  t.start();
+  children[0]!.emit('exit', 1, null);
+  assert.equal(t.restartInMs, 50);
   t.stop();
 });
 

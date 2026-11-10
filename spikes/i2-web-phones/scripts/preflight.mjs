@@ -26,12 +26,12 @@ const OWN_FLAGS = new Set(['--check', '--no-build', '--help', '-h']);
 
 /** The S1 host's options (spikes/s1-phone-bell/src/host/server.ts parseArgs; a test keeps them in sync). */
 export const HOST_OPTIONS = Object.fromEntries([
-  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'cloudflared', 'rtc', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game'].map((k) => [k, { type: 'string' }]),
+  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'cloudflared', 'rtc', 'lan-qr-after', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game'].map((k) => [k, { type: 'string' }]),
   ...['tunnel', 'lan-only', 'no-tunnel', 'no-open', 'no-https', 'yarg'].map((k) => [k, { type: 'boolean' }]),
 ]);
 
 /** npm keeps `npm start --tunnel` (no `--`) for itself as npm_config_tunnel; map those back to our flags. */
-const NPM_SWALLOWED = { tunnel: '--tunnel', lan_only: '--lan-only', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url', cloudflared: '--cloudflared', rtc: '--rtc' };
+const NPM_SWALLOWED = { tunnel: '--tunnel', lan_only: '--lan-only', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url', cloudflared: '--cloudflared', rtc: '--rtc', lan_qr_after: '--lan-qr-after' };
 
 /**
  * Options the S1 host would reject (it exits with a stack trace, after the install and build), or
@@ -60,6 +60,8 @@ export function argProblems(argv, env = process.env) {
   }
   const rtc = flagValue(argv, 'rtc');
   if (rtc !== undefined && !/^(auto|on|off)$/i.test(rtc)) out.push({ level: 'error', title: `--rtc must be auto, on or off (got "${rtc}")` });
+  const lanQr = flagValue(argv, 'lan-qr-after');
+  if (lanQr !== undefined && !/^(never|\d+(\.\d+)?)$/i.test(lanQr.trim())) out.push({ level: 'error', title: `--lan-qr-after must be a number of seconds or "never" (got "${lanQr}")` });
   return out;
 }
 

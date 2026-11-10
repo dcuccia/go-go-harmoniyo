@@ -251,11 +251,20 @@ try {
   Object.assign(env, { ua: pre.ua, nativeDeviceMotionEvent: pre.wk.motionNative, nativeRequestPermission: pre.wk.rpNative, webAudio: pre.wk.audioStub ? 'missing in this WebKit build (stubbed)' : 'native', wakeLockApi: pre.wakeLockApi, audioSessionApi: pre.audioSessionApi });
   check('controller page loads over HTTPS (self-signed) as a secure context', resp?.ok() && pre.secure && !pre.warning, `HTTP ${resp?.status()}, isSecureContext ${pre.secure}`);
 
-  // 1. Tap to start: permission + audio unlock inside the gesture.
-  await phone.fill('#name', 'iPhone');
+  // 1. Tap to start: permission + audio unlock inside the gesture. Type the name key by key, like a
+  // person: each keystroke lands on the undo stack, which iOS offers back on a shake ("Undo Typing").
+  await phone.fill('#name', '');
+  await phone.locator('#name').pressSequentially('iPhone');
+  const undoBefore = await phone.evaluate(() => document.queryCommandEnabled('undo'));
   await phone.tap('#start');
   await phone.waitForSelector('#main:not([hidden])', { timeout: 10000 });
   await sleep(300);
+  const undoAfter = await phone.evaluate(() => ({ undo: document.queryCommandEnabled('undo'), active: document.activeElement?.id ?? document.activeElement?.tagName ?? '' }));
+  check(
+    'typing the name leaves nothing to undo during play (iPadOS Shake to Undo / 3-finger undo)',
+    undoBefore ? !undoAfter.undo : null,
+    undoBefore ? `undo available before Start: true; after: ${undoAfter.undo}; focus: ${undoAfter.active}` : 'skipped: this browser does not report the typing as undoable',
+  );
   const st = await phone.evaluate(() => ({ calls: window.__wk.calls, state: window.__wk.contexts[0]?.state ?? 'none', banner: document.getElementById('banner')?.textContent ?? '' }));
   const call = (w) => st.calls.find((c) => c.what === w);
   check('Tap to start calls DeviceMotionEvent.requestPermission inside the tap', call('requestPermission')?.inGesture === true, JSON.stringify(call('requestPermission') ?? null));

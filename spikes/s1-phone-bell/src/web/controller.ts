@@ -3,6 +3,7 @@ import { isAccidental } from '../../../shared/pitch-palette.ts';
 import { ImpactDetector } from '../core/impact-detector.ts';
 import { expectedIoi, isSensitivity, learnAxis, RingDetector, type MotionSample, type Sensitivity, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
 import { bell as playBell, click, perfToCtx, testBeep, unlockAudio } from './audio.ts';
+import { blockMultiTouch, forgetTyping } from './forget-typing.ts';
 import { deviceId, HgpClient } from './hgp-client.ts';
 import { MotionSource } from './motion.ts';
 import { TabGuard } from './tab-guard.ts';
@@ -523,6 +524,8 @@ async function startController(takeoverTab: boolean): Promise<void> {
   // Both must be *called* synchronously inside the tap handler (iOS user-activation rules).
   const permP = MotionSource.requestPermission().catch((e: unknown) => `error: ${String(e)}`);
   const audioP = unlockAudio().catch((e: unknown) => ({ state: `error: ${String(e)}`, audioSession: '?', baseLatency: NaN, outputLatency: NaN }));
+  // Shaking the bell is iOS's "Shake to Undo": leave no typing to undo (see forget-typing.ts).
+  forgetTyping($('name') as HTMLInputElement);
   // Another tab of this phone is playing (e.g. the TV's QR scanned again): let it keep playing.
   if (!(await tabGuard.acquire(takeoverTab))) {
     takeover.show('other-tab');
@@ -564,6 +567,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 ($('name') as HTMLInputElement).value = localStorage.getItem(NAME_KEY) ?? '';
+blockMultiTouch($('main'));
 $('start').addEventListener('click', () => void start());
 $('calibrate').addEventListener('click', () => startCalibration());
 $('tap-toggle').addEventListener('click', () => {

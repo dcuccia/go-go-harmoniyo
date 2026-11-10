@@ -76,6 +76,13 @@ describe('argProblems', () => {
     expect(argProblems(['--tunnel', '--lan-only'], {})[0].title).toContain('contradict');
     expect(argProblems(['--rtc', 'maybe'], {})[0].title).toContain('--rtc must be');
   });
+  it('checks --lan-qr-after (seconds or "never") and recovers it from npm', () => {
+    expect(argProblems(['--lan-qr-after', '60'], {})).toEqual([]);
+    expect(argProblems(['--lan-qr-after=never'], {})).toEqual([]);
+    expect(argProblems(['--lan-qr-after', 'soon'], {})[0].title).toContain('--lan-qr-after must be');
+    const lost = argProblems([], { npm_lifecycle_event: 'start', npm_config_lan_qr_after: '60' });
+    expect(lost[0].title).toContain('--lan-qr-after');
+  });
   it('knows exactly the options of the S1 host (server.ts)', () => {
     const src = readFileSync(join(__dirname, '..', '..', 's1-phone-bell', 'src', 'host', 'server.ts'), 'utf8');
     const block = /parseArgs\(\{\s*options:\s*\{([\s\S]*?)\r?\n  \},\r?\n\}\);/.exec(src)?.[1] ?? '';

@@ -16,12 +16,16 @@ export interface QuickTunnelOptions {
   /**
    * Is the published address reachable from the internet yet? Runs before the state becomes `up`
    * (the tunnel stays `starting`, reason "checking the address"). A failure restarts cloudflared for
-   * a fresh address. See waitTunnelReady.
+   * a fresh address. `attempt` counts the addresses that failed the check so far (0 first): later
+   * attempts can wait longer before asking DNS. See waitTunnelReady.
    */
-  verify?: (url: string) => Promise<TunnelReady>;
+  verify?: (url: string, attempt: number) => Promise<TunnelReady>;
   spawnFn?: (cmd: string, args: string[]) => ChildProcess;
   maxRestarts?: number;
+  /** After cloudflared exited by itself (default 5 s). */
   restartDelayMs?: number;
+  /** After an address failed the readiness check: nothing is wrong with cloudflared (default 1 s). */
+  notReadyRestartDelayMs?: number;
   registerFallbackMs?: number;
 }
 
@@ -34,8 +38,11 @@ export class QuickTunnel {
   ready: TunnelReady | null = null;
   /** Milliseconds from spawning cloudflared to `up`. */
   upAfterMs = 0;
-  /** Set while `down` if cloudflared will be restarted (after restartDelayMs). */
+  /** Set while `down` if cloudflared will be restarted, in `restartInMs`. */
   restartPending = false;
+  restartInMs = 0;
+  /** Addresses that failed the readiness check since the tunnel was last up. */
+  notReady = 0;
   private child: ChildProcess | null = null;
   private stopped = false;
   private timers = new Set<NodeJS.Timeout>();
@@ -65,7 +72,13 @@ export class QuickTunnel {
     const goUp = (url: string) => {
       upAt = Date.now();
       this.upAfterMs = upAt - spawnedAt;
+      this.notReady = 0;
       this.set('up', url, '');
+    };
+    const notReady = (reason: string) => {
+      failReason = reason;
+      this.notReady++;
+      child.kill();
     };
     const publish = () => {
       if (child !== this.child || !pending || this.state === 'up' || checking === pending) return;
@@ -73,18 +86,16 @@ export class QuickTunnel {
       if (!this.o.verify) return goUp(url);
       checking = url;
       this.set('starting', '', 'checking the address');
-      this.o.verify(url).then(
+      this.o.verify(url, this.notReady).then(
         (r) => {
           if (!current(url)) return;
           this.ready = r;
           if (r.ok) return goUp(url);
-          failReason = `the address ${url} did not become reachable (${r.reason})`;
-          child.kill();
+          notReady(`the address ${url} did not become reachable (${r.reason})`);
         },
         (e: unknown) => {
           if (!current(url)) return;
-          failReason = `checking ${url} failed: ${String(e)}`;
-          child.kill();
+          notReady(`checking ${url} failed: ${String(e)}`);
         },
       );
     };
@@ -116,13 +127,14 @@ export class QuickTunnel {
       // A tunnel that was up for a while earns its restarts back (a rare crash, not a crash loop).
       if (upAt && Date.now() - upAt > 60_000) this.restarts = 0;
       this.restartPending = this.restarts < (this.o.maxRestarts ?? 3);
+      this.restartInMs = failReason ? (this.o.notReadyRestartDelayMs ?? 1000) : (this.o.restartDelayMs ?? 5000);
       this.set('down', '', failReason || `cloudflared exited (${signal ?? `code ${code}`})${lastErr ? `: ${lastErr}` : ''}`);
       if (this.restartPending) {
         this.restarts++;
         this.later(() => {
           this.restartPending = false;
           if (!this.stopped) this.start();
-        }, this.o.restartDelayMs ?? 5000);
+        }, this.restartInMs);
       }
     });
   }
@@ -178,19 +190,36 @@ export async function internetReachable(timeoutMs = 3000, lookup: (host: string)
  * Measured 2026-11-09 (cloudflared 2026.10.7, Windows): a quick-tunnel hostname resolves about 2 s
  * after cloudflared prints it. A DNS query made before that (within ~1 s) gets NXDOMAIN, and resolvers
  * — 1.1.1.1, 8.8.8.8 and the OS cache alike — then keep that "no such name" for the zone's 60 s
- * negative TTL. So: wait before the first query, ask public resolvers (never the OS resolver, whose
- * negative cache the TV PC's browser shares), rotate between them so one early answer cannot block
- * us, and pin the HTTPS check to the address we got.
+ * negative TTL. The owner's run on 2026-11-10 hit exactly that at our first query (3 s): both
+ * resolvers said NXDOMAIN for the whole 45 s budget.
+ *
+ * So: wait before the first query (longer on each new address), ask public resolvers (never the OS
+ * resolver, whose negative cache the TV PC's browser shares) run by different operators, never ask a
+ * resolver again once it said "no such name" (it would only repeat its cached answer), and space out
+ * the fresh ones. Once every resolver has said "no", give up at once so cloudflared gets a new
+ * address, instead of waiting out the 60 s. Only if the public resolvers can't be reached at all (a
+ * network that blocks them) is the OS resolver used. The HTTPS check is pinned to the address we got.
  */
 export const TUNNEL_READY_TIMEOUT_MS = 45_000;
 export const TUNNEL_FIRST_DNS_QUERY_MS = 3_000;
-export const TUNNEL_READY_RESOLVERS = ['1.1.1.1', '8.8.8.8'];
+/** Cloudflare, Google, Quad9, OpenDNS: separate caches, so one early NXDOMAIN cannot block the others. */
+export const TUNNEL_READY_RESOLVERS = ['1.1.1.1', '8.8.8.8', '9.9.9.9', '208.67.222.222'];
+/** Label for the OS resolver fallback in TunnelReady.resolver. */
+export const SYSTEM_RESOLVER = 'system';
 /** The host answers GET /tunnel-check with this run's token, so the check proves it reached us. */
 export const TUNNEL_CHECK_PATH = '/tunnel-check';
 
+/** First DNS query delay for the `attempt`-th address (0 first): 3, 6, 9, then 12 s. */
+export function tunnelFirstQueryDelayMs(attempt: number): number {
+  return TUNNEL_FIRST_DNS_QUERY_MS * Math.min(attempt + 1, 4);
+}
+
+/** "No such name" / "no records": the resolver now caches that answer, asking it again is pointless. */
+const isNegative = (code: string) => code === 'ENOTFOUND' || code === 'ENODATA';
+
 export interface TunnelReady {
   ok: boolean;
-  /** From the start of the check until a public resolver returned an address. */
+  /** From the start of the check until a resolver returned an address. */
   dnsMs: number;
   /** From that answer until GET /tunnel-check returned 200 with our token. */
   httpMs: number;
@@ -198,6 +227,8 @@ export interface TunnelReady {
   address: string;
   resolver: string;
   reason: string;
+  /** Resolvers that said "no such name" before one answered (or all of them, if none did). */
+  negative?: string[];
 }
 
 export interface TunnelReadyOptions {
@@ -205,9 +236,10 @@ export interface TunnelReadyOptions {
   expect: string;
   timeoutMs?: number;
   firstQueryDelayMs?: number;
+  /** Between retries after an error that is not a "no such name" answer (timeout, refused…). */
   intervalMs?: number;
   resolvers?: string[];
-  /** Addresses (A, else AAAA) for `host` from DNS server `server`; throws (e.g. ENOTFOUND) when none. */
+  /** Addresses (A, else AAAA) for `host` from DNS server `server` (SYSTEM_RESOLVER: the OS); throws (e.g. ENOTFOUND) when none. */
   resolve?: (server: string, host: string) => Promise<string[]>;
   /** HTTPS GET `url` connecting to `address` (SNI/Host stay the tunnel hostname). */
   probe?: (url: string, address: string) => Promise<{ status: number; body: string }>;
@@ -218,7 +250,7 @@ export interface TunnelReadyOptions {
 export async function waitTunnelReady(url: string, o: TunnelReadyOptions): Promise<TunnelReady> {
   const now = o.now ?? Date.now;
   const sleep = o.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-  const resolve = o.resolve ?? resolvePublic;
+  const resolve = o.resolve ?? resolveDns;
   const probe = o.probe ?? probePinned;
   const resolvers = o.resolvers ?? TUNNEL_READY_RESOLVERS;
   const timeoutMs = o.timeoutMs ?? TUNNEL_READY_TIMEOUT_MS;
@@ -226,9 +258,10 @@ export async function waitTunnelReady(url: string, o: TunnelReadyOptions): Promi
   const start = now();
   const deadline = start + timeoutMs;
   const host = new URL(url).hostname;
+  const negative: string[] = [];
   const result = (ok: boolean, reason: string, dnsAt = 0, address = '', resolver = ''): TunnelReady => {
     const t = now();
-    return { ok, reason, address, resolver, totalMs: t - start, dnsMs: dnsAt ? dnsAt - start : t - start, httpMs: dnsAt ? t - dnsAt : 0 };
+    return { ok, reason, address, resolver, negative: [...negative], totalMs: t - start, dnsMs: dnsAt ? dnsAt - start : t - start, httpMs: dnsAt ? t - dnsAt : 0 };
   };
   const errText = (e: unknown) => (e as { code?: string })?.code ?? (e instanceof Error ? e.message : String(e));
 
@@ -236,20 +269,38 @@ export async function waitTunnelReady(url: string, o: TunnelReadyOptions): Promi
   let address = '';
   let resolver = '';
   let last = '';
+  /** Resolvers that failed without answering (blocked network?). */
+  const unreachable = new Set<string>();
   for (let i = 0; ; i++) {
-    const server = resolvers[i % resolvers.length]!;
+    const fresh = resolvers.filter((r) => !negative.includes(r));
+    if (!fresh.length) {
+      return result(false, `${host} did not exist yet when ${negative.join(', ')} were asked (each now remembers "no such name" for ~60 s)`);
+    }
+    // No public resolver can be reached (none said "no"): also ask the OS resolver.
+    const pool = fresh.every((r) => unreachable.has(r)) && !negative.includes(SYSTEM_RESOLVER) ? [...fresh, SYSTEM_RESOLVER] : fresh;
+    // Prefer one that has not failed yet; else rotate.
+    const server = pool.find((r) => !unreachable.has(r)) ?? pool[i % pool.length]!;
+    let wait = intervalMs;
     try {
       address = (await resolve(server, host))[0] ?? '';
       if (address) {
         resolver = server;
         break;
       }
-      last = 'no address';
+      throw Object.assign(new Error('no address'), { code: 'ENODATA' });
     } catch (e) {
       last = errText(e);
+      if (isNegative(last)) {
+        negative.push(server);
+        // Give the name time to appear before asking the next (fresh) resolver: 2, 3, 4 s…
+        wait = (negative.length + 1) * 1000;
+      } else unreachable.add(server);
     }
-    if (now() + intervalMs > deadline) return result(false, `no DNS answer for ${host} from ${resolvers.join(' or ')} in ${timeoutMs / 1000} s (last: ${last})`);
-    await sleep(intervalMs);
+    if (resolvers.every((r) => negative.includes(r))) continue; // all said "no": report it now
+    if (now() + wait > deadline) {
+      return result(false, `no DNS answer for ${host} from ${resolvers.join(', ')} in ${timeoutMs / 1000} s (last: ${last})`);
+    }
+    await sleep(wait);
   }
   const dnsAt = now();
   const checkUrl = new URL(TUNNEL_CHECK_PATH, url).href;
@@ -266,7 +317,8 @@ export async function waitTunnelReady(url: string, o: TunnelReadyOptions): Promi
   }
 }
 
-async function resolvePublic(server: string, host: string): Promise<string[]> {
+async function resolveDns(server: string, host: string): Promise<string[]> {
+  if (server === SYSTEM_RESOLVER) return (await dns.lookup(host, { all: true })).map((a) => a.address);
   const r = new dns.Resolver({ timeout: 2_000, tries: 1 });
   r.setServers([server]);
   try {
