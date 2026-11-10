@@ -78,7 +78,7 @@ Working conventions learned so far:
 | #78: auto tunnel + direct WebRTC upgrade, [ADR-0012](../decisions/0012-auto-tunnel-direct-upgrade.md) **Accepted 2026-11-09**, **merged 2026-11-10** | Owner tested on an M1 iPad Pro (iPadOS 26.7.1) and a Pixel: both reached direct. Fixes before merge: the iPad "Undo Typing" popup (5751621: clears the WebKit undo stack on Start and blocks multi-touch/gesture defaults) and tunnel readiness (8a25c07 and 5751621: 4 public resolvers, NXDOMAIN gives a fresh address after ~12 s, the TV stays on "starting"). The owner rechecked the iPad fixes after merge (no undo popup, pinch ignored). **LAN-QR wait decided 2026-11-10: option B, 60 s** ("60s sounds good"); the default changes in the #28 release-prep PR | — |
 | #43: portable Windows zip | **Merged as #77 on 2026-11-09**: `windows-package.yml` builds a Node SEA exe, pinned `cloudflared.exe`, the `.cmd` launcher, notices and SHA256SUMS. Nothing was published, tagged or signed. **Owner approved a GitHub release with the zip (2026-11-10).** On a `v*` tag the workflow now attaches the zip and SHA256SUMS to a draft pre-release | Owner: clean-account checklist (PR #77), the code-signing decision (the alpha ships unsigned) |
 | #28: alpha release | **Published 2026-11-10** as the pre-release [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/releases/tag/v0.1.0-alpha) (#83; tag on 0104264). The tag build attached `go-go-harmoniyo-0.1.0-alpha-windows-x64.zip` and SHA256SUMS. The notes mark all 16 carols "Proofread by the owner: Not yet" (#30). #26 (TV help) is still open | Owner: clean-account (Windows Sandbox) test of the release zip; proofread carols (#30) and update the notes table |
-| S8: store delivery and code signing | PR #84 (revised 2026-11-10 with the owner's decisions): [report](../spikes/S8-report.md), ADR-0013 (SignPath now, Certum fallback, Microsoft Store later; Azure rejected on cost) and ADR-0014 (the TV/tablet app is the host, no PC; S9 prototype informs acceptance), ADR-0013 **Accepted** 2026-11-10 (merged); ADR-0014 **Proposed** until S9 reports | Owner: add the release-notes line to v0.1.0-alpha, check GitHub MFA, submit the SignPath application (report §1), check Gemini sideloading, answer the publisher-name, IP and 12-tester questions (report §4), name clearance (ADR-0009) before public listings. Agents: S9 prototype (separate session), then APK/TestFlight shells; signing hook after SignPath accepts |
+| S8: store delivery and code signing | PR #84 (revised 2026-11-10 with the owner's decisions): [report](../spikes/S8-report.md), ADR-0013 (SignPath now, Certum fallback, Microsoft Store later; Azure rejected on cost) and ADR-0014 (the TV/tablet app is the host, no PC; S9 prototype informs acceptance), ADR-0013 **Accepted** 2026-11-10 (merged as #84); ADR-0014 **Proposed** until S9 reports. The SignPath line is in the v0.1.0-alpha release notes | Owner: check GitHub MFA, submit the SignPath application (report §1), check Gemini sideloading, answer the publisher-name, IP and 12-tester questions (report §4), name clearance (ADR-0009) before public listings. Agents: S9 prototype (separate session), then APK/TestFlight shells; signing hook after SignPath accepts |
 | Holiday milestone (#17, #20, #33, #34, #36–#39, #41–#44, #48, #55, #59) | v0.2 holiday, Dec 18 | Mixed |
 | #58: bring-your-own MIDI import | Follow-up | — |
 
@@ -116,3 +116,12 @@ Working conventions learned so far:
   idea (#20 was handled that way).
 - Is often away from the home network. LAN-only resources (the AI node) are then
   unavailable.
+- Accounts (all personal, under the owner's own login): Google Play Console (it also has a
+  separate Modulim work organisation; keep this project out of it), Apple Developer (also used
+  for stripe-m2-pos) and **Cloudflare** (not used by the repo so far; the join QR uses anonymous
+  quick tunnels). The owner runs every login (`wrangler login` and so on); agents never create
+  accounts, deploy or upload builds.
+- App direction (2026-11-10): "Online is fine for the app": the TV/tablet app hosts, phones
+  scan a QR code to a trusted web page, and a small free cloud service connects them. The PC
+  zip stays the offline option. Test distribution only (sideloaded APKs and TestFlight, shared
+  via GitHub Releases) until name clearance.
