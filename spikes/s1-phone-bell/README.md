@@ -20,6 +20,10 @@ copied from GACJ/handbellmanager (GPL-3.0); only its approach was studied.
 Wi-Fi (not a guest network: guest networks usually block phone→PC traffic). On guest,
 corporate or school networks, or when the PC and phone are on different networks, use the
 tunnel instead (`npm run tunnel`, or `npm start -- --tunnel` at the repo root for the I2 game).
+The host now starts the tunnel automatically when cloudflared is installed, and upgrades phones to
+a direct WebRTC link on the same Wi-Fi
+([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Accepted). For the LAN
+latency measurements below, run `npm start -- --lan-only` so every phone uses the LAN WebSocket.
 
 ```powershell
 cd spikes\s1-phone-bell

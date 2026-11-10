@@ -101,7 +101,9 @@ export interface Status {
   rttP50?: number;
   syncN?: number;
   transport?: string;
-  visible?: boolean;
+  /** Direct-link upgrade state (ADR-0012): off | trying | open | failed. */
+  rtc?: string;
+  rtcReason?: string;
   mode?: DetectMode;
   axis?: number[] | null;
   battery?: number;

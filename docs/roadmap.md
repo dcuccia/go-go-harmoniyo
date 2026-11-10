@@ -90,7 +90,7 @@ Out: online play, accounts, custom hardware, microphone scoring, licensed music.
 |---|---|---|
 | Host engine: YARG fork vs web-native vs other | S2, S3, S4, I1, I2 (S7 not run) | [ADR-0004](decisions/0004-host-strategy.md) **Accepted**: web-first; YARG fork as a community track |
 | Shared-core language (C# vs TypeScript) | S2, S4 | [ADR-0005](decisions/0005-shared-core-language.md) **Accepted**: TypeScript + language-neutral contracts |
-| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) **Accepted** (2026-10-25): WSS on the LAN with a self-signed certificate, `--tunnel` fallback |
+| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) **Accepted** (2026-10-25): WSS on the LAN with a self-signed certificate, `--tunnel` fallback; amended by [ADR-0012](decisions/0012-auto-tunnel-direct-upgrade.md) (**Accepted** 2026-11-09): auto tunnel with a direct WebRTC upgrade, LAN fallback |
 | Chart / arrangement format | S5, S2 | [ADR-0007](decisions/0007-chart-format.md) **Accepted** (2026-10-25): S5 chart JSON |
 | Product code layout (follow-up to ADR-0004/0005) | I2 | [ADR-0010](decisions/0010-product-layout.md) **Accepted** (2026-10-25), option A: ship the alpha from `spikes/`, graduate Nov 16–24 |
 

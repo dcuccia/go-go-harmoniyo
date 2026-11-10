@@ -45,8 +45,10 @@ Expected time:
 Then, at the repo root: `npm start`
 ([runbook](../../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)).
 Its start-up checks explain firewall, adapter and port problems. Allow Node.js through Windows
-Firewall for **Private networks** when asked. The phones and the PC must be on the same,
-non-guest Wi-Fi (or use `npm start -- --tunnel`).
+Firewall for **Private networks** when asked. With [cloudflared](../../spikes/i2-web-phones/README.md#how-phones-connect)
+installed (`winget install --id Cloudflare.cloudflared`, recommended) phones join through the
+cloud tunnel from any network and switch to a direct link on the same Wi-Fi. Without it, the
+phones and the PC must be on the same, non-guest Wi-Fi.
 
 ## setup-yarg.ps1
 

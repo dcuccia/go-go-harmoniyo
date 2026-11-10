@@ -1,6 +1,6 @@
 # 0006 — Phone ↔ host transport
 
-- Status: Accepted (owner, 2026-10-25; [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32))
+- Status: Accepted (owner, 2026-10-25; [#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)); amended by [ADR-0012](0012-auto-tunnel-direct-upgrade.md) (2026-11-09): auto tunnel with a direct WebRTC upgrade replaces the self-signed-first holiday default
 - Date: 2026-10-23
 - Deciders: @dcuccia (owner); proposed by the S1 spike session
 

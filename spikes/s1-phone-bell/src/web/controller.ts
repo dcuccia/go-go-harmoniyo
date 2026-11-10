@@ -3,6 +3,7 @@ import { isAccidental } from '../../../shared/pitch-palette.ts';
 import { ImpactDetector } from '../core/impact-detector.ts';
 import { expectedIoi, isSensitivity, learnAxis, RingDetector, type MotionSample, type Sensitivity, type StrikeEvent, type Vec3 } from '../core/ring-detector.ts';
 import { bell as playBell, click, perfToCtx, testBeep, unlockAudio } from './audio.ts';
+import { blockMultiTouch, forgetTyping } from './forget-typing.ts';
 import { deviceId, HgpClient } from './hgp-client.ts';
 import { MotionSource } from './motion.ts';
 import { TabGuard } from './tab-guard.ts';
@@ -67,6 +68,8 @@ const client = new HgpClient({
   deviceId: deviceId(),
   name: localStorage.getItem(NAME_KEY) ?? 'phone',
   hello: { app: 'go-go-harmoniyo/s1-controller', gestures: ['ring', 'impact', 'tap'], sound: true, tab: tabGuard.tab },
+  // ?rtc=1 always tries the direct link, ?rtc=0 never does; default: when the host offers it (ADR-0012).
+  rtc: q.get('rtc') === '1' ? 'force' : q.get('rtc') === '0' ? 'off' : 'auto',
 });
 
 // ── one tab per phone: "connected in another tab — [Use this tab]" ──────────
@@ -96,7 +99,7 @@ function render(): void {
   const e = client.clock.estimate;
   const st = motion.stats();
   $('status').textContent = [
-    client.connected ? (client.transport === 'rtc' ? 'connected (WebRTC)' : 'connected') : 'offline',
+    client.connected ? (client.transport === 'rtc' ? 'connected (direct)' : client.rtcState === 'trying' ? 'connected (trying direct…)' : 'connected') : 'offline',
     `${motion.api} ${st.rateHz.toFixed(0)} Hz${motion.hasGyro ? '' : ' (no gyro!)'}`,
     e ? `sync ±${e.errBound.toFixed(1)} ms, rtt ${e.rttP50.toFixed(0)} ms` : 'sync…',
     `sound: ${soundMode}`,
@@ -335,6 +338,8 @@ window.setInterval(() => {
     rttP50: e?.rttP50,
     syncN: e?.n,
     transport: client.transport,
+    rtc: client.rtcState,
+    rtcReason: client.rtcReason || undefined,
     visible: document.visibilityState === 'visible',
     mode,
     axis: ring.params.axis,
@@ -519,6 +524,8 @@ async function startController(takeoverTab: boolean): Promise<void> {
   // Both must be *called* synchronously inside the tap handler (iOS user-activation rules).
   const permP = MotionSource.requestPermission().catch((e: unknown) => `error: ${String(e)}`);
   const audioP = unlockAudio().catch((e: unknown) => ({ state: `error: ${String(e)}`, audioSession: '?', baseLatency: NaN, outputLatency: NaN }));
+  // Shaking the bell is iOS's "Shake to Undo": leave no typing to undo (see forget-typing.ts).
+  forgetTyping($('name') as HTMLInputElement);
   // Another tab of this phone is playing (e.g. the TV's QR scanned again): let it keep playing.
   if (!(await tabGuard.acquire(takeoverTab))) {
     takeover.show('other-tab');
@@ -547,7 +554,6 @@ async function startController(takeoverTab: boolean): Promise<void> {
   };
   lastInfo = `permission ${perm}`;
   window.setTimeout(() => client.send({ type: 'result', test: 'environment', data: env }), 1500);
-  if (q.get('rtc') === '1') window.setTimeout(() => void client.startRtc(), 2000);
   if (!ring.params.axis) startCalibration();
   render();
 }
@@ -561,6 +567,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 ($('name') as HTMLInputElement).value = localStorage.getItem(NAME_KEY) ?? '';
+blockMultiTouch($('main'));
 $('start').addEventListener('click', () => void start());
 $('calibrate').addEventListener('click', () => startCalibration());
 $('tap-toggle').addEventListener('click', () => {

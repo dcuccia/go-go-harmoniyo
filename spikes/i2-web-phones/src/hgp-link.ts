@@ -12,7 +12,9 @@ export interface PhoneInfo {
   kind: string;
   online: boolean;
   bells: Bell[];
-  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown; sens?: string };
+  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown; sens?: string; rtc?: string; rtcReason?: string };
+  /** How the phone reaches the host (ADR-0012): 'direct' (WebRTC), 'tunnel', 'lan' or 'local'. */
+  route?: string;
   /** Lobby ✓ Ready (HGP `ready`). */
   ready?: boolean;
   events: number;
@@ -33,6 +35,8 @@ export interface HostInfo {
   tlsMode?: string;
   lanIp?: string;
   soundMode?: SoundMode;
+  /** How phones join (ADR-0012): mode auto/tunnel/lan and the tunnel's state. */
+  transport?: { mode?: string; tunnel?: string; tunnelUrl?: string; lanUrl?: string; rtc?: string };
 }
 
 export interface RingEvent {

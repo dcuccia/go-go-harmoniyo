@@ -4,10 +4,15 @@ Real phones (S1 controller + HGP v0 host) play the S4 web-native host with S5 ca
 2–4 ringers on one TV. Report: [docs/spikes/I2-web-phones.md](../../docs/spikes/I2-web-phones.md).
 
 ```
-phones ──WSS (LAN, self-signed)──▶ S1 Node host ◀──WS (127.0.0.1)── game page on the TV
- (S1 controller: rings, zones,        (HGP v0 relay, QR,              (this folder: S4 renderer/judge/
-  local bell sound, cue glow)          serves the game at /game/)       session/audio + S5 charts)
+phones ──WSS via cloud tunnel ──▶ S1 Node host ◀──WS (127.0.0.1)── game page on the TV
+       ──WebRTC direct (same Wi-Fi, when it connects)──▶   (or WSS on the LAN, self-signed,
+ (S1 controller: rings, zones,        (HGP v0 relay, QR,       when there is no tunnel)
+  local bell sound, cue glow)          serves the game at /game/)  (this folder: S4 renderer/judge/
+                                                                    session/audio + S5 charts)
 ```
+
+How phones connect is [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)
+(Accepted 2026-11-09, amends ADR-0006); see [How phones connect](#how-phones-connect) below.
 
 Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hud`,
 `AudioEngine`, `KeyboardSource`; S1 `ClockSync` + HGP types; S5 `loadSong`/`buildChart`
@@ -15,9 +20,11 @@ Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hu
 
 ## Owner runbook (TV playthrough, ~10 minutes)
 
-**You need:** the Windows PC connected to the TV (HDMI), Node ≥ 22, Chrome or Edge, 1–4 phones
-on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run downloads npm packages
-(~1 min).
+**You need:** the Windows PC connected to the TV (HDMI), Node ≥ 22, Chrome or Edge, 1–4 phones,
+and preferably [cloudflared](#how-phones-connect) (`winget install --id Cloudflare.cloudflared`)
+plus an internet connection. Phones can then join from any network, with no certificate warning,
+and they switch to a direct link when they are on the PC's Wi-Fi. Without cloudflared, phones must
+be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min).
 
 1. On the PC, at the **repo root** (a fresh clone is fine):
    ```sh
@@ -27,16 +34,21 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    fix if something would get in the way (old Node, a busy port). Read any **!** warnings: they
    cover the wrong network adapter, the Windows Firewall and guest Wi-Fi. When the game is up it
    prints the **TV** and **Phones** addresses. **Ctrl+C** stops it.
-   Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter) or
-   `npm start -- --tunnel` (guest/work Wi-Fi, or phones on mobile data). `npm start` in this
-   folder does the same.
+   Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter),
+   `npm start -- --lan-only` (no cloud tunnel) or `npm start -- --tunnel` (tunnel only, fail
+   if it can't start). `npm start -- --help` lists them all. `npm start` in this folder does
+   the same.
 2. The browser opens **http://127.0.0.1:18900/game/** — drag it to the TV and press **F11**.
    (If port 18900 is busy, `npm start` uses the next free port and prints the TV address; see
    [#53](https://github.com/dcuccia/go-go-harmoniyo/issues/53).)
-3. Each ringer scans the QR on the TV. The phone warns about the certificate **once**
-   (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this website*). Type a name,
+3. Each ringer scans the QR on the TV. With the cloud tunnel (a `trycloudflare.com` address)
+   there is no warning. Without it (a `https://192.168…` address) the phone warns about the
+   certificate **once** (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this
+   website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
-4. The TV lobby lists the phones. Ring a phone: its row flashes and its lane lights on the TV.
+4. The TV lobby lists the phones, each with its route: **direct** (same Wi-Fi, fastest),
+   **via tunnel** (through the internet; fine to play) or **Wi-Fi** (no tunnel). Ring a phone:
+   its row flashes and its lane lights on the TV.
    Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
 5. Pick **Song**, **Difficulty** (first-timers: **Super easy** — the tune's downbeats and long
@@ -129,15 +141,27 @@ problem prints a fix for you to run.
 | Several adapters | i | Prints the address phones will use and each alternative as `npm start -- --ip …`. Wi-Fi is preferred because phones are on Wi-Fi; virtual and VPN adapters (WSL, Hyper-V, Docker, NordLynx, Tailscale…) are ignored |
 | Windows Firewall (reads the Node.js rules and the network's Private/Public type) | ! | Network is Public but Node is allowed only on Private: make the network Private (Settings → Network & internet → Wi-Fi → network → Private) or `--tunnel`. A *Block* rule (Cancel on the prompt): how to remove it. No rule yet: tick **Private networks** when Windows asks. If it can't tell, a reminder to allow Node on Private networks |
 | Guest or work (domain) network | ! | Guest Wi-Fi keeps devices apart: use home Wi-Fi or `--tunnel` |
+| cloudflared not found (default mode) | i | Phones join on this Wi-Fi with a certificate warning. Install it for the tunnel: `winget install --id Cloudflare.cloudflared` |
 | `--tunnel` without cloudflared | ✗ | `winget install --id Cloudflare.cloudflared`. A portable copy in `%LOCALAPPDATA%\Programs\cloudflared` (or WinGet Links, Program Files) works without being on PATH |
+| `--tunnel` with `--lan-only`/`--no-tunnel`, or a bad `--rtc` | ✗ | Pick one |
 
 The Windows network and firewall checks can take a few seconds on a busy PC; they run while
 the game builds, and if they take over 10 s more, their result is printed after the host starts.
-The QR code works as soon as the tunnel address arrives (#19); if cloudflared gives no address in
-45 s, the launcher says so.
+In the default mode the QR shows the tunnel address once phones can open it: the host waits until
+public DNS (1.1.1.1, 8.8.8.8, 9.9.9.9, 208.67.222.222) knows the new name and an HTTPS request
+through the tunnel reaches it, then prints `Tunnel: ready at … after N s` (about 7 s in testing;
+the TV says *starting the cloud tunnel…* meanwhile). Showing it any earlier makes a phone that
+scans at once get "server not found", which its DNS then remembers for a minute. If every public
+resolver says the name doesn't exist yet (each would then remember that for a minute), the host
+gives up on that address after about 12 s and restarts cloudflared for a new one; the TV keeps
+*starting…* during the restart. If the tunnel isn't ready within 15 s (`--lan-qr-after <s>`, or
+`never` to wait until the tunnel gives up), or the internet is down, the QR shows the Wi-Fi
+address, and switches to the tunnel when it is ready. With `--tunnel` the launcher warns if no
+address arrives in 45 s.
 
 Not detected: client isolation on a Wi-Fi that isn't named like a guest network, and third-party
-firewalls. If the phones can't open the join page, try `npm start -- --tunnel`. The certificate
+firewalls. If the phones can't open a Wi-Fi join page, install cloudflared (or try
+`npm start -- --tunnel`). The certificate
 warning on the phones and help on the TV are [#26](https://github.com/dcuccia/go-go-harmoniyo/issues/26)
 (the host prints the certificate tip in the console).
 
@@ -147,6 +171,48 @@ Windows Firewall check there is a reminder: macOS asks whether `node` may accept
 connections (click Allow); on Linux, open TCP 8443 in `ufw`/`firewalld` if a firewall is
 on. cloudflared is found on PATH or in `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`,
 `~/.local/bin`. The browser opens with `open` / `xdg-open`.
+
+### How phones connect
+
+Nobody has to choose a route in advance ([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Accepted):
+
+1. **Cloud tunnel first.** If cloudflared is found and the internet is reachable, the host starts
+   a Cloudflare quick tunnel and the QR shows its `https://….trycloudflare.com` address. It has a
+   real certificate (no warning) and works on guest Wi-Fi, through client isolation and on mobile
+   data. The address is new each run, so the QR on the TV is always the one to scan.
+2. **Then direct.** After joining, a phone tries to send its rings over a WebRTC data channel
+   straight to the PC, set up through the tunnel. On a normal home Wi-Fi this connects in a
+   second or two. The phone shows *connected (direct)* and the TV shows **direct**. If it can't
+   (guest Wi-Fi, mobile data, a firewall blocking UDP), the phone stays on the tunnel and the TV
+   shows **via tunnel**. The game is the same either way: rings are judged by when they were
+   rung on the phone, so the route only changes how quickly the TV reacts (the tunnel adds
+   roughly 20–100 ms). Rings are sent on both paths and the host keeps the first copy, so
+   switching paths mid-song doesn't lose a ring. The tunnel stays open for everything else
+   (lobby, parts, clock sync).
+3. **No cloudflared or no internet:** the QR shows the Wi-Fi address (`https://192.168…:8443`)
+   with its one-time certificate warning, as before. The TV shows **Wi-Fi**.
+
+| Option | Effect |
+|---|---|
+| *(none)* | Auto: tunnel if possible, direct upgrade, Wi-Fi fallback |
+| `--lan-only` (or `--no-tunnel`) | Never start the tunnel; Wi-Fi QR only |
+| `--tunnel` | Tunnel only; stop with an error if cloudflared is missing |
+| `--rtc auto\|on\|off` | Direct upgrade: only for tunnel phones (default), for every phone, or never |
+| `--lan-qr-after <s>\|never` | How long the TV waits for the tunnel before showing the Wi-Fi QR (default 15 s; [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md) open choice) |
+| `--cloudflared <path>` | Use this cloudflared |
+
+**Where cloudflared is found:** `--cloudflared <path>`, then the `GOGOHARMONIYO_CLOUDFLARED`
+environment variable, then next to the running program (`cloudflared.exe` beside
+`go-go-harmoniyo.exe` in the portable Windows zip, [#43](https://github.com/dcuccia/go-go-harmoniyo/issues/43)),
+then PATH, then the usual install folders (above).
+
+**If phones stay "via tunnel" on home Wi-Fi:** check that they are on the same Wi-Fi as the PC
+(not mobile data), and that the Windows Firewall allows Node.js on Private networks (the direct
+link uses UDP). It still plays fine via the tunnel. If the PC's internet drops mid-session, all
+phones lose their connection, including those on a direct link, which is tied to the tunnel
+connection for now. They reconnect when the same tunnel comes back. If cloudflared restarts
+with a new address, or the TV falls back to the Wi-Fi QR, everyone rescans the QR. If the internet
+stays down, restart with `npm start -- --lan-only`.
 
 ### Backing track (procedural)
 
