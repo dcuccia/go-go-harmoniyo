@@ -1,0 +1,9 @@
+{
+  "$comment": "License texts for bundled npm packages whose published package has no LICENSE file (the bundle gate in tools/licensing/lib/bundle.mjs fails otherwise). Keyed by name@version, so a version bump fails the gate until the text is re-pinned from the matching upstream tag.",
+  "packages": {
+    "werift@0.25.1": {
+      "url": "https://raw.githubusercontent.com/shinyoshiaki/werift-webrtc/v0.25.1/LICENSE",
+      "sha256": "b83683f3f71b5971e6c2e33a8b894a49d752fd24c11b8ae08b53ca20f594fca5"
+    }
+  }
+}

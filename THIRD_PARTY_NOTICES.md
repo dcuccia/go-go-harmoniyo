@@ -8,9 +8,11 @@ depends on, with each component's declared license, so the obligations are visib
 Assets (art, audio, songs, charts) are credited separately in [ATTRIBUTION.md](ATTRIBUTION.md).
 
 Nothing listed here is vendored into this repository: npm packages are installed from the
-lockfiles and fetched sources are cloned into gitignored folders. Today everything is spike code
-that is not distributed as a product. A product build that bundles dependencies must also ship
-their full license texts and copyright notices (see [ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md)).
+lockfiles, fetched sources are cloned into gitignored folders and pinned binaries are downloaded at
+package time. A package that bundles dependencies also ships their full license texts and copyright
+notices (see [ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md)): the portable Windows
+package ([tools/package/windows](tools/package/windows/README.md)) generates its own
+THIRD_PARTY_NOTICES.md listing exactly what it bundles.
 Licenses are as declared in package metadata; they are not legal advice.
 
 ## Fetched sources (not vendored)
@@ -20,9 +22,9 @@ Licenses are as declared in package metadata; they are not legal advice.
 | YARC-Official/YARG.Core | LGPL-3.0-or-later | `spikes/s2-yarg-core`, `spikes/s3-yarg-handbell` | `spikes/s2-yarg-core/external/`, `spikes/s3-yarg-handbell/external/` | EX-003 (accepted) |
 | dcuccia/YARG (branch handbell-spike) | LGPL-3.0-or-later | `spikes/s3-yarg-handbell`, `tools/setup` | `spikes/s3-yarg-handbell/external/` | EX-004 (accepted) |
 
-## npm packages (225)
+## npm packages (227)
 
-Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0), `spikes/s6-ai-arranging` (0). Scope comes from the lockfile:
+Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `spikes/s4-web-host` (103), `spikes/s5-chart-pipeline` (0), `spikes/s6-ai-arranging` (0), `tools/package/windows` (2). Scope comes from the lockfile:
 *runtime* ships with the app; *dev* is build/test tooling only; *optional* installs only when available.
 
 | Package | Version | License | Scope | Used by |
@@ -172,6 +174,7 @@ Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `
 | cliui | 6.0.0 | ISC | runtime | `spikes/s1-phone-bell` |
 | color-convert | 2.0.1 | MIT | runtime | `spikes/s1-phone-bell` |
 | color-name | 1.1.4 | MIT | runtime | `spikes/s1-phone-bell` |
+| commander | 9.5.0 | MIT | dev | `tools/package/windows` |
 | debug | 4.4.0 | MIT | optional | `spikes/s1-phone-bell` |
 | debug | 4.4.3 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | decamelize | 1.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
@@ -211,6 +214,7 @@ Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `
 | playwright-core | 1.64.1 | Apache-2.0 | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
 | pngjs | 5.0.0 | MIT | runtime | `spikes/s1-phone-bell` |
 | postcss | 8.5.31 | MIT | dev | `spikes/i2-web-phones`, `spikes/s4-web-host` |
+| postject | 1.0.0-alpha.6 | MIT | dev | `tools/package/windows` |
 | pvtsutils | 1.3.6 | MIT | runtime | `spikes/s1-phone-bell` |
 | pvutils | 1.2.0 | MIT | runtime | `spikes/s1-phone-bell` |
 | qrcode | 1.5.4 | MIT | runtime | `spikes/s1-phone-bell` |
@@ -256,6 +260,15 @@ Projects: `.` (0), `spikes/i2-web-phones` (101), `spikes/s1-phone-bell` (124), `
 ## NuGet packages (0)
 
 No direct `PackageReference`s. The S2/S3 harnesses get their NuGet packages transitively through the fetched YARG.Core project (see above); they are restored, not redistributed.
+
+## Pinned binaries (2)
+
+Downloaded at package time, verified against the pinned SHA-256 and redistributed unmodified.
+
+| Binary | Version | License | Role | Pinned in |
+|---|---|---|---|---|
+| [Node.js](https://github.com/nodejs/node/tree/v22.23.4) | 22.23.4 | MIT | Runtime of go-go-harmoniyo.exe (Node.js single executable application: node.exe with the game's code injected). | `tools/package/windows/binaries.json` |
+| [cloudflared](https://github.com/cloudflare/cloudflared/tree/2026.10.7) | 2026.10.7 | Apache-2.0 | Optional quick tunnel (https://….trycloudflare.com) for phones that can't reach the PC on the local network; shipped unmodified next to the exe. | `tools/package/windows/binaries.json` |
 
 ## Exceptions to the license allowlist
 

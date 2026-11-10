@@ -333,3 +333,13 @@ audience reactions, festive themes (holiday theme for M5).
     guest and school networks isolate clients (use the relay). On Windows, allow Node through the
     firewall for Private networks and use `127.0.0.1` rather than `localhost`. See ADR-0006.
 - Later: macOS/Linux/ChromeOS hosts; hosted web version; offline classroom kit.
+- Portable Windows zip ([#43](https://github.com/dcuccia/go-go-harmoniyo/issues/43),
+  [tools/package/windows](../../tools/package/windows/README.md)): a Node 22 single executable
+  app with the prebuilt game and a pinned `cloudflared.exe`. No Node, npm or admin needed, and
+  state lives in `%LOCALAPPDATA%\GoGoHarmoniYo`. CI builds it as an artifact.
+- Open questions:
+  - Code signing: unsigned builds get a SmartScreen warning, and Smart App Control blocks them.
+    Options: Azure Trusted Signing, SignPath for open source, or an OV/EV certificate.
+  - Our own exe icon and name. The firewall dialog says "Node.js JavaScript Runtime".
+  - macOS and Linux packages (the same SEA approach; macOS needs notarization).
+  - Listing cloudflared's Go dependency notices.
