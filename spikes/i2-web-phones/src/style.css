@@ -65,6 +65,8 @@ select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; b
 #sel-song { min-width: min(420px, 80vw); }
 /* Grid/flex items default to min-width:auto, so a long song <select> widened the middle column under the Phones panel. */
 .lobby > section, .setup .row label { min-width: 0; }
+.lobby-footer { grid-column: 1 / -1; text-align: center; margin-top: -8px; }
+.lobby-footer a { color: inherit; }
 .setup .row label:has(#sel-song) { flex: 1 1 100%; }
 #sel-song { width: 100%; min-width: 0; text-overflow: ellipsis; }
 .setup .backing-row { align-items: center; }

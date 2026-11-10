@@ -23,7 +23,7 @@ export type TunnelState = 'off' | 'starting' | 'up' | 'down';
 
 export const TUNNEL_ENV = 'GOGOHARMONIYO_CLOUDFLARED';
 /** In `auto`, how long the TV waits for the tunnel address before showing the LAN one. */
-export const TUNNEL_GRACE_MS = 15_000;
+export const TUNNEL_GRACE_MS = 60_000;
 /** Publish the tunnel URL this long after it appears even if no "Registered" line is seen. */
 export const TUNNEL_REGISTER_FALLBACK_MS = 8_000;
 

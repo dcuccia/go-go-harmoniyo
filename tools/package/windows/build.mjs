@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Builds the portable Windows download-and-play package of Go Go HarmoniYo (issue #43):
 //
-//   node tools/package/windows/build.mjs [--version 0.1.0] [--skip-zip]
+//   node tools/package/windows/build.mjs [--version 0.1.0-alpha] [--skip-zip]
 //
 // Needs Windows x64, Node 22 and `npm ci` in spikes/i2-web-phones, spikes/s1-phone-bell and
 // tools/package/windows. Output in tools/package/windows/out/ (gitignored):
@@ -36,8 +36,15 @@ const arg = (name) => {
 };
 const git = (...a) => execFileSync('git', a, { cwd: repo, encoding: 'utf8' }).trim();
 const commit = git('rev-parse', '--short=12', 'HEAD');
+// The game's version (spikes/i2-web-phones/package.json, shown in the lobby footer) is the
+// product version. A release tag must match it; other builds add the commit as build metadata.
+const gameVersion = JSON.parse(readFileSync(join(i2, 'package.json'), 'utf8')).version;
 const tag = process.env.GITHUB_REF_TYPE === 'tag' ? process.env.GITHUB_REF_NAME : undefined;
-const version = (arg('version') ?? tag ?? `0.0.0-dev.${commit}`).replace(/^v/, '');
+if (tag && !arg('version') && tag.replace(/^v/, '') !== gameVersion) {
+  console.error(`✗ Tag ${tag} doesn't match the game's version ${gameVersion} (spikes/i2-web-phones/package.json).`);
+  process.exit(1);
+}
+const version = (arg('version') ?? tag ?? `${gameVersion}+${commit}`).replace(/^v/, '');
 if (!/^[\w.+-]+$/.test(version)) throw new Error(`bad version "${version}"`);
 const zipName = `go-go-harmoniyo-${version}-windows-x64.zip`;
 

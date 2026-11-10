@@ -2,13 +2,15 @@ name: windows-package
 
 # The portable Windows download-and-play zip (#43, tools/package/windows/README.md): builds the
 # Node SEA package on windows-latest, smoke-tests it, and uploads the zip + SHA256SUMS.txt as a
-# workflow artifact. It never publishes a release: the owner checks the artifact on a clean
-# Windows account and attaches it to the release by hand.
+# workflow artifact. On a `v*` tag push, the `release` job also attaches them to the GitHub
+# release for that tag, creating it as a DRAFT (pre-release for versions like 0.1.0-alpha) with
+# docs/release/<tag>.md as the notes. It never publishes: a person reviews and publishes the
+# draft. Manual runs and PRs only upload the workflow artifact.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package version (default: the tag, or 0.0.0-dev.<commit>)'
+        description: 'Package version (default: the tag, or <game version>+<commit>)'
         required: false
   push:
     tags: ['v*']
@@ -34,6 +36,9 @@ jobs:
     name: build and smoke-test the Windows package
     runs-on: windows-latest
     timeout-minutes: 20
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+      zip: ${{ steps.build.outputs.zip }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -67,7 +72,7 @@ jobs:
           @"
           ### Go Go HarmoniYo ${{ steps.build.outputs.version }} for Windows
 
-          Artifact: ``go-go-harmoniyo-${{ steps.build.outputs.version }}-windows-x64`` (not published; see tools/package/windows/README.md for the clean-account checklist).
+          Artifact: ``go-go-harmoniyo-${{ steps.build.outputs.version }}-windows-x64`` (see tools/package/windows/README.md for the clean-account checklist). Tag builds also attach it to a draft GitHub release.
 
           ``````
           $sums
@@ -81,3 +86,52 @@ jobs:
             tools/package/windows/out/SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
+
+  release:
+    name: attach the zip to the draft GitHub release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The only job that can write: it creates a draft release and uploads release assets.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: docs/release
+      - uses: actions/download-artifact@v4
+        with:
+          name: go-go-harmoniyo-${{ needs.package.outputs.version }}-windows-x64
+          path: dist
+      - name: Create the draft release if there is none, then upload the zip and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.package.outputs.version }}
+          ZIP: ${{ needs.package.outputs.zip }}
+        run: |
+          set -euo pipefail
+          # Drafts aren't found by tag through /releases/tags/<tag>, so list them all.
+          existing=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[] | select(.tag_name == \"$TAG\") | .id")
+          if [ -n "$existing" ]; then
+            echo "Release for $TAG already exists ($existing); attaching the files to it."
+          else
+            args=(--draft --verify-tag --title "Go Go HarmoniYo $TAG")
+            case "$VERSION" in *-*) args+=(--prerelease) ;; esac
+            notes="docs/release/$TAG.md"
+            if [ -f "$notes" ]; then
+              args+=(--notes-file "$notes")
+            else
+              echo "::warning::$notes not found; using a placeholder. Edit the draft's notes before publishing."
+              args+=(--notes "Go Go HarmoniYo $TAG. See CHANGELOG.md.")
+            fi
+            gh release create "$TAG" "${args[@]}"
+          fi
+          gh release upload "$TAG" "dist/$ZIP" dist/SHA256SUMS.txt --clobber
+          {
+            echo "### Draft release $TAG"
+            echo
+            echo "Attached \`$ZIP\` and \`SHA256SUMS.txt\`. Review the draft at https://github.com/$GH_REPO/releases and publish it by hand."
+          } >> "$GITHUB_STEP_SUMMARY"

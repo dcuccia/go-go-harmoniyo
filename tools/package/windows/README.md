@@ -10,7 +10,7 @@ game), using prebuilt files.
 GoGoHarmoniYo\
   Play Go Go HarmoniYo.cmd   what people double-click (runs the exe, pauses on errors)
   go-go-harmoniyo.exe        Node.js 22 single executable application: launcher + phone host
-  cloudflared.exe            Cloudflare Tunnel client for --tunnel (pinned, Apache-2.0)
+  cloudflared.exe            Cloudflare Tunnel client for the default auto tunnel and --tunnel (pinned, Apache-2.0)
   app\game\                  the I2 game, built by Vite (served at /game/)
   app\controller\            the phone controller page and its esbuild bundle
   app\brand\                 logos served at /brand/
@@ -28,14 +28,16 @@ Needs Windows x64 and Node 22. Run from the repo root:
 
 ```powershell
 npm ci --prefix spikes/i2-web-phones; npm ci --prefix spikes/s1-phone-bell; npm ci --prefix tools/package/windows
-node tools/package/windows/build.mjs            # [--version 0.1.0] [--skip-zip]
+node tools/package/windows/build.mjs            # [--version 0.1.0-alpha] [--skip-zip]
 node tools/package/windows/smoke.mjs            # [path\to\GoGoHarmoniYo] [--tunnel-check]
 ```
 
 Output goes to `tools/package/windows/out/` (gitignored):
 `go-go-harmoniyo-<version>-windows-x64.zip`, `SHA256SUMS.txt` and `stage/GoGoHarmoniYo/`
-(the unzipped package). The version is `--version`, otherwise the tag (`v0.1.0` → `0.1.0`),
-otherwise `0.0.0-dev.<commit>`.
+(the unzipped package). The version is `--version`, otherwise the tag (`v0.1.0-alpha` →
+`0.1.0-alpha`), otherwise the game's version from `spikes/i2-web-phones/package.json` plus the
+commit (`0.1.0-alpha+<commit>`). A tag build fails if the tag doesn't match that package
+version, so bump `package.json` (and the [CHANGELOG](../../../CHANGELOG.md)) before tagging.
 
 `smoke.mjs` starts the exe as the `.cmd` would, with `--no-open`, ports 18950/18951 and a
 throwaway state folder. It checks the TV game page and its script, the charts, the QR code,
@@ -45,9 +47,13 @@ and loads the phone page through the `trycloudflare.com` address.
 
 CI: [`.github/workflows/windows-package.yml`](../../../.github/workflows/windows-package.yml)
 runs on `windows-latest` when started by hand, for `v*` tags, and for PRs that touch the package.
-It builds, smoke-tests, and uploads the zip and `SHA256SUMS.txt` as a workflow artifact. **It
-doesn't publish a release.** The owner downloads the artifact, checks it on a clean account (below),
-and attaches the zip and `SHA256SUMS.txt` to the GitHub release.
+It builds, smoke-tests, and uploads the zip and `SHA256SUMS.txt` as a workflow artifact. On a
+`v*` tag push, a `release` job (the only job with `contents: write`) also attaches the zip and
+`SHA256SUMS.txt` to the GitHub release for that tag. If there is no release yet, it creates a
+**draft** (a pre-release when the version has a `-` suffix) with
+`docs/release/<tag>.md` as the notes. It never publishes: a person reviews the draft and
+publishes it. Re-running replaces the attached files (`--clobber`). Manual runs and PRs only
+upload the workflow artifact, as before.
 
 ## How it works
 
@@ -109,9 +115,12 @@ access*.
 - **Windows Defender Firewall** ("Windows Security Alert"): when the host starts listening. The
   dialog shows the exe's version resource, so it names **"Node.js JavaScript Runtime"**; its
   path is the package's `go-go-harmoniyo.exe`. Allowing it needs admin rights. Without them
-  (Cancel), phones on the LAN can't connect; use `--tunnel`. Preflight finds the rule by the
+  (Cancel), phones still join through the default tunnel but stay *via tunnel* (no direct
+  upgrade), and the Wi-Fi address (`--lan-only`, or the fallback without internet) doesn't work. Preflight finds the rule by the
   exe's full path, so it moves with the folder. Each new folder location means a new prompt.
-- **Phones:** a one-time certificate warning on the LAN address (not with `--tunnel`).
+- **Phones:** no warning on the default tunnel address (`https://….trycloudflare.com`); a one-time
+  certificate warning on the Wi-Fi address (`--lan-only`, or the fallback when there's no
+  internet or the tunnel isn't ready within 60 s, [ADR-0012](../../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)).
 
 ## Updating the pins
 
@@ -151,12 +160,13 @@ Use a fresh local *standard* (non-admin) user, or Windows Sandbox / a clean VM, 
    (SmartScreen for the `.cmd` and/or exe, and Smart App Control if it's on), with screenshots.
 3. The browser opens the game with the QR code. Note the firewall dialog: its name and whether it
    asks for admin. Try both *Allow* (with admin) and *Cancel*.
-4. A phone on the same Wi-Fi scans the QR code, accepts the certificate warning, and rings.
-   Play a song with 2 phones.
+4. A phone on the same Wi-Fi scans the QR code (the tunnel address: no certificate warning), reaches
+   *direct* (if the firewall was allowed), and rings. Play a song with 2 phones.
 5. Close the black window: the game page stops responding. Check Task Manager: no
    `go-go-harmoniyo.exe` or `cloudflared.exe` is left.
-6. Start again with `"Play Go Go HarmoniYo.cmd" --tunnel` (Command Prompt in the folder): a phone
-   on mobile data joins.
+6. A phone on mobile data joins through the same QR (it stays *via tunnel*). Then start again with
+   `"Play Go Go HarmoniYo.cmd" --lan-only` (Command Prompt in the folder): a phone on the Wi-Fi
+   accepts the one-time certificate warning and joins.
 7. Only the folder and `%LOCALAPPDATA%\GoGoHarmoniYo` changed (plus the firewall rule if allowed).
    Delete both: nothing is left behind.
 

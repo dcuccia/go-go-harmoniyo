@@ -42,15 +42,15 @@ Working conventions learned so far:
   and the HGP protocol), S4 (renderer, judge), S5 (chart pipeline) and procedural backing.
   Start with `npm start` from the repo root (preflight checks). With cloudflared installed it
   joins phones through a cloud tunnel and upgrades them to a direct WebRTC link on the same
-  Wi-Fi, falling back to the LAN QR without it (ADR-0012, Accepted 2026-11-09). `--lan-only` / `--tunnel`
-  force one route.
+  Wi-Fi,   falling back to the LAN QR without it or when the tunnel isn't ready within 60 s (ADR-0012, Accepted 2026-11-09; 60 s chosen 2026-11-10). `--lan-only` / `--tunnel`
+    force one route. Friends without a clone can use the portable Windows zip (#77).
 - **Features in place:** seating chart and phone part picker; drop-in join with a corner QR;
   practice speed 50–100 %; Super easy / Easy / Medium / Hard; balanced role-aware parts with
   a chord-split option; 2–3 minute songs that develop; fast-ring detection (Normal/Quick);
   richer backing and SFX; one tab per phone with takeover; Go Go HarmoniYo branding (G2
   lockup, Yo Y1 mark, dark first).
 - **Songs on main:** 16. The 9 self-encoded carols in #62 would bring it to 24.
-- **Decisions:** ADRs 0001–0011 are all Accepted. See [docs/decisions](../decisions/README.md).
+- **Decisions:** ADRs 0001–0012 are all Accepted. See [docs/decisions](../decisions/README.md).
   The YoYo origin story (brand.md) is approved. Brand: G2 candlelight 1.5×, Y1 Wink mark,
   Y8 favicon, Yo states Y3/Y4/Y2–Y5.
 - **Policies:** code MIT; original art/audio/charts CC BY 4.0; AI-generated assets CC0 with
@@ -67,17 +67,17 @@ Working conventions learned so far:
 | Item | Status | Who |
 |---|---|---|
 | #62: 9 self-encoded carols | CI red only on the 9 pending reviews, by design | Owner reviews, then coordinator records and merges |
-| #29: alpha playtest with 2+ phones | Gates the `v0.1.0-alpha` tag (Nov 15) | Owner |
+| #29: alpha playtest with 2+ phones | **Closed 2026-11-10 on the owner's call**: played #78 on an M1 iPad Pro and a Pixel. Reopen if a playtest shows problems | — |
 | #30: proofread carols | Jingle Bells, Deck the Halls and O Come All Ye Faithful fixed | Owner |
-| #31: first iPhone test | WebKit emulation passes 15/15 | Owner |
+| #31: first iPhone test | **Closed 2026-11-10 on the owner's call**: the iPad (same WebKit engine) stands in for the iPhone. Reopen if an iPhone shows problems | — |
 | #45: reserve domain and handles | gogoharmoniyo.com and handles were free on 2026-10-23 | Owner |
 | #47: AI node token | **Closed 2026-10-27** after a live authenticated smoke (healthz, models, chat, `smoke-file` job) | — |
 | AI node live runs (S6) | qwen3:8b chord/descant experiments **done on the node 2026-10-27** (S6 report §d; verdict unchanged). AMT image `sha256:93e86a83…ec21` (duration clamp, #73/#74) registered by cuccia-infra 2026-10-27. **AMT 3 carols × 3 seeds run on the node 2026-11-10**: 9/9 succeeded, ~18–21 s per carol, 1.5 GiB VRAM, but the medium model's output is nearly empty (0–18 notes, almost all in the first ~4 s). fp16, drum filtering and top_p 0.98 were ruled out; `history_seconds` raises inside `anticipation`. S6 report "Live node runs" has the details. All outputs are candidates, review pending | None now. AMT follow-up (history fix, seeding with S5 accompaniment) is optional, post-Thanksgiving |
 | #26: TV cert/network help | Held for the owner (new TV UI) | Coordinator, after owner OK |
-| Thanksgiving family event (2026-11-26) | Owner's goal (asked 2026-11-09). The owner hosts with `npm start` from a clone; phones scan the QR. Critical path: #29, an iPhone check (#31), `npm start -- --check` on the venue Wi-Fi. Target for #78 and the zip: about Nov 22 | Owner; coordinator supports |
-| #78: auto tunnel + direct WebRTC upgrade, [ADR-0012](../decisions/0012-auto-tunnel-direct-upgrade.md) **Accepted 2026-11-09**, **merged 2026-11-10** | Owner tested on an M1 iPad Pro (iPadOS 26.7.1) and a Pixel: both reached direct. Fixes before merge: the iPad "Undo Typing" popup (5751621: clears the WebKit undo stack on Start and blocks multi-touch/gesture defaults) and tunnel readiness (8a25c07 and 5751621: 4 public resolvers, NXDOMAIN gives a fresh address after ~12 s, the TV stays on "starting"). The undo fix is verified only in WebKit emulation. Real iPhone "direct" is still unverified (#31) | Owner rechecks the iPad (no undo popup, pinch does nothing, note "Tunnel: ready … after N s"). Owner decides the LAN-QR wait (ADR-0012 follow-up: A 15 s / **B 60 s recommended** / C never) |
-| #43: portable Windows zip | **Merged as #77 on 2026-11-09**: `windows-package.yml` builds a Node SEA exe, pinned `cloudflared.exe`, the `.cmd` launcher, notices and SHA256SUMS. Nothing was published, tagged or signed | Owner: clean-account checklist (PR #77), the code-signing decision, publishing a release |
-| #28: alpha release | After #29 | Coordinator |
+| Thanksgiving family event (2026-11-26) | Owner's goal (asked 2026-11-09). The owner hosts with `npm start` from a clone; phones scan the QR. #78, #29 and #31 are done; the venue is the owner's home Wi-Fi (verified). The owner also wants to share the Windows zip with friends and colleagues (2026-11-10), via the `v0.1.0-alpha` GitHub pre-release | Owner; coordinator supports |
+| #78: auto tunnel + direct WebRTC upgrade, [ADR-0012](../decisions/0012-auto-tunnel-direct-upgrade.md) **Accepted 2026-11-09**, **merged 2026-11-10** | Owner tested on an M1 iPad Pro (iPadOS 26.7.1) and a Pixel: both reached direct. Fixes before merge: the iPad "Undo Typing" popup (5751621: clears the WebKit undo stack on Start and blocks multi-touch/gesture defaults) and tunnel readiness (8a25c07 and 5751621: 4 public resolvers, NXDOMAIN gives a fresh address after ~12 s, the TV stays on "starting"). The owner rechecked the iPad fixes after merge (no undo popup, pinch ignored). **LAN-QR wait decided 2026-11-10: option B, 60 s** ("60s sounds good"); the default changes in the #28 release-prep PR | — |
+| #43: portable Windows zip | **Merged as #77 on 2026-11-09**: `windows-package.yml` builds a Node SEA exe, pinned `cloudflared.exe`, the `.cmd` launcher, notices and SHA256SUMS. Nothing was published, tagged or signed. **Owner approved a GitHub release with the zip (2026-11-10).** On a `v*` tag the workflow now attaches the zip and SHA256SUMS to a draft pre-release | Owner: clean-account checklist (PR #77), the code-signing decision (the alpha ships unsigned) |
+| #28: alpha release | Release-prep PR: CHANGELOG, version 0.1.0-alpha, [release notes](../release/v0.1.0-alpha.md), 60 s LAN-QR wait. Next: merge, tag `v0.1.0-alpha`, review the draft release, publish | Coordinator tags; owner OKs publishing |
 | Holiday milestone (#17, #20, #33, #34, #36–#39, #41–#44, #48, #55, #59) | v0.2 holiday, Dec 18 | Mixed |
 | #58: bring-your-own MIDI import | Follow-up | — |
 

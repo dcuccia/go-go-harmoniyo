@@ -1,7 +1,8 @@
 # 0012 — Auto tunnel with a direct-LAN upgrade (amends ADR-0006)
 
 - Status: Accepted (owner, 2026-11-09; [#78](https://github.com/dcuccia/go-go-harmoniyo/pull/78)).
-  The LAN-QR wait ("Open follow-up" below) is not part of the accepted decision.
+  The LAN-QR wait ("Open follow-up" below) was decided separately: the owner chose option B, 60 s,
+  on 2026-11-10.
 - Date: 2026-11-09
 - Deciders: @dcuccia (owner); proposed by the auto-tunnel session (S6 coordinator)
 - Amends: [ADR-0006](0006-phone-host-transport.md), decision point 1 and the 2026-10-25 holiday
@@ -85,10 +86,10 @@ route in advance.
        25–30 s. A live run after the change was ready after 7.7 s (DNS at +3.0 s via 1.1.1.1).
        Residual risk: a router or ISP that intercepts port-53 traffic to public resolvers shares
        one cache for all four, and phones behind it could cache our early "no" too.
-   - The TV shows "Starting the cloud tunnel…" for up to 15 s (`--lan-qr-after`, see "Open
-     follow-up" below). A restart for a fresh address within that time keeps showing it instead of
-     flashing the LAN QR.
-   - With no cloudflared, no internet, or a tunnel that is not ready after 15 s, the QR is the
+   - The TV shows "Starting the cloud tunnel…" for up to 60 s (`--lan-qr-after`; 15 s when this ADR
+     was accepted, 60 s by the owner's choice on 2026-11-10, see "Open follow-up" below). A restart
+     for a fresh address within that time keeps showing it instead of flashing the LAN QR.
+   - With no cloudflared, no internet, or a tunnel that is not ready after 60 s, the QR is the
      LAN self-signed URL, as in ADR-0006 (a1). It switches to the tunnel URL once that is ready.
    - The LAN HTTPS listener always runs. Phones that already joined over the LAN keep working
      if the tunnel appears later.
@@ -139,21 +140,23 @@ route in advance.
 
 ## Open follow-up for the owner: how long the TV waits for the tunnel
 
-Not part of the decision accepted on 2026-11-09: the accepted default stays 15 s. Changing it is
-a separate owner choice (a one-line default change, or `--lan-qr-after` per run).
+**Owner's choice, 2026-11-10: option (B), 60 s** ("60s sounds good"). This records the owner's
+answer to the follow-up below; it was not part of the decision accepted on 2026-11-09, whose
+default was 15 s. The default of `--lan-qr-after` is now 60 s (`TUNNEL_GRACE_MS` in
+`transport.ts`); `--lan-qr-after <seconds>|never` still overrides it per run. The options as
+they were put to the owner:
 
 While the tunnel is getting ready, the TV either shows "Starting the cloud tunnel…" (no QR) or
 falls back to the Wi-Fi QR (self-signed: each first-time phone gets a certificate warning, and
 in iPad Chrome a full-page "Your connection is not private"). In the owner's 2026-11-10 run the
 Wi-Fi QR was on screen from 15 s to 63 s, which is how a phone got the warning. The flag
-`--lan-qr-after <seconds>|never` exists now; the default is unchanged (15 s) until the owner
-picks one:
+`--lan-qr-after <seconds>|never` exists; the options were:
 
 - **(A) Keep 15 s.** Fastest QR when the tunnel is slow or blocked, but a slow tunnel start shows
   the warning-prone QR to whoever scans early, and those phones stay on the Wi-Fi route.
 - **(B) 60 s.** Covers a fresh-address restart (≈ 12 s check + 1 s + second address ≈ 10–20 s)
   and most slow starts. When the tunnel truly can't work (blocked network), the QR appears after
-  a minute instead of 15 s. *Recommended for the event.*
+  a minute instead of 15 s. *Recommended for the event;* **chosen by the owner, 2026-11-10.**
 - **(C) `never`.** The Wi-Fi QR appears only when the tunnel has given up (3 restarts) or there
   is no cloudflared/internet. No certificate warning unless the tunnel is impossible, but if
   cloudflared hangs without printing an address the TV waits indefinitely (the runner can
@@ -199,7 +202,7 @@ at once under every option.
   access" prompt covers TCP and UDP. If UDP is blocked, the phone stays on the tunnel.
 - **No werift** (optional dependency missing): no upgrade is offered; tunnel or LAN only.
 - **Corporate networks** that block `*.trycloudflare.com` or UDP: the tunnel doesn't start, so
-  the LAN QR is shown after 15 s (`--lan-qr-after`).
+  the LAN QR is shown after 60 s (`--lan-qr-after`).
 
 ### Future work
 
@@ -233,7 +236,8 @@ These need real devices, cloudflared and a real network; they can't be done in C
    Shake to Undo left on). Repeat in Chrome on the iPad.
 8. Start-up a few times: note the "Tunnel: ready … after N s" line, and that the TV never shows
    the Wi-Fi QR while the tunnel is restarting for a fresh address (unless it takes longer than
-   `--lan-qr-after`). Then pick option A, B or C in the open follow-up above.
+   `--lan-qr-after`, 60 s by default). (The owner picked option B in the follow-up above on
+   2026-11-10.)
 
 ## Evidence
 
