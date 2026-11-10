@@ -23,7 +23,7 @@
     publisher" with a name, lets reputation build up across releases, and stops **Smart App
     Control** blocking the exe outright.
   - Only Microsoft Store (MSIX) distribution has no warning at all.
-- **Recommended signing path: apply to SignPath Foundation now** (Proposed ADR-0013).
+- **Recommended signing path: apply to SignPath Foundation now** (ADR-0013, Accepted 2026-11-10).
   - It's free. The publisher is "SignPath Foundation", so the owner's name stays off the
     certificate.
   - The public pre-release v0.1.0-alpha (2026-11-10) meets the "already released" condition.
@@ -172,7 +172,7 @@ The owner asked, "Any other common options I should know about?" The answer, as 
 
 ### Recommendation
 
-**Apply to SignPath Foundation now** (Proposed [ADR-0013](../decisions/0013-windows-code-signing.md)).
+**Apply to SignPath Foundation now** ([ADR-0013](../decisions/0013-windows-code-signing.md), Accepted 2026-11-10).
 It's free, keeps the owner's name off the certificate, and has an official GitHub Action. The
 manual approval per release suits our release rhythm.
 

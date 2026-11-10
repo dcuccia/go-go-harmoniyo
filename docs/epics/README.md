@@ -355,8 +355,8 @@ audience reactions, festive themes (holiday theme for M5).
   - Code signing: unsigned builds get a SmartScreen warning, and Smart App Control blocks them.
     S8 ([report](../spikes/S8-report.md#1-code-signing-for-the-windows-zip)) signed the SEA exe
     with a test certificate and it still works, if Node's signature is removed before
-    `postject`. **Proposed [ADR-0013](../decisions/0013-windows-code-signing.md)** (revised
-    2026-11-10): apply to SignPath Foundation now (free; the owner submits the application);
+    `postject`. **[ADR-0013](../decisions/0013-windows-code-signing.md), Accepted
+    2026-11-10**: apply to SignPath Foundation now (free; the owner submits the application);
     Certum Open Source as the fallback; a Microsoft Store (MSIX) listing later. Azure is rejected
     on cost. No option except the Store removes SmartScreen's "unrecognized" warning on day one.
   - Our own exe icon and name. The firewall dialog says "Node.js JavaScript Runtime". S8:

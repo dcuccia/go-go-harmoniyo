@@ -97,7 +97,7 @@ are built from this repository by GitHub Actions on GitHub-hosted runners
 
 **Releases so far are unsigned.** The project is applying to the
 [SignPath Foundation](https://signpath.org)'s free code signing for open-source projects
-([ADR-0013](docs/decisions/0013-windows-code-signing.md), Proposed). Once accepted, Windows
+([ADR-0013](docs/decisions/0013-windows-code-signing.md)). Once SignPath accepts, Windows
 releases carry:
 
 Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by

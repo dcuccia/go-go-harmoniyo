@@ -1,6 +1,6 @@
 # 0013 — Windows code signing for the portable package
 
-- Status: Proposed
+- Status: Accepted (2026-11-10, @dcuccia)
 - Date: 2026-11-09; revised 2026-11-10 to the owner's direction
 - Deciders: @dcuccia (owner); proposed by the S8 spike session
 - Related: [#43](https://github.com/dcuccia/go-go-harmoniyo/issues/43) (portable Windows zip),
@@ -43,7 +43,7 @@ attestations (they prove provenance but don't change SmartScreen or Smart App Co
 
 ## Decision
 
-Proposed:
+Accepted by the owner on 2026-11-10:
 
 1. **Apply to (b) SignPath Foundation now.** v0.1.0-alpha meets the "already released"
    condition. The README has the code signing policy and privacy sections. The application

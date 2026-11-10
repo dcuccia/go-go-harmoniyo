@@ -17,7 +17,7 @@ Status: `Proposed` → `Accepted` (owner only) → optionally `Superseded by NNN
 | [0010](0010-product-layout.md) | Product layout: npm workspaces (`packages/`, `apps/`, `content/`, `contracts/`); ship the alpha from `spikes/i2-web-phones`, graduate Nov 16–24 | Accepted (2026-10-25), option A ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)) |
 | [0011](0011-ai-assisted-arranging.md) | AI-assisted arranging: generated music only as validated candidates; `candidate` register flag | Accepted (2026-10-25) |
 | [0012](0012-auto-tunnel-direct-upgrade.md) | Auto tunnel with a direct-LAN upgrade: tunnel QR by default, WebRTC direct link when it connects, LAN fallback (amends 0006) | Accepted (2026-11-09); the Wi-Fi QR wait (`--lan-qr-after`) set to 60 s by the owner (option B, 2026-11-10) |
-| [0013](0013-windows-code-signing.md) | Windows code signing: apply to SignPath Foundation now (free); Microsoft Store (MSIX) later; Azure Artifact Signing rejected on cost ([S8](../spikes/S8-report.md)) | Proposed (2026-11-09; revised to the owner's direction 2026-11-10) |
+| [0013](0013-windows-code-signing.md) | Windows code signing: apply to SignPath Foundation now (free); Microsoft Store (MSIX) later; Azure Artifact Signing rejected on cost ([S8](../spikes/S8-report.md)) | Accepted (2026-11-10) |
 | [0014](0014-store-era-host-architecture.md) | Store-era host: the TV/tablet app is the host (no PC); phones join a trusted web page by QR; a small free cloud service connects them; the PC zip stays the offline option ([S8](../spikes/S8-report.md)) | Proposed (2026-11-09; owner direction 2026-11-10); S9 prototype informs acceptance |
 
 Background for 0004–0007: [M2 decision brief](m2-decision-brief.md) and
