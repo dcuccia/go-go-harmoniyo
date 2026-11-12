@@ -55,6 +55,7 @@ export class QuickTunnel {
     let pending = '';
     let registered = false;
     let lastErr = '';
+    let stderrTail = '';
     let failReason = '';
     let checking = '';
     const spawnedAt = Date.now();
@@ -114,7 +115,10 @@ export class QuickTunnel {
       }
     };
     child.stdout?.on('data', scan);
-    child.stderr?.on('data', scan);
+    child.stderr?.on('data', (buf: Buffer) => {
+      stderrTail = (stderrTail + buf.toString()).slice(-4096);
+      scan(buf);
+    });
     child.on('error', (e: NodeJS.ErrnoException) => {
       if (child !== this.child) return;
       this.child = null;
@@ -128,7 +132,8 @@ export class QuickTunnel {
       if (upAt && Date.now() - upAt > 60_000) this.restarts = 0;
       this.restartPending = this.restarts < (this.o.maxRestarts ?? 3);
       this.restartInMs = failReason ? (this.o.notReadyRestartDelayMs ?? 1000) : (this.o.restartDelayMs ?? 5000);
-      this.set('down', '', failReason || `cloudflared exited (${signal ?? `code ${code}`})${lastErr ? `: ${lastErr}` : ''}`);
+      const diagnostic = lastErr || stderrTail.trim().split(/\r?\n/).at(-1);
+      this.set('down', '', failReason || `cloudflared exited (${signal ?? `code ${code}`})${diagnostic ? `: ${diagnostic}` : ''}`);
       if (this.restartPending) {
         this.restarts++;
         this.later(() => {

@@ -219,6 +219,18 @@ test('QuickTunnel: publishes the URL after a fallback delay if no "Registered" l
   assert.equal(children.length, 1, 'stop() does not restart');
 });
 
+test('QuickTunnel: reports an unprefixed startup failure split across stderr chunks', () => {
+  const { t, children } = fakeTunnel({ maxRestarts: 0 });
+  t.start();
+  children[0]!.log('2026-11-12T04:20:49Z INF Requesting new quick Tunnel on trycloudflare.com...');
+  children[0]!.stderr.emit('data', Buffer.from('failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": context dead'));
+  children[0]!.stderr.emit('data', Buffer.from('line exceeded (Client.Timeout exceeded while awaiting headers)\r\n'));
+  children[0]!.emit('exit', 1, null);
+  assert.equal(t.state, 'down');
+  assert.equal(t.reason, 'cloudflared exited (code 1): failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": context deadline exceeded (Client.Timeout exceeded while awaiting headers)');
+  t.stop();
+});
+
 test('QuickTunnel: a missing binary reports down without restarting', async () => {
   const { t, children } = fakeTunnel();
   t.start();

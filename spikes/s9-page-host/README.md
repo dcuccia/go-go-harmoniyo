@@ -64,6 +64,14 @@ Open the TV page on the PC (`http://localhost:18960/`, a secure context). Phones
 another device: use `npm run tunnel` and open the TV page at the printed `https://…trycloudflare.com`
 address so the QR points there too, or deploy the Worker (owner steps in the report).
 
+The local HTTP banner appears first even in tunnel mode; wait for `[tunnel] up https://…`.
+If cloudflared exits, the message includes its last diagnostic. A `failed to request quick Tunnel`
+timeout for `api.trycloudflare.com/tunnel` happens before the local server is contacted: check
+internet connectivity. A provisioning failure with HTTP 429 means new requests are being limited:
+stop retrying and wait before restarting `npm run tunnel`. An already-established PC-host tunnel
+can still work while requests for new tunnels fail; changing the local server to HTTPS won't fix
+that startup failure.
+
 TV page parameters: `?signal=<origin>` (signalling service; remembered), `?room=<CODE>`,
 `?relay=1` (force TURN), `?turn=<url>&tu=<user>&tc=<cred>` (extra TURN server), `?ice=none` (no
 STUN; same-machine tests). The phone link in the QR carries the room and any ICE parameters.
