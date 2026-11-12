@@ -422,7 +422,17 @@ from the repository root unless a folder is given. All passed.
   data. Loopback hides network latency and NAT behaviour.
 - The APK and the iOS simulator build exist only in CI. Neither ran on a device; the D-pad mapping
   is unverified on a real remote.
-- The cloudflared quick-tunnel option in the dev server (`npm run tunnel`) is untested:
-  cloudflared isn't installed here.
+- At spike completion, the cloudflared quick-tunnel option in the dev server (`npm run tunnel`)
+  was untested: cloudflared wasn't installed on that measurement machine.
+- Follow-up 2026-11-11 (coordinator PC, Windows, Node 22.18.0, Chrome 157, cloudflared 2026.10.7):
+  public HTTPS TV/controller endpoints and the emulated-phone e2e worked through a quick tunnel.
+  Later, the owner's S9 run failed before a tunnel URL was allocated. Two direct runs of
+  `cloudflared tunnel --no-autoupdate --url http://127.0.0.1:18960` reproduced
+  `failed to request quick Tunnel: Post "https://api.trycloudflare.com/tunnel": context deadline exceeded (Client.Timeout exceeded while awaiting headers)`.
+  A later probe through the fixed helper reported
+  `quick tunnel provisioning failed with status 429: [10000] Tunnelstore request failed`.
+  The shared tunnel launcher now retains these unprefixed stderr diagnostics instead of reporting
+  only `code 1`. New-tunnel provisioning was blocked, but the cause of the earlier timeouts is
+  undetermined; no real-device S9 play-through was established.
 - WebGL performance on the Gemini's Mali-G310 and in the iPad's WKWebView is unmeasured.
 - mDNS host-candidate resolution on real home networks is unmeasured (§2).

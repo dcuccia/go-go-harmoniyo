@@ -172,7 +172,7 @@ if (args.tunnel) {
       originPort: port,
       onChange: (state, url, reason) => {
         log(`[tunnel] ${state}${url ? ` ${url}` : ''}${reason ? ` (${reason})` : ''}`);
-        if (state === 'up') log(`  open the TV page at ${url}/ — its QR then points phones at ${url}/c/`);
+        if (state === 'up') log(`  open the TV page at ${url} — its QR then points phones at ${new URL('c/', url).href}`);
       },
     });
     tunnel.start();
