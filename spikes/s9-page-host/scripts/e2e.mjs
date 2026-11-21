@@ -5,6 +5,7 @@
 // --origin=http://127.0.0.1:18961 runs against `npm run worker` (wrangler dev: the real Worker + Durable Object).
 // --relay forces the phone↔TV path through a local TURN server (node-turn), like AP-isolated Wi-Fi.
 import { spawn } from 'node:child_process';
+import assert from 'node:assert/strict';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -54,6 +55,13 @@ try {
   // TV page: hosts the session. ICE test switches are forwarded to phones through the QR link.
   const ice = relay ? `&turn=${encodeURIComponent(`turn:127.0.0.1:${turnPort}?transport=udp`)}&tu=s9&tc=s9-local&relay=1` : '&ice=none';
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  await game.addInitScript(() => {
+    window.__exitCalls = 0;
+    window.Capacitor = { Plugins: { App: {
+      addListener: (_, back) => { window.__capBack = back; },
+      exitApp: async () => { window.__exitCalls++; },
+    } } };
+  });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   const tvT0 = Date.now();
   await game.goto(`${base}/?room=${room}${ice}&song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
@@ -61,6 +69,25 @@ try {
   const tvReadyMs = Date.now() - tvT0;
   const joinUrl = (await game.textContent('#join-url')).trim();
   console.log(`TV hosting room ${room} after ${tvReadyMs} ms; join link ${joinUrl}`);
+
+  // An Android remote may send centre with no KeyboardEvent.code; the app's Back callback
+  // must pop the inner picker before closing a dialog or asking the shell to exit.
+  await game.waitForFunction(() => document.querySelector('#seating .part'));
+  await game.keyboard.press('ArrowDown');
+  const centre = () => game.evaluate(() => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })));
+  const back = () => game.evaluate(() => window.__capBack());
+  const focus = (selector) => game.locator(`${selector}:focus`).count();
+  await centre(); // Round options
+  await centre(); // Edit seating
+  await centre(); // Pick a player for the first part
+  assert.equal(await focus('#seating .picker'), 1, 'code-less centre opens the seating picker');
+  await back();
+  assert.equal(await focus('#seating .part'), 1, 'Back closes only the picker');
+  await back();
+  assert.equal(await focus('#edit-seating'), 1, 'Back restores the seating launcher');
+  await back();
+  assert.equal(await focus('#open-round'), 1, 'Back restores the lobby launcher');
+  assert.equal(await game.evaluate(() => window.__exitCalls), 0, 'Back in a panel never exits');
 
   const phoneCtx = await browser.newContext({ ...devices['Pixel 7'] });
   const phone = await phoneCtx.newPage();
@@ -116,20 +143,25 @@ try {
     const c = center(bellBox);
     await phone.touchscreen.tap(c.x, c.y);
   }
-  await game.waitForFunction(() => document.title === 'I2_DONE', null, { timeout: 120000, polling: 500 });
-  const r = await game.evaluate(() => window.__i2Result);
-  const host = await game.evaluate(() => {
+  // Snapshot the live phones when the song ends, before Back changes the screen or exits.
+  const finished = await game.waitForFunction(() => {
+    if (document.title !== 'I2_DONE') return false;
     const h = window.__s9host;
     const g = h.gestures;
     return {
-      stats: h.stats,
-      phones: h.session.phones().map((d) => ({ name: d.name, route: d.route, path: d.path, joinMs: d.joinMs })),
-      gestures: g.length,
-      via: g.reduce((a, x) => ((a[x.via] = (a[x.via] ?? 0) + 1), a), {}),
-      // Arrival latency on the host clock: receive time − the phone's synced source time.
-      arrival: g.filter((x) => Number.isFinite(x.th)).map((x) => x.rx - x.th),
+      r: window.__i2Result,
+      host: {
+        stats: h.stats,
+        phones: h.session.phones().map((d) => ({ name: d.name, route: d.route, path: d.path, joinMs: d.joinMs })),
+        gestures: g.length,
+        via: g.reduce((a, x) => ((a[x.via] = (a[x.via] ?? 0) + 1), a), {}),
+        // Arrival latency on the host clock: receive time − the phone's synced source time.
+        arrival: g.filter((x) => Number.isFinite(x.th)).map((x) => x.rx - x.th),
+      },
     };
-  });
+  }, null, { timeout: 120000, polling: 500 });
+  const { r, host } = await finished.jsonValue();
+  await finished.dispose();
   const arr = [...host.arrival].sort((a, b) => a - b);
   const q = (p) => (arr.length ? Math.round(arr[Math.min(arr.length - 1, Math.floor(p * arr.length))] * 100) / 100 : null);
   const p = r.players[0];
@@ -158,7 +190,14 @@ try {
   writeFileSync(join(outDir, `e2e${external ? '-worker' : ''}${relay ? '-relay' : ''}.json`), JSON.stringify({ ...summary, signal: external || 'dev-server' }, null, 2));
   const routeOk = host.phones[0]?.route === (relay ? 'relay' : 'direct');
   ok = hit / p.notes >= 0.8 && errors.length === 0 && routeOk;
-  if (!routeOk) console.log(`unexpected route: ${JSON.stringify(host.phones)}`);
+  if (!routeOk) console.log(`unexpected route at song completion: ${JSON.stringify(host.phones)}`);
+
+  assert.equal(await focus('#btn-again'), 1, 'Results focuses Again');
+  await back();
+  assert.equal(await focus('#btn-play'), 1, 'Back from results restores Play');
+  assert.equal(await game.evaluate(() => window.__exitCalls), 0, 'Back from results never exits');
+  await back();
+  assert.equal(await game.evaluate(() => window.__exitCalls), 1, 'Back exits only at the top-level lobby');
 } finally {
   await browser.close();
   server?.kill();

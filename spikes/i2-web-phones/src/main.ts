@@ -359,15 +359,10 @@ function playerViews(): PlayerView[] {
 
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
-  const selSong = $<HTMLSelectElement>('sel-song');
-  const songsKey = `${index?.songs.length}@${speed}:${songForm}`;
-  if (index && selSong.dataset.key !== songsKey && document.activeElement !== selSong) {
-    selSong.dataset.key = songsKey;
-    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(songDuration(s) / speed)} s, ${s.license ?? '?'})</option>`).join('');
-  }
-  setValue(selSong, songId);
+  $('chosen-song').textContent = index?.songs.find((s) => s.id === songId)?.title ?? 'Loading songs…';
+  $<HTMLButtonElement>('choose-song').disabled = !index;
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
-  setValue($<HTMLSelectElement>('sel-ringers'), String(ringerCount));
+  setValue($<HTMLSelectElement>('sel-ringers'), ringersAuto ? 'auto' : String(ringerCount));
   setValue($<HTMLSelectElement>('sel-parts'), arrangement);
   setValue($<HTMLSelectElement>('sel-form'), songForm);
   setValue($<HTMLSelectElement>('sel-sound'), soundMode);
@@ -390,16 +385,22 @@ function renderLobby(): void {
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
   $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
-  const seated = seating.players.filter(isPhone);
-  const ready = seated.filter((id) => link.phones.find((p) => p.id === id)?.ready).length;
-  $('ready-info').textContent = seated.length ? `✓ Ready ${ready}/${seated.length}${ready < seated.length ? ' (you can start anyway)' : ''}` : '';
   renderStatus();
 }
 
 /** Phones list + host status: diagnostics only, patched in place per phone. */
 function renderStatus(): void {
   const phones = link.phones;
-  $('phone-count').textContent = `(${onlinePhones().length} online)`;
+  const joined = onlinePhones();
+  const keyboard = seating.partOf(KEYBOARD) >= 0;
+  const count = joined.length + Number(keyboard);
+  const heading = count ? `${count} ${count === 1 ? 'player' : 'players'} joined` : 'No players yet';
+  if ($('joined-count').textContent !== heading) $('joined-count').textContent = heading;
+  setHtml($('joined-players'), [
+    ...joined.map((p) => `<li><b>${esc(p.name)}</b> · ${seating.partOf(p.id) < 0 ? 'Waiting for a part' : p.ready ? 'Ready' : 'Connected'}</li>`),
+    ...(keyboard ? ['<li><b>Keyboard</b> · A S D F</li>'] : []),
+  ].join(''));
+  $('phone-count').textContent = `(${joined.length} online)`;
   const ul = $('phones');
   if (!phones.length) {
     setHtml(ul, '<li class="dim">No phones yet — scan the QR code.</li>');
@@ -424,16 +425,27 @@ function renderStatus(): void {
       li.classList.toggle('off', !p.online);
       const quick = sensOf(p.id) === 'quick';
       const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
+      const before = li.querySelector('button');
+      const focused = !!before && before === document.activeElement;
       setHtml(
         li,
         `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'}${path ? ` · ${path}` : ''} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small><img class="yo-rang" src="${BRAND}yo-ring.svg" alt="" />`,
       );
+      if (focused && !before.isConnected) li.querySelector('button')?.focus();
     });
   }
   const hostOk = link.state === 'open';
-  $('host-state').textContent = hostOk ? `${link.info.transport?.mode === 'page' ? 'Host' : `S1 host ${link.info.lanIp ?? ''}`} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
+  $('host-state').textContent = hostOk ? `${link.info.transport?.mode === 'page' ? 'Host' : `S1 host ${link.info.lanIp ?? ''}`} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : 'Not connected to the phone host.';
   $('host-state').classList.toggle('error', !hostOk);
-  $('join-url').textContent = link.info.joinUrl || (hostOk ? (link.info.transport?.mode === 'page' ? 'waiting for the signalling service…' : 'starting the cloud tunnel…') : 'waiting for host…');
+  const url = hostOk ? link.info.joinUrl : undefined;
+  const qr = $<HTMLImageElement>('qr');
+  qr.hidden = !url;
+  if (url && qr.dataset.url !== url) {
+    qr.dataset.url = url;
+    qr.src = link.qrSrc(url);
+  }
+  $('lan-help').hidden = !url || !/self-signed/i.test(link.info.tlsMode ?? '') || url === link.info.transport?.tunnelUrl;
+  $('join-url').textContent = url || (hostOk ? (link.info.transport?.mode === 'page' ? 'Waiting for the signalling service…' : 'Getting the join code ready…') : 'Waiting for the phone host…');
 }
 
 /** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
@@ -514,10 +526,6 @@ function setHtml(el: Element, html: string): void {
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const cssId = (s: string): string => s.replace(/[^\w-]/g, '_');
 
-$<HTMLSelectElement>('sel-song').onchange = (e) => {
-  songId = (e.target as HTMLSelectElement).value;
-  void rebuild();
-};
 $<HTMLSelectElement>('sel-diff').onchange = (e) => {
   difficulty = (e.target as HTMLSelectElement).value as Difficulty;
   void rebuild();
@@ -531,8 +539,9 @@ $<HTMLSelectElement>('sel-form').onchange = (e) => {
   void rebuild();
 };
 $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
-  ringerCount = Number((e.target as HTMLSelectElement).value);
-  ringersAuto = false;
+  const value = (e.target as HTMLSelectElement).value;
+  ringersAuto = value === 'auto';
+  if (!ringersAuto) ringerCount = Number(value);
   void rebuild();
 };
 $<HTMLSelectElement>('sel-sound').onchange = (e) => {
@@ -608,8 +617,6 @@ link.onClaim = (deviceId, part) => {
   seatingChanged();
 };
 link.onInfo = () => {
-  // The join URL is empty for a few seconds while the cloud tunnel starts (ADR-0012).
-  if (link.info.joinUrl) $<HTMLImageElement>('qr').src = link.qrSrc(link.info.joinUrl);
   renderLobby();
   renderCornerJoin();
 };
@@ -671,10 +678,11 @@ async function start(mode: Mode): Promise<void> {
   if (!team) return;
   roundSeats = [...seating.seats];
   if (mode === 'play' && !team.ringers.some((r) => roundSeats[r.index] !== TV)) {
-    $('lobby-msg').textContent = 'No players: join with a phone (or give a part to Keyboard), or use Autoplay demo.';
+    $('lobby-msg').textContent = 'Join with a phone, or use Round options for Keyboard or Autoplay demo.';
     return;
   }
   lastMode = mode;
+  while (lobbyPanels.length) closeLobbyPanel();
   (document.activeElement as HTMLElement | null)?.blur();
   const t = team;
   const lanes = laneMap();
@@ -901,6 +909,7 @@ function finish(r: SessionResult): void {
       .join('');
   $('res-json').textContent = JSON.stringify(result, null, 2);
   $('results').classList.remove('hidden');
+  $('btn-again').focus();
   sendParts(); // phones can pick parts for the next round
   renderNext();
   renderCornerJoin();
@@ -917,6 +926,7 @@ function toLobby(): void {
   hud.show(false);
   $('results').classList.add('hidden');
   $('lobby').classList.remove('hidden');
+  $('btn-play').focus();
   renderCornerJoin();
   lastPhoneKey = '';
   void rebuild();
@@ -948,43 +958,134 @@ $('btn-balance').onclick = () => {
 $('btn-lobby').onclick = toLobby;
 $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').textContent ?? '');
 
-/**
- * TV-remote navigation in the lobby: rows [helpers] / [part cards] / [Play, Autoplay]; ↑/↓ between
- * rows, ←/→ within a row, Enter activates (a part card opens its picker). ↓ from nowhere enters.
- */
-function lobbyNav(e: KeyboardEvent): boolean {
-  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return false;
-  const rows: HTMLElement[][] = [[...document.querySelectorAll<HTMLElement>('#seat-tools button')], view.cardEls, [$('btn-play'), $('btn-auto')]];
-  const t = document.activeElement as HTMLElement | null;
-  const r = rows.findIndex((row) => !!t && row.includes(t));
-  if (r < 0) {
-    if (e.key !== 'ArrowDown' || (t && t !== document.body)) return false;
-    (view.cardEls[0] ?? $('btn-play')).focus();
+const lobbyPanels: { dialog: HTMLDialogElement; opener: HTMLElement }[] = [];
+const activePanel = () => lobbyPanels.at(-1)?.dialog;
+const controls = (root: ParentNode) => [...root.querySelectorAll<HTMLElement>('button:not(:disabled), select, input:not(:disabled), a[href], [role="button"]')];
+
+function openLobbyPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void {
+  const dialog = $<HTMLDialogElement>(id);
+  if (dialog.open) return;
+  dialog.showModal();
+  lobbyPanels.push({ dialog, opener });
+  (initial ?? controls(dialog)[0])?.focus();
+}
+
+function closeLobbyPanel(): void {
+  const layer = lobbyPanels.pop();
+  if (!layer) return;
+  layer.dialog.close();
+  layer.opener.focus();
+}
+
+$('lobby').querySelectorAll<HTMLButtonElement>('[data-panel]').forEach((button) => {
+  button.onclick = () => openLobbyPanel(button.dataset.panel!, button,
+    button.id === 'edit-seating' ? view.cardEls[0] : undefined);
+});
+$('lobby').querySelectorAll<HTMLButtonElement>('[data-back]').forEach((button) => {
+  button.onclick = closeLobbyPanel;
+});
+$('lobby').querySelectorAll('dialog').forEach((dialog) => {
+  dialog.addEventListener('cancel', (e) => {
     e.preventDefault();
-    return true;
-  }
-  const row = rows[r];
-  const c = row.indexOf(t!);
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') row[(c + (e.key === 'ArrowLeft' ? -1 : 1) + row.length) % row.length]?.focus();
-  else {
-    const next = rows[r + (e.key === 'ArrowUp' ? -1 : 1)];
-    if (next?.length) next[Math.min(c, next.length - 1)].focus();
-  }
-  e.preventDefault();
+    goBack();
+  });
+});
+$('choose-song').onclick = () => {
+  if (!index) return;
+  const options = $('song-options');
+  const buttons = index.songs.map((song) => {
+    const button = document.createElement('button');
+    button.textContent = `${song.title} · ${Math.round(songDuration(song) / speed)} s`;
+    button.setAttribute('aria-pressed', String(song.id === songId));
+    button.onclick = () => {
+      songId = song.id;
+      $('chosen-song').textContent = song.title;
+      closeLobbyPanel();
+      void rebuild();
+    };
+    return button;
+  });
+  options.replaceChildren(...buttons);
+  openLobbyPanel('song-picker', $('choose-song'), buttons.find((button) => button.getAttribute('aria-pressed') === 'true'));
+};
+
+function goBack(): boolean {
+  if (view.pickerOpen) view.closePicker();
+  else if (activePanel()) closeLobbyPanel();
+  else if (session) toLobby();
+  else return false;
   return true;
 }
 
+window.addEventListener('i2-back', (e) => {
+  if (goBack()) e.preventDefault();
+});
+
+function navigateRows(rows: HTMLElement[][], target: HTMLElement, key: string): void {
+  const nonempty = rows.filter((row) => row.length);
+  const r = nonempty.findIndex((row) => row.includes(target));
+  if (r < 0) {
+    nonempty[0]?.[0].focus();
+    return;
+  }
+  const row = nonempty[r];
+  const c = row.indexOf(target);
+  if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    row[c + (key === 'ArrowLeft' ? -1 : 1)]?.focus();
+  } else {
+    const next = nonempty[r + (key === 'ArrowUp' ? -1 : 1)];
+    next?.[Math.min(c, next.length - 1)]?.focus();
+  }
+}
+
 window.addEventListener('keydown', (e) => {
-  const target = e.target as HTMLElement;
-  if (e.code !== 'Escape' && ['SELECT', 'INPUT'].includes(target.tagName)) return;
-  if (!session && lobbyNav(e)) return;
-  if (e.code === 'Escape') toLobby();
-  else if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
+  const target = document.activeElement as HTMLElement;
+  if (e.key === 'Escape') {
+    if (goBack()) e.preventDefault();
+    return;
+  }
+  const panel = activePanel();
+  const results = $('results');
+  if (e.key.startsWith('Arrow') && (!session || !playing)) {
+    if (view.pickerOpen) return; // The seating picker owns its own arrows.
+    const horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (horizontal && target instanceof HTMLInputElement && target.type === 'range') return;
+    if (horizontal && target instanceof HTMLSelectElement) {
+      const next = target.selectedIndex + (e.key === 'ArrowLeft' ? -1 : 1);
+      if (target.options[next]) {
+        target.selectedIndex = next;
+        target.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } else if (session) {
+      const buttons = [...results.querySelectorAll('button')];
+      const i = buttons.findIndex((button) => button === target);
+      const step = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+      buttons[i < 0 ? 0 : (i + step + buttons.length) % buttons.length].focus();
+    } else if (panel?.id === 'seating-options') {
+      navigateRows([controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]], target, e.key);
+    } else if (panel) {
+      navigateRows(controls(panel).map((control) => [control]), target, e.key);
+    } else {
+      const song = $<HTMLButtonElement>('choose-song');
+      navigateRows([song.disabled ? [] : [song], [$('btn-play')], controls($('lobby').querySelector('.lobby-actions')!)], target, e.key);
+    }
+    e.preventDefault();
+    return;
+  }
+  if (panel && e.key === 'Tab' && !view.pickerOpen) {
+    const list = controls(panel);
+    if (target === (e.shiftKey ? list[0] : list.at(-1))) {
+      (e.shiftKey ? list.at(-1) : list[0])?.focus();
+      e.preventDefault();
+    }
+  }
+  if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
     offsets.visualMs += (e.code === 'ArrowRight' ? 5 : -5) * (e.shiftKey ? 4 : 1);
     saveOffsets();
-  } else if (e.code === 'Enter' && !session && !target.closest('button, [role="button"], a, .picker')) void start('play');
+  } else if (e.key === 'Enter' && !panel && !session && target === document.body) void start('play');
 });
+$('btn-play').focus();
 window.addEventListener('resize', () => {
   mh.resize();
   teamHud.position();

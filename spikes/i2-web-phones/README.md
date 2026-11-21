@@ -46,25 +46,27 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    certificate **once** (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this
    website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
-4. The TV lobby lists the phones, each with its route: **direct** (same Wi-Fi, fastest),
+4. The TV lobby shows who has joined and assigns available parts automatically. **Round options →
+   Edit seating → Player details** shows each phone's route: **direct** (same Wi-Fi, fastest),
    **via tunnel** (through the internet; fine to play) or **Wi-Fi** (no tunnel). Ring a phone:
-   its row flashes and its lane lights on the TV.
+   its detail row flashes and its lane lights on the TV.
    Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
-5. Pick **Song**, **Difficulty** (first-timers: **Super easy** — the tune's downbeats and long
+5. Choose a **Song** (a fresh lobby defaults to **Jingle Bells**), then **Play**. To change how
+   the group plays, open **Round options** for **Difficulty** (first-timers: **Super easy** — the tune's downbeats and long
    notes, at most 3 bells each, the TV plays the rest of the tune softly), **Parts**, **Length**
    and **Ringers** (defaults to the number of phones that have joined). **Parts**: *Balanced*
    (default: each player has one role — Bass, Harmony or a slice of the tune — in one range of
    bells, with similar effort), *Chord split* (up to three players share each chord, one note
    each; the others play the tune) or *By range* (the older split). **Length**: *Full* (intro,
    verses that build up, an ending; about 2–3 minutes) or *Short* (the song once). **Who plays
-   what** is a seating chart: one card per part, named by its role (*Bass*, *Harmony*, *Low/High
+   what** under **Edit seating** is a seating chart: one card per part, named by its role (*Bass*, *Harmony*, *Low/High
    melody*, *Chord low/middle/high*, *Descant*; *Ringer N* for charts without roles), with its bells in their colours, range and a 1–5 difficulty meter (notes and
    bell changes per second). Above the cards are the player chips: each phone, ⌨ **Keyboard**
    (A S D F) and 🤖 **TV plays** (the TV rings that part; any part nobody holds).
    - **On the TV:** drag a chip onto a part (onto a taken part = swap; drag a part's chip back to
      the chip row = sit out), or click a part and choose who plays it. TV remote / keyboard:
-     **↓** to reach the part cards, **← →** to move, **Enter** to open, **↑ ↓ Enter** to choose,
+     in **Edit seating**, **← →** to move, **Enter** to open, **↑ ↓ Enter** to choose,
      **Esc** to close.
    - **On the phones:** the phone shows **Pick your part** with each part's name, bells, range,
      difficulty and who has it. Tap a part the TV plays to take it; tap someone's part and then
@@ -78,7 +80,7 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
      TV is playing; if a phone drops out the TV plays its part until it reconnects and takes it
      back.
    Bells beyond 4 per part are rung by the TV automatically.
-   **Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
+   **Audio → Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
    on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
    its beat). **Sound effects** (on by default, volume 50 %): sparkles for team streaks, a whoosh
@@ -93,14 +95,15 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    **Fast notes:** during a song each phone adapts its swing detection to its own notes, so in
    8th/16th-note passages a quick back-and-forth **shake** rings on both directions (like a real
    handbell). If a player still finds fast notes hard, click **Normal** next to their phone in
-   the *Phones* list to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
+   **Player details** to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
    few more stray rings). Saved per phone on this PC.
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
-   Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
+   Change **Audio → Bell sound** to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
 7. Results show the team score and a row per ringer (hits, misses, timing). **Again**,
    **🔁 Rotate + Again** (everyone moves one part) or **Lobby**. Phones can pick parts on the
-   results screen too; changes apply to the next round. Esc returns to the lobby any time.
+   results screen too; changes apply to the next round. **Back / Esc** returns to **Play** from
+   the song or results, or closes the current lobby panel and returns focus to its launcher.
 8. **Joining mid-game:** during a song and on the results screen a small QR code and the join
    address stay in the top-left corner of the TV. Someone who scans it while a song plays sees
    **You're in!** on their phone (a part comes when the next song starts) and the TV shows
@@ -344,7 +347,7 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
 ### Branding
 
 The TV wears the Go Go HarmoniYo identity ([brand guide §3](../../docs/design/brand.md#3-logo-and-visual-identity)):
-the stacked lockup (G2) heads the lobby, Yo hums (Y3) next to *Scan to join*, a phone's lobby row
+the stacked lockup (G2) heads the lobby, a phone's detail row
 shows Yo ringing (Y4) for a moment when that phone rings, the corner join card carries the Yo
 mark with *Join Go Go HarmoniYo*, and the results panel has Yo cheering: Y5 (hands up) from 80 %
 team accuracy, Y2 (joy) below that. Every outcome gets a celebration. The UI accent (`--gold`) is
