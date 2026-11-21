@@ -87,6 +87,15 @@
           <h2 id="round-options-title">Round options</h2>
           <button id="edit-seating" data-panel="seating-options" aria-haspopup="dialog">Edit seating</button>
           <p class="help">Use up/down to move and left/right to change a setting.</p>
+          <div class="row backing-row">
+            <label>Round style
+              <select id="sel-round-style" aria-describedby="round-style-info" disabled>
+                <option value="standard">Standard</option>
+                <option value="first-ring">First Ring</option>
+              </select>
+            </label>
+            <span id="round-style-info" class="dim" role="status"></span>
+          </div>
           <div class="row">
             <label>Ringers
               <select id="sel-ringers">
