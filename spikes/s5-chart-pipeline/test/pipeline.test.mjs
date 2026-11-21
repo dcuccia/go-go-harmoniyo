@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { parseAbc } from '../src/abc.mjs';
 import { midiToScore, readMidi, writeMidi, meta, noteEvents } from '../src/midi.mjs';
 import { parseMusicXml } from '../src/musicxml.mjs';
-import { pitchName, naturalSlot, beatGrid, measureStarts, PPQ } from '../src/score.mjs';
+import { pitchName, naturalSlot, beatGrid, makeTimeMap, measureStarts, PPQ } from '../src/score.mjs';
 import { assignRoles } from '../src/arrange.mjs';
 import { assignBells, evaluateRinger, PROFILES } from '../src/assign.mjs';
-import { buildChart, buildPart, fitHandbellSet, formSong, FORMAT, isChartFormat } from '../src/chart.mjs';
+import { buildChart, buildFirstRingChart, buildPart, fitHandbellSet, formSong, FORMAT, isChartFormat } from '../src/chart.mjs';
 import { expandForm, transposeSymbol, verseSchedule, windowsFor } from '../src/form.mjs';
 import { ARRANGEMENTS, TIERS, jain, harmonyRegions } from '../src/parts.mjs';
 import { exportCloneHero, laneOf, CH_TRACKS } from '../src/export.mjs';
@@ -494,6 +494,66 @@ test('super easy: downbeats/long notes, ≥ 1 s apart, ≤ 3 bells per ringer, t
       assert.ok(p.metrics.strikes < easy.metrics.strikes, where);
     }
   }
+});
+
+test('First Ring: Short carols split the source tune between stable one-pitch seats and the guide', () => {
+  const schema = JSON.parse(readFileSync(join(root, 'schema', 'chart.schema.json'), 'utf8'));
+  const noteKey = ({ tick, bell, dur, time, role }) => `${tick}:${bell}:${dur}:${time}:${role}`;
+  for (const id of ['jingle-bells', 'deck-the-halls']) {
+    const options = loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+    const { score, roleNotes, song } = options;
+    const toSec = makeTimeMap(score);
+    // Both lead sheets are melody-only. Read the expected tune before building the chart.
+    const expected = score.notes.map(({ tick, dur, midi }) =>
+      noteKey({ tick, dur, bell: pitchName(midi), time: Math.round(toSec(tick) * 1000) / 1000, role: 'melody' })).sort();
+
+    const chart = buildFirstRingChart(options);
+    assert.deepEqual(validate(schema, chart), [], id);
+    assert.equal(chart.song.id, id);
+    assert.equal(chart.form.id, 'short', id);
+    assert.equal(chart.timing.endTick, score.endTick, id);
+    assert.deepEqual(chart.parts.map((p) => p.ringerCount), [1, 2, 3, 4], id);
+
+    let previous;
+    for (const part of chart.parts) {
+      const where = `${id} ×${part.ringerCount}`;
+      assert.deepEqual([part.difficulty, part.arrangement, part.profile], ['super-easy', 'balanced', 'phone-4zone'], where);
+      assert.equal(part.ringers.length, part.ringerCount, where);
+      assert.equal(new Set(part.ringers.flatMap((r) => r.bells)).size, part.ringerCount, `${where}: pitches are unique`);
+      for (const [seat, r] of part.ringers.entries()) {
+        assert.equal(r.index, seat, where);
+        assert.equal(r.bells.length, 1, `${where}: seat ${seat} has one pitch`);
+        const mine = part.notes.filter((n) => n.ringer === seat);
+        assert.ok(mine.length > 1, `${where}: seat ${seat} has multiple accents`);
+        for (let i = 1; i < mine.length; i++) {
+          const gapMs = Math.round(mine[i].time * 1000) - Math.round(mine[i - 1].time * 1000);
+          assert.ok(gapMs >= 1500, `${where}: seat ${seat} gap is ${gapMs} ms`);
+        }
+      }
+      for (const n of part.notes) assert.equal(n.bell, part.ringers[n.ringer]?.bells[0], `${where}: note at tick ${n.tick} matches its seat`);
+      assert.ok(part.guide?.length > 0, `${where}: the host has notes to play`);
+      // Compare the full sorted list, not a set: dropping or duplicating a note fails.
+      assert.deepEqual([...part.notes, ...part.guide].map(noteKey).sort(), expected, `${where}: exact melody partition`);
+      if (previous) {
+        assert.deepEqual(part.notes.filter((n) => n.ringer < previous.ringerCount), previous.notes, `${where}: existing accents stay put`);
+      }
+      previous = part;
+    }
+    assert.deepEqual(buildFirstRingChart(options), chart, `${id}: same options produce the same chart`);
+    const standalone = buildFirstRingChart({ song, formed: formSong(score, roleNotes, 'short'), ringerCounts: [4] });
+    assert.deepEqual(standalone.parts, [chart.parts.at(-1)], `${id}: a standalone part matches the default chart`);
+  }
+});
+
+test('First Ring: rejects unsupported songs, ringer counts and forms explicitly', () => {
+  const load = (id) => loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+  const options = load('jingle-bells');
+  assert.throws(() => buildFirstRingChart(load('silent-night')), /First Ring is not available for silent-night/);
+  for (const count of [0, 5, 1.5]) {
+    assert.throws(() => buildFirstRingChart({ ...options, ringerCounts: [1, count] }), /First Ring is not available/, `count ${count}`);
+  }
+  const full = formSong(options.score, options.roleNotes, 'full');
+  assert.throws(() => buildFirstRingChart({ song: options.song, formed: full, ringerCounts: [1] }), /First Ring is not available for jingle-bells, full/);
 });
 
 test('every arrangement × tier validates (format 0.3) and a 0.2-shaped chart still does', () => {

@@ -2,7 +2,7 @@
 import { pitchName, makeTimeMap, measureStarts, timeSigAt, isNatural } from './score.mjs';
 import { buildHarmony, inferChords, keyOf } from './harmony.mjs';
 import { expandForm } from './form.mjs';
-import { ARRANGEMENTS, TIERS, buildFormPart } from './parts.mjs';
+import { ARRANGEMENTS, TIERS, buildFirstRingPart, buildFormPart } from './parts.mjs';
 
 export const FORMAT = 'go-go-harmoniyo.chart';
 // Format ids written before the rename to Go Go HarmoniYo (ADR-0009); readers still accept them.
@@ -80,10 +80,20 @@ export function buildPart(formed, tier, ringerCount, profileId, arrangement = 'b
 
 export function buildChart({ score, roleNotes, song, ringerCounts = [3, 4, 5], profile = 'handbell', form = 'full', arrangements = ARRANGEMENTS, tiers = TIERS, formed: pre }) {
   const formed = pre ?? formSong(score, roleNotes, form);
-  const exp = formed.score;
-  const toSec = makeTimeMap(exp);
   const parts = [];
   for (const arrangement of arrangements) for (const k of ringerCounts) for (const tier of tiers) parts.push(buildFormPart(formed, tier, k, profile, arrangement));
+  return serializeChart(formed, song, parts);
+}
+
+/** Separate opt-in chart; never replaces the normal Short / Super easy parts. */
+export function buildFirstRingChart({ score, roleNotes, song, ringerCounts = [1, 2, 3, 4], profile = 'phone-4zone', formed: pre }) {
+  const formed = pre ?? formSong(score, roleNotes, 'short');
+  return serializeChart(formed, song, ringerCounts.map((k) => buildFirstRingPart(formed, song.id, k, profile)));
+}
+
+function serializeChart(formed, song, parts) {
+  const exp = formed.score;
+  const toSec = makeTimeMap(exp);
   const bellMidi = new Map();
   for (const n of [...formed.melody, ...formed.descant, ...formed.sourceBass]) bellMidi.set(pitchName(n.midi), n.midi);
   const noteIds = [...new Set(parts.flatMap((p) => [...p.notes, ...(p.guide ?? [])].map((n) => n.bell)))];
