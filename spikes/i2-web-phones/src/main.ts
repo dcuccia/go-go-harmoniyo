@@ -117,7 +117,7 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
-  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>> }[];
+  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>>; firstRing?: { durationSec: number; ringerCounts: number[] } }[];
 }
 let index: SongIndex | null = null;
 const chartCache = new Map<string, S5Chart>();
@@ -125,11 +125,20 @@ let songId = params.get('song') ?? 'jingle-bells';
 let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
 /** Song length: full (intro, verses that develop, coda; charts/<id>.json) or short (once; charts/short/<id>.json). */
 type SongForm = 'full' | 'short';
+type ChartVariant = SongForm | 'first-ring';
 let songForm: SongForm = params.get('form') === 'short' ? 'short' : 'full';
 /** How parts are split: balanced roles (default), chord split, or by range (S5 0.2). */
 let arrangement: Arrangement = (ARRANGEMENTS as readonly string[]).includes(params.get('parts') ?? '') ? (params.get('parts') as Arrangement) : 'balanced';
-const chartKey = (id: string = songId): string => `${songForm}:${id}`;
-const songDuration = (s: SongIndex['songs'][number]): number => s.forms?.[songForm]?.durationSec ?? s.durationSec;
+let firstRing = false;
+let roundStyleNotice = '';
+const chartVariant = (): ChartVariant => firstRing ? 'first-ring' : songForm;
+const chartKey = (id: string, variant: ChartVariant): string => `${variant}:${id}`;
+const scaledChartKey = (id: string, variant: ChartVariant, rate: number): string => `${chartKey(id, variant)}@${rate}`;
+const roundDifficulty = (): Difficulty => firstRing ? 'super-easy' : difficulty;
+const roundArrangement = (): Arrangement => firstRing ? 'balanced' : arrangement;
+const chosenSong = () => index?.songs.find((s) => s.id === songId);
+const songDuration = (s: SongIndex['songs'][number]): number =>
+  (firstRing && s.firstRing?.ringerCounts.includes(ringerCount) ? s.firstRing.durationSec : undefined) ?? s.forms?.[songForm]?.durationSec ?? s.durationSec;
 let ringerCount = num('ringers', 0);
 let ringersAuto = !params.has('ringers');
 /** Seating chart: part index → phone deviceId | KEYBOARD | TV (persists across songs). */
@@ -160,34 +169,35 @@ const isPhone = (s: string): boolean => s !== TV && s !== KEYBOARD;
 const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name ?? `Ringer ${i + 1}`} (TV)` : s === KEYBOARD ? 'Keyboard' : phoneName(s));
 const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
 
-async function loadChart(id: string): Promise<S5Chart> {
-  let c = chartCache.get(chartKey(id));
+async function loadChart(id: string, variant: ChartVariant): Promise<S5Chart> {
+  const key = chartKey(id, variant);
+  let c = chartCache.get(key);
   if (!c) {
-    const url = `charts/${songForm === 'short' ? 'short/' : ''}${id}.json`;
+    const url = `charts/${variant === 'full' ? '' : `${variant}/`}${id}.json`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${url}: ${res.status} — run "npm run charts"`);
     c = (await res.json()) as S5Chart;
     if (!isChartFormat(c.format)) throw new Error(`${url}: unknown chart format "${c.format}"`);
-    chartCache.set(chartKey(id), c);
+    chartCache.set(key, c);
   }
   return c;
 }
 
 /** The chart at the practice speed (cached per song and speed). */
 const scaledCache = new Map<string, S5Chart>();
-async function songChart(id: string): Promise<S5Chart> {
-  const key = `${chartKey(id)}@${speed}`;
+async function songChart(id: string, variant: ChartVariant, rate: number): Promise<S5Chart> {
+  const key = scaledChartKey(id, variant, rate);
   let c = scaledCache.get(key);
   if (!c) {
-    c = scaleChart(await loadChart(id), speed);
+    c = scaleChart(await loadChart(id, variant), rate);
     scaledCache.set(key, c);
   }
   return c;
 }
 /** Current song at the current speed, once loaded. */
-const currentChart = (): S5Chart | undefined => scaledCache.get(`${chartKey()}@${speed}`);
+const currentChart = (): S5Chart | undefined => scaledCache.get(scaledChartKey(songId, chartVariant(), speed));
 /** Song label for the phones: title, tier and (when slowed down) the practice speed. */
-const songLabel = (): string => `${chartCache.get(chartKey())?.song.title ?? songId} (${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
+const songLabel = (): string => `${chosenSong()?.title ?? songId} (${firstRing ? 'First Ring' : `${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''}`})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
@@ -208,17 +218,35 @@ function syncPhones(): string[] {
   return joiners;
 }
 
-async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
+async function rebuild(forPlayMode: Mode = 'play') {
   if (!index) return;
   const joiners = syncPhones();
-  const s5 = await songChart(songId);
-  const part = findPart(s5, difficulty, ringerCount, arrangement);
-  if (!part) {
-    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
-    $('lobby-msg').textContent = `No ${difficulty} part for ${ringerCount} ringers in ${s5.song.title}.`;
+  const song = chosenSong();
+  if (firstRing && !song?.firstRing?.ringerCounts.includes(ringerCount)) {
+    firstRing = false;
+    roundStyleNotice = `First Ring is not available for ${song?.title ?? 'this song'} with ${ringerCount} ringers. Standard settings restored.`;
+  }
+  renderRoundStyle();
+  const [id, variant, rate, count, tier, parts] = [songId, chartVariant(), speed, ringerCount, roundDifficulty(), roundArrangement()] as const;
+  const isCurrent = () => id === songId && variant === chartVariant() && rate === speed && count === ringerCount && tier === roundDifficulty() && parts === roundArrangement();
+  let s5: S5Chart;
+  try {
+    s5 = await songChart(id, variant, rate);
+  } catch (e) {
+    if (isCurrent()) {
+      joiners.forEach((phone) => knownPhones.delete(phone));
+      $('lobby-msg').textContent = String(e);
+    }
     return;
   }
-  $('lobby-msg').textContent = '';
+  if (!isCurrent()) return;
+  const part = findPart(s5, tier, count, parts);
+  if (!part) {
+    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
+    $('lobby-msg').textContent = `No ${firstRing ? 'First Ring' : tier} part for ${count} ringers in ${s5.song.title}.`;
+    return;
+  }
+  $('lobby-msg').textContent = roundStyleNotice;
   const transpose = num('octave', 1) ? 12 : 0;
   cards = partCards(s5, part, buildTeamChart(s5, part, { transpose }));
   seating.setParts(cards.map((c) => c.name));
@@ -229,7 +257,8 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   const seats = seating.seats;
   const active = seats.map((s) => forPlayMode === 'autoplay' || s !== TV);
   if (!active.some(Boolean)) active.fill(true); // lobby preview with no players: show every highway
-  team = buildTeamChart(s5, part, { active, transpose });
+  const title = firstRing ? `${s5.song.title} · First Ring · ${count} ringer${count === 1 ? '' : 's'}` : undefined;
+  team = buildTeamChart(s5, part, { active, transpose, title });
   mh.setSpeed(speed);
   mh.setTeam(team);
   teamHud.setup(
@@ -240,6 +269,7 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   sendAssignments();
   sendParts();
   renderLobby();
+  return { s5, part, team };
 }
 
 /** After any seat change: rebuild in the lobby; on the results screen it applies when the next round starts. */
@@ -357,10 +387,27 @@ function playerViews(): PlayerView[] {
   ];
 }
 
+function renderRoundStyle(): void {
+  const song = chosenSong();
+  const style = $<HTMLSelectElement>('sel-round-style');
+  style.disabled = !song?.firstRing?.ringerCounts.includes(ringerCount);
+  setValue(style, firstRing ? 'first-ring' : 'standard');
+  for (const id of ['sel-diff', 'sel-parts', 'sel-form']) $<HTMLSelectElement>(id).disabled = firstRing;
+  const info = firstRing
+    ? 'Short · one bell per ringer · the TV plays the rest of the tune. Standard settings are saved.'
+    : !song?.firstRing
+      ? 'First Ring is not available for this song. Try Jingle Bells or Deck the Halls.'
+      : style.disabled
+        ? `First Ring is available for ${song.firstRing.ringerCounts.join(', ')} ringers on this song.`
+        : 'First Ring is a short, one-bell round.';
+  if ($('round-style-info').textContent !== info) $('round-style-info').textContent = info;
+}
+
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
-  $('chosen-song').textContent = index?.songs.find((s) => s.id === songId)?.title ?? 'Loading songs…';
+  $('chosen-song').textContent = chosenSong()?.title ?? 'Loading songs…';
   $<HTMLButtonElement>('choose-song').disabled = !index;
+  renderRoundStyle();
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
   setValue($<HTMLSelectElement>('sel-ringers'), ringersAuto ? 'auto' : String(ringerCount));
   setValue($<HTMLSelectElement>('sel-parts'), arrangement);
@@ -379,7 +426,7 @@ function renderLobby(): void {
 
   view.update(cards, seating.seats, playerViews());
   const s5 = currentChart();
-  const part = s5 ? findPart(s5, difficulty, ringerCount, arrangement) : undefined;
+  const part = s5 ? findPart(s5, roundDifficulty(), ringerCount, roundArrangement()) : undefined;
   if (part) {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
@@ -476,7 +523,8 @@ function renderNext(): void {
 function renderSpeed(): void {
   setValue($<HTMLInputElement>('rng-speed'), String(speedPercent(speed)));
   $('speed-val').textContent = `${speedPercent(speed)}%`;
-  const dur = ((s) => (s ? songDuration(s) : undefined))(index?.songs.find((s) => s.id === songId));
+  const song = chosenSong();
+  const dur = song ? songDuration(song) : undefined;
   $('speed-info').textContent = speed < 1 ? `Slower for learning: ${dur ? `${Math.round(dur / speed)} s instead of ${Math.round(dur)} s; ` : ''}bells, backing and count-in slow down too, timing is judged the same.` : '';
 }
 
@@ -526,6 +574,13 @@ function setHtml(el: Element, html: string): void {
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const cssId = (s: string): string => s.replace(/[^\w-]/g, '_');
 
+$<HTMLSelectElement>('sel-round-style').onchange = (e) => {
+  const select = e.target as HTMLSelectElement;
+  if (select.disabled) return;
+  firstRing = select.value === 'first-ring';
+  roundStyleNotice = '';
+  void rebuild();
+};
 $<HTMLSelectElement>('sel-diff').onchange = (e) => {
   difficulty = (e.target as HTMLSelectElement).value as Difficulty;
   void rebuild();
@@ -674,17 +729,17 @@ async function start(mode: Mode): Promise<void> {
   sfx?.hush();
   director = null;
   playing = false;
-  await rebuild(mode);
-  if (!team) return;
+  const prepared = await rebuild(mode);
+  if (!prepared) return;
+  const { s5, part, team: t } = prepared;
   roundSeats = [...seating.seats];
-  if (mode === 'play' && !team.ringers.some((r) => roundSeats[r.index] !== TV)) {
+  if (mode === 'play' && !t.ringers.some((r) => roundSeats[r.index] !== TV)) {
     $('lobby-msg').textContent = 'Join with a phone, or use Round options for Keyboard or Autoplay demo.';
     return;
   }
   lastMode = mode;
   while (lobbyPanels.length) closeLobbyPanel();
   (document.activeElement as HTMLElement | null)?.blur();
-  const t = team;
   const lanes = laneMap();
   hgpInput = new HgpInputSource(link, (dev, bell) => lanes.get(`${dev}|${bell}`));
   const sources: InputSource[] = [hgpInput];
@@ -692,8 +747,6 @@ async function start(mode: Mode): Promise<void> {
   if (kbRinger) sources.push(keyboardRinger(kbRinger.laneStart, kbRinger.bells.length, (lane) => audio.bell(t.chart.lanes[lane].pitch, 0, 0.9, 0)));
 
   const hostRingSound = soundMode !== 'device';
-  const s5 = currentChart()!;
-  const part = findPart(s5, difficulty, ringerCount, arrangement)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
@@ -864,9 +917,10 @@ function finish(r: SessionResult): void {
   const result = {
     ...r,
     song: songId,
-    difficulty,
-    form: songForm,
-    arrangement,
+    ...(firstRing ? { preset: 'first-ring' } : {}),
+    difficulty: roundDifficulty(),
+    form: firstRing ? 'short' : songForm,
+    arrangement: roundArrangement(),
     ringers: ringerCount,
     /** Practice speed (1 = written tempo); song times in this result are at this speed. */
     speed: roundSpeed,
@@ -960,7 +1014,7 @@ $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').t
 
 const lobbyPanels: { dialog: HTMLDialogElement; opener: HTMLElement }[] = [];
 const activePanel = () => lobbyPanels.at(-1)?.dialog;
-const controls = (root: ParentNode) => [...root.querySelectorAll<HTMLElement>('button:not(:disabled), select, input:not(:disabled), a[href], [role="button"]')];
+const controls = (root: ParentNode) => [...root.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled), a[href], [role="button"]')];
 
 function openLobbyPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void {
   const dialog = $<HTMLDialogElement>(id);
@@ -998,6 +1052,7 @@ $('choose-song').onclick = () => {
     button.textContent = `${song.title} · ${Math.round(songDuration(song) / speed)} s`;
     button.setAttribute('aria-pressed', String(song.id === songId));
     button.onclick = () => {
+      roundStyleNotice = '';
       songId = song.id;
       $('chosen-song').textContent = song.title;
       closeLobbyPanel();

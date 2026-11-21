@@ -325,6 +325,67 @@ try {
   const pressedAfter = await bob.page.getAttribute('#ready', 'aria-pressed');
   check('Ready resets when a song starts', pressedAfter === 'false');
 
+  // 15. First Ring is opt-in, leaves Standard settings intact, and plays through to results.
+  const chooseSong = async (title) => {
+    await game.locator('#choose-song').click();
+    await game.locator('#song-options button').filter({ hasText: `${title} ·` }).click();
+  };
+  const openRound = () => game.locator('#open-round').click();
+  const roundStyle = game.locator('#sel-round-style');
+  await openRound();
+  check('First Ring is under Round options and starts off', await roundStyle.inputValue() === 'standard' && await roundStyle.isEnabled());
+  await game.selectOption('#sel-diff', 'hard');
+  await game.selectOption('#sel-parts', 'by-range');
+  await game.selectOption('#sel-form', 'short');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers');
+  // Use the TV remote's up/down and left/right behavior for an actual selection.
+  await game.locator('#edit-seating').focus();
+  await game.keyboard.press('ArrowDown');
+  check('remote reaches Round style from Edit seating', await focused('#sel-round-style'));
+  await game.keyboard.press('ArrowRight');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · First Ring · 3 ringers');
+  check('First Ring locks the three Standard controls and explains the guide',
+    (await Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).isDisabled()))).every(Boolean)
+    && /one bell per ringer.*rest of the tune/.test(await game.textContent('#round-style-info')));
+  await game.waitForFunction(() => window.__i2.cards.every((c) => c.bells.length === 1) && window.__i2.link.phones.every((p) => p.bells?.length === 1));
+  check('each of the three seated phones receives exactly one bell', true);
+  await game.keyboard.press('ArrowLeft');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers' && window.__i2.cards.some((c) => c.bells.length > 1));
+  const standardSettings = () => Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).inputValue()));
+  check('Standard restores Hard, By range, and Short after switching off', (await standardSettings()).join() === 'hard,by-range,short');
+  await roundStyle.selectOption('first-ring');
+  await game.keyboard.press('Escape');
+  await chooseSong('Silent Night');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Silent Night · hard · 3 ringers');
+  check('unsupported song explains the return to Standard', /First Ring is not available for Silent Night.*Standard settings restored/.test(await game.textContent('#lobby-msg')));
+  await openRound();
+  check('unsupported song cannot select First Ring and keeps Standard settings',
+    await roundStyle.isDisabled() && await roundStyle.inputValue() === 'standard' && (await standardSettings()).join() === 'hard,by-range,short');
+  await game.keyboard.press('Escape');
+  await chooseSong('Jingle Bells');
+  await openRound();
+  check('returning to a supported song does not silently re-enable First Ring', await roundStyle.inputValue() === 'standard' && await roundStyle.isEnabled());
+  await roundStyle.selectOption('first-ring');
+  await game.keyboard.press('Escape');
+  await chooseSong('Deck the Halls');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Deck the Halls · First Ring · 3 ringers');
+  await openRound();
+  check('switching between supported carols keeps First Ring selected', await roundStyle.inputValue() === 'first-ring');
+  await game.locator('#btn-auto').click();
+  await game.waitForFunction(() => Boolean(window.__i2.session), null, { timeout: 8000 });
+  const firstRingRun = await game.evaluate(() => ({
+    lanes: window.__i2.team.chart.lanes.length,
+    guide: window.__i2.team.chart.backing.length,
+    strikes: window.__i2.team.chart.notes.length,
+  }));
+  check('Deck the Halls schedules one lane per ringer and loads the guide', firstRingRun.lanes === 3 && firstRingRun.guide === 43 && firstRingRun.strikes === 25, JSON.stringify(firstRingRun));
+  await game.waitForSelector('#results:not(.hidden)', { timeout: 50000 });
+  const result = await game.evaluate(() => window.__i2Result);
+  check('First Ring finishes through the shared game',
+    result.song === 'deck-the-halls' && result.preset === 'first-ring' && result.form === 'short' && result.mode === 'autoplay'
+    && result.counts.perfect === firstRingRun.strikes && Math.abs(result.chartDurationSec - 33.103) < 0.01,
+    `${result.counts.perfect}/${firstRingRun.strikes} perfect, ${result.chartDurationSec} s`);
+
   check('no page errors', errors.length === 0, errors.join(' | '));
   ok = checks.every((c) => c.ok);
 } finally {
