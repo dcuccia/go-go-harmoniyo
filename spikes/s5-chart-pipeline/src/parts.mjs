@@ -14,6 +14,7 @@
 import { pitchName, timeSigAt } from './score.mjs';
 import { DEVELOPMENT } from './form.mjs';
 import { PROFILES, assignBells, evaluateRinger, repair, ringerLabel } from './assign.mjs';
+import { firstRingAccents } from './first-ring.mjs';
 
 export const TIERS = ['super-easy', 'easy', 'medium', 'hard'];
 export const ARRANGEMENTS = ['balanced', 'chord-split', 'by-range'];
@@ -443,10 +444,24 @@ export function buildFormPart(formed, tier, ringerCount, profileId, arrangement 
   }
   while (groups.length < ringerCount) groups.push({ bells: [], role: null });
   const ringerOf = mapper(groups);
+  const roles = plan.players ? groups.map((g) => g.role) : groups.map((_, i) => majorityRole(notes.filter((n) => ringerOf(n.midi) === i)));
+  return serializePart(formed, tier, ringerCount, profileId, arrangement, { groups, notes, guide, plan, dropped, roles });
+}
+
+export function buildFirstRingPart(formed, songId, ringerCount, profileId) {
+  const part = firstRingAccents(formed, songId, ringerCount);
+  const plan = { bass: 0, harmony: 0, descant: false, players: { bass: 0, harmony: 0, melody: ringerCount, descant: 0 } };
+  const roles = part.groups.map((g) => g.role);
+  const names = part.groups.map((g) => `${pitchName(g.bells[0])} melody`);
+  return serializePart(formed, 'super-easy', ringerCount, profileId, 'balanced', { ...part, plan, dropped: [], roles, names });
+}
+
+function serializePart(formed, tier, ringerCount, profileId, arrangement, { groups, notes, guide, plan, dropped, roles, names = ringerNames(roles) }) {
+  const profile = PROFILES[profileId];
+  const toSec = formed.toSec;
+  const ringerOf = mapper(groups);
   const durationSec = toSec(formed.score.endTick);
   const loads = [];
-  const roles = plan.players ? groups.map((g) => g.role) : groups.map((g) => majorityRole(notes.filter((n) => ringerOf(n.midi) === groups.indexOf(g))));
-  const names = ringerNames(roles);
   const ringers = groups.map((g, i) => {
     const mine = notes.filter((n) => ringerOf(n.midi) === i).sort((a, b) => a.time - b.time || a.midi - b.midi);
     const ev = evaluateRinger(mine, profile);

@@ -54,6 +54,14 @@ Committed `charts/` carry the balanced arrangement for 4 ringers (every tier; th
 defaults to 4 — rebuild with `--ringers 3,4,5` for other counts); the I2 game builds its own charts
 with every arrangement, 1–4 ringers and both lengths.
 
+**First Ring (#92)** is a separate opt-in Short preset for Jingle Bells and Deck the Halls.
+`src/first-ring.mjs` selects spaced accents from the source melody. Each of 1–4 ringers
+has exactly one pitch, and the TV guide plays every melody note that isn't scored. Adding
+a ringer adds their accents without replacing the other players' notes. The I2 build emits
+`charts/first-ring/<song-id>.json` and advertises it in the song index under
+`firstRing: { durationSec, ringerCounts }`. Select the matching `super-easy` / `balanced`
+part from that URL only; normal Full and Short charts are unchanged.
+
 ## Harmony block (chart format 0.2)
 
 Each chart carries an optional `harmony` object for game-side backing tracks (used by the I2
