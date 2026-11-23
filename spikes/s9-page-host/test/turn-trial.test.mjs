@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { handleTrial, TrialState } from '../worker/turn-trial.mjs';
+import { handleTrial, mintTurn, TrialState } from '../worker/turn-trial.mjs';
 
 const minute = 60_000;
 const hour = 60 * minute;
@@ -143,6 +143,24 @@ test('a rejected provider call is not retried even after state reload', async ()
   assert.equal((await state.grant(room, invite)).status, 503);
   assert.equal((await restart().grant(room, invite)).status, 503);
   assert.equal(ttls.length, 1);
+});
+
+test('TURN grant logs identify provider failure without revealing private data', async (t) => {
+  const warn = t.mock.method(console, 'warn', () => {});
+  const env = { TURN_KEY_ID: 'private-key-id', TURN_KEY_API_TOKEN: 'private-api-token' };
+  const cases = [
+    [async () => new Response('private response body', { status: 403 }), 'provider-http-403'],
+    [async () => { throw new Error('private request failure'); }, 'provider-request-failure'],
+    [async () => Response.json({ iceServers: 'private malformed response' }), 'provider-invalid-response'],
+    [async () => Response.json({ iceServers: [null, { urls: ['stun:stun.example.test'] }] }), 'no-usable-servers'],
+  ];
+  for (const [request, expected] of cases) {
+    const { state } = trial((ttl) => mintTurn(env, ttl, request));
+    const { room, invite } = await openRoom(state);
+    assert.deepEqual(await state.grant(room, invite), { status: 503, body: { error: 'relay-unavailable' } });
+    assert.deepEqual(warn.mock.calls.at(-1).arguments, ['S9 TURN grant:', expected]);
+  }
+  assert.equal(warn.mock.callCount(), cases.length);
 });
 
 test('the rolling deployment quota counts failed attempts and allows only one replacement at 24 hours', async () => {
