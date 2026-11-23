@@ -1,12 +1,10 @@
 # Go Go HarmoniYo S9: signalling Worker + static web build, on the Cloudflare Workers free plan.
-# Nothing is deployed by the spike. Owner steps (docs/spikes/S9-report.md):
-#   npm ci && npm run build          # builds dist/web
-#   npx wrangler login               # the owner's existing Cloudflare account
-#   npx wrangler deploy              # → https://go-go-harmoniyo.<account>.workers.dev
-# Local: `npx wrangler@4 dev` (wrangler is not a dependency: see README).
+# See docs/spikes/S9-report.md for the credential-free dry run and explicit owner deployment.
 name = "go-go-harmoniyo"
 main = "worker/index.js"
 compatibility_date = "2026-11-01"
+workers_dev = true
+preview_urls = false
 
 [assets]
 directory = "./dist/web"

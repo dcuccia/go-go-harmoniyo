@@ -77,7 +77,16 @@ TV page parameters: `?signal=<origin>` (signalling service; remembered), `?room=
 STUN; same-machine tests). The phone link in the QR carries the room and any ICE parameters.
 
 **Wrangler is deliberately not a dependency** (its `sharp`/libvips is LGPL, which the licence gate
-rejects): `npm run worker` runs `npx --yes wrangler@4`.
+rejects): `npm run worker` uses the same pinned `npx` release as the deploy script.
+
+## Worker deployment
+
+From this directory, `npm run deploy:worker` builds both web entry points and runs Wrangler's
+credential-free dry run. To deploy from a clean checkout that passed the dry run, use the
+main-only **Deploy S9 signalling Worker** workflow or explicitly run `npm run deploy:worker -- --deploy`
+after configuring the account, origin and token. See the [owner runbook](../../docs/spikes/S9-report.md#deploy-the-signalling-worker-your-existing-cloudflare-account)
+for environment protection, setup, live checks and rollback. The rollout is STUN-only; do not
+set TURN bindings.
 
 ## App shells (`app/`)
 
