@@ -2,11 +2,15 @@
 // Imported before the controller (phone.ts), so the factory is in place when it connects.
 import { setHgpSocketFactory } from '../../s1-phone-bell/src/web/hgp-client.ts';
 import { signalOrigin } from './config.ts';
-import { PeerSocket } from './peer-socket.ts';
+import { PeerSocket, type PhoneStatus } from './peer-socket.ts';
+import { trialInvite } from './turn-trial.ts';
 
 const params = new URLSearchParams(location.search);
 const room = (params.get('r') ?? '').toUpperCase();
-const origin = signalOrigin(params);
+const protectedRoom = params.get('trial') === '1';
+// Never forward a private invitation to an origin chosen by a query parameter or saved config.
+const origin = protectedRoom ? location.origin : signalOrigin(params);
+const invite = protectedRoom ? trialInvite(room, location.hash) : '';
 const peer = `p-${Math.random().toString(36).slice(2, 10)}`;
 
 if (!/^[A-Z0-9]{4,12}$/.test(room)) {
@@ -25,4 +29,33 @@ try {
   /* no WebRTC: PeerSocket reports it on connect */
 }
 
-setHgpSocketFactory(() => new PeerSocket({ signalOrigin: origin, room, peer, params }));
+const failureCopy: Partial<Record<PhoneStatus, string>> = {
+  'no-tv': 'TV not found. Check that the host is still open, then scan its QR again.',
+  'invalid-invite': 'Trial room or invitation unavailable. Scan a fresh QR on the TV.',
+  'no-network-path': 'No connection to the TV. Try the same Wi-Fi as the TV and scan again.',
+  'relay-unavailable': 'Relay unavailable. Try the same Wi-Fi as the TV, or ask the host for a new trial QR.',
+};
+let notice: HTMLParagraphElement | undefined;
+let reconnecting = false;
+setHgpSocketFactory(() => {
+  const socket = new PeerSocket({
+    signalOrigin: origin, room, peer, params, trial: protectedRoom, invite, reconnecting,
+    onStatus: (state) => {
+      const main = document.getElementById('main');
+      if (!main) return;
+      main.dataset.s9Connection = state;
+      const failure = failureCopy[state];
+      if (!notice && failure) {
+        notice = document.createElement('p');
+        notice.setAttribute('role', 'status');
+        main.prepend(notice);
+      }
+      if (notice && (failure || state === 'waiting-for-assignment' || state === 'connected')) {
+        notice.hidden = !failure;
+        notice.textContent = failure ?? '';
+      }
+    },
+  });
+  reconnecting = true;
+  return socket;
+});

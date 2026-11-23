@@ -2,14 +2,24 @@
 // channels negotiated through the signalling relay. HgpClient (s1 controller) uses it unchanged via
 // setHgpSocketFactory; `fast` (the unreliable channel) is adopted as its direct link on open.
 import type { HgpSocket } from '../../s1-phone-bell/src/web/hgp-client.ts';
+import { parseMessage } from '../../s1-phone-bell/src/core/hgp.ts';
 import { wsUrl } from './config.ts';
 import { iceConfig, routeOf } from './ice.ts';
+import { trialIce, trialProtocols } from './turn-trial.ts';
+
+export type PhoneStatus =
+  | 'looking-for-tv' | 'no-tv' | 'connecting' | 'no-network-path' | 'trying-relay'
+  | 'relay-unavailable' | 'invalid-invite' | 'waiting-for-assignment' | 'connected' | 'reconnecting';
 
 export interface PeerSocketOptions {
   signalOrigin: string;
   room: string;
   peer: string;
   params?: URLSearchParams;
+  trial?: boolean;
+  invite?: string;
+  reconnecting?: boolean;
+  onStatus?: (status: PhoneStatus) => void;
   /** Give up if the link isn't open by then (no TV in the room, or no network path). */
   timeoutMs?: number;
 }
@@ -58,6 +68,10 @@ export class PeerSocket implements HgpSocket {
   private chain: Promise<void> = Promise.resolve();
   private offered = false;
   private hostSeen = false;
+  private attemptingRelay = false;
+  private attempt?: number;
+  private directTimer?: ReturnType<typeof setTimeout>;
+  private assigned = false;
   private timers: ReturnType<typeof setTimeout>[] = [];
   private readonly t0 = performance.now();
 
@@ -80,7 +94,7 @@ export class PeerSocket implements HgpSocket {
     if (this.readyState === CLOSED) return;
     if (code === 1000 && this.rel?.readyState === 'open') {
       try {
-        this.signalSend({ type: 'signal', data: { kind: 'bye' } });
+        this.signalSend({ type: 'signal', data: { kind: 'bye', attempt: this.attempt } });
       } catch {
         /* best effort */
       }
@@ -93,6 +107,7 @@ export class PeerSocket implements HgpSocket {
     this.readyState = CLOSED;
     this.t.closed = { code, reason, at: Math.round(performance.now() - this.t0) };
     for (const t of this.timers) clearTimeout(t);
+    clearTimeout(this.directTimer);
     try {
       this.fast?.close();
       this.rel?.close();
@@ -109,24 +124,57 @@ export class PeerSocket implements HgpSocket {
     if (this.sig?.readyState === WebSocket.OPEN) this.sig.send(JSON.stringify(o));
   }
 
+  private status(state: PhoneStatus): void {
+    this.o.onStatus?.(state);
+  }
+
+  private noPath(state: 'no-network-path' | 'relay-unavailable' | 'invalid-invite', reason: string): void {
+    this.status(state);
+    this.finish(CLOSE_NO_PATH, reason);
+  }
+
   private async run(): Promise<void> {
-    const { signalOrigin, room, peer } = this.o;
-    const params = this.o.params ?? new URLSearchParams();
+    const { signalOrigin, room, peer, invite, trial: protectedRoom } = this.o;
+    const params = protectedRoom ? new URLSearchParams() : this.o.params ?? new URLSearchParams();
+    this.status(this.o.reconnecting ? 'reconnecting' : 'looking-for-tv');
+    if (protectedRoom && !invite) {
+      this.noPath('invalid-invite', 'missing trial invitation');
+      return;
+    }
     this.timers.push(
       setTimeout(() => {
-        if (this.readyState === CONNECTING) this.finish(this.hostSeen ? CLOSE_NO_PATH : CLOSE_NO_HOST, this.hostSeen ? 'no network path to the TV' : 'no TV in this room');
-      }, this.o.timeoutMs ?? 20_000),
+        if (this.readyState !== CONNECTING) return;
+        if (this.hostSeen) this.noPath('no-network-path', 'no network path to the TV');
+        else {
+          this.status('no-tv');
+          this.finish(CLOSE_NO_HOST, 'no TV in this room');
+        }
+      }, this.o.timeoutMs ?? (protectedRoom ? 30_000 : 20_000)),
     );
     const icePromise = iceConfig(signalOrigin, params).then((c) => {
       this.mark('ice');
       this.t.iceSource = c.source;
       return c;
     });
-    const sig = new WebSocket(wsUrl(signalOrigin, `/signal/${room}?role=phone&peer=${encodeURIComponent(peer)}`));
+    let sig: WebSocket;
+    try {
+      sig = new WebSocket(wsUrl(signalOrigin, `/signal/${room}?role=phone&peer=${encodeURIComponent(peer)}${protectedRoom ? '&trial=1' : ''}`),
+        invite ? trialProtocols(invite) : []);
+    } catch {
+      this.status('no-tv');
+      this.finish(CLOSE_NO_HOST, 'signalling service is unavailable');
+      return;
+    }
     this.sig = sig;
     sig.onopen = () => this.mark('signalOpen');
     sig.onclose = (e) => {
-      if (this.sig === sig && this.readyState === CONNECTING && e.code >= 4000) this.finish(e.code, e.reason || 'signalling closed');
+      if (this.sig !== sig || this.readyState !== CONNECTING) return;
+      if (protectedRoom && this.t.signalOpen === undefined) {
+        this.noPath('invalid-invite', 'trial room or invitation unavailable');
+      } else if (e.code >= 4000 || protectedRoom) {
+        this.status(this.hostSeen ? 'no-network-path' : 'no-tv');
+        this.finish(e.code, 'signalling closed');
+      }
     };
     sig.onmessage = (e) => {
       let m: any;
@@ -138,40 +186,85 @@ export class PeerSocket implements HgpSocket {
       if ((m.type === 'joined' && m.host) || (m.type === 'host' && m.online)) {
         this.hostSeen = true;
         this.mark('hostSeen');
-        void icePromise.then((c) => this.offer(c.iceServers, c.iceTransportPolicy));
+        if (this.offered || this.readyState !== CONNECTING) return;
+        this.offered = true;
+        this.status('connecting');
+        void icePromise.then((c) => this.offer(c.iceServers, c.iceTransportPolicy, protectedRoom ? 1 : undefined))
+          .catch(() => this.failedAttempt());
+      } else if (m.type === 'joined' && !this.hostSeen) {
+        this.status('looking-for-tv');
       } else if (m.type === 'signal' && m.data) this.onSignal(m.data);
     };
   }
 
-  private async offer(iceServers: RTCIceServer[], iceTransportPolicy: RTCIceTransportPolicy): Promise<void> {
-    if (this.offered || this.readyState !== CONNECTING) return;
-    this.offered = true;
+  private failedAttempt(): void {
+    if (this.readyState !== CONNECTING) return;
+    if (this.o.invite && !this.attemptingRelay) void this.retryWithRelay(this.o.invite);
+    else this.noPath('no-network-path', this.attemptingRelay ? 'TURN could not connect' : 'no network path to the TV');
+  }
+
+  private async retryWithRelay(invite: string): Promise<void> {
+    this.attemptingRelay = true;
+    clearTimeout(this.directTimer);
+    const old = this.pc;
+    this.pc = null;
+    old?.close();
+    this.status('trying-relay');
+    let servers: RTCIceServer[];
+    try {
+      servers = await trialIce(this.o.signalOrigin, this.o.room, invite);
+    } catch {
+      if (this.readyState === CONNECTING) this.noPath('relay-unavailable', 'TURN credentials unavailable');
+      return;
+    }
+    try {
+      await this.offer(servers, 'relay', 2);
+    } catch {
+      this.failedAttempt();
+    }
+  }
+
+  private async offer(iceServers: RTCIceServer[], iceTransportPolicy: RTCIceTransportPolicy, attempt?: number): Promise<void> {
+    if (this.readyState !== CONNECTING) return;
     const pc = new RTCPeerConnection({ iceServers, iceTransportPolicy });
+    this.attempt = attempt;
+    this.chain = Promise.resolve();
     this.pc = pc;
     this.mark('pcCreated');
     const rel = pc.createDataChannel('hgp', { ordered: true });
     const fast = pc.createDataChannel('hgp-fast', { ordered: false, maxRetransmits: 0 });
     this.rel = rel;
+    const pendingIce: RTCIceCandidateInit[] = [];
+    let sentOffer = false;
+    const sendIce = (c: RTCIceCandidateInit) => this.signalSend({ type: 'signal', data: { kind: 'ice', c, attempt } });
     pc.onicecandidate = (e) => {
-      if (e.candidate) this.signalSend({ type: 'signal', data: { kind: 'ice', c: e.candidate.toJSON() } });
+      if (this.pc !== pc || !e.candidate) return;
+      if (sentOffer) sendIce(e.candidate.toJSON());
+      else pendingIce.push(e.candidate.toJSON());
     };
     pc.onconnectionstatechange = () => {
-      if (pc.connectionState === 'failed') {
-        if (this.readyState === CONNECTING) this.finish(CLOSE_NO_PATH, 'no network path to the TV');
+      if (this.pc === pc && pc.connectionState === 'failed') {
+        if (this.readyState === CONNECTING) this.failedAttempt();
         else this.finish(CLOSE_LOST, 'link to the TV lost');
       }
     };
     rel.onopen = () => {
+      if (this.pc !== pc) return;
+      clearTimeout(this.directTimer);
       this.mark('relOpen');
       // Prefer opening with the fast channel ready (HgpClient adopts it on open); don't wait long.
       if (fast.readyState === 'open') this.opened(fast);
-      else this.timers.push(setTimeout(() => this.opened(fast.readyState === 'open' ? fast : null), 500));
+      else this.timers.push(setTimeout(() => {
+        if (this.pc === pc) this.opened(fast.readyState === 'open' ? fast : null);
+      }, 500));
     };
     fast.onopen = () => {
+      if (this.pc !== pc) return;
       this.mark('fastOpen');
       if (rel.readyState === 'open') this.opened(fast);
     };
     rel.onmessage = (e) => {
+      if (this.pc !== pc) return;
       const text = String(e.data);
       if (text.startsWith('{"$close"')) {
         try {
@@ -182,23 +275,43 @@ export class PeerSocket implements HgpSocket {
         }
         return;
       }
-      if (this.readyState === OPEN) this.onmessage?.({ data: text });
+      if (this.readyState === OPEN) {
+        this.onmessage?.({ data: text });
+        if (!this.assigned) {
+          const m = parseMessage(text);
+          if (m?.type === 'assign' && Array.isArray(m.bells) && m.bells.length > 0) {
+            this.assigned = true;
+            this.status('connected');
+          }
+        }
+      }
     };
-    rel.onclose = () => this.finish(CLOSE_LOST, 'link to the TV lost');
+    rel.onclose = () => {
+      if (this.pc !== pc || this.readyState === CLOSED) return;
+      if (this.readyState === CONNECTING) this.failedAttempt();
+      else this.finish(CLOSE_LOST, 'link to the TV lost');
+    };
     const offer = await pc.createOffer();
     this.mark('offerCreated');
     await pc.setLocalDescription(offer);
-    this.signalSend({ type: 'signal', data: { kind: 'offer', sdp: pc.localDescription?.sdp ?? '' } });
+    if (this.pc !== pc || this.readyState !== CONNECTING) return;
+    this.signalSend({ type: 'signal', data: { kind: 'offer', sdp: pc.localDescription?.sdp ?? '', attempt } });
+    sentOffer = true;
+    for (const c of pendingIce) sendIce(c);
     this.mark('offerSent');
+    if (attempt === 1) this.directTimer = setTimeout(() => this.failedAttempt(), 6000);
   }
 
   private onSignal(data: any): void {
     const pc = this.pc;
-    if (!pc) return;
+    if (!pc || data.attempt !== this.attempt) return;
     if (data.kind === 'answer' && typeof data.sdp === 'string') {
       this.mark('answer');
-      this.chain = this.chain.then(() => pc.setRemoteDescription({ type: 'answer', sdp: data.sdp })).catch(() => this.finish(CLOSE_NO_PATH, 'bad answer'));
+      this.chain = this.chain.then(() => pc.setRemoteDescription({ type: 'answer', sdp: data.sdp })).catch(() => {
+        if (this.pc === pc) this.failedAttempt();
+      });
     } else if (data.kind === 'ice' && data.c) this.chain = this.chain.then(() => pc.addIceCandidate(data.c)).catch(() => {});
+    else if (data.kind === 'relay-unavailable' && this.attempt === 2) this.noPath('relay-unavailable', 'TURN unavailable on the TV');
   }
 
   private opened(fast: RTCDataChannel | null): void {
@@ -206,6 +319,7 @@ export class PeerSocket implements HgpSocket {
     this.fast = fast;
     this.readyState = OPEN;
     this.mark('open');
+    this.status('waiting-for-assignment');
     this.onopen?.({});
     void routeOf(this.pc!).then((r) => {
       this.t.route = r.route;

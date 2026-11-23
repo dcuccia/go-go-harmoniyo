@@ -8,6 +8,7 @@ import { parseArgs } from 'node:util';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const worker = 'go-go-harmoniyo';
+const trialBindings = new Set(['TURN_KEY_ID', 'TURN_KEY_API_TOKEN', 'S9_TURN_TRIAL', 'S9_TURN_OWNER_SECRET']);
 const api = 'https://api.cloudflare.com/client/v4';
 const stamp = join(root, 'dist', 's9-preflight.json');
 const buildInfo = join(root, 'dist', 'web', 's9-build.json');
@@ -38,31 +39,33 @@ export async function verifyCloudflareTarget({ account, subdomain }, token, requ
   if (registered.subdomain !== subdomain) throw new Error('S9_SIGNAL_ORIGIN does not match the workers.dev subdomain registered to CLOUDFLARE_ACCOUNT_ID.');
   const settings = await get(`scripts/${worker}/settings`, true);
   if (settings && !Array.isArray(settings.bindings)) throw new Error('Could not verify existing Worker bindings.');
-  if (settings?.bindings.some(({ name }) => name === 'TURN_KEY_ID' || name === 'TURN_KEY_API_TOKEN')) {
-    throw new Error('The existing Worker has a TURN binding. This rollout is STUN-only; no changes were made.');
+  if (settings?.bindings.some(({ name }) => trialBindings.has(name))) {
+    throw new Error('The existing Worker has a TURN binding or enablement setting. This rollout is STUN-only; no changes were made.');
   }
 }
 
 export async function smoke(origin, builtAt, request = fetch) {
-  const get = async (path, status = 200) => {
+  const get = async (path, status = 200, method = 'GET') => {
     const response = await request(new URL(path, origin), {
-      redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(10_000),
+      method, redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(10_000),
     });
     if (response.status !== status) throw new Error(`${path}: expected HTTP ${status}, got ${response.status}`);
     return response;
   };
-  const [tv, controller, build, ice, signal] = await Promise.all([
+  const [tv, controller, build, ice, signal, trial] = await Promise.all([
     get('/').then((r) => r.text()),
     get('/c/').then((r) => r.text()),
     get('/s9-build.json').then((r) => r.json()),
     get('/ice').then((r) => r.json()),
     get('/signal/S9SMOKE?role=host&peer=deploy-smoke', 426).then((r) => r.text()),
+    get('/turn-trial', 503, 'POST').then((r) => r.json()),
   ]);
   if (!tv.includes('<title>S9 · Go Go HarmoniYo</title>') || !controller.includes('src="./controller.js"')) {
     throw new Error('Expected the S9 TV page at / and the phone controller at /c/.');
   }
   if (build.builtAt !== builtAt || build.signal !== '') throw new Error('Hosted assets do not match this S9 build.');
   if (signal !== 'expected a WebSocket') throw new Error('The signalling route did not return the expected WebSocket upgrade response.');
+  if (trial.error !== 'relay-unavailable') throw new Error('The TURN trial must be disabled on the STUN-only deployment.');
   if (
     ice.turn !== false || 'error' in ice || !Array.isArray(ice.iceServers) || ice.iceServers.length !== 1 ||
     ice.iceServers[0]?.urls?.length !== 1 || ice.iceServers[0].urls[0] !== 'stun:stun.cloudflare.com:3478'

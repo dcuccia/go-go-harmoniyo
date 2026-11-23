@@ -1,10 +1,12 @@
 // Go Go HarmoniYo S9 signalling Worker (Cloudflare Workers free plan).
 //   /signal/<ROOM>?role=host|phone&peer=<id>  WebSocket → one Durable Object per room (relay only)
-//   /ice                                      ICE servers for RTCPeerConnection (STUN; TURN if configured)
+//   /ice                                      public STUN only
+//   /turn-trial[/<ROOM>]                       protected, opt-in relay trial
 //   anything else                             the static web build (TV page at /, phone controller at /c/)
 // Owner deployment: see docs/spikes/S9-report.md. The initial rollout is STUN-only.
 import { DurableObject } from 'cloudflare:workers';
 import { onJoin, onLeave, onMessage, parseJoin } from '../signal/relay.mjs';
+import { handleTrial, mintTurn, TrialState, TRIAL_PROTOCOL, TRIAL_ROOM, trialEnabled, trialStub, trialTicket } from './turn-trial.mjs';
 
 const STUN = [{ urls: ['stun:stun.cloudflare.com:3478'] }];
 
@@ -16,31 +18,32 @@ export default {
       const j = parseJoin(url);
       if (typeof j === 'string') return new Response(j, { status: 400 });
       if (req.headers.get('Upgrade') !== 'websocket') return new Response('expected a WebSocket', { status: 426 });
-      return env.ROOMS.get(env.ROOMS.idFromName(j.room)).fetch(req);
+      const trial = url.searchParams.get('trial') === '1';
+      if (trial) {
+        const ticket = trialTicket(req);
+        if (!trialEnabled(env) || !TRIAL_ROOM.test(j.room) || !ticket || !await trialStub(env).admit(j.room, j.role, ticket)) {
+          return new Response('invalid or expired trial invitation', { status: 403 });
+        }
+      }
+      return env.ROOMS.get(env.ROOMS.idFromName(trial ? `trial:${j.room}` : j.room)).fetch(req);
     }
-    if (url.pathname === '/ice') return iceServers(env);
+    if (url.pathname === '/ice') return Response.json({ iceServers: STUN, turn: false }, {
+      headers: { 'cache-control': 'no-store', 'access-control-allow-origin': '*' },
+    });
+    if (url.pathname === '/turn-trial' || url.pathname.startsWith('/turn-trial/')) return handleTrial(req, env);
     return env.ASSETS.fetch(req);
   },
 };
 
-/**
- * STUN only by default. The experimental TURN branch is not part of the initial rollout:
- * leave both TURN bindings unset until credential minting is gated and rate-limited.
- */
-async function iceServers(env) {
-  // CORS: the app shells load the TV page from https://localhost (Android) / capacitor://localhost (iOS).
-  const headers = { 'content-type': 'application/json', 'cache-control': 'no-store', 'access-control-allow-origin': '*' };
-  if (!env.TURN_KEY_ID || !env.TURN_KEY_API_TOKEN) return new Response(JSON.stringify({ iceServers: STUN, turn: false }), { headers });
-  const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${env.TURN_KEY_ID}/credentials/generate-ice-servers`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ttl: 4 * 3600 }),
-  });
-  if (!r.ok) return new Response(JSON.stringify({ iceServers: STUN, turn: false, error: r.status }), { headers });
-  const { iceServers } = await r.json();
-  // Port 53 alternates are blocked by browsers and only add timeouts.
-  for (const s of iceServers) if (Array.isArray(s.urls)) s.urls = s.urls.filter((u) => !/:53\b/.test(u));
-  return new Response(JSON.stringify({ iceServers, turn: true }), { headers });
+export class TurnTrial extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.state = new TrialState(ctx.storage, (ttl) => mintTurn(env, ttl));
+  }
+
+  open() { return this.state.open(); }
+  admit(room, role, ticket) { return this.state.admit(room, role, ticket); }
+  grant(room, ticket) { return this.state.grant(room, ticket); }
 }
 
 /** One room. Uses the WebSocket Hibernation API, so an idle room costs nothing. */
@@ -53,13 +56,15 @@ export class SignalRoom extends DurableObject {
 
   /** @param {Request} req */
   async fetch(req) {
-    const j = parseJoin(new URL(req.url));
+    const url = new URL(req.url);
+    const j = parseJoin(url);
     if (typeof j === 'string') return new Response(j, { status: 400 });
     const { 0: client, 1: server } = new WebSocketPair();
     const others = this.sockets();
     this.ctx.acceptWebSocket(server, [j.role, j.peer]);
     onJoin(this.wrap(server), others);
-    return new Response(null, { status: 101, webSocket: client });
+    const headers = url.searchParams.get('trial') === '1' ? { 'Sec-WebSocket-Protocol': TRIAL_PROTOCOL } : undefined;
+    return new Response(null, { status: 101, webSocket: client, headers });
   }
 
   /** @param {WebSocket} ws @param {string | ArrayBuffer} msg */

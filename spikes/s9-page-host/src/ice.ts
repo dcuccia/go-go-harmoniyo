@@ -1,6 +1,5 @@
-// ICE servers for both ends. The signalling service's /ice says what to use (STUN only by default;
-// short-lived Cloudflare TURN credentials if the owner configured a TURN key). URL overrides, for
-// tests and diagnosis:
+// Public ICE for both ends; the production Worker serves STUN only. The protected trial negotiates
+// separately. URL overrides for tests and diagnosis:
 //   ?ice=none                      no STUN/TURN (host candidates only: same LAN, no AP isolation)
 //   ?turn=<url>&tu=<user>&tc=<pw>  add a TURN server (e.g. the dev server's local TURN)
 //   ?relay=1                       force relayed paths (iceTransportPolicy 'relay'), to test TURN
@@ -25,14 +24,21 @@ export async function iceConfig(signalOrigin: string, params = new URLSearchPara
     try {
       const ctl = new AbortController();
       const t = setTimeout(() => ctl.abort(), 3000);
-      const r = await fetchFn(`${signalOrigin}/ice`, { signal: ctl.signal, cache: 'no-store' });
-      clearTimeout(t);
-      if (r.ok) {
-        const j = (await r.json()) as { iceServers?: RTCIceServer[]; turn?: boolean };
-        if (Array.isArray(j.iceServers)) {
-          servers = j.iceServers;
-          source = j.turn ? 'service STUN+TURN' : 'service STUN';
+      try {
+        const r = await fetchFn(`${signalOrigin}/ice`, { signal: ctl.signal, cache: 'no-store' });
+        if (r.ok) {
+          const j = (await r.json()) as { iceServers?: RTCIceServer[] };
+          if (Array.isArray(j.iceServers)) {
+            // Ignore TURN from an older, misconfigured Worker. Local relay tests opt in via URL.
+            servers = j.iceServers.flatMap(({ urls }) => {
+              const stun = (Array.isArray(urls) ? urls : [urls]).filter((u) => typeof u === 'string' && /^stuns?:/.test(u));
+              return stun.length ? [{ urls: stun }] : [];
+            });
+            source = 'service STUN';
+          }
         }
+      } finally {
+        clearTimeout(t);
       }
     } catch {
       /* keep the default */

@@ -5,6 +5,7 @@ import { isAppShell, roomCode, setSignalOrigin, signalOrigin } from './config.ts
 import { installTvInput } from './tv-input.ts';
 import { PageHost } from './page-host.ts';
 import { qrDataUrl } from './qr.ts';
+import { isTrialOrigin } from './turn-trial.ts';
 
 const params = new URLSearchParams(location.search);
 const origin = signalOrigin(params);
@@ -48,10 +49,51 @@ function badge(): void {
     }
   };
   el.append(text, btn);
+  if (isTrialOrigin(origin)) {
+    const launch = document.createElement('button');
+    launch.textContent = 'Relay trial…';
+    const form = document.createElement('form');
+    form.hidden = true;
+    const secret = document.createElement('input');
+    secret.type = 'password';
+    secret.autocomplete = 'off';
+    secret.required = true;
+    secret.pattern = '[0-9a-f]{64}';
+    secret.setAttribute('aria-label', 'Relay trial owner key');
+    const submit = document.createElement('button');
+    submit.textContent = 'Start';
+    const feedback = document.createElement('span');
+    feedback.setAttribute('role', 'status');
+    form.append(`Owner key for ${new URL(origin).host}: `, secret, submit);
+    launch.onclick = () => {
+      form.hidden = !form.hidden;
+      secret.value = '';
+      if (!form.hidden) secret.focus();
+    };
+    form.onsubmit = async (event) => {
+      event.preventDefault();
+      const key = secret.value;
+      secret.value = '';
+      submit.disabled = true;
+      feedback.textContent = 'Opening trial room…';
+      try {
+        await host.enableRelayTrial(key);
+        form.hidden = true;
+        launch.focus();
+        feedback.textContent = '';
+      } catch (error) {
+        feedback.textContent = error instanceof Error ? error.message : 'Relay trial is unavailable.';
+      } finally {
+        submit.disabled = false;
+      }
+    };
+    el.append(launch, form, feedback);
+  }
   const render = () => {
     const s = host.signalState;
     const phones = host.session.phones().length;
-    text.textContent = `S9 · host in this page · room ${room} · ${s === 'open' ? 'signalling ok' : s === 'no-service' ? 'no signalling service' : s}${phones ? ` · ${phones} phone${phones > 1 ? 's' : ''}` : ''}${isAppShell() ? ' · app' : ''}`;
+    const trial = host.trialState === 'ready' ? ' · relay trial on (direct first)' : host.trialState === 'expired' ? ' · trial expired; reload for same-network play' : '';
+    text.textContent = `S9 · host in this page · room ${host.room} · ${s === 'open' ? 'signalling ok' : s === 'no-service' ? 'no signalling service' : s}${trial}${phones ? ` · ${phones} phone${phones > 1 ? 's' : ''}` : ''}${isAppShell() ? ' · app' : ''}`;
   };
   host.onChange = render;
   setInterval(render, 2000);
