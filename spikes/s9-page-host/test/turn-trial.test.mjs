@@ -150,6 +150,7 @@ test('TURN grant logs identify provider failure without revealing private data',
   const env = { TURN_KEY_ID: 'private-key-id', TURN_KEY_API_TOKEN: 'private-api-token' };
   const cases = [
     [async () => new Response('private response body', { status: 403 }), 'provider-http-403'],
+    [async () => new Response(null, { status: 302, headers: { Location: 'https://other.example.test/' } }), 'provider-http-302'],
     [async () => { throw new Error('private request failure'); }, 'provider-request-failure'],
     [async () => Response.json({ iceServers: 'private malformed response' }), 'provider-invalid-response'],
     [async () => Response.json({ iceServers: [null, { urls: ['stun:stun.example.test'] }] }), 'no-usable-servers'],
@@ -161,6 +162,15 @@ test('TURN grant logs identify provider failure without revealing private data',
     assert.deepEqual(warn.mock.calls.at(-1).arguments, ['S9 TURN grant:', expected]);
   }
   assert.equal(warn.mock.callCount(), cases.length);
+});
+
+test('TURN mint succeeds with the Workers redirect mode and never follows a redirect', async () => {
+  const env = { TURN_KEY_ID: 'test-id', TURN_KEY_API_TOKEN: 'test-token' };
+  const request = async (_url, { redirect }) => {
+    if (redirect !== 'manual') throw new TypeError('The Worker must handle redirects without following them');
+    return Response.json({ iceServers }, { status: 201 });
+  };
+  assert.deepEqual(await mintTurn(env, 1794, request), iceServers);
 });
 
 test('the rolling deployment quota counts failed attempts and allows only one replacement at 24 hours', async () => {

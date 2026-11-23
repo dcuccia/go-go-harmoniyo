@@ -172,7 +172,8 @@ export async function mintTurn(env, ttl, request = fetch) {
       method: 'POST',
       headers: { Authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ ttl }),
-      redirect: 'error',
+      // Workers fetch supports manual, not error; the status check below rejects redirects.
+      redirect: 'manual',
       signal: deadline,
     });
   } catch {

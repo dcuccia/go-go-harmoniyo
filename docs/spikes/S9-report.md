@@ -392,6 +392,9 @@ the failing step and, for provider HTTP errors, the status code; it does not con
 invites, or provider response text. A local redeploy of the trial Worker must use `--keep-vars`
 to retain its existing `S9_TURN_TRIAL` text binding.
 
+The TURN provider request uses Workers-compatible manual redirect handling and rejects redirect
+responses, so the API token is never forwarded to a redirect target.
+
 Browser hosts use the reviewed trial Worker page. Existing Gemini debug APKs bundle the old
 TV JavaScript and must be rebuilt and updated to start a protected trial; just changing the
 service URL is not sufficient. The phone still uses the web controller with no account or
