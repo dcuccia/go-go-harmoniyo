@@ -386,6 +386,12 @@ These limits **do not cap TURN egress**: an invited client can reuse the credent
 Disable the trial by removing the enablement binding; this blocks new admissions and grant
 requests but doesn't revoke credentials already issued. Revoke those with the provider if needed.
 
+If a fresh room says **Relay unavailable**, use **Logs → Live** on the trial Worker and
+reproduce once in a new room. Share only the `S9 TURN grant:` diagnostic line. It names
+the failing step and, for provider HTTP errors, the status code; it does not contain keys,
+invites, or provider response text. A local redeploy of the trial Worker must use `--keep-vars`
+to retain its existing `S9_TURN_TRIAL` text binding.
+
 Browser hosts use the reviewed trial Worker page. Existing Gemini debug APKs bundle the old
 TV JavaScript and must be rebuilt and updated to start a protected trial; just changing the
 service URL is not sufficient. The phone still uses the web controller with no account or

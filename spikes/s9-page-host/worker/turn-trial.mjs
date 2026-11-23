@@ -15,6 +15,8 @@ const unavailable = () => result(503, { error: 'relay-unavailable' });
 const limited = () => result(429, { error: 'trial-limit' });
 const emptyState = () => ({ rooms: {}, attempts: [] });
 
+class TurnProviderError extends Error {}
+
 export class TrialState {
   #inflight = new Map();
 
@@ -87,10 +89,20 @@ export class TrialState {
     });
     if ('status' in reservation) return reservation;
     const { ttl, expiresAt } = reservation;
+    let iceServers;
     try {
-      const iceServers = await this.mint(ttl);
-      if (!Array.isArray(iceServers) || !iceServers.length || expiresAt <= this.now()) return unavailable();
-      const grant = { iceServers, expiresAt };
+      iceServers = await this.mint(ttl);
+    } catch (error) {
+      // Never log arbitrary exception text: it may contain a provider URL, token or response.
+      console.warn('S9 TURN grant:', error instanceof TurnProviderError ? error.message : 'provider-failure');
+      return unavailable();
+    }
+    if (!Array.isArray(iceServers) || !iceServers.length || expiresAt <= this.now()) {
+      console.warn('S9 TURN grant:', expiresAt <= this.now() ? 'grant-expired' : 'no-usable-servers');
+      return unavailable();
+    }
+    const grant = { iceServers, expiresAt };
+    try {
       await this.storage.transaction(async (tx) => {
         const state = await tx.get(STATE);
         state.rooms[room].grant = grant;
@@ -98,6 +110,7 @@ export class TrialState {
       });
       return result(200, grant);
     } catch {
+      console.warn('S9 TURN grant:', 'storage-failure');
       return unavailable();
     }
   }
@@ -152,16 +165,27 @@ export async function handleTrial(req, env) {
 
 export async function mintTurn(env, ttl, request = fetch) {
   const id = encodeURIComponent(env.TURN_KEY_ID);
-  const response = await request(`https://rtc.live.cloudflare.com/v1/turn/keys/${id}/credentials/generate-ice-servers`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ttl }),
-    redirect: 'error',
-    signal: AbortSignal.timeout(4000),
-  });
-  if (!response.ok) throw new Error('TURN provider refused credential issuance');
-  const { iceServers } = await response.json();
-  return iceServers.flatMap(({ urls, username, credential }) => {
+  const deadline = AbortSignal.timeout(4000);
+  let response;
+  try {
+    response = await request(`https://rtc.live.cloudflare.com/v1/turn/keys/${id}/credentials/generate-ice-servers`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.TURN_KEY_API_TOKEN}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ttl }),
+      redirect: 'error',
+      signal: deadline,
+    });
+  } catch {
+    throw new TurnProviderError(deadline.aborted ? 'provider-timeout' : 'provider-request-failure');
+  }
+  if (!response.ok) throw new TurnProviderError(`provider-http-${response.status}`);
+  const payload = await response.json().catch(() => null);
+  if (!Array.isArray(payload?.iceServers)) {
+    throw new TurnProviderError(deadline.aborted ? 'provider-timeout' : 'provider-invalid-response');
+  }
+  return payload.iceServers.flatMap((server) => {
+    if (!server || typeof server !== 'object') return [];
+    const { urls, username, credential } = server;
     const turn = (Array.isArray(urls) ? urls : [urls]).filter((u) =>
       typeof u === 'string' && /^turns?:/.test(u) && !/:53\b/.test(u));
     return turn.length && typeof username === 'string' && username && typeof credential === 'string' && credential
