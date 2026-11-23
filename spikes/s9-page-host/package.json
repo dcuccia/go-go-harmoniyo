@@ -9,8 +9,10 @@
     "build": "node scripts/build.mjs",
     "dev": "tsx server/dev-server.ts",
     "tunnel": "tsx server/dev-server.ts --tunnel",
-    "worker": "npx --yes wrangler@4 dev --port 18961",
-    "test": "tsx --test test/relay.test.ts test/page-host.test.ts",
+    "wrangler": "npx --yes wrangler@4.159.0",
+    "worker": "npm run wrangler -- dev --port 18961",
+    "deploy:worker": "node scripts/deploy.mjs",
+    "test": "tsx --test test/relay.test.ts test/page-host.test.ts test/deploy.test.mjs",
     "e2e": "node scripts/e2e.mjs",
     "measure": "node scripts/measure.mjs",
     "typecheck": "tsc --noEmit -p ."

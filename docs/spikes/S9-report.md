@@ -297,32 +297,67 @@ Silent Night (easy, 4 zones, 32 notes) with one emulated phone. Perfect is ±45 
 
 ## 5. Owner steps
 
-Prerequisites: Node 22 and a clone of `main` (after this PR merges).
+Prerequisites: Node 22.12+ and a clean checkout of `main` after the deployment workflow merges.
 
 ### Deploy the signalling Worker (your existing Cloudflare account)
 
+The [#98 follow-up](https://github.com/dcuccia/go-go-harmoniyo/issues/98#issuecomment-7089710096)
+keeps the Worker, app packaging and the PC host separate. The Worker serves the web pages and
+signals WebRTC; the game and HGP session run in the TV page or bundled app. There is no Pages
+deployment or PC Node host in this path.
+
+**One-time owner setup**
+
+1. In the intended Cloudflare account, enable its `workers.dev` subdomain if needed. Confirm the
+   stable public URL, `https://go-go-harmoniyo.<account-subdomain>.workers.dev` (no trailing slash).
+2. In GitHub, create the `s9-worker` environment. Set **Deployment branches and tags** to **Selected
+   branches and tags** and allow the `main` branch only (no tags). Require an owner/reviewer if the
+   repository's plan supports it. Set environment variables `CLOUDFLARE_ACCOUNT_ID` and
+   `S9_SIGNAL_ORIGIN`.
+3. Add `CLOUDFLARE_API_TOKEN` as a **secret in that environment only**. Use the
+   [Workers permissions guide](https://developers.cloudflare.com/workers/authorization/workers/):
+   grant Workers edit access only in the intended account and make sure the token can read the
+   account's `workers.dev` subdomain. Creating a Worker for the first time may require the
+   owner's Workers Admin permission; don't give a standing CI token that permission. If creation
+   is denied, bootstrap the named Worker once with an authorized short-lived token and use
+   edit access for redeploys. No Pages, DNS or account-wide global API key is needed.
+
+**Dry run (PowerShell or CI)** — from the repository root:
+
 ```powershell
-cd spikes/i2-web-phones; npm ci; npm run charts; npm run brand
-cd ../s1-phone-bell; npm ci
-cd ../s9-page-host; npm ci; npm run build
-npx wrangler login        # opens a browser; sign in to your Cloudflare account
-npx wrangler deploy       # prints https://go-go-harmoniyo.<your-subdomain>.workers.dev
+Set-Location spikes\s9-page-host
+npm run deploy:worker
 ```
 
-- Open that URL on the PC: it's the TV page, with a QR. Scan it with a phone to try the whole path
-  in a browser.
-- Wrangler is run with `npx` and is deliberately not a dependency (its image library is LGPL).
-  Version 4.159.0 was tested with `wrangler dev`.
-- **Optional TURN** (for guest Wi-Fi and some mobile carriers): in the Cloudflare dashboard,
-  Realtime → TURN → create a key, then:
+This installs the lockfile dependencies, generates I2 charts and brand assets, builds both web
+pages, and runs pinned Wrangler's `deploy --dry-run`. It does not require Cloudflare credentials
+or write to Cloudflare. It needs npm registry access on a cold cache.
 
-  ```powershell
-  npx wrangler secret put TURN_KEY_ID
-  npx wrangler secret put TURN_KEY_API_TOKEN
-  ```
+**Live deploy** — after merging, go to **Actions → Deploy S9 signalling Worker → Run workflow** on
+`main`. The run is serialized, builds without the token, and supplies the token only to the
+explicit deploy step. To run locally, first run the dry run from a clean checkout. In the same
+checkout, provide the three settings above via process environment variables, obtaining the
+token from a secret manager rather than typing it in shell history. Then run
+`npm run deploy:worker -- --deploy`. Don't run this concurrently with CI or another local deploy.
 
-  `https://<worker>/ice` then returns `"turn": true`.
-- Pages isn't used: the Worker serves the static files itself.
+The script checks the account/subdomain against Cloudflare before deploying and refuses an
+existing Worker with TURN bindings. Each run targets `go-go-harmoniyo`, reuses the checked-in
+SQLite Durable Object migration tags, and preserves existing secret bindings and dashboard
+variables. A successful redeploy can create a new version even without source changes.
+The run logs the public URL, Git SHA and Worker version before probing `/`, `/c/`, the build
+marker, STUN-only `/ice` and the HTTP signalling upgrade response. Then scan the QR with a
+real phone and join a song to validate the WebSocket/WebRTC path, which the HTTP checks don't test.
+
+**Rollback** — in the Cloudflare dashboard for the intended account, open **Workers & Pages →
+go-go-harmoniyo → Deployments**. Use the previous passing run's Worker version ID to select
+**Rollback**. Check the restored TV page, controller, `/ice` and a fresh phone join. A failed
+post-deploy smoke can leave the new version live; inspect Deployments before retrying. First
+deploys have no previous version. Rollback changes the live version, not Durable Object state.
+
+**STUN-only prototype:** do not create or rotate TURN secrets for this rollout. The prototype's
+TURN minting endpoint is not gated or rate-limited. Room codes are not authentication; a client
+that knows a room code can join or claim the host role. Use this only for a small owner-run
+test, not broad sharing.
 
 ### Build the APK with your Worker baked in
 

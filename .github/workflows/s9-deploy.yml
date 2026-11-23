@@ -1,0 +1,36 @@
+name: Deploy S9 signalling Worker
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: s9-worker-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: s9-worker
+    defaults:
+      run:
+        working-directory: spikes/s9-page-host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build and validate locally
+        run: npm run deploy:worker
+      - name: Deploy and verify the public Worker
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          S9_SIGNAL_ORIGIN: ${{ vars.S9_SIGNAL_ORIGIN }}
+        run: npm run deploy:worker -- --deploy

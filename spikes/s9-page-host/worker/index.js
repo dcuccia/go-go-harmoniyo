@@ -2,7 +2,7 @@
 //   /signal/<ROOM>?role=host|phone&peer=<id>  WebSocket → one Durable Object per room (relay only)
 //   /ice                                      ICE servers for RTCPeerConnection (STUN; TURN if configured)
 //   anything else                             the static web build (TV page at /, phone controller at /c/)
-// Owner deploy (S9 report): `npx wrangler login`, then `npx wrangler deploy` from spikes/s9-page-host.
+// Owner deployment: see docs/spikes/S9-report.md. The initial rollout is STUN-only.
 import { DurableObject } from 'cloudflare:workers';
 import { onJoin, onLeave, onMessage, parseJoin } from '../signal/relay.mjs';
 
@@ -24,8 +24,8 @@ export default {
 };
 
 /**
- * STUN only by default. If the owner adds a Cloudflare Realtime TURN key (`npx wrangler secret put
- * TURN_KEY_ID` and `TURN_KEY_API_TOKEN`), mint short-lived TURN credentials per request.
+ * STUN only by default. The experimental TURN branch is not part of the initial rollout:
+ * leave both TURN bindings unset until credential minting is gated and rate-limited.
  */
 async function iceServers(env) {
   // CORS: the app shells load the TV page from https://localhost (Android) / capacitor://localhost (iOS).
