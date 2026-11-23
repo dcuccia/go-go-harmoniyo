@@ -392,8 +392,17 @@ the failing step and, for provider HTTP errors, the status code; it does not con
 invites, or provider response text. A local redeploy of the trial Worker must use `--keep-vars`
 to retain its existing `S9_TURN_TRIAL` text binding.
 
-The TURN provider request uses Workers-compatible manual redirect handling and rejects redirect
-responses, so the API token is never forwarded to a redirect target.
+**2026-11-23 live result ([#100](https://github.com/dcuccia/go-go-harmoniyo/issues/100)):**
+The owner joined a desktop browser host from a real phone on isolated guest Wi-Fi. The host
+reported one connected phone on the `relay` route. This verifies the guest Wi-Fi browser join,
+not a scored song, cellular connection, or Gemini run.
+
+If a provider call succeeds in PowerShell but the Worker returns HTTP 503, check the Worker
+runtime before rotating keys. We reproduced `provider-request-failure` in `workerd` with
+`fetch(..., { redirect: 'error' })`: it rejected the option before sending the request.
+[#103](https://github.com/dcuccia/go-go-harmoniyo/pull/103) switched to `redirect: 'manual'`
+and still rejects non-2xx responses, including redirects, so the API token is never forwarded.
+The guest Wi-Fi join worked after deploying that fix to the trial Worker only.
 
 Browser hosts use the reviewed trial Worker page. Existing Gemini debug APKs bundle the old
 TV JavaScript and must be rebuilt and updated to start a protected trial; just changing the
