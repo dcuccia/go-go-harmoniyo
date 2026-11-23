@@ -26,6 +26,8 @@ test('Cloudflare target check rejects mismatched accounts, denied settings reads
   await assert.rejects(check('owner-test', [], 403), /HTTP 403/);
   await assert.rejects(check('owner-test', [], 404, 10000), /HTTP 404/);
   await assert.rejects(check('owner-test', [{ name: 'TURN_KEY_ID' }]), /TURN binding/);
+  await assert.rejects(check('owner-test', [{ name: 'S9_TURN_TRIAL' }]), /TURN binding/);
+  await assert.rejects(check('owner-test', [{ name: 'S9_TURN_OWNER_SECRET' }]), /TURN binding/);
   await check('owner-test', [], 404, 10007);
   await check('owner-test', [{ name: 'OTHER_SECRET', type: 'secret_text' }]);
 });
@@ -43,6 +45,9 @@ test('live smoke requires the current build, both entry points, signalling and S
         case '/c/': return new Response('<script src="./controller.js"></script>');
         case '/s9-build.json': return Response.json({ builtAt, signal: '' });
         case '/ice': return Response.json({ turn: false, iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }] });
+        case '/turn-trial':
+          assert.equal(options.method, 'POST');
+          return Response.json({ error: 'relay-unavailable' }, { status: 503 });
         case '/signal/S9SMOKE': return new Response('expected a WebSocket', { status: 426 });
         default: assert.fail(`Unexpected URL: ${url}`);
       }
@@ -52,4 +57,5 @@ test('live smoke requires the current build, both entry points, signalling and S
   await assert.rejects(check('/signal/S9SMOKE'), /expected HTTP 426/);
   await assert.rejects(check('/s9-build.json', () => Response.json({ builtAt: 'old', signal: '' })), /do not match/);
   await assert.rejects(check('/ice', () => Response.json({ turn: true })), /STUN-only/);
+  await assert.rejects(check('/turn-trial', () => new Response(null, { status: 401 })), /expected HTTP 503/);
 });

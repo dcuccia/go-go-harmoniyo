@@ -12,6 +12,7 @@ import { parseMessage } from '../../s1-phone-bell/src/core/hgp.ts';
 import { wsUrl } from './config.ts';
 import { iceConfig, routeOf, type IceConfig } from './ice.ts';
 import { loopback, type LoopbackSocket } from './loopback.ts';
+import { openTrialRoom, trialIce, trialProtocols, type TrialRoom } from './turn-trial.ts';
 
 export type SignalState = 'no-service' | 'connecting' | 'open' | 'closed' | 'replaced';
 
@@ -29,8 +30,7 @@ interface Peer {
   fast?: RTCDataChannel;
   handler?: ReturnType<HostSession<PageDevice>['connect']>;
   conn?: HostConn;
-  /** Signalling serialises SDP and candidates; this keeps their application in order. */
-  chain: Promise<void>;
+  attempt?: number;
   offerAt: number;
   openAt?: number;
   route: string;
@@ -72,6 +72,9 @@ export class PageHost {
   private pingTimer: ReturnType<typeof setInterval> | undefined;
   private readonly params: URLSearchParams;
   private readonly hostPeer = `tv-${Math.random().toString(36).slice(2, 10)}`;
+  private trial?: TrialRoom;
+  private readonly signals = new Map<string, Promise<void>>();
+  private trialTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(readonly o: PageHostOptions) {
     this.params = o.params ?? new URLSearchParams();
@@ -87,10 +90,36 @@ export class PageHost {
     });
   }
 
+  get room(): string { return this.trial?.room ?? this.o.room; }
+  get trialState(): 'off' | 'ready' | 'expired' {
+    return !this.trial ? 'off' : this.trial.expiresAt > Date.now() ? 'ready' : 'expired';
+  }
+
+  async enableRelayTrial(secret: string): Promise<void> {
+    if (this.trialState === 'ready' || this.session.phones().length) throw new Error('Start the relay trial from an empty lobby.');
+    const trial = await openTrialRoom(this.o.signalOrigin, secret);
+    if (this.session.phones().length) throw new Error('A phone joined. Start the trial from an empty lobby.');
+    const old = this.ws;
+    this.ws = null;
+    old?.close();
+    for (const p of this.peers.values()) this.dropPeer(p);
+    this.signals.clear();
+    this.trial = trial;
+    clearTimeout(this.trialTimer);
+    this.trialTimer = setTimeout(() => this.changed(), trial.expiresAt - Date.now());
+    this.connectSignal();
+  }
+
   get joinUrl(): string {
     if (!this.o.signalOrigin) return '';
     const u = new URL(`${this.o.signalOrigin}/c/`);
-    u.searchParams.set('r', this.o.room);
+    u.searchParams.set('r', this.room);
+    if (this.trial) {
+      if (this.trialState === 'expired') return '';
+      u.searchParams.set('trial', '1');
+      u.hash = new URLSearchParams({ invite: this.trial.invite }).toString();
+      return u.toString();
+    }
     for (const k of this.o.forward ?? []) {
       const v = this.params.get(k);
       if (v !== null) u.searchParams.set(k, v);
@@ -101,14 +130,14 @@ export class PageHost {
   info(): Record<string, unknown> {
     const s = this.signalState;
     const where = this.o.signalOrigin ? new URL(this.o.signalOrigin).host : 'no signalling service set';
-    const state = s === 'open' ? `room ${this.o.room} via ${where}` : s === 'replaced' ? `room ${this.o.room} is hosted by another screen` : s === 'no-service' ? where : `connecting to ${where}…`;
+    const state = s === 'open' ? `room ${this.room} via ${where}` : s === 'replaced' ? `room ${this.room} is hosted by another screen` : s === 'no-service' ? where : `connecting to ${where}…`;
     return {
       session: this.session.sessionId,
       // Only offer the QR once phones can actually be introduced.
       joinUrl: s === 'open' ? this.joinUrl : '',
       tlsMode: state,
       lanIp: '',
-      transport: { mode: 'page', signal: this.o.signalOrigin, room: this.o.room, state: s, ice: this.ice?.source },
+      transport: { mode: 'page', signal: this.o.signalOrigin, room: this.room, state: s, ice: this.ice?.source },
     };
   }
 
@@ -120,6 +149,7 @@ export class PageHost {
   stop(): void {
     this.session.stop();
     clearInterval(this.pingTimer);
+    clearTimeout(this.trialTimer);
     this.ws?.close();
     this.ws = null;
     for (const p of this.peers.values()) this.dropPeer(p);
@@ -138,7 +168,8 @@ export class PageHost {
   // ── signalling ────────────────────────────────────────────────────────────
 
   private connectSignal(): void {
-    const ws = new WebSocket(wsUrl(this.o.signalOrigin, `/signal/${this.o.room}?role=host&peer=${this.hostPeer}`));
+    const ws = new WebSocket(wsUrl(this.o.signalOrigin, `/signal/${this.room}?role=host&peer=${this.hostPeer}${this.trial ? '&trial=1' : ''}`),
+      this.trial ? trialProtocols(this.trial.hostTicket) : []);
     this.ws = ws;
     this.signalState = 'connecting';
     this.changed();
@@ -154,9 +185,9 @@ export class PageHost {
         this.retryMs = 1000;
         this.signalState = 'open';
         this.signalReason = '';
-        void this.refreshIce();
+        if (!this.trial) void this.refreshIce();
         this.changed();
-      } else if (m.type === 'signal' && typeof m.from === 'string') this.onSignal(m.from, m.data);
+      } else if (m.type === 'signal' && typeof m.from === 'string') this.queueSignal(ws, m.from, m.data);
     };
     // Keep NATs/proxies from idling the socket out; the Durable Object answers without waking up.
     clearInterval(this.pingTimer);
@@ -174,7 +205,9 @@ export class PageHost {
       this.signalState = 'closed';
       this.signalReason = e.reason || `code ${e.code}`;
       this.changed();
-      setTimeout(() => this.connectSignal(), this.retryMs);
+      setTimeout(() => {
+        if (ws === this.ws && this.trialState !== 'expired') this.connectSignal();
+      }, this.retryMs);
       this.retryMs = Math.min(15_000, this.retryMs * 2);
     };
   }
@@ -184,7 +217,7 @@ export class PageHost {
   }
 
   private async refreshIce(): Promise<IceConfig> {
-    // TURN credentials (if any) last 4 h; refresh hourly.
+    // Public STUN configuration is safe to cache.
     if (!this.ice || performance.now() - this.iceAt > 3600_000) {
       this.ice = await iceConfig(this.o.signalOrigin, this.params);
       this.iceAt = performance.now();
@@ -192,29 +225,54 @@ export class PageHost {
     return this.ice;
   }
 
-  private onSignal(from: string, data: any): void {
+  private queueSignal(ws: WebSocket, from: string, data: unknown): void {
+    // Offers may wait for ICE configuration. Don't drop candidates arriving while they wait.
+    const work = (this.signals.get(from) ?? Promise.resolve())
+      .then(() => ws === this.ws ? this.onSignal(from, data) : undefined)
+      .catch(() => {});
+    this.signals.set(from, work);
+    void work.then(() => { if (this.signals.get(from) === work) this.signals.delete(from); });
+  }
+
+  private async onSignal(from: string, data: any): Promise<void> {
     if (!data || typeof data !== 'object') return;
+    const attempt = this.trial ? data.attempt : undefined;
+    if (this.trial && attempt !== 1 && attempt !== 2) return;
     if (data.kind === 'offer' && typeof data.sdp === 'string') {
       const old = this.peers.get(from);
       if (old) this.dropPeer(old);
-      void this.answer(from, data.sdp);
+      await this.answer(from, data.sdp, attempt);
       return;
     }
     const p = this.peers.get(from);
-    if (!p) return;
-    if (data.kind === 'ice' && data.c) p.chain = p.chain.then(() => p.pc.addIceCandidate(data.c)).catch(() => {});
+    if (!p || p.attempt !== attempt) return;
+    if (data.kind === 'ice' && data.c) await p.pc.addIceCandidate(data.c);
     else if (data.kind === 'bye') this.dropPeer(p);
   }
 
-  private async answer(id: string, sdp: string): Promise<void> {
+  private async answer(id: string, sdp: string, attempt?: number): Promise<void> {
     this.stats.offers++;
     const offerAt = performance.now();
-    const ice = await this.refreshIce();
+    const ws = this.ws;
+    const trial = this.trial;
+    const ice = await (trial ? attempt === 2
+      ? trialIce(this.o.signalOrigin, trial.room, trial.hostTicket).then((iceServers) => ({ iceServers, iceTransportPolicy: 'relay' as const })).catch(() => null)
+      : iceConfig(this.o.signalOrigin, new URLSearchParams()) : this.refreshIce());
+    if (ws !== this.ws) return;
+    if (!ice) {
+      this.signal(id, { kind: 'relay-unavailable', attempt });
+      return;
+    }
     const pc = new RTCPeerConnection({ iceServers: ice.iceServers, iceTransportPolicy: ice.iceTransportPolicy });
-    const p: Peer = { id, pc, chain: Promise.resolve(), offerAt, route: '' };
+    const p: Peer = { id, pc, attempt, offerAt, route: '' };
     this.peers.set(id, p);
+    const pendingIce: RTCIceCandidateInit[] = [];
+    let sentAnswer = false;
+    const sendIce = (c: RTCIceCandidateInit) => this.signal(id, { kind: 'ice', c, attempt });
     pc.onicecandidate = (e) => {
-      if (e.candidate) this.signal(id, { kind: 'ice', c: e.candidate.toJSON() });
+      if (!e.candidate || this.peers.get(id) !== p || ws !== this.ws) return;
+      if (sentAnswer) sendIce(e.candidate.toJSON());
+      else pendingIce.push(e.candidate.toJSON());
     };
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'failed') {
@@ -226,15 +284,18 @@ export class PageHost {
       if (e.channel.label === 'hgp') this.attachReliable(p, e.channel);
       else if (e.channel.label === 'hgp-fast') this.attachFast(p, e.channel);
     };
-    p.chain = p.chain.then(async () => {
+    try {
       await pc.setRemoteDescription({ type: 'offer', sdp });
       await pc.setLocalDescription(await pc.createAnswer());
-      this.signal(id, { kind: 'answer', sdp: pc.localDescription?.sdp ?? '' });
-    });
-    p.chain = p.chain.catch(() => {
+      if (this.peers.get(id) === p && ws === this.ws) {
+        this.signal(id, { kind: 'answer', sdp: pc.localDescription?.sdp ?? '', attempt });
+        sentAnswer = true;
+        for (const c of pendingIce) sendIce(c);
+      }
+    } catch {
       this.stats.failed++;
       this.dropPeer(p);
-    });
+    }
   }
 
   private async updateRoute(p: Peer): Promise<void> {

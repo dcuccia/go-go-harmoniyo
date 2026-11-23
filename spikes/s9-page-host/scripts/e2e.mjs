@@ -21,20 +21,25 @@ const opt = (k, d) => argv.find((a) => a.startsWith(`--${k}=`))?.split('=')[1] ?
 const song = opt('song', 'silent-night');
 const diff = opt('diff', 'easy');
 const relay = argv.includes('--relay');
+const unavailable = argv.includes('--trial-unavailable');
+const fallback = unavailable || argv.includes('--trial-fallback');
+const trial = fallback || argv.includes('--trial');
 const shots = argv.includes('--shots');
 const port = Number(opt('port', '18964'));
 const turnPort = port + 1;
-const room = relay ? 'E2ERLY' : 'E2E001';
+const room = trial ? 'T1234567890A' : relay ? 'E2ERLY' : 'E2E001';
+const initialRoom = trial ? 'E2E001' : room;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // --origin=<url>: use an already-running signalling service (`npm run worker`, i.e. wrangler dev).
 const external = opt('origin', '');
+assert.ok(!trial || (!external && !relay), 'the fake trial provider requires the local server and unforced ICE');
 const base = external || `http://127.0.0.1:${port}`;
 let serverLog = '';
 const server = external
   ? null
   : await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'server/dev-server.ts', '--port', String(port), '--host', '127.0.0.1', '--no-stun', ...(relay ? ['--turn-port', String(turnPort)] : [])], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [tsx, 'server/dev-server.ts', '--port', String(port), '--host', '127.0.0.1', '--no-stun', ...(relay || fallback ? ['--turn-port', String(turnPort)] : [])], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
   const on = (d) => {
     serverLog += d.toString();
     if (serverLog.includes('S9 dev server')) resolve(p);
@@ -49,12 +54,36 @@ const browser = await chromium.launch({
   headless: !argv.includes('--headed'),
   args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader'],
 });
-let ok = false;
-try {
+async function check() {
   const errors = [];
   // TV page: hosts the session. ICE test switches are forwarded to phones through the QR link.
   const ice = relay ? `&turn=${encodeURIComponent(`turn:127.0.0.1:${turnPort}?transport=udp`)}&tu=s9&tc=s9-local&relay=1` : '&ice=none';
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  const owner = 'a'.repeat(64);
+  const hostTicket = 'b'.repeat(64);
+  const invite = 'c'.repeat(64);
+  const expiresAt = Date.now() + 120_000;
+  const grants = [];
+  const fakeTrial = async (route) => {
+    const req = route.request();
+    const auth = req.headers().authorization;
+    assert.equal(req.method(), 'POST');
+    if (req.url().endsWith('/turn-trial')) {
+      assert.equal(auth, `Bearer ${owner}`);
+      await route.fulfill({ status: 201, json: { room, hostTicket, invite, expiresAt } });
+      return;
+    }
+    grants.push(auth);
+    if (unavailable) {
+      await route.fulfill({ status: 503, json: { error: 'relay-unavailable' } });
+      return;
+    }
+    await route.fulfill({ json: {
+      expiresAt,
+      iceServers: [{ urls: `turn:127.0.0.1:${turnPort}?transport=udp`, username: 's9', credential: 's9-local' }],
+    } });
+  };
+  if (trial) await game.route('**/turn-trial**', fakeTrial);
   await game.addInitScript(() => {
     window.__exitCalls = 0;
     window.Capacitor = { Plugins: { App: {
@@ -64,15 +93,28 @@ try {
   });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   const tvT0 = Date.now();
-  await game.goto(`${base}/?room=${room}${ice}&song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
-  await game.waitForFunction(() => window.__s9host?.signalState === 'open' && /\/c\/\?r=/.test(document.getElementById('join-url')?.textContent ?? ''), null, { timeout: 20000 });
+  await game.goto(`${base}/?room=${initialRoom}${ice}&song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
+  if (trial) {
+    await game.getByRole('button', { name: 'Relay trial…' }).click();
+    await game.getByLabel('Relay trial owner key').fill(owner);
+    await game.locator('#s9-badge form button').click();
+    await game.waitForFunction(() => window.__s9host?.trialState === 'ready');
+  }
+  await game.waitForFunction((r) => window.__s9host?.signalState === 'open' &&
+    (document.getElementById('join-url')?.textContent ?? '').includes(`/c/?r=${r}`), room, { timeout: 20000 });
   const tvReadyMs = Date.now() - tvT0;
   const joinUrl = (await game.textContent('#join-url')).trim();
-  console.log(`TV hosting room ${room} after ${tvReadyMs} ms; join link ${joinUrl}`);
+  if (trial) {
+    const url = new URL(joinUrl);
+    assert.equal(url.search, `?r=${room}&trial=1`);
+    assert.equal(url.hash, `#invite=${invite}`);
+  }
+  console.log(`TV hosting after ${tvReadyMs} ms`);
 
   // An Android remote may send centre with no KeyboardEvent.code; the app's Back callback
   // must pop the inner picker before closing a dialog or asking the shell to exit.
   await game.waitForFunction(() => document.querySelector('#seating .part'));
+  if (trial) await game.locator('#btn-play').focus();
   await game.keyboard.press('ArrowDown');
   const centre = () => game.evaluate(() => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true })));
   const back = () => game.evaluate(() => window.__capBack());
@@ -91,21 +133,47 @@ try {
 
   const phoneCtx = await browser.newContext({ ...devices['Pixel 7'] });
   const phone = await phoneCtx.newPage();
+  if (trial) await phone.route('**/turn-trial**', fakeTrial);
+  if (fallback) {
+    // Disable candidate gathering only for the first (STUN-only) phone connection.
+    await phone.addInitScript(() => {
+      const Peer = window.RTCPeerConnection;
+      window.RTCPeerConnection = class extends Peer {
+        constructor(config) {
+          super(config?.iceTransportPolicy === 'all' ? { iceServers: [], iceTransportPolicy: 'relay' } : config);
+        }
+      };
+    });
+  }
   phone.on('pageerror', (e) => errors.push(`phone: ${e}`));
   const phoneT0 = Date.now();
   await phone.goto(joinUrl);
   await phone.fill('#name', 'Pixel');
   await phone.tap('#start');
   await phone.waitForSelector('#main:not([hidden])');
+  if (unavailable) {
+    const notice = phone.getByText('Relay unavailable.', { exact: false });
+    await notice.waitFor({ state: 'visible', timeout: 20000 });
+    assert.equal(await phone.evaluate(() => window.__s9?.route), undefined, 'a failed relay is never reported as the selected route');
+    assert.deepEqual(grants, [`Bearer ${invite}`]);
+    assert.deepEqual(errors, []);
+    console.log('S9 E2E OK: relay unavailable recovery notice');
+    return true;
+  }
   await phone.tap('#tap-toggle');
   await phone.waitForFunction(() => window.__s9?.open !== undefined, null, { timeout: 20000 });
   const joinMs = Date.now() - phoneT0;
   await sleep(500);
   const timings = await phone.evaluate(() => window.__s9);
+  if (trial) {
+    assert.deepEqual(grants, fallback ? [`Bearer ${invite}`, `Bearer ${hostTicket}`] : [], 'only failed direct ICE requests protected grants');
+    assert.equal(timings.route, fallback ? 'relay' : 'direct');
+  }
   console.log(`phone joined in ${joinMs} ms (page load → data channel open): ${JSON.stringify(timings)}`);
 
   // Assignment reaches the phone: zones in the chart's lane colours.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
+  if (trial) assert.equal(await phone.locator('#main').getAttribute('data-s9-connection'), 'connected');
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));
   console.log(`phone zones: ${zones.join(' ')}`);
   await game.waitForFunction(() => window.__i2?.session, null, { timeout: 30000 });
@@ -187,9 +255,9 @@ try {
     errors,
   };
   console.log(JSON.stringify(summary, null, 2));
-  writeFileSync(join(outDir, `e2e${external ? '-worker' : ''}${relay ? '-relay' : ''}.json`), JSON.stringify({ ...summary, signal: external || 'dev-server' }, null, 2));
-  const routeOk = host.phones[0]?.route === (relay ? 'relay' : 'direct');
-  ok = hit / p.notes >= 0.8 && errors.length === 0 && routeOk;
+  if (!argv.includes('--no-report') && !trial) writeFileSync(join(outDir, `e2e${external ? '-worker' : ''}${relay ? '-relay' : ''}.json`), JSON.stringify({ ...summary, signal: external || 'dev-server' }, null, 2));
+  const routeOk = host.phones[0]?.route === (relay || fallback ? 'relay' : 'direct');
+  const ok = hit / p.notes >= 0.8 && errors.length === 0 && routeOk;
   if (!routeOk) console.log(`unexpected route at song completion: ${JSON.stringify(host.phones)}`);
 
   assert.equal(await focus('#btn-again'), 1, 'Results focuses Again');
@@ -198,9 +266,16 @@ try {
   assert.equal(await game.evaluate(() => window.__exitCalls), 0, 'Back from results never exits');
   await back();
   assert.equal(await game.evaluate(() => window.__exitCalls), 1, 'Back exits only at the top-level lobby');
+  return ok;
+}
+let ok;
+try {
+  ok = await check();
 } finally {
   await browser.close();
   server?.kill();
 }
-console.log(ok ? 'S9 E2E OK' : 'S9 E2E FAILED');
-process.exit(ok ? 0 : 1);
+if (!unavailable) {
+  console.log(ok ? 'S9 E2E OK' : 'S9 E2E FAILED');
+  process.exit(ok ? 0 : 1);
+}

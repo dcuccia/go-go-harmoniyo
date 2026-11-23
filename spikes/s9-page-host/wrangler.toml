@@ -9,12 +9,21 @@ preview_urls = false
 [assets]
 directory = "./dist/web"
 binding = "ASSETS"
+run_worker_first = ["/ice", "/signal/*", "/turn-trial", "/turn-trial/*"]
 
 [[durable_objects.bindings]]
 name = "ROOMS"
 class_name = "SignalRoom"
 
+[[durable_objects.bindings]]
+name = "TURN_TRIAL"
+class_name = "TurnTrial"
+
 # The free plan only allows SQLite-backed Durable Objects.
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["SignalRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["TurnTrial"]

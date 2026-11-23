@@ -91,8 +91,8 @@ tests and the seating e2e; the Windows package build ([validation](#validation))
 - **The TV keeps its signalling socket open** so phones can join at any time. Its keep-alive
   ping is answered by `setWebSocketAutoResponse` without waking the object, and the object uses
   the hibernation API, so an idle room bills no duration.
-- `/ice` returns Cloudflare STUN. If the owner adds a Realtime TURN key (two Worker secrets), it
-  mints 4-hour TURN credentials per request (port-53 alternates removed).
+- `/ice` returns Cloudflare STUN only. The protected TURN trial described below uses a separate,
+  authenticated path; adding a provider key does not change `/ice`.
 
 ### Free-tier fit
 
@@ -127,9 +127,9 @@ method on file was not checked (no account access).
 | Phone on mobile data, TV on home Wi-Fi | Usually, via STUN (server-reflexive) | Not testable here. Carrier CGNAT is often endpoint-independent, so STUN works; symmetric NAT on either side needs TURN | **TURN for some carriers** |
 | School / corporate networks | Often no (UDP blocked, client isolation) | Not tested | TURN over TLS 443 |
 
-The page tries host and STUN candidates first. TURN candidates are included when `/ice` has them,
-and ICE picks a relay only if nothing else connects. The TV's player list shows each phone's route
-(`direct`/`relay`).
+The protected trial tries host and STUN candidates first. If that attempt fails or takes more
+than six seconds after the offer, the phone requests the protected grant and starts a fresh,
+relay-only negotiation. The TV's player list shows the selected route (`direct`/`relay`).
 
 ## 3. App shells
 
@@ -354,10 +354,44 @@ go-go-harmoniyo → Deployments**. Use the previous passing run's Worker version
 post-deploy smoke can leave the new version live; inspect Deployments before retrying. First
 deploys have no previous version. Rollback changes the live version, not Durable Object state.
 
-**STUN-only prototype:** do not create or rotate TURN secrets for this rollout. The prototype's
-TURN minting endpoint is not gated or rate-limited. Room codes are not authentication; a client
-that knows a room code can join or claim the host role. Use this only for a small owner-run
-test, not broad sharing.
+**STUN-only deployment:** do not create or rotate TURN secrets on `go-go-harmoniyo`. The deploy
+guard rejects any TURN provider or trial-enablement binding. Ordinary room codes still aren't
+authentication; a client that knows one can join or claim the host role. Don't share them broadly.
+
+### Protected TURN trial (owner opt-in after review)
+
+Use a **separate** Worker named `go-go-harmoniyo-turn-trial` in the intended account and its
+dedicated `workers.dev` origin. Do not change the main workflow, the live STUN-only Worker, or
+the PC host. From a reviewed clean checkout, use the usual credential-free build/preflight, then
+verify the account/subdomain and target a freshly named trial Worker explicitly with the pinned
+Wrangler (`npm run wrangler -- deploy --config wrangler.toml --name go-go-harmoniyo-turn-trial`).
+First verify the trial is disabled and `/ice` is STUN-only. Never use an older Worker version that
+exposed public TURN minting, even temporarily or on rollback.
+
+Only when ready, provision a dedicated [Realtime TURN key](https://developers.cloudflare.com/realtime/turn/generate-credentials/)
+and set `TURN_KEY_ID`, `TURN_KEY_API_TOKEN`, and a random 256-bit lowercase hex `S9_TURN_OWNER_SECRET`
+as secrets on **that Worker**. Set `S9_TURN_TRIAL` to the string `1` on the trial Worker only,
+after confirming its build and bindings. Review provider usage and billing before enabling.
+In the TV lobby, check the exact trial origin, choose **Relay trial…**, enter the owner key
+in the masked field, and share only the new QR privately. The owner key isn't saved or put
+in a URL. The phone invite is a bearer capability carried in the QR fragment: don't publish
+the QR, screenshots, or join link. Don't capture authorization or WebSocket subprotocol headers
+in diagnostics.
+
+The Worker authenticates the host and phones separately. The invitation lasts 30 minutes.
+The trial uses at most one provider attempt per room (even if the provider times out) and eight
+attempts per rolling 24 hours across that deployment. Both ends share the short-lived grant;
+the expiry cannot be extended by reconnecting. Ordinary direct joins don't touch the provider.
+These limits **do not cap TURN egress**: an invited client can reuse the credentials until expiry.
+Disable the trial by removing the enablement binding; this blocks new admissions and grant
+requests but doesn't revoke credentials already issued. Revoke those with the provider if needed.
+
+Browser hosts use the reviewed trial Worker page. Existing Gemini debug APKs bundle the old
+TV JavaScript and must be rebuilt and updated to start a protected trial; just changing the
+service URL is not sufficient. The phone still uses the web controller with no account or
+install. After enabling, verify same-network direct first, then guest Wi-Fi and phone-on-cellular
+with the TV on home Wi-Fi. Record the **selected** ICE route, join/rejoin, assignment and a
+scored song. Local forced relay does not establish guest Wi-Fi, cellular, Safari or Gemini support.
 
 ### Build the APK with your Worker baked in
 

@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { newRoomCode, normalizeOrigin, wsUrl } from '../src/config.ts';
 import { iceConfig } from '../src/ice.ts';
 import { PageHost } from '../src/page-host.ts';
+import { isTrialOrigin, trialInvite } from '../src/turn-trial.ts';
 
 const tick = (ms = 5) => new Promise((r) => setTimeout(r, ms));
 
@@ -66,9 +67,10 @@ test('config helpers', () => {
 
 test('ICE config: /ice answer, overrides, and fallback', async () => {
   const ok = (body: unknown) => (async () => new Response(JSON.stringify(body))) as unknown as typeof fetch;
-  const turn = { iceServers: [{ urls: ['turn:t.example:3478'], username: 'u', credential: 'c' }] };
+  const stun = { urls: ['stun:s.example:3478'] };
+  const turn = { iceServers: [stun, { urls: ['turn:t.example:3478'], username: 'u', credential: 'c' }] };
   const a = await iceConfig('https://s.example', new URLSearchParams(), ok(turn));
-  assert.deepEqual(a.iceServers, turn.iceServers);
+  assert.deepEqual(a.iceServers, [stun], 'old public TURN credentials are never used');
   assert.equal(a.iceTransportPolicy, 'all');
   const none = await iceConfig('https://s.example', new URLSearchParams('ice=none'), ok(turn));
   assert.deepEqual(none.iceServers, []);
@@ -79,4 +81,13 @@ test('ICE config: /ice answer, overrides, and fallback', async () => {
     throw new Error('offline');
   }) as unknown as typeof fetch);
   assert.ok(down.iceServers.length > 0, 'falls back to default STUN');
+});
+
+test('trial invitation accepts only a fragment token for a reserved room', () => {
+  const invite = 'a'.repeat(64);
+  assert.equal(trialInvite('T1234567890A', `#invite=${invite}`), invite);
+  assert.equal(trialInvite('OTHER9', `#invite=${invite}`), '');
+  assert.equal(trialInvite('T1234567890A', '#invite=short'), '');
+  assert.equal(isTrialOrigin('https://go-go-harmoniyo-turn-trial.owner.workers.dev'), true);
+  assert.equal(isTrialOrigin('https://go-go-harmoniyo.owner.workers.dev'), false);
 });

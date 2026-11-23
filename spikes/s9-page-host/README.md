@@ -56,6 +56,9 @@ npm run worker       # the real Worker + Durable Object locally (wrangler dev, p
 npm test             # unit tests
 npm run e2e          # TV page hosts, emulated phone joins over WebRTC and plays a song
 node scripts/e2e.mjs --relay                         # forced through a local TURN relay
+node scripts/e2e.mjs --trial                        # fake trial API; direct ICE must not request a grant
+node scripts/e2e.mjs --trial-fallback               # fake trial API + local TURN after direct ICE fails
+node scripts/e2e.mjs --trial-unavailable            # fake 503; phone shows recovery guidance
 node scripts/e2e.mjs --origin=http://127.0.0.1:18961 # against `npm run worker`
 npm run measure      # → results/measure.json
 ```
@@ -87,6 +90,9 @@ main-only **Deploy S9 signalling Worker** workflow or explicitly run `npm run de
 after configuring the account, origin and token. See the [owner runbook](../../docs/spikes/S9-report.md#deploy-the-signalling-worker-your-existing-cloudflare-account)
 for environment protection, setup, live checks and rollback. The rollout is STUN-only; do not
 set TURN bindings.
+The optional [protected TURN trial](../../docs/spikes/S9-report.md#protected-turn-trial-owner-opt-in-after-review)
+is reviewed and enabled separately, on a different Worker. The existing CLI/workflow never
+targets that Worker.
 
 ## App shells (`app/`)
 
