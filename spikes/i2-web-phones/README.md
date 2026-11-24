@@ -46,6 +46,8 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    certificate **once** (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this
    website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
+   The status at the top shows whether the phone is connected and waiting for a part before it
+   shows a playable bell.
 4. The TV lobby shows who has joined and assigns available parts automatically. **Round options →
    Edit seating → Player details** shows each phone's route: **direct** (same Wi-Fi, fastest),
    **via tunnel** (through the internet; fine to play) or **Wi-Fi** (no tunnel). Ring a phone:
