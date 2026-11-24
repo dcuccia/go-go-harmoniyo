@@ -258,12 +258,15 @@ async function check() {
   phone.on('pageerror', (e) => errors.push(`phone: ${e}`));
   const phoneT0 = Date.now();
   await phone.goto(joinUrl);
+  assert.equal(await phone.locator('#bell-label').textContent(), '', 'no fallback pitch before a part is assigned');
+  assert.equal(await phone.locator('#connection-target').textContent(), `TV room ${activeRoom}`);
   await phone.fill('#name', 'Pixel');
   await phone.tap('#start');
   await phone.waitForSelector('#main:not([hidden])');
   if (unavailable || demoUnavailable) {
     const notice = phone.getByText('Relay unavailable.', { exact: false });
     await notice.waitFor({ state: 'visible', timeout: 35000 });
+    assert.ok(await phone.locator('#bell').isHidden(), 'the relay failure is not displayed as a playable note');
     assert.equal(await phone.evaluate(() => window.__s9?.route), undefined, 'a failed relay is never reported as the selected route');
     if (trial) assert.deepEqual(grants, [`Bearer ${invite}`]);
     if (demo) assert.ok(demoRequests.some(({ path, method }) =>
@@ -304,6 +307,8 @@ async function check() {
 
   // Assignment reaches the phone: zones in the chart's lane colours.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
+  await phone.locator('#connection[data-stage="ready"]').waitFor({ state: 'visible' });
+  assert.ok(await phone.locator('#bell').isVisible(), 'the assigned bell is shown once the TV supplies the part');
   if (trial) assert.equal(await phone.locator('#main').getAttribute('data-s9-connection'), 'connected');
   if (demoDisabled) {
     assert.deepEqual(errors, []);

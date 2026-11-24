@@ -15,13 +15,9 @@ const origin = protectedRoom || demo ? location.origin : signalOrigin(params);
 const invite = protectedRoom ? trialInvite(room, location.hash) : demo ? demoInvite(room, location.hash) : '';
 const peer = `p-${Math.random().toString(36).slice(2, 10)}`;
 
-if (!/^[A-Z0-9]{4,12}$/.test(room)) {
-  // The controller still loads; tell the player what's wrong instead of retrying forever.
-  addEventListener('DOMContentLoaded', () => {
-    const el = document.getElementById('status') ?? document.body;
-    el.textContent = 'No room code in this link: scan the QR on the TV again.';
-  });
-}
+const validRoom = /^[A-Z0-9]{4,12}$/.test(room);
+const target = document.getElementById('connection-target');
+if (target && validRoom) target.textContent = `TV room ${room}`;
 
 // The first RTCPeerConnection in a page pays the WebRTC stack start-up (~1.3 s in desktop
 // Chrome on Windows, measured in S9). Pay it now, while the player is typing a name.
@@ -31,13 +27,18 @@ try {
   /* no WebRTC: PeerSocket reports it on connect */
 }
 
-const failureCopy: Partial<Record<PhoneStatus, string>> = {
-  'no-tv': 'TV not found. Check that the host is still open, then scan its QR again.',
-  'invalid-invite': 'Room or invitation unavailable. Scan a fresh QR on the TV.',
-  'no-network-path': 'No connection to the TV. Try the same Wi-Fi as the TV and scan again.',
-  'relay-unavailable': 'Relay unavailable. Try the same Wi-Fi as the TV, or scan a fresh QR.',
+const copy: Record<PhoneStatus, { title: string; detail?: string; problem?: boolean }> = {
+  'looking-for-tv': { title: 'Finding the TV…' },
+  connecting: { title: 'Connecting directly…' },
+  'trying-relay': { title: 'Trying a relay…', detail: 'The direct connection didn’t open.' },
+  'waiting-for-assignment': { title: 'Connected — waiting for your part' },
+  connected: { title: 'Connected to the TV' },
+  reconnecting: { title: 'Reconnecting to the TV…', detail: 'Keep this page open.' },
+  'no-tv': { title: 'TV not found.', detail: 'Check that the host is still open, then scan its QR again.', problem: true },
+  'invalid-invite': { title: 'Room or invitation unavailable.', detail: 'Scan a fresh QR on the TV.', problem: true },
+  'no-network-path': { title: 'No connection to the TV.', detail: 'Try the same Wi-Fi as the TV and scan again.', problem: true },
+  'relay-unavailable': { title: 'Relay unavailable.', detail: 'Try the same Wi-Fi as the TV, or scan a fresh QR.', problem: true },
 };
-let notice: HTMLParagraphElement | undefined;
 let reconnecting = false;
 setHgpSocketFactory(() => {
   const socket = new PeerSocket({
@@ -45,17 +46,8 @@ setHgpSocketFactory(() => {
     onStatus: (state) => {
       const main = document.getElementById('main');
       if (!main) return;
-      main.dataset.s9Connection = state;
-      const failure = failureCopy[state];
-      if (!notice && failure) {
-        notice = document.createElement('p');
-        notice.setAttribute('role', 'status');
-        main.prepend(notice);
-      }
-      if (notice && (failure || state === 'waiting-for-assignment' || state === 'connected')) {
-        notice.hidden = !failure;
-        notice.textContent = failure ?? '';
-      }
+      main.dataset.s9Connection = validRoom ? state : 'invalid-invite';
+      main.dispatchEvent(new CustomEvent('s9-connection', { detail: validRoom ? copy[state] : copy['invalid-invite'] }));
     },
   });
   reconnecting = true;

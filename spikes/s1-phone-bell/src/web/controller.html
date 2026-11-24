@@ -26,6 +26,11 @@
     </section>
     <section id="main" hidden>
       <header id="brand-bar"><span id="brand-yo"><img class="idle" src="/brand/yo/yo-idle.svg" alt="" /><img class="ring" src="/brand/yo/yo-ring.svg" alt="" /></span><span>Go Go HarmoniYo</span></header>
+      <section id="connection" role="status" aria-atomic="true" data-stage="joining">
+        <strong id="connection-title">Finding the TV…</strong>
+        <small id="connection-target"></small>
+        <p id="connection-detail" hidden></p>
+      </section>
       <div id="banner" hidden></div>
       <section id="waiting" hidden aria-live="polite">
         <h2>You're in! 🎉</h2>
@@ -43,8 +48,8 @@
         </div>
       </section>
       <div id="ringer" hidden></div>
-      <div id="bell"><span id="bell-label">C</span><small id="bell-id">C5</small></div>
-      <div id="zones"></div>
+      <div id="bell" hidden><span id="bell-label"></span><small id="bell-id"></small></div>
+      <div id="zones" hidden></div>
       <div class="row">
         <button id="calibrate">Calibrate (ring 6×)</button>
         <button id="tap-toggle">Touch: off</button>

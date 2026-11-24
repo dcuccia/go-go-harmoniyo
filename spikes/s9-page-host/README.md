@@ -94,6 +94,9 @@ The optional [protected TURN trial](../../docs/spikes/S9-report.md#protected-tur
 is reviewed and enabled separately, on a different Worker. The existing CLI/workflow never
 targets that Worker.
 
+The phone shows the TV room and connection progress above its controls, including when it is
+trying a relay. It shows a playable note only after the TV assigns a part.
+
 ## App shells (`app/`)
 
 ```powershell

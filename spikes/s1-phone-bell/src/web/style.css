@@ -72,6 +72,29 @@ body.controller {
 #main {
   padding: 1em;
 }
+#connection {
+  display: grid;
+  justify-items: center;
+  gap: 0.25em;
+  padding: 0.65em;
+  margin-bottom: 0.8em;
+  border: 1px solid #555;
+  border-radius: 0.6em;
+  background: #222039;
+}
+#connection[data-stage="joining"], #connection[data-stage="problem"] {
+  font-size: 1.15em;
+}
+#connection[data-stage="problem"] {
+  border-color: #ffb74d;
+}
+#connection-target, #connection-detail {
+  margin: 0;
+  color: #ddd;
+}
+#connection-target:empty {
+  display: none;
+}
 #banner {
   background: #333;
   border-left: 6px solid var(--bell);

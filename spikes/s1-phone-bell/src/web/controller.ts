@@ -37,6 +37,13 @@ let lastOmega = 0;
 let peakOmega = 0;
 let gestureCount = 0;
 let lastInfo = '';
+let hasBellAssignment = false;
+let hasGameBell = false;
+let connectionWasOpen = false;
+let connectionState = '';
+
+type ConnectionNotice = { title: string; detail?: string; problem?: boolean };
+let connectionNotice: ConnectionNotice | undefined;
 
 const detectorOverrides: Record<string, number> = {};
 for (const k of ['armOmega', 'minPeakOmega', 'minDecel', 'releaseRatio', 'rearmOmega', 'refractoryMs', 'maxStrokeMs', 'timeOffsetMs']) {
@@ -94,7 +101,36 @@ void tabGuard.otherActive().then((other) => {
 });
 
 // ── UI ──────────────────────────────────────────────────────────────────────
+function renderConnection(): void {
+  const isS9 = $('main').dataset.s9Connection !== undefined;
+  const hasPart = (isS9 ? hasGameBell : hasBellAssignment) && !(ringer?.slot === -1 || (lobby && lobby.you < 0));
+  $('bell').hidden = !hasPart;
+  $('zones').hidden = !hasPart;
+  const next = lobby?.phase === 'play' && lobby.next && lobby.you < 0;
+  const notice: ConnectionNotice = client.connected
+    ? { title: hasPart ? 'Connected to the TV' : next ? 'Connected — waiting for the next song' : 'Connected — waiting for your part' }
+    : connectionNotice ?? (connectionWasOpen
+      ? { title: 'Reconnecting to the TV…', detail: 'Keep this page open.' }
+      : connectionState === 'closed' || connectionState.startsWith('retry')
+        ? { title: 'Couldn’t reach the TV', detail: 'Check the TV is still open, then scan its QR again.', problem: true }
+        : { title: 'Finding the TV…' });
+  const pane = $('connection');
+  pane.dataset.stage = notice.problem ? 'problem' : client.connected && hasPart ? 'ready' : 'joining';
+  const title = $('connection-title');
+  const detail = $('connection-detail');
+  if (title.textContent !== notice.title) title.textContent = notice.title;
+  if (detail.textContent !== (notice.detail ?? '')) detail.textContent = notice.detail ?? '';
+  detail.hidden = !notice.detail;
+}
+
+$('main').addEventListener('s9-connection', (event) => {
+  if (!(event instanceof CustomEvent)) return;
+  connectionNotice = event.detail;
+  renderConnection();
+});
+
 function render(): void {
+  renderConnection();
   showBell();
   const e = client.clock.estimate;
   const st = motion.stats();
@@ -304,6 +340,7 @@ function renderZones(): void {
 
 /** Big bell: the selected bell's colour, name and (for sharps/flats) a ring outline. */
 function showBell(): void {
+  if ($('bell').hidden) return;
   const b = myBell();
   document.body.style.setProperty('--bell', b.color);
   $('bell').classList.toggle('acc', isAccidental(b.midi));
@@ -354,6 +391,7 @@ client.onMessage = (m) => {
     case 'assign': {
       const bells = m.bells as Bell[] | undefined;
       if (bells && bells.length > 0) {
+        hasBellAssignment = true;
         const changed = bells.map((b) => b.id).join() !== myBells.map((b) => b.id).join();
         myBells = bells.slice(0, 5);
         if (changed) {
@@ -364,6 +402,7 @@ client.onMessage = (m) => {
       }
       soundMode = (m.sound as SoundMode) ?? soundMode;
       ringer = (m.ringer as typeof ringer) ?? null;
+      hasGameBell = !!(bells?.length && ringer && ringer.slot >= 0);
       {
         const rg = (m.ring ?? {}) as { sens?: unknown; ioi?: unknown };
         ringHint = { sens: isSensitivity(rg.sens) ? rg.sens : undefined, ioi: typeof rg.ioi === 'number' && rg.ioi > 0 ? rg.ioi : undefined };
@@ -413,6 +452,11 @@ client.onMessage = (m) => {
 };
 client.onState = (s) => {
   lastInfo = s;
+  connectionState = s;
+  if (s === 'open') connectionWasOpen = true;
+  if (s === 'closed' && connectionWasOpen && $('main').dataset.s9Connection === 'connected') {
+    connectionNotice = { title: 'Reconnecting to the TV…', detail: 'Keep this page open.' };
+  }
   render();
 };
 
