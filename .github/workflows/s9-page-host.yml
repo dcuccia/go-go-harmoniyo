@@ -3,7 +3,7 @@ name: s9-page-host
 # Spike S9 (docs/spikes/S9-page-host.md): the HGP host in the TV/tablet page, phones over WebRTC data
 # channels via a small signalling service, and Capacitor app shells. Builds a debug APK for sideloading
 # (Android TV / Gemini) as an artifact, and an informational iOS simulator build. Nothing is deployed
-# or uploaded anywhere. Ports used by the e2e scripts: 18960-18968.
+# or uploaded anywhere. Ports used by the e2e scripts: 18960-18970.
 on:
   pull_request:
     paths:
@@ -45,9 +45,9 @@ env:
 
 jobs:
   test:
-    name: typecheck, unit tests, song e2e (direct + TURN relay)
+    name: typecheck, unit tests, song e2e (direct + TURN relay + demo Worker)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: spikes/s9-page-host
@@ -78,6 +78,16 @@ jobs:
         run: node scripts/e2e.mjs
       - name: Song e2e (forced through a local TURN relay)
         run: node scripts/e2e.mjs --relay
+      # The demo uses the production Worker routes and Durable Objects locally. The fixture
+      # replaces only the Cloudflare provider call, so these checks never need live credentials.
+      - name: Song e2e (demo Worker, direct)
+        run: npm run e2e -- --demo --port=18964
+      - name: Song e2e (demo Worker, forced fallback)
+        run: npm run e2e -- --demo-fallback --port=18966
+      - name: Demo relay unavailable recovery
+        run: npm run e2e -- --demo-unavailable --port=18968
+      - name: Direct join e2e (primary Worker, demo off)
+        run: npm run e2e -- --demo-disabled --port=18970
       - if: always()
         uses: actions/upload-artifact@v4
         with:

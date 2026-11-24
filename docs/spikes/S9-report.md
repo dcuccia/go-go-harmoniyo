@@ -340,12 +340,12 @@ checkout, provide the three settings above via process environment variables, ob
 token from a secret manager rather than typing it in shell history. Then run
 `npm run deploy:worker -- --deploy`. Don't run this concurrently with CI or another local deploy.
 
-The script checks the account/subdomain against Cloudflare before deploying and refuses an
-existing Worker with TURN bindings. Each run targets `go-go-harmoniyo`, reuses the checked-in
+The script checks the account/subdomain against Cloudflare before deploying. Without the explicit
+demo opt-in below, it refuses an existing Worker with TURN bindings. Each run targets `go-go-harmoniyo`, reuses the checked-in
 SQLite Durable Object migration tags, and preserves existing secret bindings and dashboard
 variables. A successful redeploy can create a new version even without source changes.
 The run logs the public URL, Git SHA and Worker version before probing `/`, `/c/`, the build
-marker, STUN-only `/ice` and the HTTP signalling upgrade response. Then scan the QR with a
+marker, STUN-only `/ice`, the HTTP signalling upgrade response, and demo status. Then scan the QR with a
 real phone and join a song to validate the WebSocket/WebRTC path, which the HTTP checks don't test.
 
 **Rollback** — in the Cloudflare dashboard for the intended account, open **Workers & Pages →
@@ -357,6 +357,54 @@ deploys have no previous version. Rollback changes the live version, not Durable
 **STUN-only deployment:** do not create or rotate TURN secrets on `go-go-harmoniyo`. The deploy
 guard rejects any TURN provider or trial-enablement binding. Ordinary room codes still aren't
 authentication; a client that knows one can join or claim the host role. Don't share them broadly.
+
+### Browser relay demo (explicit opt-in)
+
+After review, use the primary Worker and its ordinary browser link. Friends open the same link
+to host, then phones scan the lobby QR as usual. No account or code is needed. The QR keeps the
+phone-only capability in a URL fragment (not sent in HTTP requests); keep it private. A missing,
+disabled, expired or busy demo falls back to ordinary direct rooms. Existing demo QRs also
+continue to support direct joins without a grant. The PC host, app shell and protected trial
+are unchanged.
+
+1. Provision a dedicated [Realtime TURN key](https://developers.cloudflare.com/realtime/turn/generate-credentials/)
+   and add `TURN_KEY_ID` and `TURN_KEY_API_TOKEN` as **Worker secrets** on `go-go-harmoniyo`,
+   not plain variables, GitHub workflow values or browser configuration. Do not copy the trial
+   owner secret or trial flag to the primary Worker.
+2. Run **Deploy S9 signalling Worker** on `main` with **enable_demo** checked and **demo_until**
+   set to `ongoing` for general sharing/testing, or a future UTC cutoff (`YYYY-MM-DDTHH:MM:SSZ`,
+   at most 12 hours away) for a one-off event. The equivalent local command after preflight is
+   `npm run deploy:worker -- --deploy --demo-until=ongoing` (replace `ongoing` with a cutoff
+   for a timed rollout). An empty value does not enable relay.
+   Smoke checks the requested mode and expiry at `/turn-demo`, the disabled owner-trial endpoint and the
+   still-STUN-only `/ice`. It opens no rooms and spends no grants.
+3. Rehearse on real devices: first same Wi-Fi (selected route `direct`), then isolated guest Wi-Fi
+   or cellular (selected route `relay`). Check join, assignment and a scored song. Local Workerd
+   tests use mocked credentials and local TURN; they don't establish Safari, cellular or Gemini support.
+
+The Worker mints only for a ticketed room with a host connected, after a failed direct attempt
+in the browser. Both peers share a grant for up to 20 minutes. Room records can request grants
+for up to 90 minutes; reload the host and rescan for a new room if needed. In a rolling 10-minute
+window there are up to 8 provider attempts per host source and 48 shared, plus separate limits of
+12 opens per source and 96 shared. At most 16 live room records per source and 128 total remain
+eligible. A source is the host's public IP, so a shared network can share a bucket. Limits are
+not daily lockouts and **do not cap TURN egress or spend**. Ongoing mode leaves these limits
+and individual room and grant lifetimes unchanged. Monitor Realtime usage under Cloudflare
+Billing → Billable Usage; a budget alert notifies but does not stop relay use.
+
+To stop new grants immediately as configuration propagates, set `S9_TURN_DEMO` to `0` in the
+primary Worker's settings and deploy that setting. The UTC cutoff also stops new grants; neither
+action revokes credentials already issued or necessarily ends active allocations. For urgent
+revocation, use provider controls. For a standard STUN-only redeploy, remove both demo variables
+and both provider bindings before running the unchecked workflow. For version rollback choose a
+known STUN-only version, not a previously enabled demo version; then verify `/ice` and a fresh join.
+
+Local check from `spikes/s9-page-host`, after building the web assets: `npm test` and
+`npm run e2e -- --demo`, `--demo-fallback`, `--demo-unavailable`, or `--demo-disabled` (run these
+separately). On Windows with headless Chromium 157 and a Pixel 7 emulation, both the direct and
+forced-relay paths hit 32/32 notes in a short Silent Night round via local Workerd. The direct
+join made no credential request. The relay run used a loopback TURN server and a mocked
+provider response, not the live Cloudflare TURN service.
 
 ### Protected TURN trial (owner opt-in after review)
 

@@ -11,7 +11,9 @@ const params = new URLSearchParams(location.search);
 const origin = signalOrigin(params);
 const room = roomCode(params);
 
-export const host = new PageHost({ signalOrigin: origin, room, params, forward: ['ice', 'relay', 'turn', 'tu', 'tc'] });
+const forward = ['ice', 'relay', 'turn', 'tu', 'tc'];
+const demo = !isAppShell() && origin === location.origin && !['room', ...forward].some((key) => params.has(key));
+export const host = new PageHost({ signalOrigin: origin, room, params, demo, forward });
 setLinkTransport({ socket: () => host.gameSocket(), qrSrc: qrDataUrl });
 host.start();
 (window as { __s9host?: PageHost }).__s9host = host;

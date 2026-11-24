@@ -13,6 +13,7 @@ import { wsUrl } from './config.ts';
 import { iceConfig, routeOf, type IceConfig } from './ice.ts';
 import { loopback, type LoopbackSocket } from './loopback.ts';
 import { openTrialRoom, trialIce, trialProtocols, type TrialRoom } from './turn-trial.ts';
+import { demoIce, demoProtocols, openDemoRoom } from './turn-demo.ts';
 
 export type SignalState = 'no-service' | 'connecting' | 'open' | 'closed' | 'replaced';
 
@@ -41,6 +42,7 @@ export interface PageHostOptions {
   signalOrigin: string;
   room: string;
   params?: URLSearchParams;
+  demo?: boolean;
   /** URL params passed on to phones in the join link (ICE test switches). */
   forward?: string[];
 }
@@ -73,6 +75,8 @@ export class PageHost {
   private readonly params: URLSearchParams;
   private readonly hostPeer = `tv-${Math.random().toString(36).slice(2, 10)}`;
   private trial?: TrialRoom;
+  private demo?: TrialRoom;
+  private running = false;
   private readonly signals = new Map<string, Promise<void>>();
   private trialTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -90,7 +94,7 @@ export class PageHost {
     });
   }
 
-  get room(): string { return this.trial?.room ?? this.o.room; }
+  get room(): string { return this.trial?.room ?? this.demo?.room ?? this.o.room; }
   get trialState(): 'off' | 'ready' | 'expired' {
     return !this.trial ? 'off' : this.trial.expiresAt > Date.now() ? 'ready' : 'expired';
   }
@@ -120,6 +124,11 @@ export class PageHost {
       u.hash = new URLSearchParams({ invite: this.trial.invite }).toString();
       return u.toString();
     }
+    if (this.demo) {
+      u.searchParams.set('demo', '1');
+      u.hash = new URLSearchParams({ invite: this.demo.invite }).toString();
+      return u.toString();
+    }
     for (const k of this.o.forward ?? []) {
       const v = this.params.get(k);
       if (v !== null) u.searchParams.set(k, v);
@@ -142,11 +151,27 @@ export class PageHost {
   }
 
   start(): void {
+    this.running = true;
     this.session.start();
-    if (this.o.signalOrigin) this.connectSignal();
+    if (this.o.demo) void this.prepareDemo();
+    else if (this.o.signalOrigin) this.connectSignal();
+  }
+
+  private async prepareDemo(): Promise<void> {
+    let demo: TrialRoom | undefined;
+    try {
+      demo = await openDemoRoom(this.o.signalOrigin);
+    } catch (error) {
+      // Older Workers and network failures still get an ordinary direct room.
+      if (this.running) console.debug('S9 demo room unavailable; using ordinary signalling.', error instanceof Error ? error.name : '');
+    }
+    if (!this.running || this.trial) return;
+    this.demo = demo;
+    this.connectSignal();
   }
 
   stop(): void {
+    this.running = false;
     this.session.stop();
     clearInterval(this.pingTimer);
     clearTimeout(this.trialTimer);
@@ -168,8 +193,9 @@ export class PageHost {
   // ── signalling ────────────────────────────────────────────────────────────
 
   private connectSignal(): void {
-    const ws = new WebSocket(wsUrl(this.o.signalOrigin, `/signal/${this.room}?role=host&peer=${this.hostPeer}${this.trial ? '&trial=1' : ''}`),
-      this.trial ? trialProtocols(this.trial.hostTicket) : []);
+    const mode = this.trial ? '&trial=1' : this.demo ? '&demo=1' : '';
+    const protocols = this.trial ? trialProtocols(this.trial.hostTicket) : this.demo ? demoProtocols(this.demo.hostTicket) : [];
+    const ws = new WebSocket(wsUrl(this.o.signalOrigin, `/signal/${this.room}?role=host&peer=${this.hostPeer}${mode}`), protocols);
     this.ws = ws;
     this.signalState = 'connecting';
     this.changed();
@@ -185,7 +211,7 @@ export class PageHost {
         this.retryMs = 1000;
         this.signalState = 'open';
         this.signalReason = '';
-        if (!this.trial) void this.refreshIce();
+        if (!this.trial && !this.demo) void this.refreshIce();
         this.changed();
       } else if (m.type === 'signal' && typeof m.from === 'string') this.queueSignal(ws, m.from, m.data);
     };
@@ -236,8 +262,9 @@ export class PageHost {
 
   private async onSignal(from: string, data: any): Promise<void> {
     if (!data || typeof data !== 'object') return;
-    const attempt = this.trial ? data.attempt : undefined;
-    if (this.trial && attempt !== 1 && attempt !== 2) return;
+    const ticketed = this.trial || this.demo;
+    const attempt = ticketed ? data.attempt : undefined;
+    if (ticketed && attempt !== 1 && attempt !== 2) return;
     if (data.kind === 'offer' && typeof data.sdp === 'string') {
       const old = this.peers.get(from);
       if (old) this.dropPeer(old);
@@ -254,10 +281,7 @@ export class PageHost {
     this.stats.offers++;
     const offerAt = performance.now();
     const ws = this.ws;
-    const trial = this.trial;
-    const ice = await (trial ? attempt === 2
-      ? trialIce(this.o.signalOrigin, trial.room, trial.hostTicket).then((iceServers) => ({ iceServers, iceTransportPolicy: 'relay' as const })).catch(() => null)
-      : iceConfig(this.o.signalOrigin, new URLSearchParams()) : this.refreshIce());
+    const ice = await this.answerIce(attempt);
     if (ws !== this.ws) return;
     if (!ice) {
       this.signal(id, { kind: 'relay-unavailable', attempt });
@@ -295,6 +319,20 @@ export class PageHost {
     } catch {
       this.stats.failed++;
       this.dropPeer(p);
+    }
+  }
+
+  private async answerIce(attempt?: number): Promise<RTCConfiguration | null> {
+    if (!this.trial && !this.demo) return this.refreshIce();
+    if (attempt === 1) return iceConfig(this.o.signalOrigin, new URLSearchParams());
+    try {
+      const { signalOrigin } = this.o;
+      const iceServers = this.trial
+        ? await trialIce(signalOrigin, this.trial.room, this.trial.hostTicket)
+        : await demoIce(signalOrigin, this.demo!.room, 'host', this.demo!.hostTicket);
+      return { iceServers, iceTransportPolicy: 'relay' };
+    } catch {
+      return null;
     }
   }
 

@@ -12,7 +12,7 @@
     "wrangler": "npx --yes wrangler@4.159.0",
     "worker": "npm run wrangler -- dev --port 18961",
     "deploy:worker": "node scripts/deploy.mjs",
-    "test": "tsx --test test/relay.test.ts test/page-host.test.ts test/deploy.test.mjs test/turn-trial.test.mjs",
+    "test": "tsx --test test/relay.test.ts test/page-host.test.ts test/deploy.test.mjs test/turn-trial.test.mjs test/turn-demo.test.mjs",
     "e2e": "node scripts/e2e.mjs",
     "measure": "node scripts/measure.mjs",
     "typecheck": "tsc --noEmit -p ."

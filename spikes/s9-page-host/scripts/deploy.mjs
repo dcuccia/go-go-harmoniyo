@@ -5,10 +5,13 @@ import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
+import { demoUntil, ONGOING_DEMO } from '../worker/turn-demo.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const worker = 'go-go-harmoniyo';
-const trialBindings = new Set(['TURN_KEY_ID', 'TURN_KEY_API_TOKEN', 'S9_TURN_TRIAL', 'S9_TURN_OWNER_SECRET']);
+const providerBindings = ['TURN_KEY_ID', 'TURN_KEY_API_TOKEN'];
+const demoBindings = ['S9_TURN_DEMO', 'S9_TURN_DEMO_UNTIL'];
+const trialBindings = ['S9_TURN_TRIAL', 'S9_TURN_OWNER_SECRET'];
 const api = 'https://api.cloudflare.com/client/v4';
 const stamp = join(root, 'dist', 's9-preflight.json');
 const buildInfo = join(root, 'dist', 'web', 's9-build.json');
@@ -21,7 +24,14 @@ export function deploymentTarget({ CLOUDFLARE_ACCOUNT_ID: account, S9_SIGNAL_ORI
   return { account, origin, subdomain: match[1] };
 }
 
-export async function verifyCloudflareTarget({ account, subdomain }, token, request = fetch) {
+export function demoDeployExpiry(value, now = Date.now()) {
+  if (value === undefined) return 0;
+  const until = demoUntil(value, now);
+  if (!until) throw new Error('--demo-until requires either ongoing or a future UTC timestamp (YYYY-MM-DDTHH:MM:SSZ), no more than 12 hours away.');
+  return until;
+}
+
+export async function verifyCloudflareTarget({ account, subdomain }, token, request = fetch, demo = false) {
   const get = async (path, allowMissingWorker = false) => {
     const endpoint = `${api}/accounts/${account}/workers/${path}`;
     const response = await request(endpoint, {
@@ -39,12 +49,25 @@ export async function verifyCloudflareTarget({ account, subdomain }, token, requ
   if (registered.subdomain !== subdomain) throw new Error('S9_SIGNAL_ORIGIN does not match the workers.dev subdomain registered to CLOUDFLARE_ACCOUNT_ID.');
   const settings = await get(`scripts/${worker}/settings`, true);
   if (settings && !Array.isArray(settings.bindings)) throw new Error('Could not verify existing Worker bindings.');
-  if (settings?.bindings.some(({ name }) => trialBindings.has(name))) {
-    throw new Error('The existing Worker has a TURN binding or enablement setting. This rollout is STUN-only; no changes were made.');
+  const bindings = settings?.bindings ?? [];
+  if (!demo) {
+    if (bindings.some(({ name }) => [...trialBindings, ...providerBindings, ...demoBindings].includes(name))) {
+      throw new Error('The existing Worker has a TURN binding or enablement setting. This rollout is STUN-only; no changes were made.');
+    }
+  } else {
+    if (bindings.some(({ name }) => trialBindings.includes(name))) {
+      throw new Error('The demo Worker must not have protected-trial bindings; no changes were made.');
+    }
+    if (!providerBindings.every((key) => bindings.some(({ name, type }) => name === key && type === 'secret_text'))) {
+      throw new Error('Provision both TURN provider bindings as Worker secrets before the explicit demo deploy; no changes were made.');
+    }
+    if (bindings.some(({ name, type }) => demoBindings.includes(name) && type !== 'plain_text')) {
+      throw new Error('Demo enablement settings must be plain text bindings; no changes were made.');
+    }
   }
 }
 
-export async function smoke(origin, builtAt, request = fetch) {
+export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0) {
   const get = async (path, status = 200, method = 'GET') => {
     const response = await request(new URL(path, origin), {
       method, redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(10_000),
@@ -52,20 +75,25 @@ export async function smoke(origin, builtAt, request = fetch) {
     if (response.status !== status) throw new Error(`${path}: expected HTTP ${status}, got ${response.status}`);
     return response;
   };
-  const [tv, controller, build, ice, signal, trial] = await Promise.all([
+  const [tv, controller, build, ice, signal, trial, demo] = await Promise.all([
     get('/').then((r) => r.text()),
     get('/c/').then((r) => r.text()),
     get('/s9-build.json').then((r) => r.json()),
     get('/ice').then((r) => r.json()),
     get('/signal/S9SMOKE?role=host&peer=deploy-smoke', 426).then((r) => r.text()),
     get('/turn-trial', 503, 'POST').then((r) => r.json()),
+    get('/turn-demo').then((r) => r.json()),
   ]);
   if (!tv.includes('<title>S9 · Go Go HarmoniYo</title>') || !controller.includes('src="./controller.js"')) {
     throw new Error('Expected the S9 TV page at / and the phone controller at /c/.');
   }
   if (build.builtAt !== builtAt || build.signal !== '') throw new Error('Hosted assets do not match this S9 build.');
   if (signal !== 'expected a WebSocket') throw new Error('The signalling route did not return the expected WebSocket upgrade response.');
-  if (trial.error !== 'relay-unavailable') throw new Error('The TURN trial must be disabled on the STUN-only deployment.');
+  if (trial.error !== 'relay-unavailable') throw new Error('The protected TURN trial must be disabled on the primary deployment.');
+  const expectedExpiry = demoExpiresAt && demoExpiresAt !== ONGOING_DEMO ? demoExpiresAt : null;
+  if (demo.enabled !== !!demoExpiresAt || demo.expiresAt !== expectedExpiry) {
+    throw new Error('The TURN demo enablement or expiry did not match the requested deployment.');
+  }
   if (
     ice.turn !== false || 'error' in ice || !Array.isArray(ice.iceServers) || ice.iceServers.length !== 1 ||
     ice.iceServers[0]?.urls?.length !== 1 || ice.iceServers[0].urls[0] !== 'stun:stun.cloudflare.com:3478'
@@ -73,7 +101,11 @@ export async function smoke(origin, builtAt, request = fetch) {
 }
 
 async function main() {
-  const { values: { deploy } } = parseArgs({ options: { deploy: { type: 'boolean' } } });
+  const { values: { deploy, 'demo-until': demoDate } } = parseArgs({
+    options: { deploy: { type: 'boolean' }, 'demo-until': { type: 'string' } },
+  });
+  if (!deploy && demoDate !== undefined) throw new Error('--demo-until is only for an explicit --deploy.');
+  const demoExpiresAt = demoDeployExpiry(demoDate);
   if (!process.env.npm_execpath) throw new Error('Run npm run deploy:worker from spikes/s9-page-host.');
   const target = deploy ? deploymentTarget(process.env) : null;
   const token = deploy ? process.env.CLOUDFLARE_API_TOKEN?.trim() : '';
@@ -128,13 +160,15 @@ async function main() {
   if (!prepared.clean || prepared.revision !== revision || prepared.builtAt !== built.builtAt || built.signal !== '') {
     throw new Error('Run npm run deploy:worker from this clean checkout before deploying.');
   }
-  await verifyCloudflareTarget(target, token);
+  await verifyCloudflareTarget(target, token, fetch, !!demoExpiresAt);
 
   const outputDir = mkdtempSync(join(tmpdir(), 's9-wrangler-'));
   const output = join(outputDir, 'deploy.jsonl');
   try {
-    // Wrangler preserves existing secrets by default; keep dashboard vars too. Do not pass any bindings.
-    runWrangler(['--keep-vars', '--message', `git ${revision}`], {
+    // Keep existing secrets; the only supplied bindings are the explicit, non-secret demo settings.
+    const vars = demoExpiresAt ? ['--var', 'S9_TURN_DEMO:1', '--var', `S9_TURN_DEMO_UNTIL:${demoDate}`] : [];
+    if (demoExpiresAt) demoDeployExpiry(demoDate); // Preflight may have crossed the cutoff.
+    runWrangler(['--keep-vars', '--message', `git ${revision}`, ...vars], {
       CLOUDFLARE_ACCOUNT_ID: target.account, CLOUDFLARE_API_TOKEN: token,
       WRANGLER_OUTPUT_FILE_PATH: output, npm_config_offline: 'true',
     });
@@ -152,8 +186,9 @@ async function main() {
     // Allow time for the new assets to propagate without deploying again.
     for (let attempt = 1; ; attempt++) {
       try {
-        await smoke(target.origin, built.builtAt);
-        console.log('S9 live smoke passed: TV, controller, STUN-only ICE and signalling HTTP route.');
+        await smoke(target.origin, built.builtAt, fetch, demoExpiresAt);
+        const demoStatus = demoExpiresAt === ONGOING_DEMO ? 'enabled (ongoing)' : demoDate ? `enabled until ${demoDate}` : 'off';
+        console.log(`S9 live smoke passed: TV, controller, STUN-only /ice, signalling, demo ${demoStatus}.`);
         break;
       } catch (error) {
         if (attempt === 3) throw new Error(`Deployment completed, but live smoke failed: ${error.message} Check the recorded version before retrying.`);

@@ -2,6 +2,15 @@ name: Deploy S9 signalling Worker
 
 on:
   workflow_dispatch:
+    inputs:
+      enable_demo:
+        description: Explicitly enable public browser TURN fallback
+        type: boolean
+        default: false
+      demo_until:
+        description: Enter ongoing for general testing, or a UTC cutoff (YYYY-MM-DDTHH:MM:SSZ, up to 12 hours ahead)
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -33,4 +42,15 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           S9_SIGNAL_ORIGIN: ${{ vars.S9_SIGNAL_ORIGIN }}
-        run: npm run deploy:worker -- --deploy
+          S9_ENABLE_DEMO: ${{ inputs.enable_demo }}
+          S9_DEMO_UNTIL: ${{ inputs.demo_until }}
+        shell: bash
+        run: |
+          if [[ "$S9_ENABLE_DEMO" == "true" ]]; then
+            npm run deploy:worker -- --deploy "--demo-until=$S9_DEMO_UNTIL"
+          elif [[ -n "$S9_DEMO_UNTIL" ]]; then
+            echo 'Refusing demo cutoff without explicit enablement.' >&2
+            exit 1
+          else
+            npm run deploy:worker -- --deploy
+          fi

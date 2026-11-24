@@ -15,7 +15,7 @@ const unavailable = () => result(503, { error: 'relay-unavailable' });
 const limited = () => result(429, { error: 'trial-limit' });
 const emptyState = () => ({ rooms: {}, attempts: [] });
 
-class TurnProviderError extends Error {}
+export class TurnProviderError extends Error {}
 
 export class TrialState {
   #inflight = new Map();
