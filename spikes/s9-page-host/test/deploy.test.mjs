@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { demoDeployExpiry, deploymentTarget, smoke, verifyCloudflareTarget } from '../scripts/deploy.mjs';
+import { ONGOING_DEMO } from '../worker/turn-demo.mjs';
 
 const account = '0'.repeat(32);
 const origin = 'https://go-go-harmoniyo.owner-test.workers.dev';
@@ -43,9 +44,10 @@ test('Cloudflare target check rejects mismatched accounts, denied settings reads
   await assert.rejects(demo([...secrets, { name: 'S9_TURN_DEMO', type: 'secret_text' }]), /must be plain text/);
 });
 
-test('only an explicit and bounded UTC expiry opts deployment into demo mode', () => {
+test('only an explicit ongoing mode or bounded UTC expiry opts deployment into demo mode', () => {
   const now = Date.parse('2026-11-26T17:00:00Z');
   assert.equal(demoDeployExpiry(undefined, now), 0);
+  assert.equal(demoDeployExpiry('ongoing', now), ONGOING_DEMO);
   assert.equal(demoDeployExpiry('2026-11-27T02:00:00Z', now), Date.parse('2026-11-27T02:00:00Z'));
   for (const invalid of ['', '2026-11-26T17:00:00Z', '2026-11-27T05:00:01Z', '2026-11-26T19:00:00-05:00']) {
     assert.throws(() => demoDeployExpiry(invalid, now), /future UTC timestamp/);
@@ -83,7 +85,11 @@ test('live smoke requires the current build, both entry points, signalling and S
   await assert.rejects(check('/turn-trial', () => new Response(null, { status: 401 })), /expected HTTP 503/);
   const expiry = Date.parse('2026-11-26T23:00:00Z');
   const enabled = () => Response.json({ enabled: true, expiresAt: expiry });
+  const ongoing = () => Response.json({ enabled: true, expiresAt: null });
   await check('/turn-demo', enabled, expiry);
+  await check('/turn-demo', ongoing, ONGOING_DEMO);
+  await assert.rejects(check('/turn-demo', ongoing), /did not match/);
+  await assert.rejects(check('/turn-demo', enabled, ONGOING_DEMO), /did not match/);
   await assert.rejects(check('/turn-demo', enabled), /did not match/);
   await assert.rejects(check('/turn-demo', enabled, expiry + 1000), /did not match/);
 });

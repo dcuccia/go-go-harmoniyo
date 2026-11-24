@@ -11,6 +11,7 @@ export const DEMO_MINT_PER_SOURCE = 8;
 export const DEMO_MINT_GLOBAL = 48;
 export const DEMO_ACTIVE_PER_SOURCE = 16;
 export const DEMO_ACTIVE_GLOBAL = 128;
+export const ONGOING_DEMO = Number.MAX_SAFE_INTEGER;
 const MAX_ENABLE_MS = 12 * 60 * 60_000;
 const STATE = 'demo-v1';
 const TICKET = /^[0-9a-f]{64}$/;
@@ -27,6 +28,7 @@ const limited = () => result(429, { error: 'demo-limit' });
 const empty = () => ({ rooms: {}, opens: [], mints: [] });
 
 export function demoUntil(value, now = Date.now()) {
+  if (value === 'ongoing') return ONGOING_DEMO;
   if (typeof value !== 'string' || value.length !== 20 || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value)) return 0;
   const until = Date.parse(value);
   return until > now && until <= now + MAX_ENABLE_MS && new Date(until).toISOString().replace('.000Z', 'Z') === value ? until : 0;
@@ -164,7 +166,7 @@ export async function handleDemo(req, env) {
   const until = demoExpiry(env);
   const headers = { 'cache-control': 'no-store' };
   if (req.method === 'GET' && url.pathname === '/turn-demo') {
-    return Response.json({ enabled: !!until, expiresAt: until || null }, { headers });
+    return Response.json({ enabled: !!until, expiresAt: until && until !== ONGOING_DEMO ? until : null }, { headers });
   }
   const path = /^\/turn-demo\/(D[0-9A-F]{11})\/(host|phone)$/.exec(url.pathname);
   let reply;

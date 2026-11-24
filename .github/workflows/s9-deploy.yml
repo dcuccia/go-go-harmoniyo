@@ -8,7 +8,7 @@ on:
         type: boolean
         default: false
       demo_until:
-        description: UTC cutoff (YYYY-MM-DDTHH:MM:SSZ, up to 12 hours ahead)
+        description: Enter ongoing for general testing, or a UTC cutoff (YYYY-MM-DDTHH:MM:SSZ, up to 12 hours ahead)
         type: string
         default: ''
 

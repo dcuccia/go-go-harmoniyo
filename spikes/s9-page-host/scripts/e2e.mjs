@@ -59,7 +59,7 @@ async function startLocal() {
       });
       turnServer.start();
     }
-    const demoUntil = new Date(Date.now() + 3600_000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+    const demoUntil = demoFallback ? 'ongoing' : new Date(Date.now() + 3600_000).toISOString().replace(/\.\d{3}Z$/, 'Z');
     assert.ok(!demo || process.env.npm_execpath, 'run demo E2E via npm run e2e');
     const envFile = demo ? join(workerState, '.env') : '';
     if (demo) writeFileSync(envFile, '');
@@ -183,19 +183,19 @@ async function check() {
     (document.getElementById('join-url')?.textContent ?? '').includes('/c/?r='), null, { timeout: 20000 });
   const tvReadyMs = Date.now() - tvT0;
   const joinUrl = (await game.textContent('#join-url')).trim();
-  const join = new URL(joinUrl);
-  const activeRoom = join.searchParams.get('r');
+  const joinLink = new URL(joinUrl);
+  const activeRoom = joinLink.searchParams.get('r');
   assert.ok(activeRoom, `join URL has no room: ${joinUrl}`);
   if (trial) {
-    assert.equal(join.search, `?r=${room}&trial=1`);
-    assert.equal(join.hash, `#invite=${invite}`);
+    assert.equal(joinLink.search, `?r=${room}&trial=1`);
+    assert.equal(joinLink.hash, `#invite=${invite}`);
   }
   if (demoDisabled) {
-    assert.equal(join.searchParams.has('demo'), false);
-    assert.equal(join.hash, '');
+    assert.equal(joinLink.searchParams.has('demo'), false);
+    assert.equal(joinLink.hash, '');
   } else if (demo) {
-    assert.equal(join.search, `?r=${activeRoom}&demo=1`);
-    assert.match(join.hash, /^#invite=[0-9a-f]{64}$/);
+    assert.equal(joinLink.search, `?r=${activeRoom}&demo=1`);
+    assert.match(joinLink.hash, /^#invite=[0-9a-f]{64}$/);
     if (demoFallback) {
       const open = await fetch(`${base}/turn-demo`, { method: 'POST', headers: { origin: base } });
       assert.equal(open.status, 201);
@@ -295,7 +295,7 @@ async function check() {
       authorization !== `Bearer ${'0'.repeat(64)}`);
     assert.deepEqual(grants.map(({ path }) => path), fallback ? [`/turn-demo/${activeRoom}/phone`, `/turn-demo/${activeRoom}/host`] : []);
     if (fallback) {
-      assert.equal(grants[0].authorization, `Bearer ${new URLSearchParams(join.hash.slice(1)).get('invite')}`);
+      assert.equal(grants[0].authorization, `Bearer ${new URLSearchParams(joinLink.hash.slice(1)).get('invite')}`);
       assert.notEqual(grants[1].authorization, grants[0].authorization, 'the QR never carries the host bearer');
     }
     assert.equal(timings.route, fallback ? 'relay' : 'direct');

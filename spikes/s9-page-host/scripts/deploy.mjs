@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
-import { demoUntil } from '../worker/turn-demo.mjs';
+import { demoUntil, ONGOING_DEMO } from '../worker/turn-demo.mjs';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
 const worker = 'go-go-harmoniyo';
@@ -27,7 +27,7 @@ export function deploymentTarget({ CLOUDFLARE_ACCOUNT_ID: account, S9_SIGNAL_ORI
 export function demoDeployExpiry(value, now = Date.now()) {
   if (value === undefined) return 0;
   const until = demoUntil(value, now);
-  if (!until) throw new Error('--demo-until requires a future UTC timestamp (YYYY-MM-DDTHH:MM:SSZ), no more than 12 hours away.');
+  if (!until) throw new Error('--demo-until requires either ongoing or a future UTC timestamp (YYYY-MM-DDTHH:MM:SSZ), no more than 12 hours away.');
   return until;
 }
 
@@ -90,7 +90,8 @@ export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0)
   if (build.builtAt !== builtAt || build.signal !== '') throw new Error('Hosted assets do not match this S9 build.');
   if (signal !== 'expected a WebSocket') throw new Error('The signalling route did not return the expected WebSocket upgrade response.');
   if (trial.error !== 'relay-unavailable') throw new Error('The protected TURN trial must be disabled on the primary deployment.');
-  if (demo.enabled !== !!demoExpiresAt || demo.expiresAt !== (demoExpiresAt || null)) {
+  const expectedExpiry = demoExpiresAt && demoExpiresAt !== ONGOING_DEMO ? demoExpiresAt : null;
+  if (demo.enabled !== !!demoExpiresAt || demo.expiresAt !== expectedExpiry) {
     throw new Error('The TURN demo enablement or expiry did not match the requested deployment.');
   }
   if (
@@ -186,7 +187,8 @@ async function main() {
     for (let attempt = 1; ; attempt++) {
       try {
         await smoke(target.origin, built.builtAt, fetch, demoExpiresAt);
-        console.log(`S9 live smoke passed: TV, controller, STUN-only /ice, signalling, demo ${demoDate ? `enabled until ${demoDate}` : 'off'}.`);
+        const demoStatus = demoExpiresAt === ONGOING_DEMO ? 'enabled (ongoing)' : demoDate ? `enabled until ${demoDate}` : 'off';
+        console.log(`S9 live smoke passed: TV, controller, STUN-only /ice, signalling, demo ${demoStatus}.`);
         break;
       } catch (error) {
         if (attempt === 3) throw new Error(`Deployment completed, but live smoke failed: ${error.message} Check the recorded version before retrying.`);

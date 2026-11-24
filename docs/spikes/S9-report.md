@@ -358,7 +358,7 @@ deploys have no previous version. Rollback changes the live version, not Durable
 guard rejects any TURN provider or trial-enablement binding. Ordinary room codes still aren't
 authentication; a client that knows one can join or claim the host role. Don't share them broadly.
 
-### Thanksgiving browser demo (explicit, temporary opt-in)
+### Browser relay demo (explicit opt-in)
 
 After review, use the primary Worker and its ordinary browser link. Friends open the same link
 to host, then phones scan the lobby QR as usual. No account or code is needed. The QR keeps the
@@ -372,10 +372,11 @@ are unchanged.
    not plain variables, GitHub workflow values or browser configuration. Do not copy the trial
    owner secret or trial flag to the primary Worker.
 2. Run **Deploy S9 signalling Worker** on `main` with **enable_demo** checked and **demo_until**
-   in UTC (`YYYY-MM-DDTHH:MM:SSZ`), a future cutoff at most 12 hours away. The equivalent explicit
-   local command, after the same clean preflight, is
-   `npm run deploy:worker -- --deploy --demo-until=<UTC-timestamp>`.
-   Smoke checks the exact expiry at `/turn-demo`, the disabled owner-trial endpoint and the
+   set to `ongoing` for general sharing/testing, or a future UTC cutoff (`YYYY-MM-DDTHH:MM:SSZ`,
+   at most 12 hours away) for a one-off event. The equivalent local command after preflight is
+   `npm run deploy:worker -- --deploy --demo-until=ongoing` (replace `ongoing` with a cutoff
+   for a timed rollout). An empty value does not enable relay.
+   Smoke checks the requested mode and expiry at `/turn-demo`, the disabled owner-trial endpoint and the
    still-STUN-only `/ice`. It opens no rooms and spends no grants.
 3. Rehearse on real devices: first same Wi-Fi (selected route `direct`), then isolated guest Wi-Fi
    or cellular (selected route `relay`). Check join, assignment and a scored song. Local Workerd
@@ -387,7 +388,9 @@ for up to 90 minutes; reload the host and rescan for a new room if needed. In a 
 window there are up to 8 provider attempts per host source and 48 shared, plus separate limits of
 12 opens per source and 96 shared. At most 16 live room records per source and 128 total remain
 eligible. A source is the host's public IP, so a shared network can share a bucket. Limits are
-not daily lockouts and **do not cap TURN egress or spend**.
+not daily lockouts and **do not cap TURN egress or spend**. Ongoing mode leaves these limits
+and individual room and grant lifetimes unchanged. Monitor Realtime usage under Cloudflare
+Billing → Billable Usage; a budget alert notifies but does not stop relay use.
 
 To stop new grants immediately as configuration propagates, set `S9_TURN_DEMO` to `0` in the
 primary Worker's settings and deploy that setting. The UTC cutoff also stops new grants; neither

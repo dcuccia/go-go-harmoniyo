@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { DemoState, demoAdmit, demoExpiry } from '../worker/turn-demo.mjs';
+import { DemoState, demoAdmit, demoExpiry, handleDemo } from '../worker/turn-demo.mjs';
 
 const minute = 60_000;
 const windowMs = 10 * minute;
@@ -99,6 +99,29 @@ test('demoExpiry requires explicit opt-in, both TURN bindings, and an exact UTC 
   ]) {
     assert.ok(!demoExpiry({ ...env, ...overrides }, start), label);
   }
+});
+
+test('ongoing enablement needs no deadline but still requires the flag and both provider bindings', async () => {
+  const env = {
+    S9_TURN_DEMO: '1',
+    S9_TURN_DEMO_UNTIL: 'ongoing',
+    TURN_KEY_ID: 'test-id',
+    TURN_KEY_API_TOKEN: 'test-token',
+  };
+  const endpoint = new Request('https://demo.example/turn-demo');
+  const status = async (overrides = {}) => (await handleDemo(endpoint, { ...env, ...overrides })).json();
+  assert.deepEqual(await status(), { enabled: true, expiresAt: null });
+  assert.deepEqual(await status({ S9_TURN_DEMO: '0' }), { enabled: false, expiresAt: null });
+  assert.deepEqual(await status({ TURN_KEY_API_TOKEN: undefined }), { enabled: false, expiresAt: null });
+
+  const { state, ttls, setNow } = demo();
+  const later = start + 24 * 60 * minute;
+  const ongoing = demoExpiry(env, later);
+  setNow(later);
+  const { status: opened, body } = await state.open(source(0), ongoing);
+  assert.equal(opened, 201);
+  assert.equal(body.expiresAt, later + roomMs);
+  assertGrant(await grant(state, body, 'host', ongoing), later, ttls[0], 1);
 });
 
 test('demo tickets are bound to a room and role; stateless admission does not imply a stored room', async () => {
