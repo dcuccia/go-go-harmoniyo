@@ -396,6 +396,13 @@ revocation, use provider controls. For a standard STUN-only redeploy, remove bot
 and both provider bindings before running the unchecked workflow. For version rollback choose a
 known STUN-only version, not a previously enabled demo version; then verify `/ice` and a fresh join.
 
+Local check from `spikes/s9-page-host`, after building the web assets: `npm test` and
+`npm run e2e -- --demo`, `--demo-fallback`, `--demo-unavailable`, or `--demo-disabled` (run these
+separately). On Windows with headless Chromium 157 and a Pixel 7 emulation, both the direct and
+forced-relay paths hit 32/32 notes in a short Silent Night round via local Workerd. The direct
+join made no credential request. The relay run used a loopback TURN server and a mocked
+provider response, not the live Cloudflare TURN service.
+
 ### Protected TURN trial (owner opt-in after review)
 
 Use a **separate** Worker named `go-go-harmoniyo-turn-trial` in the intended account and its
