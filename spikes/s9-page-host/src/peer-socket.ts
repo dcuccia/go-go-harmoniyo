@@ -6,6 +6,7 @@ import { parseMessage } from '../../s1-phone-bell/src/core/hgp.ts';
 import { wsUrl } from './config.ts';
 import { iceConfig, routeOf } from './ice.ts';
 import { trialIce, trialProtocols } from './turn-trial.ts';
+import { demoIce, demoProtocols } from './turn-demo.ts';
 
 export type PhoneStatus =
   | 'looking-for-tv' | 'no-tv' | 'connecting' | 'no-network-path' | 'trying-relay'
@@ -17,6 +18,7 @@ export interface PeerSocketOptions {
   peer: string;
   params?: URLSearchParams;
   trial?: boolean;
+  demo?: boolean;
   invite?: string;
   reconnecting?: boolean;
   onStatus?: (status: PhoneStatus) => void;
@@ -69,6 +71,7 @@ export class PeerSocket implements HgpSocket {
   private offered = false;
   private hostSeen = false;
   private attemptingRelay = false;
+  private relayDenied = false;
   private attempt?: number;
   private directTimer?: ReturnType<typeof setTimeout>;
   private assigned = false;
@@ -134,22 +137,24 @@ export class PeerSocket implements HgpSocket {
   }
 
   private async run(): Promise<void> {
-    const { signalOrigin, room, peer, invite, trial: protectedRoom } = this.o;
-    const params = protectedRoom ? new URLSearchParams() : this.o.params ?? new URLSearchParams();
+    const { signalOrigin, room, peer, invite, trial, demo } = this.o;
+    const ticketed = trial || demo;
+    const params = ticketed ? new URLSearchParams() : this.o.params ?? new URLSearchParams();
     this.status(this.o.reconnecting ? 'reconnecting' : 'looking-for-tv');
-    if (protectedRoom && !invite) {
-      this.noPath('invalid-invite', 'missing trial invitation');
+    if (ticketed && !invite) {
+      this.noPath('invalid-invite', 'missing room invitation');
       return;
     }
     this.timers.push(
       setTimeout(() => {
         if (this.readyState !== CONNECTING) return;
-        if (this.hostSeen) this.noPath('no-network-path', 'no network path to the TV');
+        if (this.relayDenied) this.noPath('relay-unavailable', 'TURN credentials unavailable');
+        else if (this.hostSeen) this.noPath('no-network-path', 'no network path to the TV');
         else {
           this.status('no-tv');
           this.finish(CLOSE_NO_HOST, 'no TV in this room');
         }
-      }, this.o.timeoutMs ?? (protectedRoom ? 30_000 : 20_000)),
+      }, this.o.timeoutMs ?? (ticketed ? 30_000 : 20_000)),
     );
     const icePromise = iceConfig(signalOrigin, params).then((c) => {
       this.mark('ice');
@@ -158,8 +163,9 @@ export class PeerSocket implements HgpSocket {
     });
     let sig: WebSocket;
     try {
-      sig = new WebSocket(wsUrl(signalOrigin, `/signal/${room}?role=phone&peer=${encodeURIComponent(peer)}${protectedRoom ? '&trial=1' : ''}`),
-        invite ? trialProtocols(invite) : []);
+      const mode = trial ? '&trial=1' : demo ? '&demo=1' : '';
+      const protocols = invite && ticketed ? (demo ? demoProtocols(invite) : trialProtocols(invite)) : [];
+      sig = new WebSocket(wsUrl(signalOrigin, `/signal/${room}?role=phone&peer=${encodeURIComponent(peer)}${mode}`), protocols);
     } catch {
       this.status('no-tv');
       this.finish(CLOSE_NO_HOST, 'signalling service is unavailable');
@@ -169,9 +175,9 @@ export class PeerSocket implements HgpSocket {
     sig.onopen = () => this.mark('signalOpen');
     sig.onclose = (e) => {
       if (this.sig !== sig || this.readyState !== CONNECTING) return;
-      if (protectedRoom && this.t.signalOpen === undefined) {
-        this.noPath('invalid-invite', 'trial room or invitation unavailable');
-      } else if (e.code >= 4000 || protectedRoom) {
+      if (ticketed && this.t.signalOpen === undefined) {
+        this.noPath('invalid-invite', 'room invitation unavailable');
+      } else if (e.code >= 4000 || ticketed) {
         this.status(this.hostSeen ? 'no-network-path' : 'no-tv');
         this.finish(e.code, 'signalling closed');
       }
@@ -189,7 +195,7 @@ export class PeerSocket implements HgpSocket {
         if (this.offered || this.readyState !== CONNECTING) return;
         this.offered = true;
         this.status('connecting');
-        void icePromise.then((c) => this.offer(c.iceServers, c.iceTransportPolicy, protectedRoom ? 1 : undefined))
+        void icePromise.then((c) => this.offer(c.iceServers, c.iceTransportPolicy, ticketed ? 1 : undefined))
           .catch(() => this.failedAttempt());
       } else if (m.type === 'joined' && !this.hostSeen) {
         this.status('looking-for-tv');
@@ -199,6 +205,10 @@ export class PeerSocket implements HgpSocket {
 
   private failedAttempt(): void {
     if (this.readyState !== CONNECTING) return;
+    if (this.o.demo && this.attemptingRelay && this.attempt === 1) {
+      if (this.relayDenied) this.noPath('relay-unavailable', 'TURN credentials unavailable');
+      return;
+    }
     if (this.o.invite && !this.attemptingRelay) void this.retryWithRelay(this.o.invite);
     else this.noPath('no-network-path', this.attemptingRelay ? 'TURN could not connect' : 'no network path to the TV');
   }
@@ -206,22 +216,36 @@ export class PeerSocket implements HgpSocket {
   private async retryWithRelay(invite: string): Promise<void> {
     this.attemptingRelay = true;
     clearTimeout(this.directTimer);
-    const old = this.pc;
-    this.pc = null;
-    old?.close();
+    if (!this.o.demo) this.dropConnection();
     this.status('trying-relay');
     let servers: RTCIceServer[];
     try {
-      servers = await trialIce(this.o.signalOrigin, this.o.room, invite);
+      servers = await (this.o.demo
+        ? demoIce(this.o.signalOrigin, this.o.room, 'phone', invite)
+        : trialIce(this.o.signalOrigin, this.o.room, invite));
     } catch {
-      if (this.readyState === CONNECTING) this.noPath('relay-unavailable', 'TURN credentials unavailable');
+      if (this.readyState !== CONNECTING) return;
+      this.relayDenied = true;
+      // The direct timer might have fired just before a slow LAN link connected.
+      if (this.o.demo && this.pc && this.pc.connectionState !== 'failed' && this.rel?.readyState !== 'closed') this.status('connecting');
+      else this.noPath('relay-unavailable', 'TURN credentials unavailable');
       return;
     }
+    if (this.readyState !== CONNECTING || this.rel?.readyState === 'open') return;
+    this.dropConnection();
+    this.attempt = 2;
     try {
       await this.offer(servers, 'relay', 2);
     } catch {
       this.failedAttempt();
     }
+  }
+
+  private dropConnection(): void {
+    const old = this.pc;
+    this.pc = null;
+    this.rel = null;
+    old?.close();
   }
 
   private async offer(iceServers: RTCIceServer[], iceTransportPolicy: RTCIceTransportPolicy, attempt?: number): Promise<void> {

@@ -2,11 +2,13 @@
 //   /signal/<ROOM>?role=host|phone&peer=<id>  WebSocket → one Durable Object per room (relay only)
 //   /ice                                      public STUN only
 //   /turn-trial[/<ROOM>]                       protected, opt-in relay trial
+//   /turn-demo[/<ROOM>/<ROLE>]                 time-bounded browser demo (off by default)
 //   anything else                             the static web build (TV page at /, phone controller at /c/)
 // Owner deployment: see docs/spikes/S9-report.md. The initial rollout is STUN-only.
 import { DurableObject } from 'cloudflare:workers';
 import { onJoin, onLeave, onMessage, parseJoin } from '../signal/relay.mjs';
 import { handleTrial, mintTurn, TrialState, TRIAL_PROTOCOL, TRIAL_ROOM, trialEnabled, trialStub, trialTicket } from './turn-trial.mjs';
+import { DemoState, demoRoomKey, demoTicket, DEMO_PROTOCOL, handleDemo } from './turn-demo.mjs';
 
 const STUN = [{ urls: ['stun:stun.cloudflare.com:3478'] }];
 
@@ -19,18 +21,25 @@ export default {
       if (typeof j === 'string') return new Response(j, { status: 400 });
       if (req.headers.get('Upgrade') !== 'websocket') return new Response('expected a WebSocket', { status: 426 });
       const trial = url.searchParams.get('trial') === '1';
+      const demo = url.searchParams.get('demo') === '1';
+      if (trial && demo) return new Response('conflicting room modes', { status: 400 });
       if (trial) {
         const ticket = trialTicket(req);
         if (!trialEnabled(env) || !TRIAL_ROOM.test(j.room) || !ticket || !await trialStub(env).admit(j.room, j.role, ticket)) {
           return new Response('invalid or expired trial invitation', { status: 403 });
         }
       }
-      return env.ROOMS.get(env.ROOMS.idFromName(trial ? `trial:${j.room}` : j.room)).fetch(req);
+      const demoKey = demo ? await demoRoomKey(j.room, j.role, demoTicket(req)) : '';
+      if (demo && !demoKey) {
+        return new Response('invalid demo invitation', { status: 403 });
+      }
+      return env.ROOMS.getByName(trial ? `trial:${j.room}` : demo ? `demo:${demoKey}` : j.room).fetch(req);
     }
     if (url.pathname === '/ice') return Response.json({ iceServers: STUN, turn: false }, {
       headers: { 'cache-control': 'no-store', 'access-control-allow-origin': '*' },
     });
     if (url.pathname === '/turn-trial' || url.pathname.startsWith('/turn-trial/')) return handleTrial(req, env);
+    if (url.pathname === '/turn-demo' || url.pathname.startsWith('/turn-demo/')) return handleDemo(req, env);
     return env.ASSETS.fetch(req);
   },
 };
@@ -44,6 +53,17 @@ export class TurnTrial extends DurableObject {
   open() { return this.state.open(); }
   admit(room, role, ticket) { return this.state.admit(room, role, ticket); }
   grant(room, ticket) { return this.state.grant(room, ticket); }
+}
+
+export class TurnDemo extends DurableObject {
+  constructor(ctx, env) {
+    super(ctx, env);
+    this.state = new DemoState(ctx.storage, (ttl) => this.mint(ttl));
+  }
+
+  open(source, until) { return this.state.open(source, until); }
+  grant(room, role, ticket, until) { return this.state.grant(room, role, ticket, until); }
+  mint(ttl) { return mintTurn(this.env, ttl); }
 }
 
 /** One room. Uses the WebSocket Hibernation API, so an idle room costs nothing. */
@@ -63,8 +83,14 @@ export class SignalRoom extends DurableObject {
     const others = this.sockets();
     this.ctx.acceptWebSocket(server, [j.role, j.peer]);
     onJoin(this.wrap(server), others);
-    const headers = url.searchParams.get('trial') === '1' ? { 'Sec-WebSocket-Protocol': TRIAL_PROTOCOL } : undefined;
+    const protocol = url.searchParams.get('trial') === '1' ? TRIAL_PROTOCOL
+      : url.searchParams.get('demo') === '1' ? DEMO_PROTOCOL : '';
+    const headers = protocol ? { 'Sec-WebSocket-Protocol': protocol } : undefined;
     return new Response(null, { status: 101, webSocket: client, headers });
+  }
+
+  hasHost() {
+    return this.ctx.getWebSockets('host').some((ws) => ws.readyState === WebSocket.OPEN);
   }
 
   /** @param {WebSocket} ws @param {string | ArrayBuffer} msg */

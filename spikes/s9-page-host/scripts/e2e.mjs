@@ -4,9 +4,11 @@
 //   npm run build && node scripts/e2e.mjs [--song silent-night] [--diff easy] [--relay] [--shots]
 // --origin=http://127.0.0.1:18961 runs against `npm run worker` (wrangler dev: the real Worker + Durable Object).
 // --relay forces the phone↔TV path through a local TURN server (node-turn), like AP-isolated Wi-Fi.
-import { spawn } from 'node:child_process';
+// --demo runs the production demo routes in a local Wrangler Worker with a test TurnDemo Durable
+// Object whose provider seam returns localhost credentials; --demo-fallback forces its relay path.
+import { spawn, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, devices } from 'playwright-core';
@@ -22,11 +24,17 @@ const song = opt('song', 'silent-night');
 const diff = opt('diff', 'easy');
 const relay = argv.includes('--relay');
 const unavailable = argv.includes('--trial-unavailable');
-const fallback = unavailable || argv.includes('--trial-fallback');
-const trial = fallback || argv.includes('--trial');
+const demoUnavailable = argv.includes('--demo-unavailable');
+const demoFallback = argv.includes('--demo-fallback');
+const demoDisabled = argv.includes('--demo-disabled');
+const demo = demoDisabled || demoUnavailable || demoFallback || argv.includes('--demo');
+const fallback = unavailable || demoUnavailable || demoFallback || argv.includes('--trial-fallback');
+const trial = unavailable || argv.includes('--trial') || argv.includes('--trial-fallback');
 const shots = argv.includes('--shots');
 const port = Number(opt('port', '18964'));
 const turnPort = port + 1;
+assert.ok(!(demo && trial), '--demo cannot be combined with --trial');
+assert.ok(!(demo && relay), '--demo uses the fixture TURN server; do not combine it with --relay');
 const room = trial ? 'T1234567890A' : relay ? 'E2ERLY' : 'E2E001';
 const initialRoom = trial ? 'E2E001' : room;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -34,31 +42,101 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // --origin=<url>: use an already-running signalling service (`npm run worker`, i.e. wrangler dev).
 const external = opt('origin', '');
 assert.ok(!trial || (!external && !relay), 'the fake trial provider requires the local server and unforced ICE');
+assert.ok(!demo || !external, 'the demo fixture requires the local Worker');
 const base = external || `http://127.0.0.1:${port}`;
 let serverLog = '';
-const server = external
-  ? null
-  : await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'server/dev-server.ts', '--port', String(port), '--host', '127.0.0.1', '--no-stun', ...(relay || fallback ? ['--turn-port', String(turnPort)] : [])], { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] });
-  const on = (d) => {
-    serverLog += d.toString();
-    if (serverLog.includes('S9 dev server')) resolve(p);
-  };
-  p.stdout.on('data', on);
-  p.stderr.on('data', on);
-  p.on('exit', (c) => reject(new Error(`dev server exited ${c}:\n${serverLog}`)));
-});
+let turnServer;
+const workerState = demo ? mkdtempSync(join(root, 'dist', 'demo-e2e-')) : '';
+let browser;
+let workerProcess;
 
-const browser = await chromium.launch({
-  channel: opt('channel', 'chrome'),
-  headless: !argv.includes('--headed'),
-  args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader'],
-});
+async function startLocal() {
+    if (demoFallback) {
+      const { default: Turn } = await import('node-turn');
+      turnServer = new Turn({
+        listeningPort: turnPort, listeningIps: ['127.0.0.1'], relayIps: ['127.0.0.1'],
+        authMech: 'long-term', credentials: { s9: 's9-local' }, debugLevel: 'OFF',
+      });
+      turnServer.start();
+    }
+    const demoUntil = new Date(Date.now() + 3600_000).toISOString().replace(/\.\d{3}Z$/, 'Z');
+    assert.ok(!demo || process.env.npm_execpath, 'run demo E2E via npm run e2e');
+    const envFile = demo ? join(workerState, '.env') : '';
+    if (demo) writeFileSync(envFile, '');
+  const args = demo
+      ? [process.env.npm_execpath, 'run', 'wrangler', '--', 'dev', '--local', '--port', String(port),
+        '--ip', '127.0.0.1', '--persist-to', workerState, '--env-file', envFile,
+        ...(demoDisabled ? ['--config', 'wrangler.toml'] : [
+          '--config', 'test/wrangler.demo.toml', '--var', `S9_TURN_DEMO_UNTIL:${demoUntil}`,
+          '--var', `S9_DEMO_TURN_PORT:${turnPort}`,
+          ...(demoUnavailable ? ['--var', 'S9_DEMO_UNAVAILABLE:1'] : []),
+        ])]
+    : [tsx, 'server/dev-server.ts', '--port', String(port), '--host', '127.0.0.1', '--no-stun', ...(relay || fallback ? ['--turn-port', String(turnPort)] : [])];
+  const p = workerProcess = spawn(process.execPath, args, {
+    cwd: root,
+      detached: demo && process.platform !== 'win32',
+    stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, WRANGLER_SEND_METRICS: 'false', CLOUDFLARE_LOAD_DEV_VARS_FROM_DOT_ENV: 'false' },
+  });
+    await new Promise((resolve, reject) => {
+      const deadline = setTimeout(() => reject(new Error('Local S9 server did not start.')), 30000);
+      const on = (d) => {
+        serverLog += d.toString();
+        if (demo ? /Ready on https?:\/\//.test(serverLog) : serverLog.includes('S9 dev server')) {
+          clearTimeout(deadline);
+          resolve();
+        }
+      };
+      p.stdout.on('data', on);
+      p.stderr.on('data', on);
+      p.on('error', (err) => { clearTimeout(deadline); reject(err); });
+      p.on('exit', (c) => { clearTimeout(deadline); reject(new Error(`dev server exited ${c}:\n${serverLog}`)); });
+    });
+}
+
+function stopLocal() {
+    if (workerProcess?.pid && demo && process.platform === 'win32') {
+      // npm → Wrangler → workerd, not just the immediate child.
+      const script = `$all = Get-CimInstance Win32_Process
+        function Stop-Tree([int]$id) {
+          $all | Where-Object ParentProcessId -eq $id | ForEach-Object { Stop-Tree $_.ProcessId }
+          Stop-Process -Id $id -ErrorAction SilentlyContinue
+          Wait-Process -Id $id -Timeout 3 -ErrorAction SilentlyContinue
+        }
+        Stop-Tree ${workerProcess.pid}`;
+      const encoded = Buffer.from(script, 'utf16le').toString('base64');
+      const result = spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-EncodedCommand', encoded]);
+      if (result.status !== 0) console.warn('Could not fully stop the local Wrangler process tree.');
+    } else if (workerProcess?.pid && demo) {
+      try { process.kill(-workerProcess.pid, 'SIGTERM'); } catch (e) { if (e.code !== 'ESRCH') throw e; }
+    } else workerProcess?.kill();
+    if (workerState) {
+      try { rmSync(workerState, { recursive: true, force: true, maxRetries: 5, retryDelay: 250 }); }
+      catch (error) {
+        if (error.code !== 'EBUSY' && error.code !== 'EPERM') throw error;
+        console.warn('Local Wrangler state is still locked:', workerState);
+      }
+    }
+}
 async function check() {
   const errors = [];
+  const demoRequests = [];
+  const trackDemo = (page) => page.on('request', (req) => {
+    const url = new URL(req.url());
+    if (url.pathname.startsWith('/turn-demo')) demoRequests.push({
+      path: url.pathname,
+      method: req.method(),
+      authorization: req.headers().authorization ?? '',
+    });
+  });
   // TV page: hosts the session. ICE test switches are forwarded to phones through the QR link.
   const ice = relay ? `&turn=${encodeURIComponent(`turn:127.0.0.1:${turnPort}?transport=udp`)}&tu=s9&tc=s9-local&relay=1` : '&ice=none';
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+  const localIce = (page) => page.route('**/ice', (route) => route.fulfill({ json: { iceServers: [], turn: false } }));
+  if (demo) {
+    trackDemo(game);
+    await localIce(game); // No public STUN traffic from this local verification.
+  }
   const owner = 'a'.repeat(64);
   const hostTicket = 'b'.repeat(64);
   const invite = 'c'.repeat(64);
@@ -93,7 +171,8 @@ async function check() {
   });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   const tvT0 = Date.now();
-  await game.goto(`${base}/?room=${initialRoom}${ice}&song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
+  const params = demo ? '' : `room=${initialRoom}${ice}&`;
+  await game.goto(`${base}/?${params}song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
   if (trial) {
     await game.getByRole('button', { name: 'Relay trial…' }).click();
     await game.getByLabel('Relay trial owner key').fill(owner);
@@ -101,13 +180,39 @@ async function check() {
     await game.waitForFunction(() => window.__s9host?.trialState === 'ready');
   }
   await game.waitForFunction((r) => window.__s9host?.signalState === 'open' &&
-    (document.getElementById('join-url')?.textContent ?? '').includes(`/c/?r=${r}`), room, { timeout: 20000 });
+    (document.getElementById('join-url')?.textContent ?? '').includes('/c/?r='), null, { timeout: 20000 });
   const tvReadyMs = Date.now() - tvT0;
   const joinUrl = (await game.textContent('#join-url')).trim();
+  const join = new URL(joinUrl);
+  const activeRoom = join.searchParams.get('r');
+  assert.ok(activeRoom, `join URL has no room: ${joinUrl}`);
   if (trial) {
-    const url = new URL(joinUrl);
-    assert.equal(url.search, `?r=${room}&trial=1`);
-    assert.equal(url.hash, `#invite=${invite}`);
+    assert.equal(join.search, `?r=${room}&trial=1`);
+    assert.equal(join.hash, `#invite=${invite}`);
+  }
+  if (demoDisabled) {
+    assert.equal(join.searchParams.has('demo'), false);
+    assert.equal(join.hash, '');
+  } else if (demo) {
+    assert.equal(join.search, `?r=${activeRoom}&demo=1`);
+    assert.match(join.hash, /^#invite=[0-9a-f]{64}$/);
+    if (demoFallback) {
+      const open = await fetch(`${base}/turn-demo`, { method: 'POST', headers: { origin: base } });
+      assert.equal(open.status, 201);
+      const dormant = await open.json();
+      const withoutHost = await fetch(`${base}/turn-demo/${dormant.room}/phone`, {
+        method: 'POST', headers: { origin: base, authorization: `Bearer ${dormant.invite}` },
+      });
+      assert.equal(withoutHost.status, 401, 'a valid room capability cannot mint without an active host');
+      const denied = await game.evaluate(async (r) => {
+        const response = await fetch(`/turn-demo/${r}/phone`, {
+          method: 'POST',
+          headers: { authorization: `Bearer ${'0'.repeat(64)}` },
+        });
+        return { status: response.status, body: await response.json().catch(() => null) };
+      }, activeRoom);
+      assert.equal(denied.status, 401, 'demo grant rejects an invalid bearer');
+    }
   }
   console.log(`TV hosting after ${tvReadyMs} ms`);
 
@@ -133,10 +238,15 @@ async function check() {
 
   const phoneCtx = await browser.newContext({ ...devices['Pixel 7'] });
   const phone = await phoneCtx.newPage();
+  if (demo) {
+    trackDemo(phone);
+    await localIce(phone);
+  }
   if (trial) await phone.route('**/turn-trial**', fakeTrial);
   if (fallback) {
     // Disable candidate gathering only for the first (STUN-only) phone connection.
     await phone.addInitScript(() => {
+      if (sessionStorage.getItem('allow-direct-for-retry')) return;
       const Peer = window.RTCPeerConnection;
       window.RTCPeerConnection = class extends Peer {
         constructor(config) {
@@ -151,11 +261,21 @@ async function check() {
   await phone.fill('#name', 'Pixel');
   await phone.tap('#start');
   await phone.waitForSelector('#main:not([hidden])');
-  if (unavailable) {
+  if (unavailable || demoUnavailable) {
     const notice = phone.getByText('Relay unavailable.', { exact: false });
-    await notice.waitFor({ state: 'visible', timeout: 20000 });
+    await notice.waitFor({ state: 'visible', timeout: 35000 });
     assert.equal(await phone.evaluate(() => window.__s9?.route), undefined, 'a failed relay is never reported as the selected route');
-    assert.deepEqual(grants, [`Bearer ${invite}`]);
+    if (trial) assert.deepEqual(grants, [`Bearer ${invite}`]);
+    if (demo) assert.ok(demoRequests.some(({ path, method }) =>
+      method === 'POST' && path.startsWith(`/turn-demo/${activeRoom}/`)), 'demo fallback attempted its grant route');
+    if (demoUnavailable) {
+      await phone.evaluate(() => sessionStorage.setItem('allow-direct-for-retry', '1'));
+      await phone.reload();
+      await phone.fill('#name', 'Pixel');
+      await phone.tap('#start');
+      await phone.waitForFunction(() => window.__s9?.route === 'direct');
+      assert.equal(demoRequests.filter(({ path }) => path === `/turn-demo/${activeRoom}/phone`).length, 1);
+    }
     assert.deepEqual(errors, []);
     console.log('S9 E2E OK: relay unavailable recovery notice');
     return true;
@@ -169,11 +289,27 @@ async function check() {
     assert.deepEqual(grants, fallback ? [`Bearer ${invite}`, `Bearer ${hostTicket}`] : [], 'only failed direct ICE requests protected grants');
     assert.equal(timings.route, fallback ? 'relay' : 'direct');
   }
+  if (demo) {
+    const grants = demoRequests.filter(({ path, method, authorization }) =>
+      method === 'POST' && path.startsWith(`/turn-demo/${activeRoom}/`) &&
+      authorization !== `Bearer ${'0'.repeat(64)}`);
+    assert.deepEqual(grants.map(({ path }) => path), fallback ? [`/turn-demo/${activeRoom}/phone`, `/turn-demo/${activeRoom}/host`] : []);
+    if (fallback) {
+      assert.equal(grants[0].authorization, `Bearer ${new URLSearchParams(join.hash.slice(1)).get('invite')}`);
+      assert.notEqual(grants[1].authorization, grants[0].authorization, 'the QR never carries the host bearer');
+    }
+    assert.equal(timings.route, fallback ? 'relay' : 'direct');
+  }
   console.log(`phone joined in ${joinMs} ms (page load → data channel open): ${JSON.stringify(timings)}`);
 
   // Assignment reaches the phone: zones in the chart's lane colours.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
   if (trial) assert.equal(await phone.locator('#main').getAttribute('data-s9-connection'), 'connected');
+  if (demoDisabled) {
+    assert.deepEqual(errors, []);
+    console.log('S9 E2E OK: primary Worker with demo off joined directly and assigned bells');
+    return true;
+  }
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));
   console.log(`phone zones: ${zones.join(' ')}`);
   await game.waitForFunction(() => window.__i2?.session, null, { timeout: 30000 });
@@ -238,6 +374,8 @@ async function check() {
     when: new Date().toISOString(),
     browser: `${browser.browserType().name()} ${browser.version()}`,
     relay,
+    demo,
+    demoFallback,
     song,
     diff,
     tvReadyMs,
@@ -255,7 +393,7 @@ async function check() {
     errors,
   };
   console.log(JSON.stringify(summary, null, 2));
-  if (!argv.includes('--no-report') && !trial) writeFileSync(join(outDir, `e2e${external ? '-worker' : ''}${relay ? '-relay' : ''}.json`), JSON.stringify({ ...summary, signal: external || 'dev-server' }, null, 2));
+  if (!argv.includes('--no-report') && !trial && !demo) writeFileSync(join(outDir, `e2e${external ? '-worker' : ''}${relay ? '-relay' : ''}.json`), JSON.stringify({ ...summary, signal: external || 'dev-server' }, null, 2));
   const routeOk = host.phones[0]?.route === (relay || fallback ? 'relay' : 'direct');
   const ok = hit / p.notes >= 0.8 && errors.length === 0 && routeOk;
   if (!routeOk) console.log(`unexpected route at song completion: ${JSON.stringify(host.phones)}`);
@@ -270,12 +408,31 @@ async function check() {
 }
 let ok;
 try {
+  if (!external) await startLocal();
+  if (demo) {
+    const [mode, publicIce] = await Promise.all(['turn-demo', 'ice'].map(async (path) => {
+      const response = await fetch(`${base}/${path}`, { signal: AbortSignal.timeout(3000) });
+      assert.equal(response.status, 200);
+      return response.json();
+    }));
+    assert.equal(mode.enabled, !demoDisabled);
+    assert.deepEqual(publicIce, { iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }], turn: false });
+  }
+  browser = await chromium.launch({
+    channel: opt('channel', 'chrome'),
+    headless: !argv.includes('--headed'),
+    args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--enable-unsafe-swiftshader'],
+  });
   ok = await check();
+} catch (error) {
+  if (demo) console.error(serverLog);
+  throw error;
 } finally {
-  await browser.close();
-  server?.kill();
+  await browser?.close();
+  turnServer?.stop?.();
+  stopLocal();
 }
-if (!unavailable) {
+if (!unavailable && !demoUnavailable) {
   console.log(ok ? 'S9 E2E OK' : 'S9 E2E FAILED');
-  process.exit(ok ? 0 : 1);
 }
+process.exit(ok ? 0 : 1);
