@@ -4,6 +4,7 @@
 // Motion-sensor ringing itself is covered by S1 (emulation) and needs a real phone.
 //   npm run build && node scripts/controller-check.mjs [--song silent-night] [--diff easy] [--shots] [--rtc=on]
 import { spawn } from 'node:child_process';
+import assert from 'node:assert/strict';
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -59,11 +60,18 @@ try {
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   await game.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
-  // Assignment reaches the phone: 4 zones in the chart's lane colours.
+  // Assignment reaches the phone in the same pitch order as the TV highway.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));
   console.log(`phone zones: ${zones.join(' ')}`);
   await game.waitForFunction(() => window.__i2?.session, null, { timeout: 30000 });
+  const lanes = await game.evaluate(() => window.__i2.team.ringers[0].bells.map(({ id }) => id));
+  assert.deepEqual(zones, lanes, 'zones follow TV lane order');
+  if (diff === 'easy') {
+    assert.equal(zones.length, 2);
+    const [low, high] = await phone.locator('#zones .zone').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+    assert.ok(low < high, 'Easy puts the lower pitch on the left');
+  }
 
   // Note schedule on the shared wall clock (both pages are in one browser on one PC).
   const plan = await game.evaluate(() => {
@@ -113,7 +121,7 @@ try {
   const direct = rtc === 'on' ? { stillDirect: /connected \(direct\)/.test(await phone.evaluate(() => document.body.innerText)), hostSaw: hostLog.includes('direct link open'), closed: hostLog.includes('direct link closed') } : undefined;
   const summary = { song, diff, zones, notes: p.notes, hit, perfect: p.perfect, miss: p.miss, strays: p.strays, offsetMs: p.offsetMs, glow: `${glowOk}/${glowChecked}`, input: r.hgp.input, direct, errors };
   console.log(JSON.stringify(summary, null, 2));
-  writeFileSync(join(outDir, 'controller-check.json'), JSON.stringify(summary, null, 2));
+  if (!argv.includes('--no-report')) writeFileSync(join(outDir, 'controller-check.json'), JSON.stringify(summary, null, 2));
   if (shots) copyFileSync(join(outDir, 'i2-phone-controller.png'), join(root, '..', '..', 'docs', 'spikes', 'media', 'i2-phone-controller.png'));
   ok = hit / p.notes >= 0.8 && glowOk / glowChecked >= 0.8 && errors.length === 0 && (!direct || (direct.stillDirect && direct.hostSaw && !direct.closed));
 } finally {

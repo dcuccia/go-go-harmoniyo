@@ -318,6 +318,13 @@ async function check() {
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));
   console.log(`phone zones: ${zones.join(' ')}`);
   await game.waitForFunction(() => window.__i2?.session, null, { timeout: 30000 });
+  const lanes = await game.evaluate(() => window.__i2.team.ringers[0].bells.map(({ id }) => id));
+  assert.deepEqual(zones, lanes, 'zones follow TV lane order');
+  if (diff === 'easy') {
+    assert.equal(zones.length, 2);
+    const [low, high] = await phone.locator('#zones .zone').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+    assert.ok(low < high, 'Easy puts the lower pitch on the left');
+  }
 
   // Note schedule on the shared wall clock (both pages are in one browser on one PC).
   const plan = await game.evaluate(() => {

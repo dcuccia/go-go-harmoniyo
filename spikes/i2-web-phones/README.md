@@ -55,8 +55,10 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
 5. Choose a **Song** (a fresh lobby defaults to **Jingle Bells**), then **Play**. To change how
-   the group plays, open **Round options** for **Difficulty** (first-timers: **Super easy** — the tune's downbeats and long
-   notes, at most 3 bells each, the TV plays the rest of the tune softly), **Parts**, **Length**
+   the group plays, open **Round options** for **Difficulty**. **Super easy** gives each ringer
+   one bell with sparse cues. **Easy** gives up to two (lower left, higher right), **Medium** up
+   to four, and **Hard** up to four with quicker changes and offbeat pickups. The TV plays the rest of
+   the tune softly. Round options also has **Parts**, **Length**
    and **Ringers** (defaults to the number of phones that have joined). **Parts**: *Balanced*
    (default: each player has one role — Bass, Harmony or a slice of the tune — in one range of
    bells, with similar effort), *Chord split* (up to three players share each chord, one note
@@ -301,7 +303,7 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample (also at practice speed 0.75), the ritardando ending on time and decaying to silence, silence after stop; and each performance SFX alone: no clipping, on its scheduled sample, 6–30 dB under one bell, ducked ≥ 6 dB under a ringing bell. Writes `results/backing-render.md`. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `node scripts/webkit-controller-check.mjs` | WebKit smoke test (#27): S1's phone page in Playwright **WebKit** with an iPhone profile (`--device="iPhone 15"`) over HTTPS with the self-signed certificate, TV page in Chrome. Tap to start (stubbed `DeviceMotionEvent.requestPermission`), Web Audio unlock, joining and *Pick your part*, zones and the next-zone glow, and synthetic `devicemotion` rings (calibration, lobby practice, then the song's notes) reaching the host. Needs `npm run build` and, once, `npx playwright-core install webkit` (Linux: `--with-deps`; use `playwright-core`, already a dev dependency, so the browser matches its version). Writes `results/webkit-controller-check.{json,md}`, including what emulation can't show. An early signal, not a substitute for a real iPhone. |
-| `npm run charts` | Regenerate `public/charts/` (full form) and `public/charts/short/` from S5: every arrangement and tier, 1–4 ringers, ~15 s; skipped when nothing changed (`-- --force`). `-- --key-change` adds the step up in the last verse (off by default: it adds bells beyond a phone's 4); `-- --profile handbell --ringers 3,4,5` for the S5 defaults. URL: `?form=short`, `?parts=chord-split`, `?diff=super-easy`. |
+| `npm run charts` | Regenerate `public/charts/` (full form) and `public/charts/short/` from S5: every arrangement and tier, 1–4 ringers; skipped when nothing changed (`-- --force`). `-- --key-change` adds the step up in the last verse (off by default; it can move more notes to the TV guide because phone pitch sets stay fixed). Use `-- --profile handbell --ringers 3,4,5` for the S5 defaults. URL: `?form=short`, `?parts=chord-split`, `?diff=super-easy`. |
 
 CI ([`.github/workflows/i2-web-phones.yml`](../../.github/workflows/i2-web-phones.yml)) runs on changes to
 this folder, S1, S4, S5, `spikes/shared` or the palette: `npm ci`, `typecheck`, `test`, `build`, the
