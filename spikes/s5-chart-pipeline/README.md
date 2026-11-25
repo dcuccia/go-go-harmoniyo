@@ -50,6 +50,8 @@ Format 0.3 (all additions optional; 0.1/0.2 charts stay valid):
   to four with faster changes, and **Hard** the same four-pitch ceiling with faster passages
   and offbeat chord-tone pickups on bells already held. The guide supplies unassigned melody and
   descant notes once; the timing judge and the curated **First Ring** preset are unchanged.
+  Jingle Bells Easy keeps one quick same-bell figure from the first chorus in Short and Full:
+  three B4 strikes, 250 ms apart on “in a one[-horse]” (source bar 22 through bar 23).
 - **Fairness** (`results/metrics.md`): Jain's index on each ringer's load (strikes + ½ bell
   changes), strikes and bells min–max, mixed-role and one-bell ringers, before (0.2, by-range,
   short) vs after (balanced, full) for the `handbell` and `phone-4zone` profiles.

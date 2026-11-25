@@ -513,6 +513,24 @@ test('phone Super easy: no seat waits longer than the shipped Short carols', () 
   }
 });
 
+test('phone Easy Jingle Bells: one three-stroke B4 on "in a one" in Short and Full', () => {
+  for (const form of ['short', { id: 'full', keyChange: false }, { id: 'full', keyChange: 'auto' }]) {
+    const f = formed('jingle-bells', form);
+    const verse = f.segments.find((s) => s.kind === 'verse');
+    const start = verse.offset + 87 * PPQ;
+    for (const arrangement of ARRANGEMENTS) for (const count of [1, 2, 3, 4]) {
+      const p = buildPart(f, 'easy', count, 'phone-4zone', arrangement);
+      const where = `${JSON.stringify(form)}, ${arrangement}, ${count} ringers`;
+      const phrase = p.notes.filter((n) => n.role === 'melody' && n.tick >= start && n.tick <= start + PPQ);
+      assert.deepEqual(phrase.map((n) => [n.bell, n.tick - start, n.time - phrase[0].time]), [
+        ['B4', 0, 0], ['B4', PPQ / 2, 0.25], ['B4', PPQ, 0.5],
+      ], where);
+      assert.equal(new Set(phrase.map((n) => n.ringer)).size, 1, where);
+      assert.ok(!p.guide?.some((n) => n.bell === 'B4' && n.tick === start + PPQ / 2), where);
+    }
+  }
+});
+
 test('First Ring: Short carols split the source tune between stable one-pitch seats and the guide', () => {
   const schema = JSON.parse(readFileSync(join(root, 'schema', 'chart.schema.json'), 'utf8'));
   const noteKey = ({ tick, bell, dur, time, role }) => `${tick}:${bell}:${dur}:${time}:${role}`;
@@ -669,13 +687,17 @@ test('every song, form, arrangement, tier and ringer count rings the source melo
             assert.equal(p.metrics.remainingViolations, 0, where);
             const cap = { 'super-easy': 2, easy: 2, medium: 4, hard: 4 }[p.difficulty];
             const [repeat, change] = { 'super-easy': [1, 1], easy: [0.32, 0.45], medium: [0.25, 0.30], hard: [0.20, 0.20] }[p.difficulty];
+            const firstChorus = entry.id === 'jingle-bells' && p.difficulty === 'easy'
+              ? f.segments.find((s) => s.kind === 'verse').offset + 87 * f.score.ppq : Infinity;
             for (const r of p.ringers) {
               assert.ok(r.bells.length <= cap, `${where}: seat ${r.index} exceeds ${cap} pitches`);
               const mine = p.notes.filter((n) => n.ringer === r.index);
               assert.deepEqual(r.bells, [...new Set(mine.map((n) => n.bell))].sort((a, b) => midiOfBell(a) - midiOfBell(b)), where);
               for (let i = 1; i < mine.length; i++) {
                 const prev = mine[i - 1], next = mine[i];
-                const min = prev.bell === next.bell ? repeat : change;
+                const jingleRepeat = prev.bell === 'B4' && next.bell === 'B4' && prev.role === 'melody' && next.role === 'melody'
+                  && prev.tick >= firstChorus && next.tick <= firstChorus + f.score.ppq;
+                const min = jingleRepeat ? 0.25 : prev.bell === next.bell ? repeat : change;
                 assert.ok(next.time - prev.time >= min - 0.001, `${where}: seat ${r.index} needs more selection time`);
               }
             }
