@@ -1,6 +1,6 @@
 {
   "name": "go-go-harmoniyo",
-  "version": "0.0.0",
+  "version": "0.1.0-alpha",
   "private": true,
   "description": "Go Go HarmoniYo: `npm start` checks the setup, installs, builds and starts the game (spikes/i2-web-phones). No dependencies of its own.",
   "license": "MIT",

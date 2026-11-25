@@ -26,7 +26,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const SONG = 'we-wish-you-a-merry-christmas';
 
 const host = await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--lan-only', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   let buf = '';
   const t = setTimeout(() => reject(new Error(`host did not start:\n${buf}`)), 30000);
   const on = (d) => {
@@ -95,6 +95,7 @@ try {
   });
   check('speed control: 50–100 % in 5 % steps, default 100 %', ui.min === '50' && ui.max === '100' && ui.step === '5' && ui.value === '100' && ui.label === '100%', JSON.stringify(ui));
   check('lobby: no corner QR (the lobby has the big one)', !(await cornerShown()));
+  await game.click('#open-round');
   await game.focus('#rng-speed');
   for (let k = 0; k < 10; k++) await game.keyboard.press('ArrowLeft');
   await waitCheck(game.waitForFunction(() => window.__i2.speed === 0.5 && document.querySelector('#speed-val').textContent === '50%', null, { timeout: 5000 }), 'arrow keys step the speed down to 50 %');
@@ -147,6 +148,7 @@ try {
   // 4. Results: the QR stays; "Next round … Joining: Bob"; Bob's phone can already pick a part.
   await waitCheck(game.waitForFunction(() => document.title === 'I2_DONE', null, { timeout: 120000, polling: 500 }), 'song finishes (results screen)');
   const r = await game.evaluate(() => window.__i2Result);
+  check('Results focuses Again', await game.locator('#btn-again:focus').count() === 1);
   check('result records the speed and the stretched song (≈ 2 × 20.4 s)', r.speed === 0.5 && r.chartDurationSec > 39 && r.chartDurationSec < 43, `speed ${r.speed}, ${r.chartDurationSec} s`);
   const res = await game.evaluate(() => ({ body: document.querySelector('#res-body').textContent, next: document.querySelector('#res-next').textContent }));
   check('results show the practice speed', /Practice speed 50%/.test(res.body), res.body.replace(/\s+/g, ' '));
@@ -168,6 +170,7 @@ try {
   // 6. Esc → lobby: corner QR hidden again; back to full speed for the next player.
   await game.keyboard.press('Escape');
   await waitCheck(game.waitForFunction(() => document.querySelector('#corner-join').classList.contains('hidden'), null, { timeout: 5000 }), 'corner QR hides in the lobby');
+  await game.click('#open-round');
   await game.focus('#rng-speed');
   await game.keyboard.press('End');
   await waitCheck(game.waitForFunction(() => window.__i2.speed === 1 && Math.abs(window.__i2.team.chart.duration - 20.4) < 1.5, null, { timeout: 5000 }), 'speed back to 100 % restores the written tempo');

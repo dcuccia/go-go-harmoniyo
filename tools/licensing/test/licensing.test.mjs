@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { test } from 'node:test';
 import { globToRegExp, repoRoot } from '../lib/common.mjs';
 import { validate } from '../lib/schema.mjs';
@@ -68,4 +68,40 @@ test('generated files are in sync (license gate offline + attribution --check)',
   const run = (script, ...args) => execFileSync(process.execPath, [join(repoRoot, 'tools/licensing', script), ...args], { cwd: repoRoot, encoding: 'utf8' });
   assert.match(run('license-gate.mjs', '--check', '--offline'), /License gate passed/);
   assert.match(run('attribution.mjs', '--check'), /Asset register OK/);
+});
+
+test('bundle gate: allowlisted packages need a license text; copyleft and undeclared fail', async () => {
+  const { mkdtempSync, mkdirSync, rmSync, writeFileSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { bundleNotices, packageDirOf } = await import('../lib/bundle.mjs');
+  const nm = join(mkdtempSync(join(tmpdir(), 'bundle-gate-')), 'node_modules');
+  const pkg = (name, license, licenseFile) => {
+    const dir = join(nm, ...name.split('/'));
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ name, version: '1.0.0', license }));
+    if (licenseFile) writeFileSync(join(dir, 'LICENSE'), `${license} text for ${name}`);
+    return dir;
+  };
+  try {
+    assert.equal(packageDirOf(join(nm, '@scope', 'a', 'dist', 'x.js')), join(nm, '@scope', 'a'));
+    assert.equal(packageDirOf(join(nm, 'b', 'node_modules', 'c', 'i.js')), join(nm, 'b', 'node_modules', 'c'));
+    assert.equal(packageDirOf(join('spikes', 'x', 'src', 'y.ts')), null);
+    const packages = new Map([
+      [pkg('@scope/a', 'MIT', true), new Set(['host'])],
+      [pkg('nolicense', 'ISC', false), new Set(['game'])],
+      [pkg('pinned', 'MIT', false), new Set(['host'])],
+      [pkg('copyleft', 'GPL-3.0-only', true), new Set(['game'])],
+    ]);
+    const extraTexts = { 'pinned@1.0.0': { url: 'https://example.invalid/LICENSE', text: 'MIT pinned text' } };
+    const { errors, rows, markdown } = bundleNotices({ packages, scope: 'tools/package/test', title: 'test', extraTexts,
+      binaries: [{ name: 'Tool', version: '1', license: 'Apache-2.0', url: 'https://example.invalid/tool', text: 'Apache text' }] });
+    assert.deepEqual(rows.map((r) => r.name), ['@scope/a', 'copyleft', 'nolicense', 'pinned']);
+    assert.equal(errors.length, 2);
+    assert.match(errors.join('\n'), /nolicense@1\.0\.0: no LICENSE/);
+    assert.match(errors.join('\n'), /copyleft@1\.0\.0: license "GPL-3\.0-only"/);
+    assert.match(markdown, /MIT pinned text/);
+    assert.match(markdown, /### Tool 1[\s\S]*Apache text/);
+  } finally {
+    rmSync(dirname(nm), { recursive: true, force: true });
+  }
 });

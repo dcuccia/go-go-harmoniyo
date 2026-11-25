@@ -13,6 +13,13 @@
 each bell's colour follows its pitch class ([palette](../design/visual-identity.md#pitch-class-palette)),
 so C5 has the same colour on every highway and phone; F♯4 shows the sharp/flat ring outline.*
 
+*Re-captured again 2026-10-25 with the Go Go HarmoniYo brand applied in-game (lobby lockup, Yo
+states, corner join card, candlelight accent; see the
+[spike README](../../spikes/i2-web-phones/README.md#branding)). Results now cheer with Yo: Y5
+(hands up) from 80 % team accuracy, Y2 (joy) below:*
+
+![Results, Jingle Bells medium, 4 ringers: Yo cheers](media/i2-4-ringers-results.png)
+
 ## TL;DR
 
 - **Built:** the S4 web host now plays S5 carols with **1–4 ringers on one TV**, each ringer on

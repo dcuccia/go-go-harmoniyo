@@ -5,17 +5,27 @@
   [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (Accepted 2026-10-25)
 - Machine: Windows 11 laptop (22 logical CPUs, 32 GB, NVIDIA RTX 2000 Ada Laptop 8 GB), Node
   22.18, Python 3.11.9, Docker Desktop 29.9.2 (WSL2), headless Chrome 155
+- Live node rerun: 2026-10-27, `dcuccia-north` (agent 0.1.0, RTX 3080 Ti 12 GB, Ollama
+  `qwen3:8b`), laptop on the same Wi-Fi LAN. See [Live rerun on the node](#d-live-rerun-on-the-node-2026-10-27)
 
 **Bottom line.** The node client, validators, candidate pipeline, AMT container and blind-listening
-renderer all work. The **qwen3:8b arranging experiments are a clear "no"**: it infers worse chords
+renderer all work. The **qwen3:8b arranging experiments are a clear "no"** (confirmed on the real
+node on 2026-10-27, at ~5× lower latency): it infers worse chords
 than S5's algorithm, and its descants either fail basic bar and range checks or are degenerate
 (the tune copied a third higher, or the prompt's format example looped). A 30-line rule-based
 descant beats it on every metric. Intros and endings work only in 4/4, and they quote the tune.
-**AMT is undecided.** Its license is clean, the container runs under the node's sandbox rules,
-and the small model's CPU output is weak (chord fit 0.30–0.40). A medium-model GPU run on the
-node is the open question, and it needs owner actions.
+**AMT, as wired today, is also a "no" for now.** Its license is clean, the container runs under
+the node's sandbox rules, and on the node's GPU it's fast (~18 s per carol end to end, under
+1 s of generation). But the medium model's output is almost empty: 0–18 notes per 23–32 s carol,
+nearly all in the first ~4 s, across 3 carols × 3 seeds ([live node runs](#live-node-runs-medium-model-gpu-2026-11-10)).
+The small model's CPU output was fuller but weak (chord fit 0.30–0.40).
 
-> **Important caveat: the node token was never available** (not in the Process, User or Machine
+> **Update 2026-10-27: the experiments were rerun on the real node** (token set, client CA pin
+> fixed in [#73](https://github.com/dcuccia/go-go-harmoniyo/pull/73)). Latency dropped about 5×
+> (median 1–1.6 s per call, ~110 tokens/s) and **the verdict is unchanged**; see
+> [d](#d-live-rerun-on-the-node-2026-10-27). The caveat below describes the first run.
+>
+> **Original caveat: the node token was never available** (not in the Process, User or Machine
 > environment all session; the coordinator confirmed that the owner is away). `/healthz` on
 > the old URL answered `{"ok":true,"busy":false}` at 14:50 and timed out later (the node was
 > probably asleep). So the qwen3:8b runs used a **local stand-in**: the official Qwen3-8B
@@ -30,7 +40,7 @@ node is the open question, and it needs owner actions.
 | Part | What | Evidence |
 |---|---|---|
 | Node client ([`src/client.ts`](../../spikes/s6-ai-arranging/src/client.ts), [`env.ts`](../../spikes/s6-ai-arranging/src/env.ts), [`tls-fetch.ts`](../../spikes/s6-ai-arranging/src/tls-fetch.ts), [`wake.ts`](../../spikes/s6-ai-arranging/src/wake.ts)) | Zero-dependency TS (Node type stripping). Config from the process env or the Windows **User** env. HTTPS default `https://north.local` with the private CA pinned by SHA-256 (`CUCCIA_AI_CA_CERT`, never disables verification); the legacy `http://dcuccia-north.local:8790` still works. `/v1` chat with 503 Retry-After and exponential backoff for 429/502/504 and network errors; `/jobs` submit (multipart), poll, outputs, logs, cancel. Wake-on-LAN `ensureAwake()` re-implements cuccia-infra's `cuccia_ai_client.py` behaviour in TypeScript (no code copied; that repo declares no license) and shares its cache file. Token never printed; errors are redacted | 31 `node:test` tests, offline [mock node](../../spikes/s6-ai-arranging/src/mock-node.ts) |
-| Smoke ([`scripts/smoke.ts`](../../spikes/s6-ai-arranging/scripts/smoke.ts)) | ensureAwake → health → status → models → 2 chats → `smoke-file` job | Mock: OK. Live: `ENOTFOUND`/timeout and token missing ([`results/smoke.json`](../../spikes/s6-ai-arranging/results/smoke.json)) |
+| Smoke ([`scripts/smoke.ts`](../../spikes/s6-ai-arranging/scripts/smoke.ts)) | ensureAwake → health → status → models → 2 chats → `smoke-file` job | Mock: OK. Live 2026-10-27: OK. healthz 6 ms, `/v1/models` = `qwen3:8b`, chat 3.8 s first / 0.37 s warm, `smoke-file` job succeeded in 1.1 s ([`results/smoke.json`](../../spikes/s6-ai-arranging/results/smoke.json)) |
 | Music I/O and checks ([`abc-io.ts`](../../spikes/s6-ai-arranging/src/abc-io.ts), [`songs.ts`](../../spikes/s6-ai-arranging/src/songs.ts), [`theory.ts`](../../spikes/s6-ai-arranging/src/theory.ts)) | Score → ABC writer that the S5 parser reads back exactly (all 8 carols round-trip: notes, chords, bar lines, pickups). Checks: bar lengths, key/diatonic share, range, chord-tone fit (all / strong beats), clashes and parallels against the tune, similar motion, pitch and bar variety, per-beat chord agreement, handbell playability through S5's `buildPart` | Tests |
 | LLM harness ([`llm.ts`](../../spikes/s6-ai-arranging/src/llm.ts), [prompts](../../spikes/s6-ai-arranging/src/prompts/)) | Templates in the repo; ask → validate → up to 2 repair turns that send the validator's errors back. Every call is logged to JSONL with the full prompt and reply: this is the AI-provenance record | [`results/runs/`](../../spikes/s6-ai-arranging/results/runs/) |
 | Candidates ([`build-candidates.ts`](../../spikes/s6-ai-arranging/scripts/build-candidates.ts), [`assemble.ts`](../../spikes/s6-ai-arranging/src/assemble.ts)) | Intro + tune + ending in voice 1, descant in voice 2, chords. S5 realizes bass/inner bells, then builds a chart (format 0.2.0, schema-valid). Originals untouched | [`candidates/`](../../spikes/s6-ai-arranging/candidates/), [`charts/`](../../spikes/s6-ai-arranging/charts/) |
@@ -120,6 +130,49 @@ the stand-in. The node's 503 + Retry-After behaviour is covered by tests only.
 Chord-only candidates for the SATB carols were not kept. They scored below the SATB reference,
 and a lead sheet would drop those songs' real inner voices.
 
+### d. Live rerun on the node (2026-10-27)
+
+Same scripts, prompts, seeds and validators, against the real node:
+`node scripts/smoke.ts; node scripts/exp-chords.ts; node scripts/exp-descant.ts` from
+`spikes/s6-ai-arranging` (results tagged `-node`:
+[`chords-node.md`](../../spikes/s6-ai-arranging/results/chords-node.md),
+[`descant-node.md`](../../spikes/s6-ai-arranging/results/descant-node.md), full prompt/reply
+logs in [`results/runs/`](../../spikes/s6-ai-arranging/results/runs/)). The candidates in
+`candidates/` were **not** rebuilt from these runs; they stay the local-run candidates, all
+`review: pending`.
+
+| Metric | Chords, local → node | Descant + intro/ending, local → node |
+|---|---|---|
+| Valid after ≤ 2 repairs | 20/24 → 20/24 | 7/34 → 10/34 |
+| Valid on first try | 17/24 → 14/24 | 3/34 → 3/34 |
+| Calls (incl. repairs) | 36 → 41 | 92 → 88 |
+| Latency per call | median 7.1 → **1.6 s**, p90 11.1 → **2.4 s**, max → 3.3 s | median 5.1 → **1.0 s**, p90 9.5 → **2.4 s**, max 78.5 → **13.7 s** |
+| Generation speed | 25 → **113 tokens/s** (median 183 completion tokens) | → **110 tokens/s** (median 105 completion tokens) |
+| Retries (503/429/5xx) | none | none; 1 call failed with Ollama's `500 prediction aborted, token repeat limit reached` (a runaway descant) |
+
+The first chat of the session took 3.8 s with `qwen3:8b` already resident (`/node/status`
+`ollama_resident`); no ~40 s cold load was seen.
+
+Quality against the procedural/rule-based arrangement (same metrics as a–b):
+
+- **Chords:** S5's melody-only inference still wins on every song. qwen3 inference, best of 5:
+  Holly 1/5 valid, fit 0.52 / 0.93 (S5: 0.83 / 0.93); Wenceslas 0.78 / 0.79, ref root 0.44
+  (S5: 0.97 / 1.00, 0.44); Midnight Clear 0.53 / 0.67, ref root 0.38, 5/5 seeds identical and
+  not ending on I (S5: 0.85 / 1.00, 0.41). **Proofreading returned S5's input unchanged in 9/9
+  runs**, so it adds nothing.
+- **Descants:** Holly 0/12 valid (wrong bar counts and lengths, one 219-bar runaway). Deck 5/12
+  valid, but 4 of them are a **C-major scale in half notes** (`c4 c4 | d4 d4 | …`, three seeds
+  byte-identical) and one is a 4-bar stepwise loop. The best by objective (0.56, v2 seed 31) beats
+  the rule-based baseline's 0.43 only because the objective rewards pitch and bar variety. Its
+  chord fit is 0.56 against 1.0, and 22 % of onsets clash with the tune against 13 %. Not musically
+  usable.
+- **Intros/endings:** Deck 2/5 and Holly 3/5 valid (Holly was 0/5 locally; in 3/4 the model
+  still writes 4/4 bars first and needs a repair turn). The best Holly intro is one chord tone
+  repeated per bar (`F2 F2 F2 | d2 d2 d2 | A2 A2 A2 | c2 c2 c2`), which ends on V. It's valid but
+  trivial, and a rule could write it.
+- **Verdict unchanged:** a fast LLM doesn't fix the musical failures. Rule-based intros/endings,
+  a better rule-based descant and SATB sources remain the path (ADR-0011).
+
 ## Anticipatory Music Transformer
 
 ### License check (ADR-0008): compatible
@@ -144,7 +197,7 @@ from the image is vendored into this MIT repo.
 | Local CPU (venv), small model, The Holly and the Ivy (23 s) | 118 notes, 15 instruments, load 82 s, **generate 824 s** |
 | Local CPU (venv), small model, Deck the Halls (32 s) | 163 notes, 14 instruments, generate 593 s |
 | **Container smoke** (`go-go-harmoniyo-amt:cpu-small`, the node's sandbox flags: `--network none --read-only --tmpfs /tmp --cap-drop ALL --security-opt no-new-privileges`, non-root, 4 CPUs) | OK: 85 notes for an 8 s excerpt, 1071 s on 4 threads. The first attempt oversubscribed torch threads under the CPU quota (stopped after 75 min); fixed by sizing threads from cgroup `cpu.max` |
-| Node GPU (medium) | **Not run**: needs the published image + infra registration + token |
+| Node GPU (medium) | **Ran 2026-11-10**, 9/9 jobs succeeded; see [Live node runs](#live-node-runs-medium-model-gpu-2026-11-10). The first published image (`sha256:a3df2566…f097`) could crash with `AssertionError` in `events_to_compound`: anticipation's sampler can emit the REST token in a duration slot, which decodes to a duration ≥ `MAX_DUR`. Fixed in [#73](https://github.com/dcuccia/go-go-harmoniyo/pull/73) by clamping to `MAX_DUR - 1` (count in `report.json` `clamped_durations`), and rebuilt as `sha256:93e86a83…ec21` ([#74](https://github.com/dcuccia/go-go-harmoniyo/pull/74)), which cuccia-infra registered |
 
 Output quality (small model, CPU, seed 1; [`results/amt/analysis.md`](../../spikes/s6-ai-arranging/results/amt/analysis.md)):
 chord fit 0.30 (Deck) and 0.40 (Holly); 33–38 % of onsets clash with the tune; 14–15 GM
@@ -156,6 +209,47 @@ carol plus ~10–20 s load and ~1.3 s container start**, VRAM ≈ 1.5–3 GiB (m
 
 Container: CPU image 2.58 GB. The GPU image will be larger (CUDA wheels). The manifest asks for
 `gpu: exclusive`, `memory: 8g`, `cpus: 4`, `timeout_s: 900`, no caches, no network.
+
+### Live node runs (medium model, GPU, 2026-11-10)
+
+Setup: `dcuccia-north` (RTX 3080 Ti 12 GB), workload `go-go-harmoniyo-amt` at
+`sha256:93e86a83…ec21`, `music-medium-800k`, fp16, top_p 0.95, drums dropped, laptop on the same
+LAN. Command, for N = 1, 2, 3:
+`node scripts/amt-run.ts --node --songs deck-the-halls,the-holly-and-the-ivy,good-king-wenceslas --seed N --out amt-node/seed-N`,
+then `node scripts/amt-analyze.ts --dir amt-node/seed-N`. Outputs and per-seed `analysis.md` are in
+[`results/amt-node/`](../../spikes/s6-ai-arranging/results/amt-node/).
+
+**Latency.** 17.9–21 s wall per carol (submit to downloaded MIDI): model load 9.9–12.2 s,
+generation 0.36–1.0 s, the rest is container start and polling. Max VRAM 1504 MiB in every run.
+`clamped_durations` was 0 or 1, so the #73 clamp matters but rarely fires.
+
+**Output (accompaniment notes / chord fit / clash with the tune):**
+
+| Seed | Deck the Halls (32 s) | Good King Wenceslas (32 s) | The Holly and the Ivy (23 s) |
+|---|---|---|---|
+| 1 | 10 / 0.26 / 0.60 | 17 / 0.18 / 0.24 | 0 / – / – |
+| 2 | 11 / 0.53 / 0.46 | 17 / 0.18 / 0.41 | 9 / 0.18 / 0.22 |
+| 3 | 11 / 0.37 / 0.27 | 5 / 0.57 / 0.40 | 3 / 0.65 / 0.33 |
+
+For comparison: the small model on CPU gave 112–163 notes spread through the song (chord fit
+0.30–0.40), and S5's procedural chart fills every bar with chord tones by construction.
+
+**What goes wrong.** `generated_until_seconds` reaches the song end, but nearly every note lands in
+the first ~4 s; only 2 of 9 runs place any note after 8 s. Generation taking under 1 s for 32 s of
+music means the model is emitting mostly time-advancing tokens, not notes. Things ruled out
+(seed 1 unless noted):
+
+- **fp16:** matched CPU fp32 vs CUDA fp16 runs (Deck and Wenceslas, first 12 s, seeds 1–3) are
+  equally sparse (CPU 4–10 notes, CUDA 5–18); [`precision-check/`](../../spikes/s6-ai-arranging/results/amt-node/precision-check/).
+- **Dropping drums:** `--keep-drums` gives 10 and 20 events (2 of them drums); [`keep-drums-check/`](../../spikes/s6-ai-arranging/results/amt-node/keep-drums-check/).
+- **top_p 0.98:** 6 and 15 notes; [`topp098-check/`](../../spikes/s6-ai-arranging/results/amt-node/topp098-check/).
+- **Melody history:** `--history-seconds 4` fails inside the `anticipation` library
+  (`ValueError: max() arg is an empty sequence`), so this path is untested.
+
+Likely causes, untested within the time box: the medium checkpoint conditioned only on
+anticipated controls (no history) drifts into silence; or the controls we pass (every melody note,
+piano) need a different layout from the upstream demos, which seed a few seconds of real
+accompaniment. **All AMT outputs are candidates only, `review: pending`; none are promoted.**
 
 ## Procedural vs LLM vs AMT: blind-listening set
 
@@ -219,18 +313,17 @@ resemblance review; the owner has not done that review (see owner actions).
 
 ## Infra follow-ups and owner actions
 
-1. **Set the node env** (User scope): `CUCCIA_AI_TOKEN`, `CUCCIA_AI_BASE_URL=https://north.local`,
-   `CUCCIA_AI_CA_CERT=<path to ca.crt>`. The client checks the CA's SHA-256
-   (`78F6AA75…3357CC`). Then rerun on the node (wakes it first):
-   `node scripts/smoke.ts; node scripts/exp-chords.ts; node scripts/exp-descant.ts` (results are
-   tagged `-node`). Expect the same quality, with ~5× lower latency than the stand-in.
-2. ~~**Publish the AMT image**~~ Done by the `s6-amt-image` GitHub Actions workflow
-   ([#56](https://github.com/dcuccia/go-go-harmoniyo/pull/56)); `amt/manifest.json` has the
-   published digest. `amt/publish.ps1` is superseded. Still to do: send the manifest to
-   cuccia-infra for review and registration (not self-service, per the consumer guide).
-3. Then run `node scripts/amt-run.ts --node --songs deck-the-halls,the-holly-and-the-ivy` (medium
-   model, GPU), `node scripts/amt-analyze.ts` and `node scripts/render-previews.ts --ogg-python …`,
-   and listen again.
+1. ~~**Set the node env** and rerun on the node~~ Done 2026-10-27 (see
+   [d](#d-live-rerun-on-the-node-2026-10-27); closed
+   [#47](https://github.com/dcuccia/go-go-harmoniyo/issues/47)). The published CA value
+   (`78F6AA75…3357CC`) is the certificate's SHA-256 fingerprint, not a hash of the PEM file;
+   the client now accepts either.
+2. ~~**Publish the AMT image**~~ Done by the `s6-amt-image` workflow. The current digest is
+   `sha256:93e86a83…ec21` (with the duration clamp, [#74](https://github.com/dcuccia/go-go-harmoniyo/pull/74)).
+   cuccia-infra registered it on 2026-10-27.
+3. ~~Run AMT for three carols over three seeds~~ Done 2026-11-10 (see
+   [Live node runs](#live-node-runs-medium-model-gpu-2026-11-10)). The output is too sparse to be
+   worth a listening round.
 4. ~~**Listen to the blind set**~~ Done 2026-10-25 (see
    [Owner listening result](#owner-listening-result-2026-10-25)).
 5. ~~Decide on ADR-0011~~ Accepted 2026-10-25.
@@ -241,13 +334,20 @@ resemblance review; the owner has not done that review (see owner actions).
 7. Infra wishes (draft; no issue filed in cuccia-infra): a documented way to get `/node/status`
    `wake` details once without a token, so a fresh client can wake a sleeping node; a
    `max_vram_mib` field in job status; and a note in the guide that GPU jobs should size threads
-   from cgroup quotas.
+   from cgroup quotas. Seen 2026-10-27: `/node/status` advertises Wake-on-LAN MAC
+   `08-BF-B8-29-4D-46`, but the node answers ARP for 192.168.70.11 from `A0-36-9F-A2-89-B6`
+   (another NIC). If the WoL MAC belongs to an adapter that isn't armed for wake, that would
+   explain why wake from sleep failed. The node also drops ICMP echo, so ping fails while HTTPS
+   works.
 
 ## Open questions (for E04/E05)
 
 - Would a larger instruction model (or a music-specific one) do better on descants? qwen3:8b's
   failures (bar arithmetic, copying the example) look like model limits, not prompt wording.
-- Is AMT-medium on GPU, restricted to 1–3 instruments (`keep_programs`) and fed a few seconds of
-  history, good enough for an optional "AI backing" toggle? It's the only generative option left.
+- Why does AMT-medium go nearly silent after ~4 s when conditioned only on melody controls
+  (2026-11-10)? Next things to try: fix the `history_seconds` path (it raises inside
+  `anticipation`), seed it with a few bars of S5's procedural accompaniment as history, and
+  compare the small checkpoint on GPU. Only then is it worth asking whether it's good enough for
+  an optional "AI backing" toggle. It's the only generative option left.
 - A better rule-based descant (passing tones, contrary motion, phrase shapes) is probably the
   cheapest real improvement, together with SATB sources for harmony.

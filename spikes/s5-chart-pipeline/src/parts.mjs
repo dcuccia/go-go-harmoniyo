@@ -12,8 +12,10 @@
 // Pitch windows are disjoint per role (form.windowsFor) and start on naturals, so a bell always
 // belongs to one role and an accidental travels with its natural (handbell convention).
 import { pitchName, timeSigAt } from './score.mjs';
+import { ROLE_PRIORITY } from './arrange.mjs';
 import { DEVELOPMENT } from './form.mjs';
 import { PROFILES, assignBells, evaluateRinger, repair, ringerLabel } from './assign.mjs';
+import { firstRingAccents } from './first-ring.mjs';
 
 export const TIERS = ['super-easy', 'easy', 'medium', 'hard'];
 export const ARRANGEMENTS = ['balanced', 'chord-split', 'by-range'];
@@ -31,6 +33,14 @@ export const TIER_SPECS = {
   easy: { melody: 'full', bass: [0, 1], harmony: [0, 1], richness: 0.02, nominal: { bass: 0, harmony: 0 }, chord: 1 },
   medium: { melody: 'full', bass: [1, 2], harmony: [0, 2], richness: 0.03, descantFrom: 5, nominal: { bass: 2, harmony: 0 }, chord: 2 },
   hard: { melody: 'full', bass: [2, 3], harmony: [1, 3], richness: 0.06, harmonyFrom: 4, descantFrom: 5, nominal: { bass: 2, harmony: 3 }, chord: 3 },
+};
+
+// Chart spacing, not judgement windows. Use the hardware floor for Hard (200 ms).
+const PHONE_TIERS = {
+  'super-easy': { maxBells: 2, repeat: 1, change: 1 },
+  easy: { maxBells: 2, repeat: 0.32, change: 0.45 },
+  medium: { maxBells: 4, repeat: 0.25, change: 0.30 },
+  hard: { maxBells: 4, repeat: 0.20, change: 0.20 },
 };
 
 /** Penalty per bell beyond the profile's bells-per-ringer capacity. */
@@ -395,16 +405,120 @@ function mapper(groups) {
   return (midi) => m.get(midi);
 }
 
+const onsetKey = (n) => `${n.tick}:${n.midi}`;
+const fitsAfter = (a, b, limits) => !a || !b || b.time - a.time >= (a.midi === b.midi ? limits.repeat : limits.change) - 1e-9;
+const lead = (n) => n.role === 'melody' || n.role === 'descant';
+
+/** Limit each phone to a fixed pitch set and one playable stroke at a time. */
+function phoneSeat(notes, limits, coverageDuration) {
+  const count = new Map();
+  for (const n of notes) count.set(n.midi, (count.get(n.midi) ?? 0) + (lead(n) ? 2 : 1));
+  const pitches = [...count.keys()].sort((a, b) => count.get(b) - count.get(a) || a - b);
+  if (coverageDuration === undefined || pitches.length < 2) return spacedStrokes(notes, pitches.slice(0, limits.maxBells), limits);
+
+  // For Super easy, frequent bells may all occur in the same phrase. Try single pitches and
+  // pairs that cover more of the song. If coverage ties, keep the sparser part.
+  let best = [];
+  let bestWait = Infinity;
+  const consider = (pitches) => {
+    const played = spacedStrokes(notes, pitches, limits);
+    let prev = 0;
+    let wait = 0;
+    for (const n of played) {
+      wait = Math.max(wait, n.time - prev);
+      prev = n.time;
+    }
+    wait = Math.max(wait, coverageDuration - prev);
+    if (wait < bestWait - 1e-9 || (Math.abs(wait - bestWait) < 1e-9 && played.length < best.length)) {
+      best = played;
+      bestWait = wait;
+    }
+  };
+  for (const [i, a] of pitches.entries()) {
+    consider([a]);
+    for (const b of pitches.slice(i + 1)) consider([a, b]);
+  }
+  return best;
+}
+
+function spacedStrokes(notes, pitches, limits) {
+  const keep = new Set(pitches);
+  const played = [];
+  for (const n of notes) {
+    if (!keep.has(n.midi)) continue;
+    const prev = played.at(-1);
+    if (fitsAfter(prev, n, limits)) played.push(n);
+    else if (ROLE_PRIORITY[n.role] > ROLE_PRIORITY[prev.role] && fitsAfter(played.at(-2), n, limits)) played[played.length - 1] = n;
+  }
+  return played;
+}
+
+/** Hard adds occasional chord-tone pickups using only the bells a ringer already holds. */
+function hardPickups(formed, seats, groups, original, guide, limits) {
+  const used = new Set([...original, ...guide].map(onsetKey));
+  const chords = formed.score.chords;
+  const hold = formed.segments.find((s) => s.holdFrom !== undefined)?.holdFrom ?? formed.score.endTick;
+  let chord = 0;
+  for (let i = 0; i + 1 < formed.beats.length; i++) {
+    const beat = formed.beats[i];
+    const next = formed.beats[i + 1];
+    // One optional pickup toward the middle of a bar, and one into the next bar.
+    if (!next.strong && !next.downbeat) continue;
+    const tick = Math.round(next.tick - (next.tick - beat.tick) / beat.div);
+    if (tick <= beat.tick || tick >= hold) continue;
+    while (chord + 1 < chords.length && chords[chord + 1].tick <= tick) chord++;
+    const c = chords[chord];
+    if (!c || tick < c.tick || tick >= c.tick + c.dur) continue;
+    const time = formed.toSec(tick);
+    const dur = Math.min(next.tick, c.tick + c.dur) - tick;
+    // Rotate the accent rather than asking the whole team to fill the same gap.
+    for (let j = 0; j < seats.length; j++) {
+      const seat = (i + j) % seats.length;
+      const mine = seats[seat];
+      const after = mine.findIndex((n) => n.tick > tick);
+      if (after < 1) continue;
+      const prev = mine[after - 1];
+      const following = mine[after];
+      // Keep pickups within an active phrase, not in long rests or the final held bar.
+      if (time - prev.time > 1.5 || following.time - time > 1.5) continue;
+      const midi = groups[seat].bells.find((b) => b !== prev.midi && c.tones.includes(mod12(b)) && !used.has(onsetKey({ tick, midi: b })));
+      if (midi === undefined) continue;
+      const n = { tick, time, dur, midi, role: groups[seat].role === 'bass' ? 'bass' : 'inner' };
+      if (!fitsAfter(prev, n, limits) || !fitsAfter(n, following, limits)) continue;
+      mine.splice(after, 0, n);
+      break;
+    }
+  }
+}
+
+function phonePart(formed, notes, guide, plan, count, profile, tier) {
+  const limits = PHONE_TIERS[tier];
+  const groups = groupsFor(notes, plan, count, { ...profile, maxBells: limits.maxBells });
+  const ringerOf = mapper(groups);
+  const coverageDuration = tier === 'super-easy' ? formed.toSec(formed.score.endTick) : undefined;
+  const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits, coverageDuration));
+  seats.forEach((mine, i) => { groups[i].bells = [...new Set(mine.map((n) => n.midi))].sort((a, b) => a - b); });
+  if (tier === 'hard') hardPickups(formed, seats, groups, notes, guide, limits);
+  const played = new Set(seats.flat().map(onsetKey));
+  const fill = new Map();
+  for (const n of [...guide, ...notes.filter(lead)]) {
+    const key = onsetKey(n);
+    if (!played.has(key) && (!fill.has(key) || ROLE_PRIORITY[n.role] > ROLE_PRIORITY[fill.get(key).role])) fill.set(key, n);
+  }
+  const dropped = notes.filter((n) => !lead(n) && !played.has(onsetKey(n)));
+  return { groups, notes: seats.flat(), guide: [...fill.values()], dropped };
+}
+
 /**
  * One part: { difficulty, ringerCount, profile, arrangement, ringers[], notes[], guide[]?, metrics }.
- * Notes keep `role` (melody, descant, bass, inner); the melody is never dropped for playability
- * (super easy moves rare melody bells to the host's `guide` instead).
+ * Notes keep `role` (melody, descant, bass, inner); the melody is never dropped for playability.
  */
 export function buildFormPart(formed, tier, ringerCount, profileId, arrangement = 'balanced') {
   const profile = PROFILES[profileId];
   const spec = TIER_SPECS[tier];
   const toSec = formed.toSec;
-  const plan = choosePlan(formed, tier, ringerCount, arrangement, profile);
+  const phoneLimits = profileId === 'phone-4zone' ? PHONE_TIERS[tier] : null;
+  const plan = choosePlan(formed, tier, ringerCount, arrangement, phoneLimits ? { ...profile, maxBells: phoneLimits.maxBells } : profile);
   const { melody, descant, guide: guide0 } = tune(formed, tier, plan);
   const timed = (ns) => ns.map((n) => ({ ...n, time: toSec(n.tick) }));
   let notes = timed([...melody, ...descant, ...realize(formed, plan)]).sort((a, b) => a.time - b.time || a.midi - b.midi);
@@ -412,11 +526,17 @@ export function buildFormPart(formed, tier, ringerCount, profileId, arrangement 
   // Same bell struck twice at once (e.g. descant meets tune): keep one strike.
   const seen = new Set();
   notes = notes.filter((n) => {
-    const k = `${n.tick}:${n.midi}`;
+    const k = onsetKey(n);
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
   });
+
+  if (phoneLimits) {
+    const part = phonePart(formed, notes, guide, plan, ringerCount, profile, tier);
+    const roles = part.groups.map((g) => plan.players ? g.role : majorityRole(part.notes.filter((n) => g.bells.includes(n.midi))));
+    return serializePart(formed, tier, ringerCount, profileId, arrangement, { ...part, plan, roles });
+  }
 
   let groups = groupsFor(notes, plan, ringerCount, profile);
   let dropped = [];
@@ -443,10 +563,24 @@ export function buildFormPart(formed, tier, ringerCount, profileId, arrangement 
   }
   while (groups.length < ringerCount) groups.push({ bells: [], role: null });
   const ringerOf = mapper(groups);
+  const roles = plan.players ? groups.map((g) => g.role) : groups.map((_, i) => majorityRole(notes.filter((n) => ringerOf(n.midi) === i)));
+  return serializePart(formed, tier, ringerCount, profileId, arrangement, { groups, notes, guide, plan, dropped, roles });
+}
+
+export function buildFirstRingPart(formed, songId, ringerCount, profileId) {
+  const part = firstRingAccents(formed, songId, ringerCount);
+  const plan = { bass: 0, harmony: 0, descant: false, players: { bass: 0, harmony: 0, melody: ringerCount, descant: 0 } };
+  const roles = part.groups.map((g) => g.role);
+  const names = part.groups.map((g) => `${pitchName(g.bells[0])} melody`);
+  return serializePart(formed, 'super-easy', ringerCount, profileId, 'balanced', { ...part, plan, dropped: [], roles, names });
+}
+
+function serializePart(formed, tier, ringerCount, profileId, arrangement, { groups, notes, guide, plan, dropped, roles, names = ringerNames(roles) }) {
+  const profile = PROFILES[profileId];
+  const toSec = formed.toSec;
+  const ringerOf = mapper(groups);
   const durationSec = toSec(formed.score.endTick);
   const loads = [];
-  const roles = plan.players ? groups.map((g) => g.role) : groups.map((g) => majorityRole(notes.filter((n) => ringerOf(n.midi) === groups.indexOf(g))));
-  const names = ringerNames(roles);
   const ringers = groups.map((g, i) => {
     const mine = notes.filter((n) => ringerOf(n.midi) === i).sort((a, b) => a.time - b.time || a.midi - b.midi);
     const ev = evaluateRinger(mine, profile);

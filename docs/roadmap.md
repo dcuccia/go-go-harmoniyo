@@ -9,7 +9,7 @@ Dates are targets, not promises. Plan written 2026-10-22; status updated 2026-10
 | M0 | Planning | **Done** |
 | M1 | Spikes | **Done.** S1–S5 plus integrations I1 (phones → YARG fork) and I2 (phones → web host) are merged; S7 (other .NET hosts, formerly S6) not run. S6 (AI-assisted arranging) ran after M1 ([report](spikes/S6-report.md)). Code is preserved at tags `spike/*` and `integration/*` ([spikes index](spikes/README.md)) |
 | M2 | Decision gate | **Done.** Accepted: [ADR-0004](decisions/0004-host-strategy.md) (web-first host on an engine we own; YARG fork as a community/experimental track) and [ADR-0005](decisions/0005-shared-core-language.md) (TypeScript core; HGP + chart JSON as language-neutral contracts with golden test vectors). [ADR-0006](decisions/0006-phone-host-transport.md) (transport) and [ADR-0007](decisions/0007-chart-format.md) (chart format) were Accepted on 2026-10-25 ([#32](https://github.com/dcuccia/go-go-harmoniyo/issues/32)), as the alpha already follows them |
-| M3 | Alpha (Nov 15) | **In progress. Plan: [v0.1-alpha plan](plan/v0.1-alpha.md)** (scope, exit criteria, test plan, release checklist), milestone [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/milestone/1). Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)), shipped from `spikes/` and graduated after the tag per [ADR-0010](decisions/0010-product-layout.md) (Accepted 2026-10-25, option A). Owner decisions of 2026-10-25: [plan §8](plan/v0.1-alpha.md#8-owner-decisions). Machine setup: [tools/setup](../tools/setup/README.md) |
+| M3 | Alpha (Nov 15) | **Done 2026-11-10: [v0.1.0-alpha pre-release](https://github.com/dcuccia/go-go-harmoniyo/releases/tag/v0.1.0-alpha).** Plan: [v0.1-alpha plan](plan/v0.1-alpha.md)** (scope, exit criteria, test plan, release checklist), milestone [v0.1.0-alpha](https://github.com/dcuccia/go-go-harmoniyo/milestone/1). Path: the I2 web host ([runbook](../spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes)), shipped from `spikes/` and graduated after the tag per [ADR-0010](decisions/0010-product-layout.md) (Accepted 2026-10-25, option A). Owner decisions of 2026-10-25: [plan §8](plan/v0.1-alpha.md#8-owner-decisions). Machine setup: [tools/setup](../tools/setup/README.md) |
 | M4–M6 | Holiday (Dec 18) | Planned in the same [plan](plan/v0.1-alpha.md#holiday-v020-dec-18--in), milestone [v0.2 holiday](https://github.com/dcuccia/go-go-harmoniyo/milestone/2) |
 
 The former top alpha bug, [#10](https://github.com/dcuccia/go-go-harmoniyo/issues/10) (real
@@ -47,6 +47,7 @@ lane; the room rings it together and the game celebrates streaks and team accura
 | M8 | Digital-handbell integration | follows hardware | ESP32-S3 bells speak HGP over Wi-Fi |
 | M9 | Listener + RP2040 coaching | 2027 | Mic pitch/onset scoring of real bells/chimes; non-interactive coaching mode |
 | M10 | Community charts | 2027 | Import/map Clone Hero/YARG charts; arrangement tools |
+| M11 | Store and TV delivery (stretch; proposed by [S8](spikes/S8-report.md), revised 2026-11-10) | Test builds 2026; public listings after name clearance | SignPath-signed Windows releases (ADR-0013); after the S9 prototype: the TV/tablet app as host (ADR-0014) as sideloaded APKs (Gemini, Android tablets) and iPad TestFlight builds; after trademark clearance: Play, App Store and Microsoft Store listings; web controller stays |
 
 ## Naming
 
@@ -71,7 +72,10 @@ The evidence is in the [name check](research/naming-go-go-harmonio.md). We moved
   [rollout checklist](design/brand.md#6-rollout-checklist)). Visible spike titles are renamed in
   #12.
 - **Before a public app-store launch:** do a full clearance search and consider a USPTO filing in
-  classes 9 and 41. Not legal advice; consult counsel.
+  classes 9 and 41. Not legal advice; consult counsel. S8
+  ([report](spikes/S8-report.md#4-account-and-ownership)) adds publisher-name, IP-ownership and
+  Play 12-tester questions for the owner's personal Play and Apple accounts. Test builds
+  (sideloaded APKs, TestFlight) don't wait for clearance.
 
 The Nov 15 alpha is deliberately ambitious; if a spike shows it is not achievable, cut
 scope (fewer carols, Android-only, keyboard fallback) rather than move the date.
@@ -90,7 +94,7 @@ Out: online play, accounts, custom hardware, microphone scoring, licensed music.
 |---|---|---|
 | Host engine: YARG fork vs web-native vs other | S2, S3, S4, I1, I2 (S7 not run) | [ADR-0004](decisions/0004-host-strategy.md) **Accepted**: web-first; YARG fork as a community track |
 | Shared-core language (C# vs TypeScript) | S2, S4 | [ADR-0005](decisions/0005-shared-core-language.md) **Accepted**: TypeScript + language-neutral contracts |
-| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) **Accepted** (2026-10-25): WSS on the LAN with a self-signed certificate, `--tunnel` fallback |
+| Phone ↔ host transport (LAN WebSocket+TLS, WebRTC, relay) | S1 | [ADR-0006](decisions/0006-phone-host-transport.md) **Accepted** (2026-10-25): WSS on the LAN with a self-signed certificate, `--tunnel` fallback; amended by [ADR-0012](decisions/0012-auto-tunnel-direct-upgrade.md) (**Accepted** 2026-11-09): auto tunnel with a direct WebRTC upgrade, LAN fallback |
 | Chart / arrangement format | S5, S2 | [ADR-0007](decisions/0007-chart-format.md) **Accepted** (2026-10-25): S5 chart JSON |
 | Product code layout (follow-up to ADR-0004/0005) | I2 | [ADR-0010](decisions/0010-product-layout.md) **Accepted** (2026-10-25), option A: ship the alpha from `spikes/`, graduate Nov 16–24 |
 

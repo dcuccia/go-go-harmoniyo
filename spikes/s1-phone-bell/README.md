@@ -20,6 +20,10 @@ copied from GACJ/handbellmanager (GPL-3.0); only its approach was studied.
 Wi-Fi (not a guest network: guest networks usually block phone→PC traffic). On guest,
 corporate or school networks, or when the PC and phone are on different networks, use the
 tunnel instead (`npm run tunnel`, or `npm start -- --tunnel` at the repo root for the I2 game).
+The host now starts the tunnel automatically when cloudflared is installed, and upgrades phones to
+a direct WebRTC link on the same Wi-Fi
+([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Accepted). For the LAN
+latency measurements below, run `npm start -- --lan-only` so every phone uses the LAN WebSocket.
 
 ```powershell
 cd spikes\s1-phone-bell
@@ -73,6 +77,12 @@ runs fake phones that ring whatever notes they are cued.
 
 Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw traces),
 `?minDecel=4500&minPeakOmega=200…` (detector overrides), `?sens=quick` (Quick ring sensitivity; normally set per phone in the I2 lobby).
+
+**Branding.** The host serves the Go Go HarmoniYo brand files read-only from
+[`docs/design/brand/`](../../docs/design/brand/README.md) at `/brand/` (`/favicon.ico` too), plus
+`/manifest.webmanifest` for the phone page (add to home screen: icon, name, stage colour). The
+phone shows the one-line lockup on its start screen and Yo during play: Y3 (idle hum), swapping
+to Y4 (ding!) for a moment on every ring.
 
 **Fast passages.** During a song the phone adapts the ring detector to its own upcoming notes
 (from `cues`): in 8th/16th-note passages the refractory period follows the note spacing, smaller

@@ -24,7 +24,7 @@ const port = Number(opt('port', '18500'));
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const host = await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--lan-only', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   let buf = '';
   const t = setTimeout(() => reject(new Error(`host did not start:\n${buf}`)), 30000);
   const on = (d) => {
@@ -60,8 +60,38 @@ try {
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   game.on('console', (m) => m.type() === 'error' && errors.push(`game console: ${m.text()}`));
-  await game.goto(`http://127.0.0.1:${port}/game/?song=jingle-bells&diff=easy&ringers=3&seed=7`);
+  await game.goto(`http://127.0.0.1:${port}/game/?diff=easy&ringers=3&seed=7`);
   await game.waitForFunction(() => window.__i2?.cards?.length === 3, null, { timeout: 20000 });
+  const focused = (selector) => game.locator(`${selector}:focus`).count().then(Boolean);
+  check('fresh lobby focuses Play and defaults to Jingle Bells', await focused('#btn-play') && /Jingle Bells/.test(await game.textContent('#chosen-song')));
+  await game.keyboard.press('Enter');
+  await game.waitForFunction(() => /Join with a phone/.test(document.querySelector('#lobby-msg').textContent));
+  check('Play with no players keeps the lobby open and explains how to start', await focused('#btn-play') && await game.locator('#lobby').isVisible());
+  await game.keyboard.press('ArrowUp');
+  await game.keyboard.press('Enter');
+  check('arrows reach song selection and start on the current song', await focused('#song-options button[aria-pressed="true"]'));
+  await game.keyboard.press('ArrowDown');
+  const otherSong = await game.locator('#song-options button:focus').textContent();
+  await game.keyboard.press('Escape');
+  check('Escape cancels song selection and restores focus', await focused('#choose-song') && (await game.textContent('#chosen-song')) === 'Jingle Bells');
+  await game.keyboard.press('Enter');
+  await game.keyboard.press('ArrowDown');
+  await game.keyboard.press('Enter');
+  check('Enter chooses a different song without starting it', await focused('#choose-song') && otherSong.startsWith(await game.textContent('#chosen-song')) && await game.locator('#lobby').isVisible());
+  await game.keyboard.press('Enter');
+  await game.locator('#song-options button').filter({ hasText: /^Jingle Bells ·/ }).click();
+  await game.keyboard.press('ArrowDown');
+  await game.keyboard.press('ArrowDown');
+  await game.keyboard.press('ArrowRight');
+  await game.keyboard.press('Enter');
+  check('arrows reach Audio and focus its first control', await focused('#sel-sound'));
+  await game.keyboard.press('Escape');
+  check('Escape from Audio restores Audio focus', await focused('#open-audio'));
+  await game.keyboard.press('ArrowRight');
+  await game.keyboard.press('Enter');
+  check('Join help is reachable by remote', await game.locator('#join-help[open]').isVisible());
+  await game.keyboard.press('Escape');
+  check('Escape from Join help restores its launcher', await focused('#open-help'));
 
   const seats = () => game.evaluate(() => window.__i2.seats.slice());
   const idOf = (name) => game.evaluate((n) => window.__i2.link.phones.find((p) => p.name === n)?.id ?? null, name);
@@ -97,6 +127,8 @@ try {
   await waitSeats(['Alice', 'tv', 'tv'], 'first phone takes the first part');
   const bob = await phone('Bob');
   await waitSeats(['Alice', 'Bob', 'tv'], 'second phone takes the next TV-played part');
+  check('joined players show on the main screen without moving focus', await focused('#open-help') &&
+    /2 players joined/.test(await game.textContent('#joined-count')) && /Alice.*Bob/.test(await game.textContent('#joined-players')));
   await alice.page.waitForSelector('#lobby:not([hidden]) #parts .pcard.mine', { timeout: 8000 });
   const aliceCards = await alice.page.$$eval('#parts .pcard', (els) => els.map((e) => e.textContent));
   check('phone shows "Pick your part" with every part, occupant, range and meter', aliceCards.length === 3 && /TV plays/.test(aliceCards[2]) && /You/.test(aliceCards[0]) && /notes/.test(aliceCards[1]) && /[●○]{5}/.test(aliceCards[1]), aliceCards.map((t) => t.replace(/\s+/g, ' ')).join(' | '));
@@ -113,11 +145,22 @@ try {
       f(...a);
     };
   });
-  await game.click('#seating .part[data-part="2"]');
+  await game.keyboard.press('ArrowLeft');
+  await game.keyboard.press('ArrowLeft');
+  await game.keyboard.press('Enter');
+  check('Round options focuses Edit seating', await focused('#edit-seating'));
+  await game.keyboard.press('Enter');
+  check('Edit seating focuses the first part card', await focused('#seating .part[data-part="0"]'));
+  await game.keyboard.press('ArrowRight');
+  await game.keyboard.press('ArrowRight');
+  await game.keyboard.press('Enter');
+  await game.keyboard.press('Escape');
+  check('Escape closes only the player picker and restores its card', await focused('#seating .part[data-part="2"]'));
+  await game.keyboard.press('Enter');
   await game.waitForSelector('#seating .picker:not([hidden])');
   await game.evaluate(() => {
     document.querySelector('#seating .picker').__tag = 'picker';
-    document.querySelector('#sel-song').__tag = 'song';
+    document.querySelector('#choose-song').__tag = 'song';
     document.querySelectorAll('#seating .part').forEach((el, i) => (el.__tag = `part${i}`));
   });
   await bob.page.tap('#ready');
@@ -128,13 +171,13 @@ try {
       broadcasts: window.__devN,
       picker: p.__tag === 'picker' && !p.hidden && document.activeElement === p,
       expanded: document.querySelector('#seating .part[data-part="2"]').getAttribute('aria-expanded'),
-      song: document.querySelector('#sel-song').__tag === 'song',
+      song: document.querySelector('#choose-song').__tag === 'song',
       parts: [...document.querySelectorAll('#seating .part')].every((el, i) => el.__tag === `part${i}`),
       readyChip: !!document.querySelector('#seating .part[data-part="1"].ready'),
     };
   });
   check('picker stays open, focused and is the same node across device broadcasts', survived.broadcasts >= 2 && survived.picker && survived.expanded === 'true', JSON.stringify(survived));
-  check('song dropdown and part cards are patched in place, not replaced', survived.song && survived.parts);
+  check('song button and part cards are patched in place, not replaced', survived.song && survived.parts);
   check('TV shows Ready (✓) on the part of the phone that pressed it', survived.readyChip);
 
   // 3. TV picker by keyboard: TV → Alice → Bob, Enter: Bob moves from part 1 to part 2.
@@ -165,7 +208,7 @@ try {
 
   // 6. Ready from the second phone.
   await alice.page.tap('#ready');
-  await game.waitForFunction(() => /Ready 2\/2/.test(document.querySelector('#ready-info')?.textContent ?? ''), null, { timeout: 8000 }).then(
+  await game.waitForFunction(() => [...document.querySelectorAll('#joined-players li')].filter((p) => p.textContent.endsWith('Ready')).length === 2, null, { timeout: 8000 }).then(
     () => check('TV counts Ready 2/2', true),
     () => check('TV counts Ready 2/2', false),
   );
@@ -180,8 +223,8 @@ try {
   await game.locator('#seating .part[data-part="2"] .part-seat .chip').dragTo(game.locator('#seating .part[data-part="0"]'));
   await waitSeats(['Bob', 'tv', 'Alice'], 'drag Bob’s chip onto Alice’s part swaps them');
 
-  // 9. TV remote: ↓ enters the part cards, → moves, Enter opens the picker, End = Keyboard, Enter.
-  await game.evaluate(() => document.activeElement?.blur());
+  // 9. TV remote: from the tools, ↓ reaches the cards, → moves, Enter opens the picker.
+  await game.locator('#btn-shuffle').focus();
   await game.keyboard.press('ArrowDown');
   await game.keyboard.press('ArrowRight');
   await game.keyboard.press('Enter');
@@ -200,7 +243,11 @@ try {
     () => check('simulated phone Ready shows on the TV', true),
     () => check('simulated phone Ready shows on the TV', false),
   );
-  // Layout: the lobby's three columns (join / setup / phones) and the song dropdown must not overlap.
+  await game.keyboard.press('Escape');
+  check('Escape from seating restores Edit seating', await focused('#edit-seating'));
+  await game.keyboard.press('Escape');
+  check('Escape from Round options restores its lobby button', await focused('#open-round'));
+  // Layout: the primary lobby fits the TV without overlapping columns or scrolling.
   for (const [w, h] of [
     [1280, 720],
     [1920, 1080],
@@ -209,10 +256,10 @@ try {
     await sleep(300);
     const lay = await game.evaluate(() => {
       const r = (s) => document.querySelector(s).getBoundingClientRect();
-      const [join, setup, phones, song] = [r('.lobby .join'), r('.lobby .setup'), r('.lobby .phones'), r('#sel-song')];
-      return { joinR: Math.round(join.right), setupL: Math.round(setup.left), setupR: Math.round(setup.right), phonesL: Math.round(phones.left), songR: Math.round(song.right), sameRow: Math.abs(setup.top - phones.top) < 5 };
+      const [join, setup, song, lobby, qr] = [r('.lobby .join'), r('.lobby .quick-setup'), r('#choose-song'), r('.lobby'), r('#qr')];
+      return { joinR: Math.round(join.right), setupL: Math.round(setup.left), setupR: Math.round(setup.right), songR: Math.round(song.right), top: lobby.top, bottom: lobby.bottom, qr: Math.round(qr.width) };
     });
-    check(`lobby columns don't overlap at ${w}×${h}`, lay.joinR <= lay.setupL + 1 && lay.songR <= lay.setupR + 1 && (!lay.sameRow || lay.setupR <= lay.phonesL + 1), JSON.stringify(lay));
+    check(`lobby fits at ${w}×${h}`, lay.joinR <= lay.setupL + 1 && lay.songR <= lay.setupR + 1 && lay.top >= 0 && lay.bottom <= h && lay.qr >= (h === 1080 ? 320 : 200), JSON.stringify(lay));
     if (shots && w === 1280) await game.screenshot({ path: join(outDir, 'i2-seating-lobby-1280.png') });
   }
   if (shots) {
@@ -223,6 +270,8 @@ try {
   }
 
   // 12. 🎲 Shuffle (seeded): still the same three players, one per part.
+  await game.click('#open-round');
+  await game.click('#edit-seating');
   await game.click('#btn-shuffle');
   await sleep(300);
   const shuffled = await seatNames();
@@ -254,7 +303,10 @@ try {
   );
 
   // 14. Play is available without everyone Ready; phones hide the picker while playing.
-  await game.click('#btn-play');
+  await game.keyboard.press('Escape');
+  await game.keyboard.press('Escape');
+  await game.keyboard.press('ArrowUp');
+  await game.keyboard.press('Enter');
   await game.waitForFunction(() => !document.querySelector('#hud')?.classList.contains('hidden'), null, { timeout: 15000 }).then(
     () => check('▶ Play starts without everyone Ready', true),
     () => check('▶ Play starts without everyone Ready', false),
@@ -264,12 +316,75 @@ try {
     () => check('phones hide "Pick your part" during the song', false),
   );
   await game.keyboard.press('Escape');
+  check('Escape from a song restores Play focus', await focused('#btn-play'));
+  await game.keyboard.press('Escape');
   await bob.page.waitForSelector('#lobby:not([hidden])', { timeout: 8000 }).then(
     () => check('back in the lobby the phones show it again', true),
     () => check('back in the lobby the phones show it again', false),
   );
   const pressedAfter = await bob.page.getAttribute('#ready', 'aria-pressed');
   check('Ready resets when a song starts', pressedAfter === 'false');
+
+  // 15. First Ring is opt-in, leaves Standard settings intact, and plays through to results.
+  const chooseSong = async (title) => {
+    await game.locator('#choose-song').click();
+    await game.locator('#song-options button').filter({ hasText: `${title} ·` }).click();
+  };
+  const openRound = () => game.locator('#open-round').click();
+  const roundStyle = game.locator('#sel-round-style');
+  await openRound();
+  check('First Ring is under Round options and starts off', await roundStyle.inputValue() === 'standard' && await roundStyle.isEnabled());
+  await game.selectOption('#sel-diff', 'hard');
+  await game.selectOption('#sel-parts', 'by-range');
+  await game.selectOption('#sel-form', 'short');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers');
+  // Use the TV remote's up/down and left/right behavior for an actual selection.
+  await game.locator('#edit-seating').focus();
+  await game.keyboard.press('ArrowDown');
+  check('remote reaches Round style from Edit seating', await focused('#sel-round-style'));
+  await game.keyboard.press('ArrowRight');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · First Ring · 3 ringers');
+  check('First Ring locks the three Standard controls and explains the guide',
+    (await Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).isDisabled()))).every(Boolean)
+    && /one bell per ringer.*rest of the tune/.test(await game.textContent('#round-style-info')));
+  await game.waitForFunction(() => window.__i2.cards.every((c) => c.bells.length === 1) && window.__i2.link.phones.every((p) => p.bells?.length === 1));
+  check('each of the three seated phones receives exactly one bell', true);
+  await game.keyboard.press('ArrowLeft');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers' && window.__i2.cards.some((c) => c.bells.length > 1));
+  const standardSettings = () => Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).inputValue()));
+  check('Standard restores Hard, By range, and Short after switching off', (await standardSettings()).join() === 'hard,by-range,short');
+  await roundStyle.selectOption('first-ring');
+  await game.keyboard.press('Escape');
+  await chooseSong('Silent Night');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Silent Night · hard · 3 ringers');
+  check('unsupported song explains the return to Standard', /First Ring is not available for Silent Night.*Standard settings restored/.test(await game.textContent('#lobby-msg')));
+  await openRound();
+  check('unsupported song cannot select First Ring and keeps Standard settings',
+    await roundStyle.isDisabled() && await roundStyle.inputValue() === 'standard' && (await standardSettings()).join() === 'hard,by-range,short');
+  await game.keyboard.press('Escape');
+  await chooseSong('Jingle Bells');
+  await openRound();
+  check('returning to a supported song does not silently re-enable First Ring', await roundStyle.inputValue() === 'standard' && await roundStyle.isEnabled());
+  await roundStyle.selectOption('first-ring');
+  await game.keyboard.press('Escape');
+  await chooseSong('Deck the Halls');
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Deck the Halls · First Ring · 3 ringers');
+  await openRound();
+  check('switching between supported carols keeps First Ring selected', await roundStyle.inputValue() === 'first-ring');
+  await game.locator('#btn-auto').click();
+  await game.waitForFunction(() => Boolean(window.__i2.session), null, { timeout: 8000 });
+  const firstRingRun = await game.evaluate(() => ({
+    lanes: window.__i2.team.chart.lanes.length,
+    guide: window.__i2.team.chart.backing.length,
+    strikes: window.__i2.team.chart.notes.length,
+  }));
+  check('Deck the Halls schedules one lane per ringer and loads the guide', firstRingRun.lanes === 3 && firstRingRun.guide === 43 && firstRingRun.strikes === 25, JSON.stringify(firstRingRun));
+  await game.waitForSelector('#results:not(.hidden)', { timeout: 50000 });
+  const result = await game.evaluate(() => window.__i2Result);
+  check('First Ring finishes through the shared game',
+    result.song === 'deck-the-halls' && result.preset === 'first-ring' && result.form === 'short' && result.mode === 'autoplay'
+    && result.counts.perfect === firstRingRun.strikes && Math.abs(result.chartDurationSec - 33.103) < 0.01,
+    `${result.counts.perfect}/${firstRingRun.strikes} perfect, ${result.chartDurationSec} s`);
 
   check('no page errors', errors.length === 0, errors.join(' | '));
   ok = checks.every((c) => c.ok);

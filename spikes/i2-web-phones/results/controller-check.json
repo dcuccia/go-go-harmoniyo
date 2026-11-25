@@ -8,15 +8,15 @@
     "C5"
   ],
   "notes": 32,
-  "hit": 32,
-  "perfect": 30,
-  "miss": 0,
-  "strays": 0,
+  "hit": 31,
+  "perfect": 31,
+  "miss": 1,
+  "strays": 1,
   "offsetMs": {
-    "n": 32,
-    "mean": 16.4,
-    "p50": 13.8,
-    "p95abs": 48.8
+    "n": 31,
+    "mean": 7.9,
+    "p50": 6.3,
+    "p95abs": 16.4
   },
   "glow": "11/11",
   "input": {
@@ -26,9 +26,9 @@
     "nonRing": 0,
     "latencyMs": {
       "n": 32,
-      "mean": 27.1,
-      "p50": 23.8,
-      "p95abs": 48.6
+      "mean": 17.6,
+      "p50": 15.4,
+      "p95abs": 61.8
     }
   },
   "errors": []

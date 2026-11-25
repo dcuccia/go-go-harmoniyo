@@ -7,7 +7,7 @@ Zero-dependency Node.js (≥ 20) scripts that enforce
 | Command | What it does |
 |---|---|
 | `node tools/licensing/attribution.mjs` | Validates [`attribution/register.json`](../../attribution/register.json) against its [schema](../../attribution/register.schema.json) and the policy. Checks coverage, pinned hashes, REUSE agreement and AI provenance. Regenerates [`ATTRIBUTION.md`](../../ATTRIBUTION.md) and [`attribution/credits.json`](../../attribution/credits.json) |
-| `node tools/licensing/license-gate.mjs` | Checks every npm lockfile and NuGet `PackageReference` against the allowlist and exceptions, and checks that fetched YARG sources stay unvendored. Regenerates [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md). Add `--offline` to skip NuGet lookups |
+| `node tools/licensing/license-gate.mjs` | Checks every npm lockfile and NuGet `PackageReference` against the allowlist and exceptions, checks the pinned binaries in every `binaries.json` (URL, SHA-256, pinned license text), and checks that fetched YARG sources stay unvendored. Regenerates [`THIRD_PARTY_NOTICES.md`](../../THIRD_PARTY_NOTICES.md). Add `--offline` to skip NuGet lookups |
 | add `--check` to either | CI mode: change nothing, and fail if generated files are stale |
 | `node --test tools/licensing/test/licensing.test.mjs` | Unit tests for the SPDX, glob and schema helpers, plus an end-to-end sync check |
 | `reuse lint` | REUSE compliance (`pip install reuse` or `pipx run reuse lint`) |
@@ -21,7 +21,15 @@ Files:
   carry a `gate` status (ADR-0008 copyleft adoption gate). A non-dev copyleft dependency without
   an entry fails CI. `pending-owner` entries pass CI with a warning.
 - `lib/`: helpers (git file listing, globs with REUSE semantics, SPDX expressions, a small JSON
-  Schema validator).
+  Schema validator). `lib/bundle.mjs` is the **bundle gate** for shipped packages such as the
+  [Windows package](../package/windows/README.md): it checks every npm package an esbuild/Vite
+  bundle actually contains (allowlist, or an exception whose scope covers the package), requires
+  a license file for each, and writes the package's own `THIRD_PARTY_NOTICES.md` with the full
+  license texts.
+- `binaries.json` files (e.g. [`tools/package/windows/binaries.json`](../package/windows/binaries.json)):
+  third-party executables a package downloads at build time. Each pins an `https` URL, a SHA-256,
+  an SPDX license and the license text's URL and SHA-256. The repo gate lists them under
+  "Pinned binaries"; the bundle gate copies their license texts into the package.
 
 What the asset check enforces:
 

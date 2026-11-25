@@ -1,0 +1,7 @@
+{
+  "top_p": 0.95,
+  "seed": 1,
+  "drop_drums": true,
+  "device": "cpu",
+  "end_seconds": 12
+}

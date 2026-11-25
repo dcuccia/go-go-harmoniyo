@@ -11,6 +11,7 @@ on:
       - 'spikes/s5-chart-pipeline/**'
       - 'spikes/shared/**'
       - 'docs/design/pitch-class-palette.json'
+      - 'docs/design/brand/**'
       - '.github/workflows/i2-web-phones.yml'
   push:
     branches: [main]
@@ -21,6 +22,7 @@ on:
       - 'spikes/s5-chart-pipeline/**'
       - 'spikes/shared/**'
       - 'docs/design/pitch-class-palette.json'
+      - 'docs/design/brand/**'
       - '.github/workflows/i2-web-phones.yml'
   workflow_dispatch:
 

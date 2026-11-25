@@ -12,7 +12,9 @@ export interface PhoneInfo {
   kind: string;
   online: boolean;
   bells: Bell[];
-  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown; sens?: string };
+  status: { api?: string; rateHz?: number; rttP50?: number; rttMin?: number; syncN?: number; visible?: boolean; mode?: string; axis?: unknown; sens?: string; rtc?: string; rtcReason?: string };
+  /** How the phone reaches the host (ADR-0012): 'direct' (WebRTC), 'tunnel', 'lan' or 'local'. */
+  route?: string;
   /** Lobby ✓ Ready (HGP `ready`). */
   ready?: boolean;
   events: number;
@@ -33,6 +35,8 @@ export interface HostInfo {
   tlsMode?: string;
   lanIp?: string;
   soundMode?: SoundMode;
+  /** How phones join (ADR-0012): mode auto/tunnel/lan and the tunnel's state. */
+  transport?: { mode?: string; tunnel?: string; tunnelUrl?: string; lanUrl?: string; rtc?: string };
 }
 
 export interface RingEvent {
@@ -54,6 +58,33 @@ export interface RingEvent {
   receivedAtMs: number;
 }
 
+/** A WebSocket, or anything shaped like one (S9: an in-page loopback to the host in this page). */
+export interface LinkSocket {
+  readonly readyState: number;
+  send(text: string): void;
+  close(code?: number, reason?: string): void;
+  onopen: ((e: unknown) => void) | null;
+  onmessage: ((e: { data: unknown }) => void) | null;
+  onclose: ((e: unknown) => void) | null;
+  onerror: ((e: unknown) => void) | null;
+}
+
+/**
+ * Where the link connects and where join QR codes come from. Default: a WebSocket to the S1 Node
+ * host, which also serves /qr.svg. S9 (ADR-0014, Proposed: the TV/tablet page is the host) swaps
+ * both for an in-page host session and a QR drawn in the page.
+ */
+export interface LinkTransport {
+  socket?: (url: string) => LinkSocket;
+  qrSrc?: (joinUrl: string) => string;
+}
+let transport: LinkTransport = {};
+
+/** Call before the game creates its {@link HgpLink}. */
+export function setLinkTransport(t: LinkTransport): void {
+  transport = t;
+}
+
 export class HgpLink {
   readonly sync = new ClockSync();
   /** Host clock sync restarts (a good exchange disagreed with the fit by > 50 ms): when, and by how much. */
@@ -68,7 +99,7 @@ export class HgpLink {
   onClaim: (deviceId: string, part: number) => void = () => {};
   /** Every gesture from any phone (lobby practice + gameplay). Multiple listeners. */
   readonly ringListeners = new Set<(e: RingEvent) => void>();
-  private ws: WebSocket | null = null;
+  private ws: LinkSocket | null = null;
   private syncId = 0;
   private syncTimer: number | undefined;
   private retryMs = 500;
@@ -81,8 +112,13 @@ export class HgpLink {
     return `${u.protocol === 'wss:' ? 'https' : 'http'}://${u.host}`;
   }
 
+  /** Image URL of a QR code for `joinUrl`. */
+  qrSrc(joinUrl: string): string {
+    return transport.qrSrc ? transport.qrSrc(joinUrl) : `${this.httpOrigin}/qr.svg?u=${encodeURIComponent(joinUrl)}`;
+  }
+
   connect(): void {
-    const ws = new WebSocket(this.url);
+    const ws = transport.socket ? transport.socket(this.url) : (new WebSocket(this.url) as unknown as LinkSocket);
     this.ws = ws;
     this.setState('connecting');
     ws.onopen = () => {

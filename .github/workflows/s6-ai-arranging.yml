@@ -41,3 +41,22 @@ jobs:
         with:
           node-version: 22
       - run: npm test
+
+  amt:
+    name: AMT runner tests (stubbed torch, no model)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: spikes/s6-ai-arranging/amt
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Same pins as the image (requirements.txt, Dockerfile ANTICIPATION_SHA); no torch needed.
+      - run: |
+          python3 -m venv /tmp/venv
+          sha=$(sed -n 's/^ARG ANTICIPATION_SHA=//p' Dockerfile)
+          /tmp/venv/bin/pip install --quiet $(grep -E '^(mido|numpy|tqdm)==' requirements.txt)
+          /tmp/venv/bin/pip install --quiet --no-deps "https://github.com/jthickstun/anticipation/archive/${sha}.tar.gz"
+          /tmp/venv/bin/python -m unittest discover -v

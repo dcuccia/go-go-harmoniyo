@@ -1,0 +1,26 @@
+{
+  "name": "s9-page-host-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Spike S9: Capacitor shells (Android TV APK, iPad) that serve the S9 web build (../dist/web) from inside the app. Throwaway spike code.",
+  "license": "MIT",
+  "scripts": {
+    "add:android": "cap add android && node patch-android.mjs",
+    "add:ios": "cap add ios && node patch-ios.mjs",
+    "sync": "cap sync",
+    "apk": "cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

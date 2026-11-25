@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildTeamChart, CHART_FORMAT, findPart, GUIDE_VELOCITY, isChartFormat, shortestIoiMs, type S5Chart, type S5Part } from '../src/team-chart';
+import { scaleChart } from '../src/speed';
 import { pitchColor } from '../../shared/pitch-palette';
 
 function fixture(): S5Chart {
@@ -101,16 +102,54 @@ describe('buildTeamChart', () => {
     expect(isChartFormat('other.chart')).toBe(false);
   });
 
-  const charts = import.meta.glob('../public/charts/*.json', { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;
+  const charts = import.meta.glob(['../public/charts/*.json', '../public/charts/short/*.json'], { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;
   const songs = Object.entries(charts).filter(([k]) => !k.endsWith('index.json')) as [string, S5Chart][];
-  it.skipIf(songs.length === 0)('handles every generated part (run "npm run charts" first)', () => {
+  it.skipIf(songs.length === 0)('maps every generated part without overflow, low to high on both phone and highway', () => {
     for (const [, c] of songs) {
       for (const p of c.parts) {
         const t = buildTeamChart(c, p);
-        expect(t.chart.notes.length + t.chart.backing.length).toBe(p.notes.length + (p.guide?.length ?? 0));
-        for (const r of t.ringers) expect(r.bells.length).toBeLessThanOrEqual(4);
+        expect(t.chart.notes.length).toBe(p.notes.length);
+        expect(t.chart.backing.length).toBe(p.guide?.length ?? 0);
+        for (const [i, r] of t.ringers.entries()) {
+          expect(r.autoBells).toEqual([]);
+          expect(r.bells.map((b) => b.id)).toEqual(p.ringers[i].bells);
+          expect(t.subCharts[i].lanes.map((l) => l.pitch)).toEqual(r.bells.map((b) => b.pitch));
+        }
+        const all = [...t.chart.notes, ...t.chart.backing].map((n) => `${n.time}:${n.pitch}`);
+        expect(new Set(all).size).toBe(all.length);
         expect(t.ringers.length).toBe(p.ringerCount);
         for (let i = 1; i < t.chart.notes.length; i++) expect(t.chart.notes[i].time).toBeGreaterThanOrEqual(t.chart.notes[i - 1].time);
+      }
+    }
+  });
+
+  const firstRingCharts = import.meta.glob('../public/charts/first-ring/*.json', { eager: true, import: 'default' }) as Record<string, S5Chart>;
+  it.skipIf(songs.length === 0)('loads only the advertised First Ring charts and plays each guide note once, including on replay', () => {
+    const index = charts['../public/charts/index.json'] as { songs: { id: string; firstRing?: { durationSec: number; ringerCounts: number[] } }[] };
+    const offered = index.songs.filter((song) => song.firstRing);
+    expect(offered.map((song) => song.id).sort()).toEqual(['deck-the-halls', 'jingle-bells']);
+    expect(Object.keys(firstRingCharts).sort()).toEqual(offered.map((song) => `../public/charts/first-ring/${song.id}.json`).sort());
+    for (const song of offered) {
+      const raw = firstRingCharts[`../public/charts/first-ring/${song.id}.json`];
+      expect(song.firstRing).toEqual({ durationSec: raw.timing.durationSec, ringerCounts: [1, 2, 3, 4] });
+      // Practice speed must stretch the guide as well as the scored lanes.
+      const c = scaleChart(raw, 0.5);
+      const pitch = (bell: string) => c.bells.find((b) => b.id === bell)!.midi + 12;
+      for (const count of song.firstRing!.ringerCounts) {
+        const part = findPart(c, 'super-easy', count, 'balanced')!;
+        const original = findPart(raw, 'super-easy', count, 'balanced')!;
+        const team = buildTeamChart(c, part);
+        expect(team.ringers.map((r) => r.bells.length)).toEqual(Array(count).fill(1));
+        expect(team.chart.notes.map((n) => [n.time, n.pitch])).toEqual(original.notes.map((n) => [n.time * 2, pitch(n.bell)]));
+        expect(team.chart.backing).toEqual(original.guide!.map((n) => ({
+          time: n.time * 2, pitch: pitch(n.bell), velocity: GUIDE_VELOCITY, duration: n.durSec! * 2,
+        })));
+        const keys = [...team.chart.notes, ...team.chart.backing].map((n) => `${n.time}:${n.pitch}`);
+        expect(new Set(keys).size).toBe(keys.length);
+        const withTv = buildTeamChart(c, part, { active: [false] });
+        expect(withTv.autoRingers).toEqual([0]);
+        expect([...withTv.chart.notes, ...withTv.chart.backing].map((n) => `${n.time}:${n.pitch}`).sort()).toEqual(keys.sort());
+        expect(buildTeamChart(c, part)).toEqual(team);
       }
     }
   });

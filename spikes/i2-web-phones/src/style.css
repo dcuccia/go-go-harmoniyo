@@ -1,4 +1,8 @@
 /* I2 additions on top of S4's style.css */
+/* Brand chrome (docs/design/brand.md §3): candlelight accent on the stage. The note highways keep their
+   darker #05040d, which the pitch-class palette's contrast checks are defined against. */
+:root { --gold: #f3b01d; --stage: #0b0d17; }
+html, body { background: var(--stage); }
 #highways { position: fixed; inset: 0; display: flex; }
 .hw-col { position: relative; flex: 1 1 0; min-width: 0; overflow: hidden; }
 .hw-col + .hw-col { box-shadow: inset 2px 0 0 rgba(140, 160, 255, 0.18); }
@@ -39,34 +43,52 @@
 /* Lobby */
 #lobby { overflow: auto; }
 .lobby {
-  display: grid; grid-template-columns: minmax(260px, 1fr) minmax(380px, 1.5fr) minmax(240px, 1fr); gap: 22px;
-  width: min(1500px, 96vw); padding: 24px 28px; border-radius: 16px; background: rgba(16, 14, 40, 0.9); border: 1px solid #3a3a70;
+  display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: clamp(16px, 2.8vh, 30px) clamp(24px, 4vw, 72px);
+  width: min(1440px, 90vw); margin-block: auto; padding: clamp(18px, 3.3vh, 36px); border-radius: 16px; background: rgba(16, 14, 40, 0.94); border: 1px solid #3a3a70;
   box-shadow: 0 0 60px rgba(80, 100, 255, 0.25);
 }
-.lobby h1 { font-size: clamp(32px, 3.6vw, 56px); }
-.lobby h3 { margin: 0 0 8px; }
+.lobby h1.brand { grid-column: 1 / -1; margin: 0; text-align: center; line-height: 0; }
+/* Stacked lockup G2: never below 160 px wide (brand guide §3). */
+.lobby h1.brand img { width: clamp(160px, 32vh, 350px); height: auto; }
+.lobby h2 { font-size: clamp(20px, 3vh, 32px); margin: 0 0 12px; }
 .join { text-align: center; }
-#qr { width: min(280px, 100%); aspect-ratio: 1; background: #fff; border-radius: 10px; padding: 6px; image-rendering: pixelated; }
-#join-url { font: 700 clamp(14px, 1.3vw, 22px) ui-monospace, Consolas, monospace; margin: 8px 0; word-break: break-all; color: var(--gold); }
-.steps { text-align: left; font-size: 14px; line-height: 1.45; padding-left: 1.2em; opacity: 0.85; }
+#qr { width: min(clamp(170px, 30vh, 320px), 100%); aspect-ratio: 1; background: #fff; border-radius: 10px; padding: 8px; image-rendering: pixelated; }
+#join-url { font: 700 clamp(14px, 1.6vh, 18px) ui-monospace, Consolas, monospace; margin: 12px 0; overflow-wrap: anywhere; color: var(--gold); }
+.quick-setup { min-width: 0; }
+.song-choice { display: grid; gap: 4px; width: 100%; text-align: left; overflow-wrap: anywhere; padding: 12px 18px; }
+.song-choice span { font-size: clamp(16px, 2.2vh, 24px); }
+.song-choice strong { font-size: clamp(24px, 4.4vh, 48px); line-height: 1.12; }
+.joined { margin-top: clamp(14px, 2.6vh, 28px); }
+#joined-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; list-style: none; margin: 0; padding: 0; max-height: 5.2em; overflow: auto; font-size: clamp(16px, 2.2vh, 24px); overflow-wrap: anywhere; }
+#joined-players b { font-size: clamp(18px, 2.9vh, 32px); }
+#parts-summary { font-size: clamp(16px, 2.2vh, 24px); margin: 12px 0 18px; }
+#btn-play { width: 100%; font-size: clamp(24px, 3.5vh, 38px); padding: 0.4em 1em; }
+#lobby-msg { font-size: clamp(14px, 2.2vh, 24px); }
+#lobby-msg:empty { display: none; }
+.lobby-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+.lobby-actions button { font-size: clamp(14px, 2.2vh, 24px); }
+#lobby :is(button, select, input, a, [role='button']):focus-visible, #results button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+.lobby-panel { width: min(840px, 90vw); max-height: 84vh; overflow: auto; padding: 24px; border: 1px solid #6a6ab0; border-radius: 16px; background: #141432; color: #fff; }
+.lobby-panel::backdrop { background: rgba(5, 4, 13, 0.58); }
+.lobby-panel h2 { margin-top: 0; }
+.lobby-panel [data-back], #edit-seating { margin-block: 8px; }
+#song-options { display: grid; gap: 8px; padding: 8px; }
+#song-options button { text-align: left; font-size: clamp(18px, 2.3vh, 25px); }
+#song-options [aria-pressed='true'] { color: var(--gold); }
+.steps { text-align: left; font-size: clamp(16px, 2.2vh, 24px); line-height: 1.45; padding-left: 1.2em; }
 .setup .row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
 .setup label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; opacity: 0.9; }
 select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; background: #1a1a3a; color: #fff; border: 1px solid #556; max-width: 100%; }
-#sel-song { min-width: min(420px, 80vw); }
-/* Grid/flex items default to min-width:auto, so a long song <select> widened the middle column under the Phones panel. */
-.lobby > section, .setup .row label { min-width: 0; }
-.setup .row label:has(#sel-song) { flex: 1 1 100%; }
-#sel-song { width: 100%; min-width: 0; text-overflow: ellipsis; }
 .setup .backing-row { align-items: center; }
 .setup .backing-row label { flex-direction: row; align-items: center; gap: 8px; font-size: 15px; }
-.setup .backing-row input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--gold, #f3b01d); }
-.setup .backing-row input[type='range'] { width: 140px; accent-color: var(--gold, #f3b01d); }
+.setup .backing-row input[type='checkbox'] { width: 20px; height: 20px; accent-color: var(--gold); }
+.setup .backing-row input[type='range'] { width: 140px; accent-color: var(--gold); }
 .setup .backing-row input:disabled { opacity: 0.4; }
 #backing-info { margin-top: 2px; }
 
 /* Seating chart: part cards × player chips (src/seating-view.ts) */
 .seat-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-.seat-bar h3 { margin: 0; font-size: 16px; }
+.seat-bar h2 { margin: 0; }
 #seat-tools { display: flex; gap: 6px; flex-wrap: wrap; }
 #seat-tools button { padding: 5px 10px; font-size: 14px; }
 #seating { position: relative; margin: 8px 0; }
@@ -74,10 +96,10 @@ select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; b
 #seating .parts { display: grid; grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
 #seating .part { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 12px; border: 2px solid #3a3a70; background: rgba(255, 255, 255, 0.05); cursor: pointer; min-width: 0; }
 #seating .part:hover { border-color: #6a6ab0; }
-#seating .part:focus-visible, #seating .part[aria-expanded='true'] { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.35); }
+#seating .part:focus-visible, #seating .part[aria-expanded='true'] { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(243, 176, 29, 0.35); }
 #seating .part.tv { background: rgba(255, 255, 255, 0.02); }
 #seating .part.ready { border-color: #2ee86b; }
-#seating .part.over, #seating .tray.over { border-color: var(--gold); background: rgba(255, 210, 63, 0.12); }
+#seating .part.over, #seating .tray.over { border-color: var(--gold); background: rgba(243, 176, 29, 0.12); }
 .part-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
 .part-head b { font-size: 18px; line-height: 1.15; overflow-wrap: anywhere; }
 .part-head small { opacity: 0.55; white-space: nowrap; }
@@ -100,26 +122,36 @@ select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; b
 .picker .opt small { font-weight: 400; opacity: 0.6; margin-left: 6px; }
 .picker .opt.current { color: var(--gold); }
 .picker .opt.active, .picker .opt:hover { background: #2e2e66; }
-#ready-info { align-self: center; }
 .phones li .rdy { font-style: normal; color: #7dff9a; font-size: 13px; }
 #res-next { margin: 4px 0 8px; }
 .bells i { display: inline-block; font-style: normal; font-weight: 800; font-size: 13px; padding: 2px 6px; margin: 1px 3px 1px 0; border-radius: 5px; color: #10121c; }
 .bells i.acc { box-shadow: 0 0 0 2px #05040d, 0 0 0 4px #f4f4ff; margin: 1px 7px 1px 4px; }
 .bells small { opacity: 0.7; }
 .phones ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.phones li { padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); font-size: 15px; }
+.phones li { position: relative; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); font-size: 15px; }
 .phones li small { opacity: 0.65; }
 .phones li.off { opacity: 0.45; }
 .phones li.rang { animation: rang 0.6s ease-out; }
+/* Yo Y4, ding!: pops up on the row while that phone rings in the lobby, then fades. */
+.phones .yo-rang { position: absolute; right: 8px; bottom: 4px; width: 34px; height: 34px; opacity: 0; pointer-events: none; }
+.phones li.rang .yo-rang { animation: yo-ding 0.6s ease-out; }
+@keyframes yo-ding { 0% { opacity: 1; transform: rotate(-10deg) scale(1.1); } 60% { opacity: 1; transform: rotate(6deg) scale(1); } 100% { opacity: 0; transform: rotate(0) scale(1); } }
 .phones .sens-btn { float: right; margin: 0 0 4px 8px; padding: 2px 8px; font-size: 12px; border-radius: 8px; opacity: 0.75; }
 .phones .sens-btn.on { opacity: 1; border-color: var(--gold); color: var(--gold); }
-@keyframes rang { from { background: rgba(255, 210, 63, 0.55); } to { background: rgba(255, 255, 255, 0.05); } }
+@keyframes rang { from { background: rgba(243, 176, 29, 0.55); } to { background: rgba(255, 255, 255, 0.05); } }
 .dim { opacity: 0.6; font-size: 13px; }
 .panel.wide { width: min(1100px, 94vw); }
+/* Results: Yo cheers beside the title (Y5 with hands for a strong round, Y2 joy otherwise). */
+.res-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.res-head h2 { margin: 0; }
+#res-yo { width: clamp(72px, 7vw, 120px); height: auto; flex: none; animation: yo-cheer 1.1s ease-in-out infinite; }
+#res-yo:not([src]) { visibility: hidden; }
+@keyframes yo-cheer { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } 60% { transform: translateY(-8px) rotate(3deg); } }
+@media (prefers-reduced-motion: reduce) { .phones li.rang .yo-rang, #res-yo { animation: none; } }
 #res-players { border-collapse: collapse; margin: 12px 0; width: 100%; font-variant-numeric: tabular-nums; }
 #res-players th, #res-players td { padding: 4px 8px; border-bottom: 1px solid #333366; text-align: right; }
 #res-players th:first-child, #res-players td:first-child { text-align: left; }
-@media (max-width: 1100px) { .lobby { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .lobby { grid-template-columns: 1fr; } }
 
 /* Practice speed */
 .setup .speed-row input[type='range'] { width: 180px; }
@@ -142,6 +174,10 @@ select { font: inherit; font-size: 16px; padding: 6px 8px; border-radius: 8px; b
 #corner-join[data-corner='bl'] { left: 1vw; bottom: 1.5vh; }
 #corner-join[data-corner='br'] { right: 1vw; bottom: 1.5vh; }
 #corner-qr { display: block; width: var(--cj-size); height: var(--cj-size); background: #fff; border-radius: 6px; padding: 3px; image-rendering: pixelated; }
+/* Yo mark (≥ 32 px, brand guide §3) with the full name beside it. */
+#corner-brand { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; text-align: left; }
+#corner-brand img { width: 32px; height: 32px; flex: none; }
+#corner-brand span { font-size: clamp(10px, 0.7vw, 13px); font-weight: 700; line-height: 1.15; }
 #corner-url { margin-top: 4px; font: 700 clamp(10px, 0.75vw, 14px) / 1.2 ui-monospace, Consolas, monospace; color: var(--gold); word-break: break-all; }
 #corner-hint { font-size: clamp(9px, 0.6vw, 12px); opacity: 0.6; }
 #corner-hint:empty { display: none; }

@@ -1,0 +1,39 @@
+name = "s9-page-host-demo-e2e"
+main = "./worker-demo.mjs"
+compatibility_date = "2026-11-01"
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "../dist/web"
+binding = "ASSETS"
+run_worker_first = ["/ice", "/signal/*", "/turn-demo", "/turn-demo/*", "/turn-trial", "/turn-trial/*"]
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "SignalRoom"
+
+[[durable_objects.bindings]]
+name = "TURN_TRIAL"
+class_name = "TurnTrial"
+
+[[durable_objects.bindings]]
+name = "TURN_DEMO"
+class_name = "TurnDemo"
+
+[vars]
+S9_TURN_DEMO = "1"
+TURN_KEY_ID = "demo-test-key"
+TURN_KEY_API_TOKEN = "demo-test-token"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalRoom"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["TurnTrial"]
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["TurnDemo"]

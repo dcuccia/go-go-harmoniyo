@@ -4,10 +4,15 @@ Real phones (S1 controller + HGP v0 host) play the S4 web-native host with S5 ca
 2–4 ringers on one TV. Report: [docs/spikes/I2-web-phones.md](../../docs/spikes/I2-web-phones.md).
 
 ```
-phones ──WSS (LAN, self-signed)──▶ S1 Node host ◀──WS (127.0.0.1)── game page on the TV
- (S1 controller: rings, zones,        (HGP v0 relay, QR,              (this folder: S4 renderer/judge/
-  local bell sound, cue glow)          serves the game at /game/)       session/audio + S5 charts)
+phones ──WSS via cloud tunnel ──▶ S1 Node host ◀──WS (127.0.0.1)── game page on the TV
+       ──WebRTC direct (same Wi-Fi, when it connects)──▶   (or WSS on the LAN, self-signed,
+ (S1 controller: rings, zones,        (HGP v0 relay, QR,       when there is no tunnel)
+  local bell sound, cue glow)          serves the game at /game/)  (this folder: S4 renderer/judge/
+                                                                    session/audio + S5 charts)
 ```
+
+How phones connect is [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)
+(Accepted 2026-11-09, amends ADR-0006); see [How phones connect](#how-phones-connect) below.
 
 Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hud`,
 `AudioEngine`, `KeyboardSource`; S1 `ClockSync` + HGP types; S5 `loadSong`/`buildChart`
@@ -15,9 +20,11 @@ Code reuse (imported, not copied): S4 `HighwayRenderer`, `Session`, `Judge`, `Hu
 
 ## Owner runbook (TV playthrough, ~10 minutes)
 
-**You need:** the Windows PC connected to the TV (HDMI), Node ≥ 22, Chrome or Edge, 1–4 phones
-on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run downloads npm packages
-(~1 min).
+**You need:** the Windows PC connected to the TV (HDMI), Node ≥ 22, Chrome or Edge, 1–4 phones,
+and preferably [cloudflared](#how-phones-connect) (`winget install --id Cloudflare.cloudflared`)
+plus an internet connection. Phones can then join from any network, with no certificate warning,
+and they switch to a direct link when they are on the PC's Wi-Fi. Without cloudflared, phones must
+be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min).
 
 1. On the PC, at the **repo root** (a fresh clone is fine):
    ```sh
@@ -27,32 +34,49 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    fix if something would get in the way (old Node, a busy port). Read any **!** warnings: they
    cover the wrong network adapter, the Windows Firewall and guest Wi-Fi. When the game is up it
    prints the **TV** and **Phones** addresses. **Ctrl+C** stops it.
-   Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter) or
-   `npm start -- --tunnel` (guest/work Wi-Fi, or phones on mobile data). `npm start` in this
-   folder does the same.
+   Options go after `--`, e.g. `npm start -- --ip 192.168.x.y` (another adapter),
+   `npm start -- --lan-only` (no cloud tunnel) or `npm start -- --tunnel` (tunnel only, fail
+   if it can't start). `npm start -- --help` lists them all. `npm start` in this folder does
+   the same.
 2. The browser opens **http://127.0.0.1:18900/game/** — drag it to the TV and press **F11**.
    (If port 18900 is busy, `npm start` uses the next free port and prints the TV address; see
    [#53](https://github.com/dcuccia/go-go-harmoniyo/issues/53).)
-3. Each ringer scans the QR on the TV. The phone warns about the certificate **once**
-   (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this website*). Type a name,
+3. Each ringer scans the QR on the TV. With the cloud tunnel (a `trycloudflare.com` address)
+   there is no warning. Without it (a `https://192.168…` address) the phone warns about the
+   certificate **once** (Chrome: *Advanced → Proceed*; Safari: *Show Details → visit this
+   website*). Type a name,
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
-4. The TV lobby lists the phones. Ring a phone: its row flashes and its lane lights on the TV.
+   The status at the top shows whether the phone is connected and waiting for a part before it
+   shows a playable bell.
+4. The TV lobby shows who has joined and assigns available parts automatically. **Round options →
+   Edit seating → Player details** shows each phone's route: **direct** (same Wi-Fi, fastest),
+   **via tunnel** (through the internet; fine to play) or **Wi-Fi** (no tunnel). Ring a phone:
+   its detail row flashes and its lane lights on the TV.
    Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
-5. Pick **Song**, **Difficulty** (first-timers: **Super easy** — the tune's downbeats and long
-   notes, at most 3 bells each, the TV plays the rest of the tune softly), **Parts**, **Length**
+5. Choose a **Song** (a fresh lobby defaults to **Jingle Bells**), then **Play**. To change how
+   the group plays, open **Round options** for **Difficulty**. **Super easy** gives each ringer
+   up to two bells with sparse cues. **Easy** gives up to two (lower left, higher right), **Medium** up
+   to four, and **Hard** up to four with quicker changes and offbeat pickups. The TV plays the rest of
+   the tune softly. Round options also has **Parts**, **Length**
    and **Ringers** (defaults to the number of phones that have joined). **Parts**: *Balanced*
    (default: each player has one role — Bass, Harmony or a slice of the tune — in one range of
    bells, with similar effort), *Chord split* (up to three players share each chord, one note
    each; the others play the tune) or *By range* (the older split). **Length**: *Full* (intro,
    verses that build up, an ending; about 2–3 minutes) or *Short* (the song once). **Who plays
-   what** is a seating chart: one card per part, named by its role (*Bass*, *Harmony*, *Low/High
+   what** under **Edit seating** is a seating chart: one card per part, named by its role (*Bass*, *Harmony*, *Low/High
    melody*, *Chord low/middle/high*, *Descant*; *Ringer N* for charts without roles), with its bells in their colours, range and a 1–5 difficulty meter (notes and
    bell changes per second). Above the cards are the player chips: each phone, ⌨ **Keyboard**
    (A S D F) and 🤖 **TV plays** (the TV rings that part; any part nobody holds).
+   - For a group of 1–4 first-timers, pick **Jingle Bells** or **Deck the Halls**, then
+     **Round options → Round style → First Ring**. Each player gets one bell for a short round;
+     the TV plays the rest of the melody. **Standard** restores your previous Difficulty, Parts
+     and Length, as does choosing a song that does not offer First Ring. At rehearsal, try both
+     songs on the TV to check the guide is audible and sparse parts are fun to play. If either
+     does not work for your group, use **Standard → Super easy → Short**.
    - **On the TV:** drag a chip onto a part (onto a taken part = swap; drag a part's chip back to
      the chip row = sit out), or click a part and choose who plays it. TV remote / keyboard:
-     **↓** to reach the part cards, **← →** to move, **Enter** to open, **↑ ↓ Enter** to choose,
+     in **Edit seating**, **← →** to move, **Enter** to open, **↑ ↓ Enter** to choose,
      **Esc** to close.
    - **On the phones:** the phone shows **Pick your part** with each part's name, bells, range,
      difficulty and who has it. Tap a part the TV plays to take it; tap someone's part and then
@@ -66,7 +90,7 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
      TV is playing; if a phone drops out the TV plays its part until it reconnects and takes it
      back.
    Bells beyond 4 per part are rung by the TV automatically.
-   **Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
+   **Audio → Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
    on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
    its beat). **Sound effects** (on by default, volume 50 %): sparkles for team streaks, a whoosh
@@ -81,14 +105,15 @@ on the **same Wi-Fi** as the PC (or any network with `--tunnel`). First run down
    **Fast notes:** during a song each phone adapts its swing detection to its own notes, so in
    8th/16th-note passages a quick back-and-forth **shake** rings on both directions (like a real
    handbell). If a player still finds fast notes hard, click **Normal** next to their phone in
-   the *Phones* list to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
+   **Player details** to switch it to **🐇 Quick** (smaller, quicker strokes ring everywhere; a
    few more stray rings). Saved per phone on this PC.
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
-   Change *Bell sound* to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
+   Change **Audio → Bell sound** to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
 7. Results show the team score and a row per ringer (hits, misses, timing). **Again**,
    **🔁 Rotate + Again** (everyone moves one part) or **Lobby**. Phones can pick parts on the
-   results screen too; changes apply to the next round. Esc returns to the lobby any time.
+   results screen too; changes apply to the next round. **Back / Esc** returns to **Play** from
+   the song or results, or closes the current lobby panel and returns focus to its launcher.
 8. **Joining mid-game:** during a song and on the results screen a small QR code and the join
    address stay in the top-left corner of the TV. Someone who scans it while a song plays sees
    **You're in!** on their phone (a part comes when the next song starts) and the TV shows
@@ -129,15 +154,27 @@ problem prints a fix for you to run.
 | Several adapters | i | Prints the address phones will use and each alternative as `npm start -- --ip …`. Wi-Fi is preferred because phones are on Wi-Fi; virtual and VPN adapters (WSL, Hyper-V, Docker, NordLynx, Tailscale…) are ignored |
 | Windows Firewall (reads the Node.js rules and the network's Private/Public type) | ! | Network is Public but Node is allowed only on Private: make the network Private (Settings → Network & internet → Wi-Fi → network → Private) or `--tunnel`. A *Block* rule (Cancel on the prompt): how to remove it. No rule yet: tick **Private networks** when Windows asks. If it can't tell, a reminder to allow Node on Private networks |
 | Guest or work (domain) network | ! | Guest Wi-Fi keeps devices apart: use home Wi-Fi or `--tunnel` |
+| cloudflared not found (default mode) | i | Phones join on this Wi-Fi with a certificate warning. Install it for the tunnel: `winget install --id Cloudflare.cloudflared` |
 | `--tunnel` without cloudflared | ✗ | `winget install --id Cloudflare.cloudflared`. A portable copy in `%LOCALAPPDATA%\Programs\cloudflared` (or WinGet Links, Program Files) works without being on PATH |
+| `--tunnel` with `--lan-only`/`--no-tunnel`, or a bad `--rtc` | ✗ | Pick one |
 
 The Windows network and firewall checks can take a few seconds on a busy PC; they run while
 the game builds, and if they take over 10 s more, their result is printed after the host starts.
-The QR code works as soon as the tunnel address arrives (#19); if cloudflared gives no address in
-45 s, the launcher says so.
+In the default mode the QR shows the tunnel address once phones can open it: the host waits until
+public DNS (1.1.1.1, 8.8.8.8, 9.9.9.9, 208.67.222.222) knows the new name and an HTTPS request
+through the tunnel reaches it, then prints `Tunnel: ready at … after N s` (about 7 s in testing;
+the TV says *starting the cloud tunnel…* meanwhile). Showing it any earlier makes a phone that
+scans at once get "server not found", which its DNS then remembers for a minute. If every public
+resolver says the name doesn't exist yet (each would then remember that for a minute), the host
+gives up on that address after about 12 s and restarts cloudflared for a new one; the TV keeps
+*starting…* during the restart. If the tunnel isn't ready within 60 s (`--lan-qr-after <s>`, or
+`never` to wait until the tunnel gives up), or the internet is down, the QR shows the Wi-Fi
+address, and switches to the tunnel when it is ready. With `--tunnel` the launcher warns if no
+address arrives in 45 s.
 
 Not detected: client isolation on a Wi-Fi that isn't named like a guest network, and third-party
-firewalls. If the phones can't open the join page, try `npm start -- --tunnel`. The certificate
+firewalls. If the phones can't open a Wi-Fi join page, install cloudflared (or try
+`npm start -- --tunnel`). The certificate
 warning on the phones and help on the TV are [#26](https://github.com/dcuccia/go-go-harmoniyo/issues/26)
 (the host prints the certificate tip in the console).
 
@@ -147,6 +184,48 @@ Windows Firewall check there is a reminder: macOS asks whether `node` may accept
 connections (click Allow); on Linux, open TCP 8443 in `ufw`/`firewalld` if a firewall is
 on. cloudflared is found on PATH or in `/opt/homebrew/bin`, `/usr/local/bin`, `/usr/bin`,
 `~/.local/bin`. The browser opens with `open` / `xdg-open`.
+
+### How phones connect
+
+Nobody has to choose a route in advance ([ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md), Accepted):
+
+1. **Cloud tunnel first.** If cloudflared is found and the internet is reachable, the host starts
+   a Cloudflare quick tunnel and the QR shows its `https://….trycloudflare.com` address. It has a
+   real certificate (no warning) and works on guest Wi-Fi, through client isolation and on mobile
+   data. The address is new each run, so the QR on the TV is always the one to scan.
+2. **Then direct.** After joining, a phone tries to send its rings over a WebRTC data channel
+   straight to the PC, set up through the tunnel. On a normal home Wi-Fi this connects in a
+   second or two. The phone shows *connected (direct)* and the TV shows **direct**. If it can't
+   (guest Wi-Fi, mobile data, a firewall blocking UDP), the phone stays on the tunnel and the TV
+   shows **via tunnel**. The game is the same either way: rings are judged by when they were
+   rung on the phone, so the route only changes how quickly the TV reacts (the tunnel adds
+   roughly 20–100 ms). Rings are sent on both paths and the host keeps the first copy, so
+   switching paths mid-song doesn't lose a ring. The tunnel stays open for everything else
+   (lobby, parts, clock sync).
+3. **No cloudflared or no internet:** the QR shows the Wi-Fi address (`https://192.168…:8443`)
+   with its one-time certificate warning, as before. The TV shows **Wi-Fi**.
+
+| Option | Effect |
+|---|---|
+| *(none)* | Auto: tunnel if possible, direct upgrade, Wi-Fi fallback |
+| `--lan-only` (or `--no-tunnel`) | Never start the tunnel; Wi-Fi QR only |
+| `--tunnel` | Tunnel only; stop with an error if cloudflared is missing |
+| `--rtc auto\|on\|off` | Direct upgrade: only for tunnel phones (default), for every phone, or never |
+| `--lan-qr-after <s>\|never` | How long the TV waits for the tunnel before showing the Wi-Fi QR (default 60 s, the owner's choice in [ADR-0012](../../docs/decisions/0012-auto-tunnel-direct-upgrade.md)) |
+| `--cloudflared <path>` | Use this cloudflared |
+
+**Where cloudflared is found:** `--cloudflared <path>`, then the `GOGOHARMONIYO_CLOUDFLARED`
+environment variable, then next to the running program (`cloudflared.exe` beside
+`go-go-harmoniyo.exe` in the portable Windows zip, [#43](https://github.com/dcuccia/go-go-harmoniyo/issues/43)),
+then PATH, then the usual install folders (above).
+
+**If phones stay "via tunnel" on home Wi-Fi:** check that they are on the same Wi-Fi as the PC
+(not mobile data), and that the Windows Firewall allows Node.js on Private networks (the direct
+link uses UDP). It still plays fine via the tunnel. If the PC's internet drops mid-session, all
+phones lose their connection, including those on a direct link, which is tied to the tunnel
+connection for now. They reconnect when the same tunnel comes back. If cloudflared restarts
+with a new address, or the TV falls back to the Wi-Fi QR, everyone rescans the QR. If the internet
+stays down, restart with `npm start -- --lan-only`.
 
 ### Backing track (procedural)
 
@@ -215,16 +294,16 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | `npm run dev` | Vite dev server (http://localhost:5173) — connects to an S1 host already running on port 8080 (`cd ../s1-phone-bell && npm start`; the S1 host's own default stays 8080). For a game started with `npm start` (port 18900), add `?hgp=ws://127.0.0.1:18900/hgp`. |
 | `npm test` | Unit tests (chart → team chart mapping; seating chart: claim/swap, seeded shuffle, rotate, balance, persistence across ringer-count changes, late join, disconnect/reconnect; drop-in join queue: mid-song joiners wait and are seated first come first served; practice speed: 5 % steps, chart/tempo/beat-grid stretching, judging windows in real time, backing and count-in follow, slow-motion scroll, every generated tier; part names and difficulty; backing chord timeline, count-in and patterns; start-up checks: adapters, ports, firewall rules, cloudflared). |
 | `npm start -- --check` | Start-up checks only (same as `npm run preflight` at the repo root). `npm start -- --help` lists the options. |
-| `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/`). |
+| `npm run build` | Typecheck + build to `dist/` (also regenerates `public/charts/` and copies the brand files to `public/brand/`). |
 | `npm run e2e` | End-to-end without phones: real S1 host + S1 simulated phones (`tools/sim-phones.ts --game`) + headless Chrome. Five scenarios, one at 50 % practice speed (the stretched song, rings still judged in real time against the same offset tolerances). Add `-- --shots` for screenshots, `-- --channel=msedge` for Edge. Hosts use ports 18080+ (`-- --port=N`), so a game you are running (`npm start`, port 18900) or an S1 host on 8080 is not in the way. Flake hunting: `node scripts/e2e.mjs --repeat=50 [--load=16] [--bail]` runs the suite N times (optionally with N busy CPU threads) and appends one row per scenario to `results/e2e-repeat.ndjson`. A failing scenario prints its timing evidence (cue-anchor drift, audio clock re-anchorings, host clock-sync jumps, long frames, ring arrival latency, strays, each phone's ring plan); see [#18](https://github.com/dcuccia/go-go-harmoniyo/issues/18). Runs in CI (`.github/workflows/i2-web-phones.yml`). |
-| `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
+| `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Also checks First Ring selection, return to Standard, and a complete Deck the Halls autoplay. Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
 | `npm run e2e:dropin` | Drop-in + practice speed end-to-end (port 18600): the lobby speed control (5 % steps, kept across a reload), Alice plays at 50 % (HUD badge, phone label, stretched song, results line), Bob joins mid-song from a phone page (*You're in!*, TV corner QR + *+1 waiting*, seats unchanged), results (*Joining: Bob*, he can pick a part), **Again** seats him in the TV's part, the corner QR hides in the lobby and with `?joinQr=0`. Writes `results/dropin-e2e.json`; `-- --shots` captures `i2-ingame-join-qr.png`, `i2-results-join-qr.png` and `i2-phone-waiting.png`. |
 | `npm run e2e:takeover` | Reconnect/takeover end-to-end (port 18800), the regression for the 2026-10-25 joining thrash (two tabs of one phone kicking each other off): a second tab of a joined phone shows *connected in another tab — Use this tab* without connecting; **Use this tab** takes over exactly once and stays stable (the TV never sees the phone offline, seats unchanged, device broadcasts at heartbeat level); the TV's QR scanned again mid-song leaves the playing tab connected and ringing; two pages that can't see each other (separate profiles, same deviceId) end after one host `replaced`; and the same with Web Locks removed (iOS Safari < 15.4: localStorage heartbeat). Counts hellos/replacements in the host's event log. Writes `results/takeover-e2e.json`. |
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample, silence after stop. Writes `results/backing-render.md`. |
 | `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample (also at practice speed 0.75), the ritardando ending on time and decaying to silence, silence after stop; and each performance SFX alone: no clipping, on its scheduled sample, 6–30 dB under one bell, ducked ≥ 6 dB under a ringing bell. Writes `results/backing-render.md`. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `node scripts/webkit-controller-check.mjs` | WebKit smoke test (#27): S1's phone page in Playwright **WebKit** with an iPhone profile (`--device="iPhone 15"`) over HTTPS with the self-signed certificate, TV page in Chrome. Tap to start (stubbed `DeviceMotionEvent.requestPermission`), Web Audio unlock, joining and *Pick your part*, zones and the next-zone glow, and synthetic `devicemotion` rings (calibration, lobby practice, then the song's notes) reaching the host. Needs `npm run build` and, once, `npx playwright-core install webkit` (Linux: `--with-deps`; use `playwright-core`, already a dev dependency, so the browser matches its version). Writes `results/webkit-controller-check.{json,md}`, including what emulation can't show. An early signal, not a substitute for a real iPhone. |
-| `npm run charts` | Regenerate `public/charts/` (full form) and `public/charts/short/` from S5: every arrangement and tier, 1–4 ringers, ~15 s; skipped when nothing changed (`-- --force`). `-- --key-change` adds the step up in the last verse (off by default: it adds bells beyond a phone's 4); `-- --profile handbell --ringers 3,4,5` for the S5 defaults. URL: `?form=short`, `?parts=chord-split`, `?diff=super-easy`. |
+| `npm run charts` | Regenerate `public/charts/` (full form) and `public/charts/short/` from S5: every arrangement and tier, 1–4 ringers; skipped when nothing changed (`-- --force`). `-- --key-change` adds the step up in the last verse (off by default; it can move more notes to the TV guide because phone pitch sets stay fixed). Use `-- --profile handbell --ringers 3,4,5` for the S5 defaults. URL: `?form=short`, `?parts=chord-split`, `?diff=super-easy`. |
 
 CI ([`.github/workflows/i2-web-phones.yml`](../../.github/workflows/i2-web-phones.yml)) runs on changes to
 this folder, S1, S4, S5, `spikes/shared` or the palette: `npm ci`, `typecheck`, `test`, `build`, the
@@ -275,6 +354,17 @@ only when phones join, leave or are renamed; Ready/sync/heartbeat broadcasts pat
 dropdown within a second.) Phones talk to the seating through HGP `parts` / `claim` / `ready`
 ([hgp-v0.md](../../docs/protocol/hgp-v0.md)).
 
+### Branding
+
+The TV wears the Go Go HarmoniYo identity ([brand guide §3](../../docs/design/brand.md#3-logo-and-visual-identity)):
+the stacked lockup (G2) heads the lobby, a phone's detail row
+shows Yo ringing (Y4) for a moment when that phone rings, the corner join card carries the Yo
+mark with *Join Go Go HarmoniYo*, and the results panel has Yo cheering: Y5 (hands up) from 80 %
+team accuracy, Y2 (joy) below that. Every outcome gets a celebration. The UI accent (`--gold`) is
+candlelight `#f3b01d` and the page is the stage `#0b0d17`; the note highways keep their darker
+`#05040d`, which the pitch-class palette's contrast checks use. Yo's motion stops with
+`prefers-reduced-motion`. Favicon, app icons and `theme-color` come from the same files.
+
 ## Changes made to the other spikes (additive)
 
 - **S1** host: `--game <dir>` serves a static game at `/game/`; dashboard commands
@@ -289,6 +379,8 @@ dropdown within a second.) Phones talk to the seating through HGP `parts` / `cla
   Drop-in: `parts.waiting` from the game → `next` per phone; controller **You're in!** screen.
   Fast rings: `assign-bells` also relays `ring` (`{sens, ioi}`) → HGP `assign.ring`; the controller
   adapts its ring detector to its `cues` (fast passages) and to Normal/Quick sensitivity.
+  Branding: the host serves `docs/design/brand/` at `/brand/`, `/favicon.ico` and the phone's
+  `/manifest.webmanifest`; the controller, dashboard and meter carry the lockup, favicon and stage colours.
 - **S4**: `Session` accepts any renderer/HUD with the same methods, an `onJudgement` hook and
   `hostRingSound`; `HighwayRenderer` `fitCanvas`/`fitLanes` options. Lane, gem and phone colours
   come from the shared pitch-class palette (`spikes/shared/pitch-palette.ts`, #12), so a bell
@@ -310,7 +402,11 @@ sources (licence per song in each chart's `song.license`); bell sound is S4's ad
 on the TV and S1's synth on the phones. The backing track (sleigh bells, drums, bass, organ/pad/strings,
 celesta, glockenspiel, count-in) and the performance SFX (sparkles, whoosh, boop, fanfare, applause)
 are synthesised live with Web Audio from code in `src/backing/` and `src/sfx/` — no samples or
-audio files, so there is no media to register. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
+audio files, so there is no media to register. The brand files (lobby lockup, Yo states, favicon,
+app icons) are copied at build time from [`docs/design/brand/`](../../docs/design/brand/README.md)
+into `public/brand/` (gitignored) by `npm run brand` (part of `prebuild`/`predev`); the sources are
+registered as `brand-identity` and `brand-yo-defaults` (CC BY 4.0), and the copies are never edited.
+`public/manifest.webmanifest` makes the TV page installable with those icons. npm dependencies: three (MIT), vite (MIT), vitest (MIT),
 typescript (Apache-2.0), playwright-core (Apache-2.0).
 
 Platform notes for the backing: it runs on the TV host only; phones are unchanged. Verified in

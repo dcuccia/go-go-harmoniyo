@@ -2,8 +2,9 @@
 // the real host; the game assigns it a chart part; this script taps the cued zone, then the bell,
 // at each note's time — exercising assign → zones → cue glow → tap gesture → host relay → judge.
 // Motion-sensor ringing itself is covered by S1 (emulation) and needs a real phone.
-//   npm run build && node scripts/controller-check.mjs [--song silent-night] [--diff easy] [--shots]
+//   npm run build && node scripts/controller-check.mjs [--song silent-night] [--diff easy] [--shots] [--rtc=on]
 import { spawn } from 'node:child_process';
+import assert from 'node:assert/strict';
 import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,19 +21,22 @@ const opt = (k, d) => argv.find((a) => a.startsWith(`--${k}=`))?.split('=')[1] ?
 const song = opt('song', 'silent-night');
 const diff = opt('diff', 'easy');
 const shots = argv.includes('--shots');
+// --rtc=on: the phone upgrades to the direct WebRTC data channel (ADR-0012) and gestures are
+// dual-sent; the check then also requires the channel to open and the host to drop the duplicates.
+const rtc = opt('rtc', '');
 const port = 18300;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+let hostLog = '';
 const host = await new Promise((resolve, reject) => {
-  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
-  let buf = '';
+  const p = spawn(process.execPath, [tsx, 'src/host/server.ts', '--no-open', '--lan-only', ...(rtc ? ['--rtc', rtc] : []), '--game', join(root, 'dist'), '--http-port', String(port), '--port', String(port + 363)], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   const on = (d) => {
-    buf += d.toString();
-    if (buf.includes('Game (TV)')) resolve(p);
+    hostLog += d.toString();
+    if (hostLog.includes('Game (TV)')) resolve(p);
   };
   p.stdout.on('data', on);
   p.stderr.on('data', on);
-  p.on('exit', (c) => reject(new Error(`host exited ${c}:\n${buf}`)));
+  p.on('exit', (c) => reject(new Error(`host exited ${c}:\n${hostLog}`)));
 });
 
 const browser = await chromium.launch({ channel: opt('channel', 'chrome'), headless: !argv.includes('--headed'), args: ['--autoplay-policy=no-user-gesture-required', '--disable-background-timer-throttling', '--disable-renderer-backgrounding'] });
@@ -47,15 +51,27 @@ try {
   await phone.tap('#start');
   await phone.waitForSelector('#main:not([hidden])');
   await phone.tap('#tap-toggle');
+  if (rtc === 'on') {
+    // The upgrade is offered in the welcome; the phone's status line shows when the channel is open.
+    await phone.waitForFunction(() => /connected \(direct\)/.test(document.body.innerText), null, { timeout: 20000 });
+    console.log('phone: direct link open');
+  }
 
   const game = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   await game.goto(`http://127.0.0.1:${port}/game/?song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
-  // Assignment reaches the phone: 4 zones in the chart's lane colours.
+  // Assignment reaches the phone in the same pitch order as the TV highway.
   await phone.waitForFunction(() => document.querySelectorAll('#zones .zone').length >= 2, null, { timeout: 20000 });
   const zones = await phone.$$eval('#zones .zone', (els) => els.map((e) => e.querySelector('small')?.textContent ?? ''));
   console.log(`phone zones: ${zones.join(' ')}`);
   await game.waitForFunction(() => window.__i2?.session, null, { timeout: 30000 });
+  const lanes = await game.evaluate(() => window.__i2.team.ringers[0].bells.map(({ id }) => id));
+  assert.deepEqual(zones, lanes, 'zones follow TV lane order');
+  if (diff === 'easy') {
+    assert.equal(zones.length, 2);
+    const [low, high] = await phone.locator('#zones .zone').evaluateAll((els) => els.map((el) => el.getBoundingClientRect().left));
+    assert.ok(low < high, 'Easy puts the lower pitch on the left');
+  }
 
   // Note schedule on the shared wall clock (both pages are in one browser on one PC).
   const plan = await game.evaluate(() => {
@@ -102,11 +118,12 @@ try {
   if (shots) await game.screenshot({ path: join(outDir, 'i2-phone-controller-results.png') });
   const p = r.players[0];
   const hit = p.perfect + p.great + p.good;
-  const summary = { song, diff, zones, notes: p.notes, hit, perfect: p.perfect, miss: p.miss, strays: p.strays, offsetMs: p.offsetMs, glow: `${glowOk}/${glowChecked}`, input: r.hgp.input, errors };
+  const direct = rtc === 'on' ? { stillDirect: /connected \(direct\)/.test(await phone.evaluate(() => document.body.innerText)), hostSaw: hostLog.includes('direct link open'), closed: hostLog.includes('direct link closed') } : undefined;
+  const summary = { song, diff, zones, notes: p.notes, hit, perfect: p.perfect, miss: p.miss, strays: p.strays, offsetMs: p.offsetMs, glow: `${glowOk}/${glowChecked}`, input: r.hgp.input, direct, errors };
   console.log(JSON.stringify(summary, null, 2));
-  writeFileSync(join(outDir, 'controller-check.json'), JSON.stringify(summary, null, 2));
+  if (!argv.includes('--no-report')) writeFileSync(join(outDir, 'controller-check.json'), JSON.stringify(summary, null, 2));
   if (shots) copyFileSync(join(outDir, 'i2-phone-controller.png'), join(root, '..', '..', 'docs', 'spikes', 'media', 'i2-phone-controller.png'));
-  ok = hit / p.notes >= 0.8 && glowOk / glowChecked >= 0.8 && errors.length === 0;
+  ok = hit / p.notes >= 0.8 && glowOk / glowChecked >= 0.8 && errors.length === 0 && (!direct || (direct.stillDirect && direct.hostSaw && !direct.closed));
 } finally {
   await browser.close();
   host.kill();

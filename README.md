@@ -1,4 +1,10 @@
-# Go Go HarmoniYo
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: light)" srcset="docs/design/brand/logo-stacked-light.svg" />
+    <source media="(prefers-color-scheme: dark)" srcset="docs/design/brand/logo-stacked-dark.svg" />
+    <img src="docs/design/brand/logo-stacked-dark.svg" alt="Go Go HarmoniYo" width="480" />
+  </picture>
+</h1>
 
 A rhythm game for **handbell ringers**, inspired by games like Guitar Hero and Rock Band. Play
 solo, as a family, or as a whole classroom ringing together in front of one shared screen.
@@ -33,6 +39,9 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 > **Play the prototype:** with Node.js 22+, run `npm start` at the repo root. It checks the setup
 > (ports, network, firewall), installs, builds and opens the game; scan the QR code with the
 > phones. See the [runbook](spikes/i2-web-phones/README.md#owner-runbook-tv-playthrough-10-minutes).
+> Without Node.js on Windows, use the portable zip
+> ([tools/package/windows](tools/package/windows/README.md)): unzip and double-click
+> `Play Go Go HarmoniYo.cmd`.
 
 ## Guiding principles
 
@@ -78,6 +87,45 @@ judges timing, keeps team streaks, and makes learning ensemble music feel like a
 | [tools/licensing/](tools/licensing/README.md) | License gate, asset-register checks, attribution generator (CI: `licensing`) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Licenses, asset checklist, gen-AI rules, DCO sign-off |
 | [AGENTS.md](AGENTS.md) | How agents (and humans) work in this repo |
+
+## Code signing policy
+
+Windows releases (the portable zip on [GitHub Releases](https://github.com/dcuccia/go-go-harmoniyo/releases))
+are built from this repository by GitHub Actions on GitHub-hosted runners
+([`windows-package.yml`](.github/workflows/windows-package.yml)). Only the project's own program,
+`go-go-harmoniyo.exe`, is signed. `cloudflared.exe` keeps Cloudflare's own signature.
+
+**Releases so far are unsigned.** The project is applying to the
+[SignPath Foundation](https://signpath.org)'s free code signing for open-source projects
+([ADR-0013](docs/decisions/0013-windows-code-signing.md)). Once SignPath accepts, Windows
+releases carry:
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by
+[SignPath Foundation](https://signpath.org)
+
+- Committers and reviewers: [@dcuccia](https://github.com/dcuccia)
+- Approvers: [@dcuccia](https://github.com/dcuccia), who approves every signing request by hand
+
+### Privacy
+
+Go Go HarmoniYo has no accounts, analytics, ads or telemetry, and it doesn't upload logs.
+
+- **Local web server.** The program runs a web server on the PC so that phones can join.
+  Phones on the same network can connect to the PC directly.
+- **Cloudflare tunnel (on by default).** The program also starts a Cloudflare quick tunnel
+  (`trycloudflare.com`), using the included `cloudflared.exe`, so that phones on any network can
+  join without a certificate warning. Game traffic between phones and the PC then passes through
+  Cloudflare, under [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
+  While the tunnel starts, the program asks public DNS resolvers (1.1.1.1, 8.8.8.8, 9.9.9.9,
+  208.67.222.222) whether the tunnel's address is ready.
+- **Staying on your own network.** Start with `--lan-only` to keep everything on your local
+  network.
+- **Files on the PC.** The PC's certificate and session logs stay on the PC; the Windows zip
+  keeps them in `%LOCALAPPDATA%\GoGoHarmoniYo`. To uninstall the zip, delete the game folder and
+  that folder (see `README.txt` in the zip).
+
+The Windows zip's `README.txt` repeats this notice, and the program prints a one-line summary
+each time it starts.
 
 ## License
 

@@ -37,6 +37,14 @@ describe('parseStartArgs', () => {
     expect(parseStartArgs(['--http-port=18900']).httpPortGiven).toBe(true);
     expect(parseStartArgs(['--port', 'abc']).httpsPort).toBeNaN();
   });
+  it('works out how phones connect, like the host does (ADR-0012)', () => {
+    expect(parseStartArgs([]).mode).toBe('auto');
+    expect(parseStartArgs(['--tunnel']).mode).toBe('tunnel');
+    for (const a of [['--lan-only'], ['--no-tunnel'], ['--no-https'], ['--public-url', 'https://x.example'], ['--cert=a.pem']]) {
+      expect(parseStartArgs(a).mode).toBe('lan');
+    }
+    expect(parseStartArgs(['--no-tunnel']).lanOnly).toBe(true);
+  });
   it('keeps the default TV port away from 8080 and the test scripts\' ports (#53)', () => {
     const { httpPort } = parseStartArgs([]);
     expect(httpPort).not.toBe(8080);
@@ -59,6 +67,21 @@ describe('argProblems', () => {
   it('explains options that npm swallowed because they came without --', () => {
     const [f] = argProblems(['10.9.8.7'], { npm_lifecycle_event: 'start', npm_config_tunnel: 'true', npm_config_ip: 'true' });
     expect(f.title).toBe('npm kept --tunnel, --ip for itself: put game options after --');
+    expect(argProblems([], { npm_lifecycle_event: 'start', npm_config_tunnel: 'false' })[0].title).toContain('--no-tunnel');
+    expect(argProblems([], { npm_lifecycle_event: 'start', npm_config_lan_only: 'true' })[0].title).toContain('--lan-only');
+  });
+  it('accepts --lan-only/--no-tunnel/--rtc/--cloudflared and rejects contradictions', () => {
+    expect(argProblems(['--lan-only', '--rtc', 'off', '--cloudflared', 'C:\\cf\\cloudflared.exe'], {})).toEqual([]);
+    expect(argProblems(['--no-tunnel', '--rtc=on'], {})).toEqual([]);
+    expect(argProblems(['--tunnel', '--lan-only'], {})[0].title).toContain('contradict');
+    expect(argProblems(['--rtc', 'maybe'], {})[0].title).toContain('--rtc must be');
+  });
+  it('checks --lan-qr-after (seconds or "never") and recovers it from npm', () => {
+    expect(argProblems(['--lan-qr-after', '60'], {})).toEqual([]);
+    expect(argProblems(['--lan-qr-after=never'], {})).toEqual([]);
+    expect(argProblems(['--lan-qr-after', 'soon'], {})[0].title).toContain('--lan-qr-after must be');
+    const lost = argProblems([], { npm_lifecycle_event: 'start', npm_config_lan_qr_after: '60' });
+    expect(lost[0].title).toContain('--lan-qr-after');
   });
   it('knows exactly the options of the S1 host (server.ts)', () => {
     const src = readFileSync(join(__dirname, '..', '..', 's1-phone-bell', 'src', 'host', 'server.ts'), 'utf8');
@@ -167,12 +190,48 @@ describe('cloudflared', () => {
     mkdirSync(join(dir, 'Programs', 'cloudflared'), { recursive: true });
     writeFileSync(exe, '');
     const env = { PATH: 'C:\\nowhere', LOCALAPPDATA: dir, PATHEXT: '.EXE' };
-    expect(findCloudflared(env, 'win32')).toEqual({ path: exe, onPath: false });
-    const r = await runPreflight(parseStartArgs(['--tunnel', '--http-port', '1']), { platform: 'win32', env, ifaces: {} });
+    expect(findCloudflared(env, 'win32', '')).toEqual({ path: exe, onPath: false, source: 'install-folder' });
+    const r = await runPreflight(parseStartArgs(['--tunnel', '--http-port', '1']), { platform: 'win32', env, ifaces: {}, execPath: '' });
     expect(r.env.PATH.startsWith(join(dir, 'Programs', 'cloudflared'))).toBe(true);
+    expect(r.cloudflared).toBe(exe);
   });
   it('reports nothing when it is nowhere', () => {
-    expect(findCloudflared({ PATH: '', LOCALAPPDATA: join(dir, 'none'), ProgramFiles: join(dir, 'none'), 'ProgramFiles(x86)': join(dir, 'none') }, 'win32')).toBeNull();
+    expect(findCloudflared({ PATH: '', LOCALAPPDATA: join(dir, 'none'), ProgramFiles: join(dir, 'none'), 'ProgramFiles(x86)': join(dir, 'none') }, 'win32', join(dir, 'none', 'x.exe'))).toBeNull();
+  });
+  it('looks in $GOGOHARMONIYO_CLOUDFLARED, then next to the program, then PATH (same order as the host)', () => {
+    const app = join(dir, 'portable');
+    const onPath = join(dir, 'bin');
+    mkdirSync(app, { recursive: true });
+    mkdirSync(onPath, { recursive: true });
+    const beside = join(app, 'cloudflared.exe');
+    const pathExe = join(onPath, 'cloudflared.exe');
+    const custom = join(dir, 'custom-cloudflared.exe');
+    for (const f of [beside, pathExe, custom]) writeFileSync(f, '');
+    const env = { PATH: onPath, PATHEXT: '.EXE' };
+    const exe = join(app, 'go-go-harmoniyo.exe');
+    expect(findCloudflared({ ...env, GOGOHARMONIYO_CLOUDFLARED: custom }, 'win32', exe)).toMatchObject({ path: custom, source: 'env' });
+    expect(findCloudflared(env, 'win32', exe)).toMatchObject({ path: beside, source: 'beside-exe', onPath: false });
+    expect(findCloudflared(env, 'win32', join(dir, 'elsewhere', 'node.exe'))).toMatchObject({ path: pathExe, source: 'path', onPath: true });
+    // A stale env value is skipped rather than trusted.
+    expect(findCloudflared({ ...env, GOGOHARMONIYO_CLOUDFLARED: join(dir, 'gone.exe') }, 'win32', exe)).toMatchObject({ source: 'beside-exe' });
+  });
+  it('by default (auto) a missing cloudflared is fine: phones join on the Wi-Fi', async () => {
+    const r = await runPreflight(parseStartArgs(['--http-port', '1', '--port', '1']), { platform: 'linux', env: { PATH: '' }, ifaces: {}, execPath: '' });
+    const f = r.findings.find((x) => x.title.startsWith('cloudflared not found'));
+    expect(f?.level).toBe('info');
+    expect(r.cloudflared).toBeNull();
+  });
+  it('by default (auto) uses cloudflared when found, and --lan-only skips it', async () => {
+    const app = join(dir, 'auto');
+    mkdirSync(app, { recursive: true });
+    writeFileSync(join(app, 'cloudflared'), '');
+    const execPath = join(app, 'go-go-harmoniyo');
+    const auto = await runPreflight(parseStartArgs(['--http-port', '1', '--port', '1']), { platform: 'linux', env: { PATH: '' }, ifaces: {}, execPath });
+    expect(auto.cloudflared).toBe(join(app, 'cloudflared'));
+    expect(formatFindings(auto.findings)).toContain('then switch to a direct Wi-Fi link');
+    const lan = await runPreflight(parseStartArgs(['--lan-only', '--http-port', '1', '--port', '1']), { platform: 'linux', env: { PATH: '' }, ifaces: {}, execPath });
+    expect(lan.cloudflared).toBeNull();
+    expect(lan.findings.some((x) => x.title.includes('cloudflared'))).toBe(false);
   });
 });
 

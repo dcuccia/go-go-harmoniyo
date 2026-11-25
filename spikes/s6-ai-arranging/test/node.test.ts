@@ -32,6 +32,30 @@ test('private CA is trusted only when its SHA-256 matches', () => {
   assert.throws(() => loadConfig({ CUCCIA_AI_BASE_URL: 'https://north.local', CUCCIA_AI_CA_CERT: p }), /refusing to trust/);
 });
 
+test('private CA also matches by certificate fingerprint (SHA-256 of the DER), the form cuccia-infra publishes', () => {
+  // Throwaway self-signed P-256 certificate generated for this test; no private key exists anywhere.
+  const pem = [
+    '-----BEGIN CERTIFICATE-----',
+    'MIIBUDCB9qADAgECAgg5gO1lJmnY7jAKBggqhkjOPQQDAjAuMSwwKgYDVQQDEyNn',
+    'by1nby1oYXJtb25peW8gdGVzdCBDQSAodGhyb3dhd2F5KTAeFw0yNjAxMDEwODAw',
+    'MDBaFw00NjAxMDEwODAwMDBaMC4xLDAqBgNVBAMTI2dvLWdvLWhhcm1vbml5byB0',
+    'ZXN0IENBICh0aHJvd2F3YXkpMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEcVcx',
+    'y0vTVzgD8MQI0qfFJI2563aCI0hA8cDz9KFN9i52BIAu69J8jKHgIwLa9CqDZD48',
+    'pmA3XzpELYFeVxTkUjAKBggqhkjOPQQDAgNJADBGAiEArkC+Ob4zAOoIpTn2hvzB',
+    'NvsklJZWNty9sK+oZVsyNWYCIQDi6Udy3nYpMMcSRlUYbSTg9X8DXVRQ/u42LYZJ',
+    'aM1XpQ==',
+    '-----END CERTIFICATE-----',
+    '',
+  ].join('\n');
+  const fingerprint = 'cc408a9de5b33e08ad524ef0f93c99d525a47526f8329359dba9eed9383adfbc';
+  const p = join(tmp, 'real-ca.crt');
+  writeFileSync(p, pem);
+  assert.equal(loadVerifiedCa(p, fingerprint), pem);
+  assert.equal(loadVerifiedCa(p, fingerprint.toUpperCase().match(/../g)!.join(':')), pem);
+  assert.equal(loadVerifiedCa(p, createHash('sha256').update(pem).digest('hex')), pem);
+  assert.throws(() => loadVerifiedCa(p), /certificate SHA-256 cc408a9d.*refusing to trust/);
+});
+
 test('caFetch (the CA-aware transport) carries JSON, multipart jobs and downloads', async () => {
   const node = await startMockNode({ chat: () => 'ok' });
   try {

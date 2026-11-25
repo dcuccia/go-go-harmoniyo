@@ -41,9 +41,15 @@ Format 0.3 (all additions optional; 0.1/0.2 charts stay valid):
     wider window since there is no bass ringer); as many as leave enough tune ringers for the
     tune's bells; the backing plays the bass.
   - `by-range`: the 0.2 algorithm (bells cut into ranges by load, roles ignored), for comparison.
-- **Tiers**: `super-easy` (new; the tune's downbeats and long notes ≥ 1 s apart, ≤ 3 bells per
+- **Tiers**: `super-easy` (the tune's downbeats and long notes ≥ 1 s apart, ≤ 3 bells per
   ringer, optional bass on chord changes; the host plays the rest of the tune softly from the
   part's `guide`), `easy`, `medium`, `hard`. A descant nobody holds is also a `guide`.
+  The Node game and S9 share a stricter ladder for `phone-4zone` only: **Super easy** picks up to
+  two pitches per ringer to spread cues through the song, at least 1 s apart. **Easy** keeps
+  up to two with at least 450 ms between pitch changes, **Medium** up
+  to four with faster changes, and **Hard** the same four-pitch ceiling with faster passages
+  and offbeat chord-tone pickups on bells already held. The guide supplies unassigned melody and
+  descant notes once; the timing judge and the curated **First Ring** preset are unchanged.
 - **Fairness** (`results/metrics.md`): Jain's index on each ringer's load (strikes + ½ bell
   changes), strikes and bells min–max, mixed-role and one-bell ringers, before (0.2, by-range,
   short) vs after (balanced, full) for the `handbell` and `phone-4zone` profiles.
@@ -53,6 +59,14 @@ Format 0.3 (all additions optional; 0.1/0.2 charts stay valid):
 Committed `charts/` carry the balanced arrangement for 4 ringers (every tier; the S1 YARG bridge
 defaults to 4 — rebuild with `--ringers 3,4,5` for other counts); the I2 game builds its own charts
 with every arrangement, 1–4 ringers and both lengths.
+
+**First Ring (#92)** is a separate opt-in Short preset for Jingle Bells and Deck the Halls.
+`src/first-ring.mjs` selects spaced accents from the source melody. Each of 1–4 ringers
+has exactly one pitch, and the TV guide plays every melody note that isn't scored. Adding
+a ringer adds their accents without replacing the other players' notes. The I2 build emits
+`charts/first-ring/<song-id>.json` and advertises it in the song index under
+`firstRing: { durationSec, ringerCounts }`. Select the matching `super-easy` / `balanced`
+part from that URL only; normal Full and Short charts are unchanged.
 
 ## Harmony block (chart format 0.2)
 

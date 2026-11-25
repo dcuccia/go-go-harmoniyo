@@ -1,0 +1,137 @@
+name: windows-package
+
+# The portable Windows download-and-play zip (#43, tools/package/windows/README.md): builds the
+# Node SEA package on windows-latest, smoke-tests it, and uploads the zip + SHA256SUMS.txt as a
+# workflow artifact. On a `v*` tag push, the `release` job also attaches them to the GitHub
+# release for that tag, creating it as a DRAFT (pre-release for versions like 0.1.0-alpha) with
+# docs/release/<tag>.md as the notes. It never publishes: a person reviews and publishes the
+# draft. Manual runs and PRs only upload the workflow artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version (default: the tag, or <game version>+<commit>)'
+        required: false
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - 'tools/package/windows/**'
+      - 'tools/licensing/**'
+      - 'spikes/i2-web-phones/**'
+      - 'spikes/s1-phone-bell/**'
+      - 'spikes/s5-chart-pipeline/charts/**'
+      - 'docs/design/brand/**'
+      - '.github/workflows/windows-package.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-package-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  package:
+    name: build and smoke-test the Windows package
+    runs-on: windows-latest
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.build.outputs.version }}
+      zip: ${{ steps.build.outputs.zip }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            spikes/i2-web-phones/package-lock.json
+            spikes/s1-phone-bell/package-lock.json
+            tools/package/windows/package-lock.json
+      - name: npm ci (I2 game, S1 host, packaging tools)
+        run: |
+          npm ci --no-audit --no-fund --prefix spikes/i2-web-phones
+          npm ci --no-audit --no-fund --prefix spikes/s1-phone-bell
+          npm ci --no-audit --no-fund --prefix tools/package/windows
+      - name: Build (pinned Node + cloudflared, bundle license gate, SEA, zip)
+        id: build
+        env:
+          VERSION: ${{ inputs.version }}
+        shell: pwsh
+        run: |
+          if ($env:VERSION) { node tools/package/windows/build.mjs --version $env:VERSION } else { node tools/package/windows/build.mjs }
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+      - name: Smoke test (start the exe, check the game, QR code and phone page)
+        run: node tools/package/windows/smoke.mjs
+      - name: Summary
+        if: success()
+        shell: pwsh
+        run: |
+          $sums = Get-Content tools/package/windows/out/SHA256SUMS.txt -Raw
+          @"
+          ### Go Go HarmoniYo ${{ steps.build.outputs.version }} for Windows
+
+          Artifact: ``go-go-harmoniyo-${{ steps.build.outputs.version }}-windows-x64`` (see tools/package/windows/README.md for the clean-account checklist). Tag builds also attach it to a draft GitHub release.
+
+          ``````
+          $sums
+          ``````
+          "@ | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: go-go-harmoniyo-${{ steps.build.outputs.version }}-windows-x64
+          path: |
+            tools/package/windows/out/${{ steps.build.outputs.zip }}
+            tools/package/windows/out/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+
+  release:
+    name: attach the zip to the draft GitHub release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The only job that can write: it creates a draft release and uploads release assets.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: docs/release
+      - uses: actions/download-artifact@v4
+        with:
+          name: go-go-harmoniyo-${{ needs.package.outputs.version }}-windows-x64
+          path: dist
+      - name: Create the draft release if there is none, then upload the zip and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ needs.package.outputs.version }}
+          ZIP: ${{ needs.package.outputs.zip }}
+        run: |
+          set -euo pipefail
+          # Drafts aren't found by tag through /releases/tags/<tag>, so list them all.
+          existing=$(gh api "repos/$GH_REPO/releases" --paginate --jq ".[] | select(.tag_name == \"$TAG\") | .id")
+          if [ -n "$existing" ]; then
+            echo "Release for $TAG already exists ($existing); attaching the files to it."
+          else
+            args=(--draft --verify-tag --title "Go Go HarmoniYo $TAG")
+            case "$VERSION" in *-*) args+=(--prerelease) ;; esac
+            notes="docs/release/$TAG.md"
+            if [ -f "$notes" ]; then
+              args+=(--notes-file "$notes")
+            else
+              echo "::warning::$notes not found; using a placeholder. Edit the draft's notes before publishing."
+              args+=(--notes "Go Go HarmoniYo $TAG. See CHANGELOG.md.")
+            fi
+            gh release create "$TAG" "${args[@]}"
+          fi
+          gh release upload "$TAG" "dist/$ZIP" dist/SHA256SUMS.txt --clobber
+          {
+            echo "### Draft release $TAG"
+            echo
+            echo "Attached \`$ZIP\` and \`SHA256SUMS.txt\`. Review the draft at https://github.com/$GH_REPO/releases and publish it by hand."
+          } >> "$GITHUB_STEP_SUMMARY"

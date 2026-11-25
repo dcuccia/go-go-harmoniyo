@@ -3,8 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Go Go HarmoniYo — I2 phones + web host</title>
-    <link rel="icon" href="data:," />
+    <title>Go Go HarmoniYo</title>
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0d17" />
+    <!-- Brand files are copied from docs/design/brand by scripts/brand-assets.mjs (npm run brand). -->
+    <link rel="icon" href="/brand/favicon.ico" sizes="48x48" />
+    <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
   </head>
   <body>
     <div id="highways"></div>
@@ -33,23 +39,73 @@
 
     <div id="lobby" class="overlay">
       <div class="lobby">
+        <h1 class="brand"><img src="/brand/logo-stacked-dark.svg" alt="Go Go HarmoniYo" /></h1>
         <section class="join">
-          <h1>Go Go <span>HarmoniYo</span></h1>
-          <p class="sub">Scan to join with your phone</p>
-          <img id="qr" alt="QR code for the phone join URL" />
+          <h2>Scan to join</h2>
+          <img id="qr" alt="QR code for the phone join URL" hidden />
           <div id="join-url">waiting for host…</div>
-          <ol class="steps">
-            <li>Same Wi-Fi as this PC. Scan, then accept the certificate warning once (Advanced → Proceed).</li>
-            <li>Type your name, tap <b>Start</b>, allow motion. Hold the phone like a bell.</li>
-            <li>Ring it — your lanes light up here. Touch a coloured zone to pick a bell, swing to ring.</li>
-          </ol>
-          <div id="host-state" class="dim"></div>
         </section>
-        <section class="setup">
-          <div class="row">
-            <label>Song <select id="sel-song"></select></label>
+        <section class="quick-setup" aria-label="Set up a round">
+          <button id="choose-song" class="song-choice" aria-haspopup="dialog" disabled>
+            <span>Choose song</span>
+            <strong id="chosen-song">Loading songs…</strong>
+          </button>
+          <div class="joined" aria-live="polite">
+            <h2 id="joined-count">No players yet</h2>
+            <ul id="joined-players"></ul>
+          </div>
+          <p id="parts-summary">Phones get parts when they join. The TV plays open parts.</p>
+          <button id="btn-play" class="primary" aria-describedby="lobby-msg">Play</button>
+          <p id="lobby-msg" class="error" role="status"></p>
+          <div class="lobby-actions">
+            <button id="open-round" data-panel="round-options" aria-haspopup="dialog">Round options</button>
+            <button id="open-audio" data-panel="audio-options" aria-haspopup="dialog">Audio</button>
+            <button id="open-help" data-panel="join-help" aria-haspopup="dialog">Join help</button>
+          </div>
+        </section>
+      </div>
+
+      <dialog id="song-picker" class="lobby-panel" aria-labelledby="song-picker-title">
+        <h2 id="song-picker-title">Choose a song</h2>
+        <div id="song-options"></div>
+        <button data-back>Back</button>
+      </dialog>
+
+      <dialog id="join-help" class="lobby-panel" aria-labelledby="join-help-title">
+        <h2 id="join-help-title">Join help</h2>
+        <ol class="steps">
+          <li id="lan-help" hidden>Use the same Wi-Fi as the PC (not guest Wi-Fi). If your phone warns about the certificate, use Advanced → Proceed (Chrome) or Show Details → visit this website (Safari).</li>
+          <li>Scan the QR code with your phone's camera.</li>
+          <li>Type your name, tap <b>Start</b>, allow motion. Hold the phone like a bell.</li>
+          <li>Ring six times to calibrate. Touch a coloured zone to pick a bell, then swing to ring.</li>
+        </ol>
+        <div id="host-state" class="dim"></div>
+        <button data-back>Back</button>
+      </dialog>
+
+      <dialog id="round-options" class="lobby-panel setup" aria-labelledby="round-options-title">
+          <h2 id="round-options-title">Round options</h2>
+          <button id="edit-seating" data-panel="seating-options" aria-haspopup="dialog">Edit seating</button>
+          <p class="help">Use up/down to move and left/right to change a setting.</p>
+          <div class="row backing-row">
+            <label>Round style
+              <select id="sel-round-style" aria-describedby="round-style-info" disabled>
+                <option value="standard">Standard</option>
+                <option value="first-ring">First Ring</option>
+              </select>
+            </label>
+            <span id="round-style-info" class="dim" role="status"></span>
           </div>
           <div class="row">
+            <label>Ringers
+              <select id="sel-ringers">
+                <option value="auto">Automatic</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </label>
             <label>Difficulty
               <select id="sel-diff">
                 <option value="super-easy">Super easy</option>
@@ -71,14 +127,23 @@
                 <option value="short">Short</option>
               </select>
             </label>
-            <label>Ringers
-              <select id="sel-ringers">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
+          </div>
+          <div class="row backing-row speed-row">
+            <label title="Play the song slower to learn it: bells, highways, backing and count-in all slow down; timing is judged the same">
+              Practice speed <input type="range" id="rng-speed" min="50" max="100" step="5" /> <b id="speed-val"></b>
             </label>
+            <span id="speed-info" class="dim"></span>
+          </div>
+          <div class="buttons">
+            <button id="btn-auto">Autoplay demo</button>
+            <button data-back>Back</button>
+          </div>
+      </dialog>
+
+      <dialog id="audio-options" class="lobby-panel setup" aria-labelledby="audio-options-title">
+          <h2 id="audio-options-title">Audio</h2>
+          <p class="help">Use up/down to move and left/right to change a setting.</p>
+          <div class="row">
             <label>Bell sound
               <select id="sel-sound">
                 <option value="device">Phones (recommended)</option>
@@ -102,14 +167,13 @@
             </label>
             <label>Volume <input type="range" id="rng-sfx" min="0" max="100" step="5" /> <span id="sfx-vol" class="dim"></span></label>
           </div>
-          <div class="row backing-row speed-row">
-            <label title="Play the song slower to learn it: bells, highways, backing and count-in all slow down; timing is judged the same">
-              Practice speed <input type="range" id="rng-speed" min="50" max="100" step="5" /> <b id="speed-val"></b>
-            </label>
-            <span id="speed-info" class="dim"></span>
-          </div>
+          <div id="backing-info" class="dim"></div>
+          <button data-back>Back</button>
+      </dialog>
+
+      <dialog id="seating-options" class="lobby-panel" aria-labelledby="seating-options-title">
           <div class="seat-bar">
-            <h3>Who plays what</h3>
+            <h2 id="seating-options-title">Who plays what</h2>
             <span id="seat-tools">
               <button id="btn-shuffle" title="Random parts for everyone">🎲 Shuffle</button>
               <button id="btn-rotate" title="Everyone moves one part to the right">🔁 Rotate</button>
@@ -118,31 +182,32 @@
           </div>
           <div id="seating"></div>
           <div id="part-info" class="dim"></div>
-          <div id="backing-info" class="dim"></div>
           <div class="buttons">
-            <button id="btn-play" class="primary">▶ Play</button>
-            <button id="btn-auto">Autoplay demo</button>
-            <span id="ready-info" class="dim"></span>
+            <button id="open-players" data-panel="player-details" aria-haspopup="dialog">Player details</button>
+            <button data-back>Back</button>
           </div>
-          <p id="lobby-msg" class="error"></p>
           <p class="help">
-            <kbd>Enter</kbd> play · <kbd>Esc</kbd> back to lobby · <kbd>←</kbd>/<kbd>→</kbd> A/V offset · <kbd>`</kbd> stats.
             Drag a player onto a part (onto a taken part to swap), or click a part to choose who plays it.
-            TV remote: <kbd>↓</kbd> then arrows and <kbd>Enter</kbd>. Phones can pick their own part too.
+            TV remote: arrows to move, centre to choose. Phones can pick their own part too.
             A part given to <b>Keyboard</b> rings with <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd>.
-            Quality: <a href="?bloom=0">no bloom</a> · <a href="?bloom=0&amp;particles=0&amp;dpr=1">low</a> · <a href="?">high</a>
           </p>
-        </section>
-        <section class="phones">
-          <h3>Phones <span id="phone-count"></span></h3>
+      </dialog>
+
+      <dialog id="player-details" class="lobby-panel phones" aria-labelledby="player-details-title">
+          <h2 id="player-details-title">Phones <span id="phone-count"></span></h2>
           <ul id="phones"></ul>
-        </section>
-      </div>
+          <p class="help">Quality: <a href="?bloom=0">no bloom</a> · <a href="?bloom=0&amp;particles=0&amp;dpr=1">low</a> · <a href="?">high</a></p>
+          <p class="dim">Go Go HarmoniYo <span id="app-version"></span> · <a href="https://github.com/dcuccia/go-go-harmoniyo" target="_blank" rel="noopener">GitHub</a></p>
+          <button data-back>Back</button>
+      </dialog>
     </div>
 
     <div id="results" class="overlay hidden">
       <div class="panel wide">
-        <h2 id="res-title">Results</h2>
+        <div class="res-head">
+          <h2 id="res-title">Results</h2>
+          <img id="res-yo" alt="" />
+        </div>
         <div id="res-body"></div>
         <table id="res-players"></table>
         <p id="res-next" class="dim"></p>
@@ -158,6 +223,7 @@
 
     <!-- Always-visible join QR during the song and on the results screen (drop-in joining). -->
     <aside id="corner-join" class="hidden" aria-label="Join with your phone">
+      <div id="corner-brand"><img src="/brand/mark-dark.svg" alt="" /><span>Join Go Go HarmoniYo</span></div>
       <img id="corner-qr" alt="QR code to join with a phone" />
       <div id="corner-url"></div>
       <div id="corner-hint"></div>

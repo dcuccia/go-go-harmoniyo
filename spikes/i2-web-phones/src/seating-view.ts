@@ -141,7 +141,7 @@ export class SeatingView {
       setHtml(seat, this.chip(occ, i, ''));
     });
 
-    if (this.pickerPart >= this.cards.length) this.closePicker(false);
+    if (this.pickerPart >= this.cards.length) this.closePicker();
     else if (this.pickerOpen) this.renderPicker();
   }
 
@@ -173,7 +173,7 @@ export class SeatingView {
     this.picker.hidden = true;
     const card = this.cardEls[part];
     card?.setAttribute('aria-expanded', 'false');
-    if (refocus) card?.focus();
+    if (refocus) (card ?? this.cardEls.at(-1))?.focus();
   }
 
   private renderPicker(): void {

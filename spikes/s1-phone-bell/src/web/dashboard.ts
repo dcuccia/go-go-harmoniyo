@@ -15,6 +15,8 @@ interface DeviceRow {
   ua: string;
   online: boolean;
   rtc: boolean;
+  /** direct | tunnel | lan | local | offline (ADR-0012) */
+  route?: string;
   bells: Bell[];
   events: number;
   status: Record<string, unknown>;
@@ -42,7 +44,7 @@ function renderDevices(list: DeviceRow[]): void {
         <td>${d.bells.map((b) => `<span class="swatch" style="background:${b.color}" title="${b.id}"></span>`).join('')} <select data-assign="${d.id}">${opts(d.bells[0]?.id ?? '')}</select><br><span class="small">${d.bells.map((b) => b.id).join(' ')}</span></td>
         <td>${esc(String(s.api ?? '–'))} ${num(s.rateHz, 0)} Hz<br><span class="small">Δt p95 ${num(iv.intervalP95)} ms, max ${num(iv.intervalMax)}${s.gyro === false ? ' · NO GYRO' : ''}</span></td>
         <td>rtt min ${num(s.rttMin)} / p50 ${num(s.rttP50)} ms<br><span class="small">drift ${num(s.drift, 0)} ppm · n ${num(s.syncN, 0)}</span></td>
-        <td>${d.online ? '🟢' : '🔴'} ${d.rtc ? 'ws+rtc' : 'ws'}${s.transport === 'rtc' ? ' (rtc active)' : ''}${s.visible === false ? ' · hidden' : ''}</td>
+        <td>${d.online ? '🟢' : '🔴'} ${esc(d.route ?? (d.rtc ? 'direct' : 'ws'))}${s.rtc === 'trying' ? ' (trying direct…)' : s.rtc === 'failed' ? ` (direct failed${s.rtcReason ? `: ${esc(String(s.rtcReason))}` : ''})` : ''}${s.visible === false ? ' · hidden' : ''}</td>
         <td>${d.events}</td>
         <td class="small">${esc(shortUa(d.ua))}<br>${s.axis ? 'calibrated' : 'uncalibrated'} · ${esc(String(s.mode ?? ''))}</td>
       </tr>`;
@@ -110,8 +112,13 @@ client.onMessage = (m) => {
       if (typeof info.joinUrl === 'string' && info.joinUrl) {
         $('qr').innerHTML = `<img alt="QR code" src="/qr.svg?u=${encodeURIComponent(info.joinUrl)}">`;
         $('join').textContent = info.joinUrl;
+      } else if (info.joinUrl === '') {
+        $('qr').textContent = (info.transport as { mode?: string } | undefined)?.mode === 'lan' ? 'Starting…' : 'Starting the cloud tunnel…';
+        $('join').textContent = '';
       }
-      $('tls').textContent = `Transport/TLS: ${String(info.tlsMode ?? '')}${info.rtcAvailable ? ' · WebRTC available (?rtc=1 on phones)' : ''}`;
+      const tr = (info.transport ?? {}) as Record<string, unknown>;
+      const tunnel = tr.mode === 'lan' ? 'Wi-Fi only' : `tunnel ${String(tr.tunnel ?? '')}${tr.tunnelReason ? ` (${String(tr.tunnelReason)})` : ''}`;
+      $('tls').textContent = `Transport/TLS: ${String(info.tlsMode ?? '')} · ${tunnel} · direct link ${info.rtcAvailable ? String(tr.rtc ?? 'auto') : 'unavailable (werift not installed)'}`;
       break;
     }
     case 'devices':

@@ -27,11 +27,16 @@ import { JoinQueue, waitingLabel } from './join-queue';
 import { beatAt } from './backing/phrases';
 import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
 import { SfxSynth } from './sfx/synth';
-
+import { version as APP_VERSION } from '../package.json';
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
 const flag = (k: string, d: boolean): boolean => (params.has(k) ? params.get(k) !== '0' : d);
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
+/** Brand files (docs/design/brand, copied by scripts/brand-assets.mjs). */
+const BRAND = `${import.meta.env.BASE_URL}brand/`;
+/** Results cheer: Y5 (cheer with hands) from this team accuracy, Y2 (joy) below it. Both celebrate. */
+const BIG_CHEER_ACCURACY = 0.8;
+$('app-version').textContent = `v${APP_VERSION}`;
 
 // ── offsets (same semantics as S4; separate storage key) ───────────────────
 const OFFSETS_KEY = 'i2.offsets';
@@ -112,7 +117,7 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
-  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>> }[];
+  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>>; firstRing?: { durationSec: number; ringerCounts: number[] } }[];
 }
 let index: SongIndex | null = null;
 const chartCache = new Map<string, S5Chart>();
@@ -120,11 +125,20 @@ let songId = params.get('song') ?? 'jingle-bells';
 let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
 /** Song length: full (intro, verses that develop, coda; charts/<id>.json) or short (once; charts/short/<id>.json). */
 type SongForm = 'full' | 'short';
+type ChartVariant = SongForm | 'first-ring';
 let songForm: SongForm = params.get('form') === 'short' ? 'short' : 'full';
 /** How parts are split: balanced roles (default), chord split, or by range (S5 0.2). */
 let arrangement: Arrangement = (ARRANGEMENTS as readonly string[]).includes(params.get('parts') ?? '') ? (params.get('parts') as Arrangement) : 'balanced';
-const chartKey = (id: string = songId): string => `${songForm}:${id}`;
-const songDuration = (s: SongIndex['songs'][number]): number => s.forms?.[songForm]?.durationSec ?? s.durationSec;
+let firstRing = false;
+let roundStyleNotice = '';
+const chartVariant = (): ChartVariant => firstRing ? 'first-ring' : songForm;
+const chartKey = (id: string, variant: ChartVariant): string => `${variant}:${id}`;
+const scaledChartKey = (id: string, variant: ChartVariant, rate: number): string => `${chartKey(id, variant)}@${rate}`;
+const roundDifficulty = (): Difficulty => firstRing ? 'super-easy' : difficulty;
+const roundArrangement = (): Arrangement => firstRing ? 'balanced' : arrangement;
+const chosenSong = () => index?.songs.find((s) => s.id === songId);
+const songDuration = (s: SongIndex['songs'][number]): number =>
+  (firstRing && s.firstRing?.ringerCounts.includes(ringerCount) ? s.firstRing.durationSec : undefined) ?? s.forms?.[songForm]?.durationSec ?? s.durationSec;
 let ringerCount = num('ringers', 0);
 let ringersAuto = !params.has('ringers');
 /** Seating chart: part index → phone deviceId | KEYBOARD | TV (persists across songs). */
@@ -155,34 +169,35 @@ const isPhone = (s: string): boolean => s !== TV && s !== KEYBOARD;
 const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name ?? `Ringer ${i + 1}`} (TV)` : s === KEYBOARD ? 'Keyboard' : phoneName(s));
 const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
 
-async function loadChart(id: string): Promise<S5Chart> {
-  let c = chartCache.get(chartKey(id));
+async function loadChart(id: string, variant: ChartVariant): Promise<S5Chart> {
+  const key = chartKey(id, variant);
+  let c = chartCache.get(key);
   if (!c) {
-    const url = `charts/${songForm === 'short' ? 'short/' : ''}${id}.json`;
+    const url = `charts/${variant === 'full' ? '' : `${variant}/`}${id}.json`;
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${url}: ${res.status} — run "npm run charts"`);
     c = (await res.json()) as S5Chart;
     if (!isChartFormat(c.format)) throw new Error(`${url}: unknown chart format "${c.format}"`);
-    chartCache.set(chartKey(id), c);
+    chartCache.set(key, c);
   }
   return c;
 }
 
 /** The chart at the practice speed (cached per song and speed). */
 const scaledCache = new Map<string, S5Chart>();
-async function songChart(id: string): Promise<S5Chart> {
-  const key = `${chartKey(id)}@${speed}`;
+async function songChart(id: string, variant: ChartVariant, rate: number): Promise<S5Chart> {
+  const key = scaledChartKey(id, variant, rate);
   let c = scaledCache.get(key);
   if (!c) {
-    c = scaleChart(await loadChart(id), speed);
+    c = scaleChart(await loadChart(id, variant), rate);
     scaledCache.set(key, c);
   }
   return c;
 }
 /** Current song at the current speed, once loaded. */
-const currentChart = (): S5Chart | undefined => scaledCache.get(`${chartKey()}@${speed}`);
+const currentChart = (): S5Chart | undefined => scaledCache.get(scaledChartKey(songId, chartVariant(), speed));
 /** Song label for the phones: title, tier and (when slowed down) the practice speed. */
-const songLabel = (): string => `${chartCache.get(chartKey())?.song.title ?? songId} (${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
+const songLabel = (): string => `${chosenSong()?.title ?? songId} (${firstRing ? 'First Ring' : `${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''}`})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
@@ -203,17 +218,35 @@ function syncPhones(): string[] {
   return joiners;
 }
 
-async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
+async function rebuild(forPlayMode: Mode = 'play') {
   if (!index) return;
   const joiners = syncPhones();
-  const s5 = await songChart(songId);
-  const part = findPart(s5, difficulty, ringerCount, arrangement);
-  if (!part) {
-    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
-    $('lobby-msg').textContent = `No ${difficulty} part for ${ringerCount} ringers in ${s5.song.title}.`;
+  const song = chosenSong();
+  if (firstRing && !song?.firstRing?.ringerCounts.includes(ringerCount)) {
+    firstRing = false;
+    roundStyleNotice = `First Ring is not available for ${song?.title ?? 'this song'} with ${ringerCount} ringers. Standard settings restored.`;
+  }
+  renderRoundStyle();
+  const [id, variant, rate, count, tier, parts] = [songId, chartVariant(), speed, ringerCount, roundDifficulty(), roundArrangement()] as const;
+  const isCurrent = () => id === songId && variant === chartVariant() && rate === speed && count === ringerCount && tier === roundDifficulty() && parts === roundArrangement();
+  let s5: S5Chart;
+  try {
+    s5 = await songChart(id, variant, rate);
+  } catch (e) {
+    if (isCurrent()) {
+      joiners.forEach((phone) => knownPhones.delete(phone));
+      $('lobby-msg').textContent = String(e);
+    }
     return;
   }
-  $('lobby-msg').textContent = '';
+  if (!isCurrent()) return;
+  const part = findPart(s5, tier, count, parts);
+  if (!part) {
+    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
+    $('lobby-msg').textContent = `No ${firstRing ? 'First Ring' : tier} part for ${count} ringers in ${s5.song.title}.`;
+    return;
+  }
+  $('lobby-msg').textContent = roundStyleNotice;
   const transpose = num('octave', 1) ? 12 : 0;
   cards = partCards(s5, part, buildTeamChart(s5, part, { transpose }));
   seating.setParts(cards.map((c) => c.name));
@@ -224,7 +257,8 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   const seats = seating.seats;
   const active = seats.map((s) => forPlayMode === 'autoplay' || s !== TV);
   if (!active.some(Boolean)) active.fill(true); // lobby preview with no players: show every highway
-  team = buildTeamChart(s5, part, { active, transpose });
+  const title = firstRing ? `${s5.song.title} · First Ring · ${count} ringer${count === 1 ? '' : 's'}` : undefined;
+  team = buildTeamChart(s5, part, { active, transpose, title });
   mh.setSpeed(speed);
   mh.setTeam(team);
   teamHud.setup(
@@ -235,6 +269,7 @@ async function rebuild(forPlayMode: Mode = 'play'): Promise<void> {
   sendAssignments();
   sendParts();
   renderLobby();
+  return { s5, part, team };
 }
 
 /** After any seat change: rebuild in the lobby; on the results screen it applies when the next round starts. */
@@ -352,17 +387,29 @@ function playerViews(): PlayerView[] {
   ];
 }
 
+function renderRoundStyle(): void {
+  const song = chosenSong();
+  const style = $<HTMLSelectElement>('sel-round-style');
+  style.disabled = !song?.firstRing?.ringerCounts.includes(ringerCount);
+  setValue(style, firstRing ? 'first-ring' : 'standard');
+  for (const id of ['sel-diff', 'sel-parts', 'sel-form']) $<HTMLSelectElement>(id).disabled = firstRing;
+  const info = firstRing
+    ? 'Short · one bell per ringer · the TV plays the rest of the tune. Standard settings are saved.'
+    : !song?.firstRing
+      ? 'First Ring is not available for this song. Try Jingle Bells or Deck the Halls.'
+      : style.disabled
+        ? `First Ring is available for ${song.firstRing.ringerCounts.join(', ')} ringers on this song.`
+        : 'First Ring is a short, one-bell round.';
+  if ($('round-style-info').textContent !== info) $('round-style-info').textContent = info;
+}
+
 /** Whole lobby, patched in place (safe to call on every device broadcast). */
 function renderLobby(): void {
-  const selSong = $<HTMLSelectElement>('sel-song');
-  const songsKey = `${index?.songs.length}@${speed}:${songForm}`;
-  if (index && selSong.dataset.key !== songsKey && document.activeElement !== selSong) {
-    selSong.dataset.key = songsKey;
-    selSong.innerHTML = index.songs.map((s) => `<option value="${s.id}">${s.title} (${Math.round(songDuration(s) / speed)} s, ${s.license ?? '?'})</option>`).join('');
-  }
-  setValue(selSong, songId);
+  $('chosen-song').textContent = chosenSong()?.title ?? 'Loading songs…';
+  $<HTMLButtonElement>('choose-song').disabled = !index;
+  renderRoundStyle();
   setValue($<HTMLSelectElement>('sel-diff'), difficulty);
-  setValue($<HTMLSelectElement>('sel-ringers'), String(ringerCount));
+  setValue($<HTMLSelectElement>('sel-ringers'), ringersAuto ? 'auto' : String(ringerCount));
   setValue($<HTMLSelectElement>('sel-parts'), arrangement);
   setValue($<HTMLSelectElement>('sel-form'), songForm);
   setValue($<HTMLSelectElement>('sel-sound'), soundMode);
@@ -379,22 +426,28 @@ function renderLobby(): void {
 
   view.update(cards, seating.seats, playerViews());
   const s5 = currentChart();
-  const part = s5 ? findPart(s5, difficulty, ringerCount, arrangement) : undefined;
+  const part = s5 ? findPart(s5, roundDifficulty(), ringerCount, roundArrangement()) : undefined;
   if (part) {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
   $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
-  const seated = seating.players.filter(isPhone);
-  const ready = seated.filter((id) => link.phones.find((p) => p.id === id)?.ready).length;
-  $('ready-info').textContent = seated.length ? `✓ Ready ${ready}/${seated.length}${ready < seated.length ? ' (you can start anyway)' : ''}` : '';
   renderStatus();
 }
 
 /** Phones list + host status: diagnostics only, patched in place per phone. */
 function renderStatus(): void {
   const phones = link.phones;
-  $('phone-count').textContent = `(${onlinePhones().length} online)`;
+  const joined = onlinePhones();
+  const keyboard = seating.partOf(KEYBOARD) >= 0;
+  const count = joined.length + Number(keyboard);
+  const heading = count ? `${count} ${count === 1 ? 'player' : 'players'} joined` : 'No players yet';
+  if ($('joined-count').textContent !== heading) $('joined-count').textContent = heading;
+  setHtml($('joined-players'), [
+    ...joined.map((p) => `<li><b>${esc(p.name)}</b> · ${seating.partOf(p.id) < 0 ? 'Waiting for a part' : p.ready ? 'Ready' : 'Connected'}</li>`),
+    ...(keyboard ? ['<li><b>Keyboard</b> · A S D F</li>'] : []),
+  ].join(''));
+  $('phone-count').textContent = `(${joined.length} online)`;
   const ul = $('phones');
   if (!phones.length) {
     setHtml(ul, '<li class="dim">No phones yet — scan the QR code.</li>');
@@ -414,20 +467,49 @@ function renderStatus(): void {
       const part = seating.partOf(p.id);
       const sync = typeof st.rttP50 === 'number' ? `rtt ${st.rttP50.toFixed(0)} ms` : 'syncing…';
       const sensors = st.api ? `${st.api}${st.rateHz ? ` ${Math.round(st.rateHz)} Hz` : ''}` : 'no motion yet';
+      const path = p.online ? routeLabel(p) : '';
       const bells = p.bells?.map((b) => `<i class="${isAccidental(b.midi) ? 'acc' : ''}" style="background:${b.color}">${esc(b.label)}</i>`).join('') ?? '';
       li.classList.toggle('off', !p.online);
       const quick = sensOf(p.id) === 'quick';
       const sensBtn = `<button class="sens-btn${quick ? ' on' : ''}" data-sens="${esc(p.id)}" title="Ring sensitivity. Quick: smaller, faster strokes ring, for players who find fast notes hard (a few more stray rings). Fast passages adapt in both modes.">${quick ? '🐇 Quick' : 'Normal'}</button>`;
+      const before = li.querySelector('button');
+      const focused = !!before && before === document.activeElement;
       setHtml(
         li,
-        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small>`,
+        `${sensBtn}<b>${esc(p.name)}</b>${p.ready ? ' <em class="rdy">✓ ready</em>' : ''} <span class="bells">${bells}</span><br><small>${p.online ? 'online' : 'offline'}${path ? ` · ${path}` : ''} · ${sync} · ${sensors}${st.axis ? '' : ' · uncalibrated'}${part >= 0 ? ` · ${esc(cards[part]?.name ?? `ringer ${part + 1}`)}` : ' · not playing'}</small><img class="yo-rang" src="${BRAND}yo-ring.svg" alt="" />`,
       );
+      if (focused && !before.isConnected) li.querySelector('button')?.focus();
     });
   }
   const hostOk = link.state === 'open';
-  $('host-state').textContent = hostOk ? `S1 host ${link.info.lanIp ?? ''} · ${link.info.tlsMode ?? ''} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : `Not connected to the phone host (${link.url}). Start it with "npm start" in spikes/i2-web-phones.`;
+  $('host-state').textContent = hostOk ? `${link.info.transport?.mode === 'page' ? 'Host' : `S1 host ${link.info.lanIp ?? ''}`} · ${link.info.tlsMode ?? ''}${transportLabel()} · clock sync ${link.sync.ready ? `±${(link.sync.estimate!.errBound).toFixed(2)} ms` : '…'}` : 'Not connected to the phone host.';
   $('host-state').classList.toggle('error', !hostOk);
-  $('join-url').textContent = link.info.joinUrl ?? 'waiting for host…';
+  const url = hostOk ? link.info.joinUrl : undefined;
+  const qr = $<HTMLImageElement>('qr');
+  qr.hidden = !url;
+  if (url && qr.dataset.url !== url) {
+    qr.dataset.url = url;
+    qr.src = link.qrSrc(url);
+  }
+  $('lan-help').hidden = !url || !/self-signed/i.test(link.info.tlsMode ?? '') || url === link.info.transport?.tunnelUrl;
+  $('join-url').textContent = url || (hostOk ? (link.info.transport?.mode === 'page' ? 'Waiting for the signalling service…' : 'Getting the join code ready…') : 'Waiting for the phone host…');
+}
+
+/** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
+function routeLabel(p: PhoneInfo): string {
+  const st = p.status ?? {};
+  const base = p.route === 'direct' ? 'direct' : p.route === 'tunnel' ? 'via tunnel' : p.route === 'lan' ? 'Wi-Fi' : p.route === 'relay' ? 'via TURN relay' : '';
+  if (p.route === 'tunnel' && st.rtc === 'trying') return `${base} (trying direct…)`;
+  return base;
+}
+
+function transportLabel(): string {
+  const t = link.info.transport;
+  if (!t?.mode) return '';
+  if (t.mode === 'lan') return ' · Wi-Fi only';
+  if (t.mode === 'page') return ' · WebRTC, host in this page (S9)';
+  const tunnel = t.tunnel === 'up' ? 'tunnel up' : t.tunnel === 'starting' ? 'tunnel starting' : 'no tunnel';
+  return ` · ${t.mode === 'tunnel' ? 'tunnel only' : 'auto'}: ${tunnel}`;
 }
 
 /** Results screen: who plays what next round (claims, swaps and 🔁 apply on Again). */
@@ -441,13 +523,14 @@ function renderNext(): void {
 function renderSpeed(): void {
   setValue($<HTMLInputElement>('rng-speed'), String(speedPercent(speed)));
   $('speed-val').textContent = `${speedPercent(speed)}%`;
-  const dur = ((s) => (s ? songDuration(s) : undefined))(index?.songs.find((s) => s.id === songId));
+  const song = chosenSong();
+  const dur = song ? songDuration(song) : undefined;
   $('speed-info').textContent = speed < 1 ? `Slower for learning: ${dur ? `${Math.round(dur / speed)} s instead of ${Math.round(dur)} s; ` : ''}bells, backing and count-in slow down too, timing is judged the same.` : '';
 }
 
 /**
  * Corner QR + join URL while a round is on screen (song or results), so people can join at any
- * time; hidden in the lobby (it has the big QR), while there is no join URL yet (--tunnel still
+ * time; hidden in the lobby (it has the big QR), while there is no join URL yet (the tunnel still
  * starting) and while the phone host is unreachable. "+N waiting" lists phones that joined mid-round.
  */
 function renderCornerJoin(): void {
@@ -461,7 +544,7 @@ function renderCornerJoin(): void {
   const img = $<HTMLImageElement>('corner-qr');
   if (img.dataset.u !== url) {
     img.dataset.u = url;
-    img.src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(url)}`;
+    img.src = link.qrSrc(url);
   }
   $('corner-url').textContent = url.replace(/\/$/, '');
   $('corner-hint').textContent = /self-signed/i.test(link.info.tlsMode ?? '') ? 'scan · accept the warning once' : 'scan to join';
@@ -491,8 +574,11 @@ function setHtml(el: Element, html: string): void {
 const esc = (s: string): string => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const cssId = (s: string): string => s.replace(/[^\w-]/g, '_');
 
-$<HTMLSelectElement>('sel-song').onchange = (e) => {
-  songId = (e.target as HTMLSelectElement).value;
+$<HTMLSelectElement>('sel-round-style').onchange = (e) => {
+  const select = e.target as HTMLSelectElement;
+  if (select.disabled) return;
+  firstRing = select.value === 'first-ring';
+  roundStyleNotice = '';
   void rebuild();
 };
 $<HTMLSelectElement>('sel-diff').onchange = (e) => {
@@ -508,8 +594,9 @@ $<HTMLSelectElement>('sel-form').onchange = (e) => {
   void rebuild();
 };
 $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
-  ringerCount = Number((e.target as HTMLSelectElement).value);
-  ringersAuto = false;
+  const value = (e.target as HTMLSelectElement).value;
+  ringersAuto = value === 'auto';
+  if (!ringersAuto) ringerCount = Number(value);
   void rebuild();
 };
 $<HTMLSelectElement>('sel-sound').onchange = (e) => {
@@ -585,7 +672,6 @@ link.onClaim = (deviceId, part) => {
   seatingChanged();
 };
 link.onInfo = () => {
-  $<HTMLImageElement>('qr').src = `${link.httpOrigin}/qr.svg?u=${encodeURIComponent(link.info.joinUrl ?? '')}`;
   renderLobby();
   renderCornerJoin();
 };
@@ -643,16 +729,17 @@ async function start(mode: Mode): Promise<void> {
   sfx?.hush();
   director = null;
   playing = false;
-  await rebuild(mode);
-  if (!team) return;
+  const prepared = await rebuild(mode);
+  if (!prepared) return;
+  const { s5, part, team: t } = prepared;
   roundSeats = [...seating.seats];
-  if (mode === 'play' && !team.ringers.some((r) => roundSeats[r.index] !== TV)) {
-    $('lobby-msg').textContent = 'No players: join with a phone (or give a part to Keyboard), or use Autoplay demo.';
+  if (mode === 'play' && !t.ringers.some((r) => roundSeats[r.index] !== TV)) {
+    $('lobby-msg').textContent = 'Join with a phone, or use Round options for Keyboard or Autoplay demo.';
     return;
   }
   lastMode = mode;
+  while (lobbyPanels.length) closeLobbyPanel();
   (document.activeElement as HTMLElement | null)?.blur();
-  const t = team;
   const lanes = laneMap();
   hgpInput = new HgpInputSource(link, (dev, bell) => lanes.get(`${dev}|${bell}`));
   const sources: InputSource[] = [hgpInput];
@@ -660,8 +747,6 @@ async function start(mode: Mode): Promise<void> {
   if (kbRinger) sources.push(keyboardRinger(kbRinger.laneStart, kbRinger.bells.length, (lane) => audio.bell(t.chart.lanes[lane].pitch, 0, 0.9, 0)));
 
   const hostRingSound = soundMode !== 'device';
-  const s5 = currentChart()!;
-  const part = findPart(s5, difficulty, ringerCount, arrangement)!;
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
   backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
@@ -832,9 +917,10 @@ function finish(r: SessionResult): void {
   const result = {
     ...r,
     song: songId,
-    difficulty,
-    form: songForm,
-    arrangement,
+    ...(firstRing ? { preset: 'first-ring' } : {}),
+    difficulty: roundDifficulty(),
+    form: firstRing ? 'short' : songForm,
+    arrangement: roundArrangement(),
     ringers: ringerCount,
     /** Practice speed (1 = written tempo); song times in this result are at this speed. */
     speed: roundSpeed,
@@ -859,6 +945,10 @@ function finish(r: SessionResult): void {
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = r.title;
+  const yo = $<HTMLImageElement>('res-yo');
+  const bigCheer = r.accuracy >= BIG_CHEER_ACCURACY;
+  yo.src = `${BRAND}${bigCheer ? 'yo-cheer-hands' : 'yo-cheer'}.svg`;
+  yo.dataset.state = bigCheer ? 'cheer-hands' : 'cheer';
   const speedLine = roundSpeed < 1 ? `<br><span class="res-speed">🐢 Practice speed ${speedPercent(roundSpeed)}%</span>` : '';
   $('res-body').innerHTML =
     r.mode === 'autoplay'
@@ -873,6 +963,7 @@ function finish(r: SessionResult): void {
       .join('');
   $('res-json').textContent = JSON.stringify(result, null, 2);
   $('results').classList.remove('hidden');
+  $('btn-again').focus();
   sendParts(); // phones can pick parts for the next round
   renderNext();
   renderCornerJoin();
@@ -889,6 +980,7 @@ function toLobby(): void {
   hud.show(false);
   $('results').classList.add('hidden');
   $('lobby').classList.remove('hidden');
+  $('btn-play').focus();
   renderCornerJoin();
   lastPhoneKey = '';
   void rebuild();
@@ -920,43 +1012,135 @@ $('btn-balance').onclick = () => {
 $('btn-lobby').onclick = toLobby;
 $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').textContent ?? '');
 
-/**
- * TV-remote navigation in the lobby: rows [helpers] / [part cards] / [Play, Autoplay]; ↑/↓ between
- * rows, ←/→ within a row, Enter activates (a part card opens its picker). ↓ from nowhere enters.
- */
-function lobbyNav(e: KeyboardEvent): boolean {
-  if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return false;
-  const rows: HTMLElement[][] = [[...document.querySelectorAll<HTMLElement>('#seat-tools button')], view.cardEls, [$('btn-play'), $('btn-auto')]];
-  const t = document.activeElement as HTMLElement | null;
-  const r = rows.findIndex((row) => !!t && row.includes(t));
-  if (r < 0) {
-    if (e.key !== 'ArrowDown' || (t && t !== document.body)) return false;
-    (view.cardEls[0] ?? $('btn-play')).focus();
+const lobbyPanels: { dialog: HTMLDialogElement; opener: HTMLElement }[] = [];
+const activePanel = () => lobbyPanels.at(-1)?.dialog;
+const controls = (root: ParentNode) => [...root.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled), a[href], [role="button"]')];
+
+function openLobbyPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void {
+  const dialog = $<HTMLDialogElement>(id);
+  if (dialog.open) return;
+  dialog.showModal();
+  lobbyPanels.push({ dialog, opener });
+  (initial ?? controls(dialog)[0])?.focus();
+}
+
+function closeLobbyPanel(): void {
+  const layer = lobbyPanels.pop();
+  if (!layer) return;
+  layer.dialog.close();
+  layer.opener.focus();
+}
+
+$('lobby').querySelectorAll<HTMLButtonElement>('[data-panel]').forEach((button) => {
+  button.onclick = () => openLobbyPanel(button.dataset.panel!, button,
+    button.id === 'edit-seating' ? view.cardEls[0] : undefined);
+});
+$('lobby').querySelectorAll<HTMLButtonElement>('[data-back]').forEach((button) => {
+  button.onclick = closeLobbyPanel;
+});
+$('lobby').querySelectorAll('dialog').forEach((dialog) => {
+  dialog.addEventListener('cancel', (e) => {
     e.preventDefault();
-    return true;
-  }
-  const row = rows[r];
-  const c = row.indexOf(t!);
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') row[(c + (e.key === 'ArrowLeft' ? -1 : 1) + row.length) % row.length]?.focus();
-  else {
-    const next = rows[r + (e.key === 'ArrowUp' ? -1 : 1)];
-    if (next?.length) next[Math.min(c, next.length - 1)].focus();
-  }
-  e.preventDefault();
+    goBack();
+  });
+});
+$('choose-song').onclick = () => {
+  if (!index) return;
+  const options = $('song-options');
+  const buttons = index.songs.map((song) => {
+    const button = document.createElement('button');
+    button.textContent = `${song.title} · ${Math.round(songDuration(song) / speed)} s`;
+    button.setAttribute('aria-pressed', String(song.id === songId));
+    button.onclick = () => {
+      roundStyleNotice = '';
+      songId = song.id;
+      $('chosen-song').textContent = song.title;
+      closeLobbyPanel();
+      void rebuild();
+    };
+    return button;
+  });
+  options.replaceChildren(...buttons);
+  openLobbyPanel('song-picker', $('choose-song'), buttons.find((button) => button.getAttribute('aria-pressed') === 'true'));
+};
+
+function goBack(): boolean {
+  if (view.pickerOpen) view.closePicker();
+  else if (activePanel()) closeLobbyPanel();
+  else if (session) toLobby();
+  else return false;
   return true;
 }
 
+window.addEventListener('i2-back', (e) => {
+  if (goBack()) e.preventDefault();
+});
+
+function navigateRows(rows: HTMLElement[][], target: HTMLElement, key: string): void {
+  const nonempty = rows.filter((row) => row.length);
+  const r = nonempty.findIndex((row) => row.includes(target));
+  if (r < 0) {
+    nonempty[0]?.[0].focus();
+    return;
+  }
+  const row = nonempty[r];
+  const c = row.indexOf(target);
+  if (key === 'ArrowLeft' || key === 'ArrowRight') {
+    row[c + (key === 'ArrowLeft' ? -1 : 1)]?.focus();
+  } else {
+    const next = nonempty[r + (key === 'ArrowUp' ? -1 : 1)];
+    next?.[Math.min(c, next.length - 1)]?.focus();
+  }
+}
+
 window.addEventListener('keydown', (e) => {
-  const target = e.target as HTMLElement;
-  if (e.code !== 'Escape' && ['SELECT', 'INPUT'].includes(target.tagName)) return;
-  if (!session && lobbyNav(e)) return;
-  if (e.code === 'Escape') toLobby();
-  else if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
+  const target = document.activeElement as HTMLElement;
+  if (e.key === 'Escape') {
+    if (goBack()) e.preventDefault();
+    return;
+  }
+  const panel = activePanel();
+  const results = $('results');
+  if (e.key.startsWith('Arrow') && (!session || !playing)) {
+    if (view.pickerOpen) return; // The seating picker owns its own arrows.
+    const horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
+    if (horizontal && target instanceof HTMLInputElement && target.type === 'range') return;
+    if (horizontal && target instanceof HTMLSelectElement) {
+      const next = target.selectedIndex + (e.key === 'ArrowLeft' ? -1 : 1);
+      if (target.options[next]) {
+        target.selectedIndex = next;
+        target.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    } else if (session) {
+      const buttons = [...results.querySelectorAll('button')];
+      const i = buttons.findIndex((button) => button === target);
+      const step = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
+      buttons[i < 0 ? 0 : (i + step + buttons.length) % buttons.length].focus();
+    } else if (panel?.id === 'seating-options') {
+      navigateRows([controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]], target, e.key);
+    } else if (panel) {
+      navigateRows(controls(panel).map((control) => [control]), target, e.key);
+    } else {
+      const song = $<HTMLButtonElement>('choose-song');
+      navigateRows([song.disabled ? [] : [song], [$('btn-play')], controls($('lobby').querySelector('.lobby-actions')!)], target, e.key);
+    }
+    e.preventDefault();
+    return;
+  }
+  if (panel && e.key === 'Tab' && !view.pickerOpen) {
+    const list = controls(panel);
+    if (target === (e.shiftKey ? list[0] : list.at(-1))) {
+      (e.shiftKey ? list.at(-1) : list[0])?.focus();
+      e.preventDefault();
+    }
+  }
+  if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
     offsets.visualMs += (e.code === 'ArrowRight' ? 5 : -5) * (e.shiftKey ? 4 : 1);
     saveOffsets();
-  } else if (e.code === 'Enter' && !session && !target.closest('button, [role="button"], a, .picker')) void start('play');
+  } else if (e.key === 'Enter' && !panel && !session && target === document.body) void start('play');
 });
+$('btn-play').focus();
 window.addEventListener('resize', () => {
   mh.resize();
   teamHud.position();

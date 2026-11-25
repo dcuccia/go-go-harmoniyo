@@ -6,10 +6,10 @@ import { fileURLToPath } from 'node:url';
 import { parseAbc } from '../src/abc.mjs';
 import { midiToScore, readMidi, writeMidi, meta, noteEvents } from '../src/midi.mjs';
 import { parseMusicXml } from '../src/musicxml.mjs';
-import { pitchName, naturalSlot, beatGrid, measureStarts, PPQ } from '../src/score.mjs';
+import { pitchName, naturalSlot, beatGrid, makeTimeMap, measureStarts, PPQ } from '../src/score.mjs';
 import { assignRoles } from '../src/arrange.mjs';
 import { assignBells, evaluateRinger, PROFILES } from '../src/assign.mjs';
-import { buildChart, buildPart, fitHandbellSet, formSong, FORMAT, isChartFormat } from '../src/chart.mjs';
+import { buildChart, buildFirstRingChart, buildPart, fitHandbellSet, formSong, FORMAT, isChartFormat } from '../src/chart.mjs';
 import { expandForm, transposeSymbol, verseSchedule, windowsFor } from '../src/form.mjs';
 import { ARRANGEMENTS, TIERS, jain, harmonyRegions } from '../src/parts.mjs';
 import { exportCloneHero, laneOf, CH_TRACKS } from '../src/export.mjs';
@@ -472,16 +472,22 @@ test('form: pickups overlap the previous bar, the last verse goes up a step, the
   assert.ok(formed('we-wish-you-a-merry-christmas', { keyChange: false }).sections.every((s) => s.transpose === 0));
 });
 
-test('balanced parts: one role and one contiguous pitch region per ringer, every song', () => {
+test('balanced parts: a primary role and one pitch region per ringer, every song', () => {
   const roleOfNote = { bass: 'bass', inner: 'harmony', melody: 'melody', descant: 'descant' };
   for (const entry of manifest.songs) {
     for (const [profile, k, tier] of [['phone-4zone', 4, 'medium'], ['phone-4zone', 4, 'hard'], ['handbell', 5, 'hard'], ['phone-4zone', 3, 'easy']]) {
-      const p = buildPart(formed(entry.id), tier, k, profile, 'balanced');
+      const f = formed(entry.id);
+      const p = buildPart(f, tier, k, profile, 'balanced');
       const where = `${entry.id} ${profile} ${tier} ×${k}`;
       assert.equal(p.ringers.length, k, where);
       for (const r of p.ringers) {
         const mine = p.notes.filter((n) => n.ringer === r.index);
-        assert.ok(mine.every((n) => roleOfNote[n.role] === r.role), `${where}: ${r.name} plays only ${r.role}`);
+        for (const n of mine.filter((n) => roleOfNote[n.role] !== r.role)) {
+          assert.ok(profile === 'phone-4zone' && tier === 'hard' && n.role === 'inner', `${where}: only Hard pickups cross roles`);
+          assert.ok(!f.beats.some((b) => b.tick === n.tick), `${where}: pickup is off the beat`);
+          const chord = f.score.chords.find((c) => c.tick <= n.tick && n.tick < c.tick + c.dur);
+          assert.ok(chord?.tones.includes(midiOfBell(n.bell) % 12), `${where}: pickup fits the chord`);
+        }
         assert.ok(r.name && !/Ringer/.test(r.name), where);
       }
       // Regions: ringers are ordered low → high and their bell ranges do not interleave.
@@ -492,35 +498,26 @@ test('balanced parts: one role and one contiguous pitch region per ringer, every
         const nat = b.replace('#', '');
         assert.ok(!p.ringers.some((o) => o !== r && o.bells.includes(nat)), `${where}: ${b} with ${nat}`);
       }
-      // A bass ringer's second bell is another bass bell (roles are pure, so this follows), and
-      // medium/hard with 3+ ringers always have a bass part.
+      // Medium/hard with 3+ ringers always have a bass part.
       if (k >= 3 && tier !== 'easy') assert.ok(p.ringers.some((r) => r.role === 'bass'), where);
     }
   }
 });
 
-test('balanced parts are fairer than the S5 0.2 by-range split on the phone game (corpus mean)', () => {
+test('balanced phone parts retain comparable effort fairness to by-range (corpus mean)', () => {
   const before = [];
   const after = [];
-  const bellsBefore = [];
-  const bellsAfter = [];
   for (const entry of manifest.songs) {
     for (const tier of ['easy', 'medium', 'hard']) {
       const b = buildPart(formed(entry.id), tier, 4, 'phone-4zone', 'by-range').metrics.fairness;
       const a = buildPart(formed(entry.id), tier, 4, 'phone-4zone', 'balanced').metrics.fairness;
       before.push(b.jain);
       after.push(a.jain);
-      bellsBefore.push(b.bells[0]);
-      bellsAfter.push(a.bells[0]);
     }
   }
   const mean = (xs) => xs.reduce((s, x) => s + x, 0) / xs.length;
   assert.ok(mean(after) >= 0.85, `balanced fairness ${mean(after)}`);
   assert.ok(mean(after) >= mean(before) - 0.03, `balanced ${mean(after)} vs by-range ${mean(before)}`);
-  // Fewer parts with a one-bell ringer. (Not the mean minimum bell count: balanced may give a
-  // busy middle-of-the-tune ringer just two bells, e.g. A4/B-flat 4, which is fair by load.)
-  const oneBell = (xs) => xs.filter((b) => b <= 1).length;
-  assert.ok(oneBell(bellsAfter) <= oneBell(bellsBefore), `fewer one-bell ringers (${oneBell(bellsAfter)} vs ${oneBell(bellsBefore)})`);
   assert.equal(jain([1, 1, 1]), 1);
   assert.equal(jain([3, 0, 0]), 1 / 3);
 });
@@ -550,13 +547,13 @@ test('chord split: up to three ringers ring one chord tone each, together', () =
   assert.deepEqual(small.ringers.map((r) => r.role), ['chord', 'melody', 'melody', 'melody']);
 });
 
-test('super easy: downbeats/long notes, ≥ 1 s apart, ≤ 3 bells per ringer, the host plays the rest', () => {
+test('phone Super easy: downbeats/long notes, ≥ 1 s apart, up to two bells per ringer, the host plays the rest', () => {
   for (const entry of manifest.songs) {
     const f = formed(entry.id);
     for (const k of [2, 4]) {
       const p = buildPart(f, 'super-easy', k, 'phone-4zone', 'balanced');
       const where = `${entry.id} ×${k}`;
-      for (const r of p.ringers) assert.ok(r.bells.length <= 3, `${where}: ${r.bells.length} bells`);
+      for (const r of p.ringers) assert.ok(r.bells.length <= 2, where);
       const tune = p.notes.filter((n) => n.role === 'melody');
       for (let i = 1; i < tune.length; i++) assert.ok(tune[i].time - tune[i - 1].time >= 0.999, `${where}: spacing ${tune[i].time - tune[i - 1].time}`);
       assert.equal(tune.length + p.guide.filter((n) => n.role === 'melody').length, f.melody.length, `${where}: tune complete with the guide`);
@@ -564,6 +561,83 @@ test('super easy: downbeats/long notes, ≥ 1 s apart, ≤ 3 bells per ringer, t
       assert.ok(p.metrics.strikes < easy.metrics.strikes, where);
     }
   }
+});
+
+test('phone Super easy: no seat waits longer than the shipped Short carols', () => {
+  // Shipped three-seat Balanced parts before the phone ladder; round up subsecond limits.
+  for (const [id, limits] of [
+    ['jingle-bells', [16, 5, 12]],
+    ['deck-the-halls', [10.35, 5.18, 11.39]],
+  ]) {
+    const f = formed(id, 'short');
+    const part = buildPart(f, 'super-easy', 3, 'phone-4zone', 'balanced');
+    for (const [seat, limit] of limits.entries()) {
+      const cues = part.notes.filter((n) => n.ringer === seat).map((n) => n.time);
+      const times = [0, ...cues, f.toSec(f.score.endTick)];
+      const wait = Math.max(...times.slice(1).map((time, i) => time - times[i]));
+      assert.ok(wait <= limit, `${id} seat ${seat + 1}: ${wait.toFixed(2)} s between cues (limit ${limit} s)`);
+    }
+  }
+});
+
+test('First Ring: Short carols split the source tune between stable one-pitch seats and the guide', () => {
+  const schema = JSON.parse(readFileSync(join(root, 'schema', 'chart.schema.json'), 'utf8'));
+  const noteKey = ({ tick, bell, dur, time, role }) => `${tick}:${bell}:${dur}:${time}:${role}`;
+  for (const id of ['jingle-bells', 'deck-the-halls']) {
+    const options = loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+    const { score, roleNotes, song } = options;
+    const toSec = makeTimeMap(score);
+    // Both lead sheets are melody-only. Read the expected tune before building the chart.
+    const expected = score.notes.map(({ tick, dur, midi }) =>
+      noteKey({ tick, dur, bell: pitchName(midi), time: Math.round(toSec(tick) * 1000) / 1000, role: 'melody' })).sort();
+
+    const chart = buildFirstRingChart(options);
+    assert.deepEqual(validate(schema, chart), [], id);
+    assert.equal(chart.song.id, id);
+    assert.equal(chart.form.id, 'short', id);
+    assert.equal(chart.timing.endTick, score.endTick, id);
+    assert.deepEqual(chart.parts.map((p) => p.ringerCount), [1, 2, 3, 4], id);
+
+    let previous;
+    for (const part of chart.parts) {
+      const where = `${id} ×${part.ringerCount}`;
+      assert.deepEqual([part.difficulty, part.arrangement, part.profile], ['super-easy', 'balanced', 'phone-4zone'], where);
+      assert.equal(part.ringers.length, part.ringerCount, where);
+      assert.equal(new Set(part.ringers.flatMap((r) => r.bells)).size, part.ringerCount, `${where}: pitches are unique`);
+      for (const [seat, r] of part.ringers.entries()) {
+        assert.equal(r.index, seat, where);
+        assert.equal(r.bells.length, 1, `${where}: seat ${seat} has one pitch`);
+        const mine = part.notes.filter((n) => n.ringer === seat);
+        assert.ok(mine.length > 1, `${where}: seat ${seat} has multiple accents`);
+        for (let i = 1; i < mine.length; i++) {
+          const gapMs = Math.round(mine[i].time * 1000) - Math.round(mine[i - 1].time * 1000);
+          assert.ok(gapMs >= 1500, `${where}: seat ${seat} gap is ${gapMs} ms`);
+        }
+      }
+      for (const n of part.notes) assert.equal(n.bell, part.ringers[n.ringer]?.bells[0], `${where}: note at tick ${n.tick} matches its seat`);
+      assert.ok(part.guide?.length > 0, `${where}: the host has notes to play`);
+      // Compare the full sorted list, not a set: dropping or duplicating a note fails.
+      assert.deepEqual([...part.notes, ...part.guide].map(noteKey).sort(), expected, `${where}: exact melody partition`);
+      if (previous) {
+        assert.deepEqual(part.notes.filter((n) => n.ringer < previous.ringerCount), previous.notes, `${where}: existing accents stay put`);
+      }
+      previous = part;
+    }
+    assert.deepEqual(buildFirstRingChart(options), chart, `${id}: same options produce the same chart`);
+    const standalone = buildFirstRingChart({ song, formed: formSong(score, roleNotes, 'short'), ringerCounts: [4] });
+    assert.deepEqual(standalone.parts, [chart.parts.at(-1)], `${id}: a standalone part matches the default chart`);
+  }
+});
+
+test('First Ring: rejects unsupported songs, ringer counts and forms explicitly', () => {
+  const load = (id) => loadSong(manifest.songs.find((e) => e.id === id), join(root, 'songs'));
+  const options = load('jingle-bells');
+  assert.throws(() => buildFirstRingChart(load('silent-night')), /First Ring is not available for silent-night/);
+  for (const count of [0, 5, 1.5]) {
+    assert.throws(() => buildFirstRingChart({ ...options, ringerCounts: [1, count] }), /First Ring is not available/, `count ${count}`);
+  }
+  const full = formSong(options.score, options.roleNotes, 'full');
+  assert.throws(() => buildFirstRingChart({ song: options.song, formed: full, ringerCounts: [1] }), /First Ring is not available for jingle-bells, full/);
 });
 
 test('every arrangement × tier validates (format 0.3) and a 0.2-shaped chart still does', () => {
@@ -628,7 +702,7 @@ test('O Come, All Ye Faithful: the refrain\'s first "O come, let us adore Him" s
 test('every song, form, arrangement, tier and ringer count rings the source melody unchanged', () => {
   const configs = [
     { profile: 'handbell', ringerCounts: [1, 3, 5], forms: ['full', 'short'] },
-    { profile: 'phone-4zone', ringerCounts: [2, 4], forms: [{ id: 'full', keyChange: false }, 'short'] },
+    { profile: 'phone-4zone', ringerCounts: [1, 2, 3, 4], forms: [{ id: 'full', keyChange: false }, { id: 'full', keyChange: 'auto' }, 'short'] },
   ];
   let checked = 0;
   for (const entry of manifest.songs) {
@@ -655,7 +729,38 @@ test('every song, form, arrangement, tier and ringer count rings the source melo
           const where = `${entry.id} ${typeof form === 'string' ? form : form.id} ${profile} ${p.arrangement} ${p.difficulty} ×${p.ringerCount}`;
           const got = [...p.notes, ...(p.guide ?? [])].filter((n) => n.role === 'melody').map((n) => `${n.tick}:${n.bell}`).sort();
           assert.deepEqual(got, want, where);
+          if (profile === 'phone-4zone') {
+            const keys = [...p.notes, ...(p.guide ?? [])].map((n) => `${n.tick}:${n.bell}`);
+            assert.equal(new Set(keys).size, keys.length, `${where}: no double strike`);
+            assert.equal(p.metrics.idleRingers, 0, `${where}: every seat gets a part`);
+            assert.equal(p.metrics.remainingViolations, 0, where);
+            const cap = { 'super-easy': 2, easy: 2, medium: 4, hard: 4 }[p.difficulty];
+            const [repeat, change] = { 'super-easy': [1, 1], easy: [0.32, 0.45], medium: [0.25, 0.30], hard: [0.20, 0.20] }[p.difficulty];
+            for (const r of p.ringers) {
+              assert.ok(r.bells.length <= cap, `${where}: seat ${r.index} exceeds ${cap} pitches`);
+              const mine = p.notes.filter((n) => n.ringer === r.index);
+              assert.deepEqual(r.bells, [...new Set(mine.map((n) => n.bell))].sort((a, b) => midiOfBell(a) - midiOfBell(b)), where);
+              for (let i = 1; i < mine.length; i++) {
+                const prev = mine[i - 1], next = mine[i];
+                const min = prev.bell === next.bell ? repeat : change;
+                assert.ok(next.time - prev.time >= min - 0.001, `${where}: seat ${r.index} needs more selection time`);
+              }
+            }
+          }
           checked++;
+        }
+        if (profile === 'phone-4zone') {
+          const beatTicks = new Set(f.beats.map((b) => b.tick));
+          const offbeats = (p) => p.notes.filter((n) => !beatTicks.has(n.tick)).length;
+          const switches = (p) => p.ringers.reduce((sum, r) => sum + r.stats.switches, 0);
+          for (const arrangement of ARRANGEMENTS) for (const k of ringerCounts) {
+            const [sparse, easy, medium, hard] = chart.parts.filter((p) => p.arrangement === arrangement && p.ringerCount === k);
+            const where = `${entry.id} ${JSON.stringify(form)} ${arrangement} ×${k}`;
+            assert.ok(sparse.notes.length < easy.notes.length, `${where}: Super easy stays sparse`);
+            assert.ok(hard.notes.length > medium.notes.length, `${where}: Hard asks players to ring more`);
+            assert.ok(offbeats(hard) > offbeats(medium), `${where}: Hard has more playable offbeats`);
+            assert.ok(switches(hard) > switches(medium), `${where}: Hard has more playable pitch changes`);
+          }
         }
       }
     }

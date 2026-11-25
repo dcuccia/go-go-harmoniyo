@@ -6,8 +6,9 @@
 //   add --offline to skip NuGet lookups (warns)
 //
 // Checks: every npm project has a lockfile and declares MIT; every locked npm package and every NuGet
-// PackageReference has an allowlisted license or a matching exception (exceptions.json → ADR);
-// fetched LGPL sources (YARG) stay gitignored and unvendored.
+// PackageReference has an allowlisted license or a matching exception (exceptions.json → ADR); every
+// pinned binary in a binaries.json (redistributed by tools/package/*) has an allowlisted license, a
+// pinned hash and a pinned license text; fetched LGPL sources (YARG) stay gitignored and unvendored.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, posix } from 'node:path';
 import { emit, isGitIgnored, licenseUrl, readJson, repoFiles, repoRoot } from './lib/common.mjs';
@@ -143,6 +144,18 @@ for (const ref of nuget) {
   ref.status = judge('nuget', ref.name, ref.version, ref.license, ref.dir);
 }
 
+// --- pinned third-party binaries redistributed by packages (e.g. tools/package/windows) --------
+const binaries = [];
+for (const f of files.filter((f) => posix.basename(f) === 'binaries.json')) {
+  const dir = posix.dirname(f);
+  for (const b of JSON.parse(readFileSync(join(repoRoot, f), 'utf8')).binaries ?? []) {
+    const where = `binary ${b.name}@${b.version} (${f})`;
+    if (!/^https:\/\//.test(b.url ?? '') || !/^[0-9a-f]{64}$/.test(b.sha256 ?? '')) errors.push(`${where}: needs an https "url" and a pinned lowercase "sha256"`);
+    if (!/^https:\/\//.test(b.licenseText?.url ?? '') || !/^[0-9a-f]{64}$/.test(b.licenseText?.sha256 ?? '')) errors.push(`${where}: needs "licenseText": { url, sha256 } so the package can ship the full license text`);
+    binaries.push({ ...b, file: f, dir, status: judge('binary', b.name, b.version, b.license, dir) });
+  }
+}
+
 // --- fetched sources stay fetched (never vendored) --------------------------------------------
 for (const ex of exceptions.filter((e) => e.ecosystem === 'external')) {
   for (const dir of ex.fetchedInto ?? []) {
@@ -172,7 +185,7 @@ for (const ex of [...exceptions, ...copyleftGate]) {
 const esc = (s) => String(s).replace(/\|/g, '\\|');
 const npmRows = [...npm.values()].sort((a, b) => a.name.localeCompare(b.name) || a.version.localeCompare(b.version, undefined, { numeric: true }));
 const licenseIds = new Set();
-for (const p of [...npmRows, ...nuget]) {
+for (const p of [...npmRows, ...nuget, ...binaries]) {
   if (!p.license) continue;
   try {
     idsOf(p.license).forEach((id) => licenseIds.add(id));
@@ -189,9 +202,11 @@ const lines = [
   'Assets (art, audio, songs, charts) are credited separately in [ATTRIBUTION.md](ATTRIBUTION.md).',
   '',
   'Nothing listed here is vendored into this repository: npm packages are installed from the',
-  'lockfiles and fetched sources are cloned into gitignored folders. Today everything is spike code',
-  'that is not distributed as a product. A product build that bundles dependencies must also ship',
-  'their full license texts and copyright notices (see [ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md)).',
+  'lockfiles, fetched sources are cloned into gitignored folders and pinned binaries are downloaded at',
+  'package time. A package that bundles dependencies also ships their full license texts and copyright',
+  'notices (see [ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md)): the portable Windows',
+  'package ([tools/package/windows](tools/package/windows/README.md)) generates its own',
+  'THIRD_PARTY_NOTICES.md listing exactly what it bundles.',
   'Licenses are as declared in package metadata; they are not legal advice.',
   '',
   '## Fetched sources (not vendored)',
@@ -215,6 +230,14 @@ const lines = [
   ...(nuget.length
     ? ['| Package | Version | License | Declared in |', '|---|---|---|---|', ...nuget.map((r) => `| ${esc(r.name)} | ${r.version} | ${r.license ?? '(not checked)'} | \`${r.file}\` |`)]
     : ['No direct `PackageReference`s. The S2/S3 harnesses get their NuGet packages transitively through the fetched YARG.Core project (see above); they are restored, not redistributed.']),
+  '',
+  `## Pinned binaries (${binaries.length})`,
+  '',
+  'Downloaded at package time, verified against the pinned SHA-256 and redistributed unmodified.',
+  '',
+  '| Binary | Version | License | Role | Pinned in |',
+  '|---|---|---|---|---|',
+  ...binaries.map((b) => `| [${esc(b.name)}](${b.source ?? b.url}) | ${b.version} | ${esc(b.license)}${/^(EX|CG)-/.test(b.status) ? ` (${b.status})` : ''} | ${esc(b.role ?? '')} | \`${b.file}\` |`),
   '',
   '## Exceptions to the license allowlist',
   '',
@@ -245,6 +268,7 @@ const counts = {};
 for (const p of npm.values()) counts[p.license ?? '(none)'] = (counts[p.license ?? '(none)'] ?? 0) + 1;
 console.log(`npm: ${npm.size} package versions in ${npmProjects.length} projects ${JSON.stringify(counts)}`);
 console.log(`nuget: ${nuget.length} direct package reference(s)`);
+console.log(`binaries: ${binaries.map((b) => `${b.name}@${b.version} (${b.license})`).join(', ') || 'none'}`);
 for (const w of warnings) console.log(`⚠ ${w}`);
 for (const g of gated) console.log(`ℹ ${g.id} ${g.name} (${g.license}): ${g.gate}`);
 for (const e of errors) console.error(`✗ ${e}`);
