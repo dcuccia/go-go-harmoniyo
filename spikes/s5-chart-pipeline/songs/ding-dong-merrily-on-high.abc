@@ -1,0 +1,18 @@
+X:1
+T:Ding Dong Merrily on High
+C:Melody: 'Branle de l'Official', Thoinot Arbeau, Orchésographie (1588)
+O:France
+S:Public-domain dance tune; melody checked note by note against the soprano line of the score in the English Wikipedia article (repeat unfolded). Melody only: the chord symbols are ours, not any published harmonization
+Z:Encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. Chord symbols by the encoder.
+N:Verse (written out twice) and the Gloria refrain. Lead sheet: melody + chord symbols.
+N:B flat major (B flat, E flat); range F4-F5. Checked: octave of every note (refrain starts on F5), the E flats, and that every bar sums to 4 beats.
+%%hh-id ding-dong-merrily-on-high
+%%hh-license CC0-1.0
+L:1/8
+M:4/4
+Q:1/4=132
+K:Bb
+"Bb"B2 B2 "Cm"c B "F"A G | "F"F6 F2 | "Eb"G2 "Bb"B2 B2 "F"A2 | "Bb"B4 B4 |
+"Bb"B2 B2 "Cm"c B "F"A G | "F"F6 F2 | "Eb"G2 "Bb"B2 B2 "F"A2 | "Bb"B4 B4 |
+"Bb"f3 e d e f d | "Eb"e3 d c d e c | "Bb"d3 c B c d B | "F"c3 B A B c A |
+"Gm"B3 A G A B G | "F"A3 G F2 F2 | "Eb"G2 "Bb"B2 B2 "F"A2 | "Bb"B4 B4 |]

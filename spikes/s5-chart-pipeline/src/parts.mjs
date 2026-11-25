@@ -408,28 +408,41 @@ function mapper(groups) {
 const onsetKey = (n) => `${n.tick}:${n.midi}`;
 const fitsAfter = (a, b, limits) => !a || !b || b.time - a.time >= (a.midi === b.midi ? limits.repeat : limits.change) - 1e-9;
 const lead = (n) => n.role === 'melody' || n.role === 'descant';
+const EASY_COVERAGE_CAROLS = new Set([
+  'angels-we-have-heard-on-high', 'auld-lang-syne', 'carol-of-the-bells',
+  'ding-dong-merrily-on-high', 'god-rest-ye-merry-gentlemen', 'jolly-old-st-nicholas',
+  'o-christmas-tree', 'the-holly-and-the-ivy', 'we-three-kings',
+]);
 
 /** Limit each phone to a fixed pitch set and one playable stroke at a time. */
-function phoneSeat(notes, limits, coverageDuration) {
+function phoneSeat(notes, limits, coverageDuration, easyCoverage = false) {
   const count = new Map();
   for (const n of notes) count.set(n.midi, (count.get(n.midi) ?? 0) + (lead(n) ? 2 : 1));
   const pitches = [...count.keys()].sort((a, b) => count.get(b) - count.get(a) || a - b);
-  if (coverageDuration === undefined || pitches.length < 2) return spacedStrokes(notes, pitches.slice(0, limits.maxBells), limits);
+  const usual = spacedStrokes(notes, pitches.slice(0, limits.maxBells), limits);
+  if (coverageDuration === undefined || pitches.length < 2) return usual;
 
   // For Super easy, frequent bells may all occur in the same phrase. Try single pitches and
-  // pairs that cover more of the song. If coverage ties, keep the sparser part.
-  let best = [];
-  let bestWait = Infinity;
-  const consider = (pitches) => {
-    const played = spacedStrokes(notes, pitches, limits);
+  // pairs that cover more of the song. Easy can trade a few cues for a shorter wait, but not
+  // enough to turn a busy part into another Super easy part.
+  const longestWait = (played) => {
     let prev = 0;
     let wait = 0;
     for (const n of played) {
       wait = Math.max(wait, n.time - prev);
       prev = n.time;
     }
-    wait = Math.max(wait, coverageDuration - prev);
-    if (wait < bestWait - 1e-9 || (Math.abs(wait - bestWait) < 1e-9 && played.length < best.length)) {
+    return Math.max(wait, coverageDuration - prev);
+  };
+  const minCues = easyCoverage ? Math.ceil(0.85 * usual.length) : 0;
+  let best = easyCoverage ? usual : [];
+  let bestWait = easyCoverage ? longestWait(usual) : Infinity;
+  const consider = (pitches) => {
+    const played = spacedStrokes(notes, pitches, limits);
+    if (played.length < minCues) return;
+    const wait = longestWait(played);
+    const betterDensity = easyCoverage ? played.length > best.length : played.length < best.length;
+    if (wait < bestWait - 1e-9 || (Math.abs(wait - bestWait) < 1e-9 && betterDensity)) {
       best = played;
       bestWait = wait;
     }
@@ -475,7 +488,7 @@ function restoreJingleBellsRepeat(formed, seats, notes, minRepeatSec) {
 }
 
 /** Hard adds occasional chord-tone pickups using only the bells a ringer already holds. */
-function hardPickups(formed, seats, groups, original, guide, limits) {
+function hardPickups(formed, seats, groups, original, guide, limits, allowWeakPickups) {
   const used = new Set([...original, ...guide].map(onsetKey));
   const chords = formed.score.chords;
   const hold = formed.segments.find((s) => s.holdFrom !== undefined)?.holdFrom ?? formed.score.endTick;
@@ -483,8 +496,10 @@ function hardPickups(formed, seats, groups, original, guide, limits) {
   for (let i = 0; i + 1 < formed.beats.length; i++) {
     const beat = formed.beats[i];
     const next = formed.beats[i + 1];
-    // One optional pickup toward the middle of a bar, and one into the next bar.
-    if (!next.strong && !next.downbeat) continue;
+    // Normally fill into strong beats only. The Christmas Tree duet also uses weak-beat
+    // pickups where they add a real change of bell rather than anticipating the next note.
+    const weakBeat = !next.strong && !next.downbeat;
+    if (weakBeat && !allowWeakPickups) continue;
     const tick = Math.round(next.tick - (next.tick - beat.tick) / beat.div);
     if (tick <= beat.tick || tick >= hold) continue;
     while (chord + 1 < chords.length && chords[chord + 1].tick <= tick) chord++;
@@ -502,7 +517,8 @@ function hardPickups(formed, seats, groups, original, guide, limits) {
       const following = mine[after];
       // Keep pickups within an active phrase, not in long rests or the final held bar.
       if (time - prev.time > 1.5 || following.time - time > 1.5) continue;
-      const midi = groups[seat].bells.find((b) => b !== prev.midi && c.tones.includes(mod12(b)) && !used.has(onsetKey({ tick, midi: b })));
+      const midi = groups[seat].bells.find((b) => b !== prev.midi && (!weakBeat || b !== following.midi)
+        && c.tones.includes(mod12(b)) && !used.has(onsetKey({ tick, midi: b })));
       if (midi === undefined) continue;
       const n = { tick, time, dur, midi, role: groups[seat].role === 'bass' ? 'bass' : 'inner' };
       if (!fitsAfter(prev, n, limits) || !fitsAfter(n, following, limits)) continue;
@@ -512,15 +528,19 @@ function hardPickups(formed, seats, groups, original, guide, limits) {
   }
 }
 
-function phonePart(formed, notes, guide, plan, count, profile, tier) {
+function phonePart(formed, notes, guide, plan, count, profile, tier, arrangement) {
   const limits = PHONE_TIERS[tier];
   const groups = groupsFor(notes, plan, count, { ...profile, maxBells: limits.maxBells });
   const ringerOf = mapper(groups);
-  const coverageDuration = tier === 'super-easy' ? formed.toSec(formed.score.endTick) : undefined;
-  const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits, coverageDuration));
+  const songId = formed.score.meta.id;
+  const easyCoverage = tier === 'easy' && EASY_COVERAGE_CAROLS.has(songId);
+  const coverageDuration = tier === 'super-easy' || easyCoverage ? formed.toSec(formed.score.endTick) : undefined;
+  const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits, coverageDuration, easyCoverage));
   if (tier === 'easy' && formed.score.meta.id === 'jingle-bells') restoreJingleBellsRepeat(formed, seats, notes, profile.minRepeatSec);
   seats.forEach((mine, i) => { groups[i].bells = [...new Set(mine.map((n) => n.midi))].sort((a, b) => a - b); });
-  if (tier === 'hard') hardPickups(formed, seats, groups, notes, guide, limits);
+  // In this duet, a pickup that anticipates the next bell adds rhythm but not a pitch change.
+  const allowWeakPickups = songId === 'o-christmas-tree' && formed.id === 'short' && arrangement === 'by-range' && count === 2;
+  if (tier === 'hard') hardPickups(formed, seats, groups, notes, guide, limits, allowWeakPickups);
   const played = new Set(seats.flat().map(onsetKey));
   const fill = new Map();
   for (const n of [...guide, ...notes.filter(lead)]) {
@@ -555,7 +575,7 @@ export function buildFormPart(formed, tier, ringerCount, profileId, arrangement 
   });
 
   if (phoneLimits) {
-    const part = phonePart(formed, notes, guide, plan, ringerCount, profile, tier);
+    const part = phonePart(formed, notes, guide, plan, ringerCount, profile, tier, arrangement);
     const roles = part.groups.map((g) => plan.players ? g.role : majorityRole(part.notes.filter((n) => g.bells.includes(n.midi))));
     return serializePart(formed, tier, ringerCount, profileId, arrangement, { ...part, plan, roles });
   }

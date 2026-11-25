@@ -1,0 +1,38 @@
+X:1
+T:The Holly and the Ivy
+C:Traditional English
+O:England
+S:Melody: traditional English carol (public domain), checked note by note against the Mutopia Project edition in this repo (sources/mutopia/thehollyandtheivy.ly, Mutopia-2005/12/23-644, public domain); a test compares the soprano voice with it
+Z:Encoded for Go Go HarmoniYo by GitHub Copilot (agent, Claude Opus 5.5), 2026-10-25. The four-part harmony (alto, tenor, bass) and the chord symbols are our own, written for this repo; not taken from any published setting.
+N:SATB, four voices: S = melody, A, T, B = our own plain hymn-style harmony (mostly one chord per beat, cadences F/C - C7 - F). Verse and refrain written out.
+N:F major (B flat); one-beat pickup on F4; soprano range C4-D5, bass B flat 2-F3. Checked: soprano pitches and rhythm equal the Mutopia melody; every bar of every voice sums to 3 beats.
+%%hh-id the-holly-and-the-ivy
+%%hh-license CC0-1.0
+L:1/8
+M:3/4
+Q:1/4=100
+V:S
+V:A
+V:T
+V:B
+K:F
+V:S
+"F"F2 | "F"F F F2 "Bb"d2 | "C"c2 "F"A3 F | "F"F F "Dm"F2 "Bb"d2 | "C"c4 "C7"c B |
+"F"A G "Bb/D"F2 "F"A A | "Bb"D D "C"C2 "Dm"F G | "F/C"A B A2 "C7"G2 | "F"F4 F2 |
+"F"F F F2 "Bb"d2 | "C"c2 "F"A3 F | "F"F F "Dm"F2 "Bb"d2 | "C"c4 "C7"c B |
+"F"A G "Bb/D"F2 "Dm"A2 | "Bb"D D "C"C2 "Dm"F G | "F/C"A B A2 "C7"G2 | "F"F4 |]
+V:A
+C2 | C2 C2 F2 | E2 F4 | C2 D2 F2 | E4 E2 |
+F2 D2 F2 | B,2 G,2 D2 | F4 E2 | C4 C2 |
+C2 C2 F2 | E2 F4 | C2 D2 F2 | E4 E2 |
+F2 D2 F2 | B,2 G,2 D2 | F4 E2 | C4 |]
+V:T
+A,2 | A,2 A,2 B,2 | G,2 C4 | A,2 A,2 B,2 | G,4 G,2 |
+C2 B,2 C2 | F,2 E,2 A,2 | C4 B,2 | A,4 A,2 |
+A,2 A,2 B,2 | G,2 C4 | A,2 A,2 B,2 | G,4 G,2 |
+C2 B,2 D2 | F,2 E,2 A,2 | C4 B,2 | A,4 |]
+V:B
+F,2 | F,2 F,2 B,,2 | C,2 F,4 | F,2 D,2 B,,2 | C,4 E,2 |
+F,2 D,2 F,2 | B,,2 C,2 D,2 | C,6 | F,4 F,2 |
+F,2 F,2 B,,2 | C,2 F,4 | F,2 D,2 B,,2 | C,4 E,2 |
+F,2 D,4 | B,,2 C,2 D,2 | C,6 | F,4 |]

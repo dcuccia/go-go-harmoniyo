@@ -94,6 +94,19 @@ Checklist:
 use too. Record the source and license per file. No copyrighted songs, arrangements or ripped
 audio.
 
+For historical compositions, follow [ADR-0008](docs/decisions/0008-assets-ip-and-attribution.md):
+
+- [ ] Identify the composer, work, publication history, and exact edition. Prefer a library or
+      archive scan, and compare the passages used against the score (page, system, and bar).
+- [ ] Distinguish the historical composition from later editions, transcriptions, arrangements,
+      translations, lyrics, and recordings. Verify any such material separately before using it.
+- [ ] Record the bibliographic citation, exact reference artifact, comparison, and any required
+      owner approval in the asset register. Keep reference-only files out of the repo; if a
+      third-party file is incorporated, record its license, source URL, and SHA-256 and retain
+      its original notices. Apply the existing licenses to new arrangements and gameplay assets.
+- [ ] Escalate uncertain provenance or rights to the owner before inclusion. Record verifiable
+      facts and the project's asset classification, not legal analysis.
+
 ## Adding dependencies
 
 Allowed licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, CC-BY-4.0,
