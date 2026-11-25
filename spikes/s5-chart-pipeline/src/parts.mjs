@@ -453,6 +453,27 @@ function spacedStrokes(notes, pitches, limits) {
   return played;
 }
 
+function restoreJingleBellsRepeat(formed, seats, notes, minRepeatSec) {
+  const opening = formed.segments.find((s) => s.kind === 'verse');
+  if (!opening) return;
+  // First chorus, "in a one[-horse]": the lead sheet's B/B/ | B at quarter beats 87–88.
+  // Do this once per round, even when Full repeats the verse and chorus.
+  const step = formed.score.ppq / 2;
+  const tick = opening.offset + 87 * formed.score.ppq;
+  const midi = 71 + opening.transpose;
+  const middle = notes.find((n) => n.tick === tick + step && n.midi === midi && n.role === 'melody');
+  if (!middle) return;
+  for (const mine of seats) {
+    const i = mine.findIndex((n) => n.tick === tick && n.midi === midi && n.role === 'melody');
+    if (i < 0) continue;
+    const next = mine[i + 1];
+    if (next?.tick !== tick + 2 * step || next.midi !== midi || next.role !== 'melody') continue;
+    if (middle.time - mine[i].time < minRepeatSec || next.time - middle.time < minRepeatSec) return;
+    mine.splice(i + 1, 0, middle);
+    return;
+  }
+}
+
 /** Hard adds occasional chord-tone pickups using only the bells a ringer already holds. */
 function hardPickups(formed, seats, groups, original, guide, limits) {
   const used = new Set([...original, ...guide].map(onsetKey));
@@ -497,6 +518,7 @@ function phonePart(formed, notes, guide, plan, count, profile, tier) {
   const ringerOf = mapper(groups);
   const coverageDuration = tier === 'super-easy' ? formed.toSec(formed.score.endTick) : undefined;
   const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits, coverageDuration));
+  if (tier === 'easy' && formed.score.meta.id === 'jingle-bells') restoreJingleBellsRepeat(formed, seats, notes, profile.minRepeatSec);
   seats.forEach((mine, i) => { groups[i].bells = [...new Set(mine.map((n) => n.midi))].sort((a, b) => a - b); });
   if (tier === 'hard') hardPickups(formed, seats, groups, notes, guide, limits);
   const played = new Set(seats.flat().map(onsetKey));
