@@ -480,18 +480,35 @@ test('chord split: up to three ringers ring one chord tone each, together', () =
   assert.deepEqual(small.ringers.map((r) => r.role), ['chord', 'melody', 'melody', 'melody']);
 });
 
-test('phone Super easy: downbeats/long notes, ≥ 1 s apart, one bell per ringer, the host plays the rest', () => {
+test('phone Super easy: downbeats/long notes, ≥ 1 s apart, up to two bells per ringer, the host plays the rest', () => {
   for (const entry of manifest.songs) {
     const f = formed(entry.id);
     for (const k of [2, 4]) {
       const p = buildPart(f, 'super-easy', k, 'phone-4zone', 'balanced');
       const where = `${entry.id} ×${k}`;
-      for (const r of p.ringers) assert.equal(r.bells.length, 1, where);
+      for (const r of p.ringers) assert.ok(r.bells.length <= 2, where);
       const tune = p.notes.filter((n) => n.role === 'melody');
       for (let i = 1; i < tune.length; i++) assert.ok(tune[i].time - tune[i - 1].time >= 0.999, `${where}: spacing ${tune[i].time - tune[i - 1].time}`);
       assert.equal(tune.length + p.guide.filter((n) => n.role === 'melody').length, f.melody.length, `${where}: tune complete with the guide`);
       const easy = buildPart(f, 'easy', k, 'phone-4zone', 'balanced');
       assert.ok(p.metrics.strikes < easy.metrics.strikes, where);
+    }
+  }
+});
+
+test('phone Super easy: no seat waits longer than the shipped Short carols', () => {
+  // Shipped three-seat Balanced parts before the phone ladder; round up subsecond limits.
+  for (const [id, limits] of [
+    ['jingle-bells', [16, 5, 12]],
+    ['deck-the-halls', [10.35, 5.18, 11.39]],
+  ]) {
+    const f = formed(id, 'short');
+    const part = buildPart(f, 'super-easy', 3, 'phone-4zone', 'balanced');
+    for (const [seat, limit] of limits.entries()) {
+      const cues = part.notes.filter((n) => n.ringer === seat).map((n) => n.time);
+      const times = [0, ...cues, f.toSec(f.score.endTick)];
+      const wait = Math.max(...times.slice(1).map((time, i) => time - times[i]));
+      assert.ok(wait <= limit, `${id} seat ${seat + 1}: ${wait.toFixed(2)} s between cues (limit ${limit} s)`);
     }
   }
 });
@@ -650,7 +667,7 @@ test('every song, form, arrangement, tier and ringer count rings the source melo
             assert.equal(new Set(keys).size, keys.length, `${where}: no double strike`);
             assert.equal(p.metrics.idleRingers, 0, `${where}: every seat gets a part`);
             assert.equal(p.metrics.remainingViolations, 0, where);
-            const cap = { 'super-easy': 1, easy: 2, medium: 4, hard: 4 }[p.difficulty];
+            const cap = { 'super-easy': 2, easy: 2, medium: 4, hard: 4 }[p.difficulty];
             const [repeat, change] = { 'super-easy': [1, 1], easy: [0.32, 0.45], medium: [0.25, 0.30], hard: [0.20, 0.20] }[p.difficulty];
             for (const r of p.ringers) {
               assert.ok(r.bells.length <= cap, `${where}: seat ${r.index} exceeds ${cap} pitches`);

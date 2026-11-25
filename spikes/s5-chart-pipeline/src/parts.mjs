@@ -37,7 +37,7 @@ export const TIER_SPECS = {
 
 // Chart spacing, not judgement windows. Use the hardware floor for Hard (200 ms).
 const PHONE_TIERS = {
-  'super-easy': { maxBells: 1, repeat: 1, change: 1 },
+  'super-easy': { maxBells: 2, repeat: 1, change: 1 },
   easy: { maxBells: 2, repeat: 0.32, change: 0.45 },
   medium: { maxBells: 4, repeat: 0.25, change: 0.30 },
   hard: { maxBells: 4, repeat: 0.20, change: 0.20 },
@@ -410,11 +410,39 @@ const fitsAfter = (a, b, limits) => !a || !b || b.time - a.time >= (a.midi === b
 const lead = (n) => n.role === 'melody' || n.role === 'descant';
 
 /** Limit each phone to a fixed pitch set and one playable stroke at a time. */
-function phoneSeat(notes, limits) {
+function phoneSeat(notes, limits, coverageDuration) {
   const count = new Map();
   for (const n of notes) count.set(n.midi, (count.get(n.midi) ?? 0) + (lead(n) ? 2 : 1));
   const pitches = [...count.keys()].sort((a, b) => count.get(b) - count.get(a) || a - b);
-  const keep = new Set(pitches.slice(0, limits.maxBells));
+  if (coverageDuration === undefined || pitches.length < 2) return spacedStrokes(notes, pitches.slice(0, limits.maxBells), limits);
+
+  // For Super easy, frequent bells may all occur in the same phrase. Try single pitches and
+  // pairs that cover more of the song. If coverage ties, keep the sparser part.
+  let best = [];
+  let bestWait = Infinity;
+  const consider = (pitches) => {
+    const played = spacedStrokes(notes, pitches, limits);
+    let prev = 0;
+    let wait = 0;
+    for (const n of played) {
+      wait = Math.max(wait, n.time - prev);
+      prev = n.time;
+    }
+    wait = Math.max(wait, coverageDuration - prev);
+    if (wait < bestWait - 1e-9 || (Math.abs(wait - bestWait) < 1e-9 && played.length < best.length)) {
+      best = played;
+      bestWait = wait;
+    }
+  };
+  for (const [i, a] of pitches.entries()) {
+    consider([a]);
+    for (const b of pitches.slice(i + 1)) consider([a, b]);
+  }
+  return best;
+}
+
+function spacedStrokes(notes, pitches, limits) {
+  const keep = new Set(pitches);
   const played = [];
   for (const n of notes) {
     if (!keep.has(n.midi)) continue;
@@ -467,7 +495,8 @@ function phonePart(formed, notes, guide, plan, count, profile, tier) {
   const limits = PHONE_TIERS[tier];
   const groups = groupsFor(notes, plan, count, { ...profile, maxBells: limits.maxBells });
   const ringerOf = mapper(groups);
-  const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits));
+  const coverageDuration = tier === 'super-easy' ? formed.toSec(formed.score.endTick) : undefined;
+  const seats = groups.map((_, i) => phoneSeat(notes.filter((n) => ringerOf(n.midi) === i), limits, coverageDuration));
   seats.forEach((mine, i) => { groups[i].bells = [...new Set(mine.map((n) => n.midi))].sort((a, b) => a - b); });
   if (tier === 'hard') hardPickups(formed, seats, groups, notes, guide, limits);
   const played = new Set(seats.flat().map(onsetKey));

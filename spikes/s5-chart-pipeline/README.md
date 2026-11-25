@@ -44,8 +44,9 @@ Format 0.3 (all additions optional; 0.1/0.2 charts stay valid):
 - **Tiers**: `super-easy` (the tune's downbeats and long notes ≥ 1 s apart, ≤ 3 bells per
   ringer, optional bass on chord changes; the host plays the rest of the tune softly from the
   part's `guide`), `easy`, `medium`, `hard`. A descant nobody holds is also a `guide`.
-  The Node game and S9 share a stricter ladder for `phone-4zone` only: **Super easy** keeps one
-  pitch per ringer, **Easy** up to two with at least 450 ms between pitch changes, **Medium** up
+  The Node game and S9 share a stricter ladder for `phone-4zone` only: **Super easy** picks up to
+  two pitches per ringer to spread cues through the song, at least 1 s apart. **Easy** keeps
+  up to two with at least 450 ms between pitch changes, **Medium** up
   to four with faster changes, and **Hard** the same four-pitch ceiling with faster passages
   and offbeat chord-tone pickups on bells already held. The guide supplies unassigned melody and
   descant notes once; the timing judge and the curated **First Ring** preset are unchanged.

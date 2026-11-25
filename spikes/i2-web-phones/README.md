@@ -56,7 +56,7 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    and colours as its highway on the TV.
 5. Choose a **Song** (a fresh lobby defaults to **Jingle Bells**), then **Play**. To change how
    the group plays, open **Round options** for **Difficulty**. **Super easy** gives each ringer
-   one bell with sparse cues. **Easy** gives up to two (lower left, higher right), **Medium** up
+   up to two bells with sparse cues. **Easy** gives up to two (lower left, higher right), **Medium** up
    to four, and **Hard** up to four with quicker changes and offbeat pickups. The TV plays the rest of
    the tune softly. Round options also has **Parts**, **Length**
    and **Ringers** (defaults to the number of phones that have joined). **Parts**: *Balanced*
