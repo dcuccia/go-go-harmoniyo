@@ -580,6 +580,36 @@ test('phone Super easy: no seat waits longer than the shipped Short carols', () 
   }
 });
 
+test('phone Easy spreads cues for the full-length carol duets', () => {
+  for (const [id, limit] of [
+    ['we-three-kings', 14.2],
+    ['the-holly-and-the-ivy', 13],
+    ['carol-of-the-bells', 5.3],
+  ]) {
+    const f = formed(id, 'full');
+    const p = buildPart(f, 'easy', 2, 'phone-4zone', 'chord-split');
+    for (const r of p.ringers) {
+      const times = [0, ...p.notes.filter((n) => n.ringer === r.index).map((n) => n.time), f.toSec(f.score.endTick)];
+      const wait = Math.max(...times.slice(1).map((time, i) => time - times[i]));
+      assert.ok(wait <= limit, `${id} seat ${r.index + 1}: ${wait.toFixed(2)} s between cues (limit ${limit} s)`);
+    }
+  }
+});
+
+test('phone Hard adds weak-beat bell changes in the O Christmas Tree Short By Range duet', () => {
+  const f = formed('o-christmas-tree', 'short');
+  const hard = buildPart(f, 'hard', 2, 'phone-4zone', 'by-range');
+  const medium = buildPart(f, 'medium', 2, 'phone-4zone', 'by-range');
+  const switches = (p) => p.ringers.reduce((sum, r) => sum + r.stats.switches, 0);
+  assert.ok(switches(hard) > switches(medium));
+  const weakPickups = new Set(f.beats.slice(1).flatMap((next, i) => {
+    const beat = f.beats[i];
+    return next.strong || next.downbeat ? [] : [Math.round(next.tick - (next.tick - beat.tick) / beat.div)];
+  }));
+  const cue = hard.notes.find((n) => weakPickups.has(n.tick) && !medium.notes.some((m) => m.tick === n.tick && m.bell === n.bell));
+  assert.ok(cue, 'Hard adds a playable weak-beat pickup');
+});
+
 test('phone Easy Jingle Bells: one three-stroke B4 on "in a one" in Short and Full', () => {
   for (const form of ['short', { id: 'full', keyChange: false }, { id: 'full', keyChange: 'auto' }]) {
     const f = formed('jingle-bells', form);

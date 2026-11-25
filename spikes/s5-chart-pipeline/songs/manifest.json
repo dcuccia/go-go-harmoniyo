@@ -52,7 +52,7 @@
       "format": "abc",
       "year": null,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional English carol, London tune (18th c., public domain). Melody checked note by note against The Public Domain Song Anthology (Aperio Press 2020, CC0) p. 104 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional English carol, London tune (18th c., public domain). Melody checked note by note against The Public Domain Song Anthology (Aperio Press 2020, CC0) p. 104 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "march" }
     },
     {
@@ -61,7 +61,7 @@
       "format": "abc",
       "year": 1857,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Words and music by John Henry Hopkins Jr., 1857 (public domain). Melody checked note by note against the Wikipedia SATB score; notated in 3/4 instead of 3/8. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Words and music by John Henry Hopkins Jr., 1857 (public domain). Melody checked note by note against the Wikipedia SATB score; notated in 3/4 instead of 3/8. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "waltz" }
     },
     {
@@ -70,7 +70,7 @@
       "format": "abc",
       "year": null,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional French carol, tune GLORIA (public domain). Melody checked note by note against The Public Domain Song Anthology p. 19 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional French carol, tune GLORIA (public domain). Melody checked note by note against The Public Domain Song Anthology p. 19 and the Wikipedia SATB score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "gentle" }
     },
     {
@@ -79,7 +79,7 @@
       "format": "abc",
       "year": 1824,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional German melody 'O Tannenbaum' (public domain); words Ernst Anschuetz 1824. Melody checked against The Public Domain Song Anthology p. 226 (rhythm and pitches) and the Wikipedia score (pitches). Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional German melody 'O Tannenbaum' (public domain); words Ernst Anschuetz 1824. Melody checked against The Public Domain Song Anthology p. 226 (rhythm and pitches) and the Wikipedia score (pitches). Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "waltz" }
     },
     {
@@ -88,7 +88,7 @@
       "format": "abc",
       "year": 1881,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional American song; melody as printed in Franklin Square Song Collection No. 1 (1881), p. 80 (public domain; scan on Wikimedia Commons, File:Jolly_old.gif), checked note by note against the scan. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional American song; melody as printed in Franklin Square Song Collection No. 1 (1881), p. 80 (public domain; scan on Wikimedia Commons, File:Jolly_old.gif), checked note by note against the scan. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "sleigh-ride" }
     },
     {
@@ -97,7 +97,7 @@
       "format": "abc",
       "year": 1588,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Dance tune 'Branle de l'Official' from Thoinot Arbeau's Orchesographie (1588, public domain). Melody only, checked against the soprano line of the Wikipedia score; the chord symbols are ours, not any published harmonization. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Dance tune 'Branle de l'Official' from Thoinot Arbeau's Orchesographie (1588, public domain). Melody only, checked against the soprano line of the Wikipedia score; the chord symbols are ours, not any published harmonization. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "march" }
     },
     {
@@ -106,7 +106,7 @@
       "format": "abc",
       "year": 1788,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional Scottish air (public domain); words Robert Burns 1788. Melody checked note by note against The Public Domain Song Anthology p. 27 and the Wikipedia score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional Scottish air (public domain); words Robert Burns 1788. Melody checked note by note against The Public Domain Song Anthology p. 27 and the Wikipedia score. Encoded by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25; chord symbols by the encoder. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "gentle" }
     },
     {
@@ -137,7 +137,7 @@
       "format": "abc",
       "year": null,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Traditional English melody (public domain), checked note by note against the Mutopia edition kept in sources/mutopia/thehollyandtheivy.* (a test compares them). SATB: the alto, tenor and bass parts and the chord symbols are our own hymn-style harmony. Written by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Traditional English melody (public domain), checked note by note against the Mutopia edition kept in sources/mutopia/thehollyandtheivy.* (a test compares them). SATB: the alto, tenor and bass parts and the chord symbols are our own hymn-style harmony. Written by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "waltz", "melodyVoice": "S", "bassVoice": "B" }
     },
     {
@@ -241,7 +241,7 @@
       "composer": "Mykola Leontovych (1916), arranged for Go Go HarmoniYo",
       "year": 1916,
       "license": { "id": "CC0-1.0", "url": "https://creativecommons.org/publicdomain/zero/1.0/" },
-      "source": { "kind": "self-encoded", "notes": "Our own three-voice arrangement of public-domain material from Mykola Leontovych's 'Shchedryk' (1916): the four-note ostinato and the melodic phrases (checked against a transcription of his setting). Bass and inner parts, form, interlude and ending are ours; no English words and no later arrangement used. Arranged by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); owner resemblance review pending." },
+      "source": { "kind": "self-encoded", "notes": "Our own three-voice arrangement of public-domain material from Mykola Leontovych's 'Shchedryk' (1916): the four-note ostinato and the melodic phrases (checked against an unpinned transcription; the exact reference edition needs separate verification before release). Bass and inner parts, form, interlude and ending are ours; no English words and no later arrangement used. Arranged by the S5 agent (GitHub Copilot, Claude Opus 5.5), 2026-10-25. AI-generated (CC0); see attribution/register.json for review status." },
       "options": { "backingStyle": "waltz", "melodyVoice": "1", "bassVoice": "3" }
     }
   ]
