@@ -144,7 +144,7 @@
         {
           "id": "s5-carol-of-the-bells-abc",
           "title": "Carol of the Bells (Shchedryk), three-voice arrangement (ABC)",
-          "credit": "Carol of the Bells: arrangement for Go Go HarmoniYo (CC0) of public-domain material from Mykola Leontovych's 'Shchedryk' (1916).",
+          "credit": "Carol of the Bells (Shchedryk): Mykola Leontovych (1877–1921), based on a traditional Ukrainian New Year's song; first performed in 1916. Historical score: Kharkiv, 1921, documented by the Vernadsky National Library of Ukraine. Original handbell arrangement and ABC encoding by the Go Go HarmoniYo S5 agent session (GitHub Copilot).",
           "license": {
             "id": "CC0-1.0",
             "name": "CC0 1.0 Universal (public domain dedication)",
