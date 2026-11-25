@@ -6,8 +6,8 @@
 //   public/charts/first-ring/<song>.json  opt-in Short / one-pitch parts for supported songs
 //   public/charts/index.json         song list for the lobby
 //   node scripts/build-charts.mjs [--ringers 1,2,3,4] [--profile phone-4zone] [--key-change] [--force]
-// The full form has no key change by default here: a step up in the last verse adds 1–2 bells to
-// most parts, more than a 4-bell phone holds (S5 metrics). --key-change turns it on.
+// --key-change adds a step up in the last verse. More notes may move to the TV guide because
+// phone pitches are fixed for the whole song.
 // Skips the work when nothing it depends on changed (hash in index.json); --force rebuilds.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';

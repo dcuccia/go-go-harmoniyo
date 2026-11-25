@@ -36,7 +36,7 @@ export interface S5Part {
   arrangement?: Arrangement;
   ringers: S5Ringer[];
   notes: S5Note[];
-  /** Format 0.3+: notes the host plays softly (super easy: the rest of the tune; the descant). */
+  /** Format 0.3+: tune and descant notes the host plays softly when no seat cues them. */
   guide?: { tick: number; time: number; durSec?: number; bell: string; role?: NoteRole }[];
 }
 /** Format 0.3+: song sections (intro, verses, interlude, coda). */
@@ -141,7 +141,7 @@ export interface TeamOptions {
   /** Written → sounding transposition, semitones (handbells: +12). */
   transpose?: number;
   title?: string;
-  /** Play the part's guide notes (super easy: the rest of the tune; a descant nobody holds) softly on the host. Default true. */
+  /** Play the part's guide notes softly on the host. Default true. */
   guide?: boolean;
 }
 
@@ -170,7 +170,7 @@ export function buildTeamChart(src: S5Chart, part: S5Part, opts: TeamOptions = {
       autoRingers.push(r.index);
       continue;
     }
-    // Keep the most-struck bells that fit on one phone; the host rings the rest.
+    // Generated phone-4zone parts already fit. Keep overflow fallback for legacy/other profiles.
     const ranked = [...r.bells].sort((a, b) => (strikes.get(b) ?? 0) - (strikes.get(a) ?? 0) || (midiOf.get(a) ?? 0) - (midiOf.get(b) ?? 0));
     const keep = new Set(ranked.slice(0, maxBells));
     const kept = r.bells.filter((b) => keep.has(b)).sort((a, b) => (midiOf.get(a) ?? 0) - (midiOf.get(b) ?? 0));

@@ -102,14 +102,21 @@ describe('buildTeamChart', () => {
     expect(isChartFormat('other.chart')).toBe(false);
   });
 
-  const charts = import.meta.glob('../public/charts/*.json', { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;
+  const charts = import.meta.glob(['../public/charts/*.json', '../public/charts/short/*.json'], { eager: true, import: 'default' }) as Record<string, S5Chart | { songs: unknown[] }>;
   const songs = Object.entries(charts).filter(([k]) => !k.endsWith('index.json')) as [string, S5Chart][];
-  it.skipIf(songs.length === 0)('handles every generated part (run "npm run charts" first)', () => {
+  it.skipIf(songs.length === 0)('maps every generated part without overflow, low to high on both phone and highway', () => {
     for (const [, c] of songs) {
       for (const p of c.parts) {
         const t = buildTeamChart(c, p);
-        expect(t.chart.notes.length + t.chart.backing.length).toBe(p.notes.length + (p.guide?.length ?? 0));
-        for (const r of t.ringers) expect(r.bells.length).toBeLessThanOrEqual(4);
+        expect(t.chart.notes.length).toBe(p.notes.length);
+        expect(t.chart.backing.length).toBe(p.guide?.length ?? 0);
+        for (const [i, r] of t.ringers.entries()) {
+          expect(r.autoBells).toEqual([]);
+          expect(r.bells.map((b) => b.id)).toEqual(p.ringers[i].bells);
+          expect(t.subCharts[i].lanes.map((l) => l.pitch)).toEqual(r.bells.map((b) => b.pitch));
+        }
+        const all = [...t.chart.notes, ...t.chart.backing].map((n) => `${n.time}:${n.pitch}`);
+        expect(new Set(all).size).toBe(all.length);
         expect(t.ringers.length).toBe(p.ringerCount);
         for (let i = 1; i < t.chart.notes.length; i++) expect(t.chart.notes[i].time).toBeGreaterThanOrEqual(t.chart.notes[i - 1].time);
       }
