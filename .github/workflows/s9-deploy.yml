@@ -11,6 +11,10 @@ on:
         description: Enter ongoing for general testing, or a UTC cutoff (YYYY-MM-DDTHH:MM:SSZ, up to 12 hours ahead)
         type: string
         default: ''
+      reviewed_backing:
+        description: Include the fixed recorded backing authorized by ADR-0015
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -36,7 +40,13 @@ jobs:
         with:
           node-version: 22
       - name: Build and validate locally
-        run: npm run deploy:worker
+        env:
+          S9_REVIEWED_BACKING: ${{ inputs.reviewed_backing }}
+        shell: bash
+        run: |
+          backing=()
+          if [[ "$S9_REVIEWED_BACKING" == "true" ]]; then backing+=(--reviewed-backing); fi
+          npm run deploy:worker -- "${backing[@]}"
       - name: Deploy and verify the public Worker
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -44,13 +54,16 @@ jobs:
           S9_SIGNAL_ORIGIN: ${{ vars.S9_SIGNAL_ORIGIN }}
           S9_ENABLE_DEMO: ${{ inputs.enable_demo }}
           S9_DEMO_UNTIL: ${{ inputs.demo_until }}
+          S9_REVIEWED_BACKING: ${{ inputs.reviewed_backing }}
         shell: bash
         run: |
+          backing=()
+          if [[ "$S9_REVIEWED_BACKING" == "true" ]]; then backing+=(--reviewed-backing); fi
           if [[ "$S9_ENABLE_DEMO" == "true" ]]; then
-            npm run deploy:worker -- --deploy "--demo-until=$S9_DEMO_UNTIL"
+            npm run deploy:worker -- --deploy "--demo-until=$S9_DEMO_UNTIL" "${backing[@]}"
           elif [[ -n "$S9_DEMO_UNTIL" ]]; then
             echo 'Refusing demo cutoff without explicit enablement.' >&2
             exit 1
           else
-            npm run deploy:worker -- --deploy
+            npm run deploy:worker -- --deploy "${backing[@]}"
           fi

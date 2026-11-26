@@ -57,6 +57,16 @@ const saveBacking = (): void => localStorage.setItem(BACKING_KEY, JSON.stringify
 let backing: BackingTrack | null = null;
 const audition = import.meta.env.MODE === 'backing-preview' && params.get('backingPreview') === '1' && location.protocol === 'http:' &&
   location.hostname === '127.0.0.1' && window.top === window;
+const recordedBacking = import.meta.env.MODE === 's9-reviewed-backing';
+type RecordedMode = 'recorded' | 'bells-only' | 'procedural-fallback' | 'off' | 'first-ring';
+let recordedMode: RecordedMode | undefined;
+const recordedLabel = (mode: RecordedMode): string => ({
+  recorded: 'Recorded harp backing',
+  'bells-only': 'Recorded backing: bells fill this part',
+  'procedural-fallback': 'Recorded backing unavailable · procedural backing',
+  off: 'Backing off',
+  'first-ring': 'First Ring: procedural backing',
+})[mode];
 let auditionChoice = 'candidate';
 let auditionSelects: NodeListOf<HTMLSelectElement> | undefined;
 const auditionLabel = (first: boolean, enabled: boolean, candidate: boolean): string =>
@@ -503,7 +513,8 @@ function renderLobby(): void {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
-  $('backing-info').textContent = audition && auditionChoice === 'candidate' && !firstRing
+  $('backing-info').textContent = recordedBacking && !firstRing ? 'Backing: recorded harp'
+    : audition && auditionChoice === 'candidate' && !firstRing
     ? 'Backing: local audition candidate' : s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
   renderAudition();
   renderStatus();
@@ -877,14 +888,33 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
       return;
     }
     let preview: TrackPreview | undefined;
+    let roundBacking: RecordedMode | undefined;
     if (import.meta.env.MODE === 'backing-preview' && candidate && settings.enabled && settings.volume > 0) {
       const { preparePreview } = await import('./backing/preview-player');
       preview = await preparePreview(audio.ctx, s5, part, config.songForm, index.sourceHash);
       if (starting !== attempt) return;
     }
+    if (import.meta.env.MODE === 's9-reviewed-backing') {
+      if (!settings.enabled || settings.volume <= 0) roundBacking = 'off';
+      else if (config.firstRing) roundBacking = 'first-ring';
+      else {
+        showError('Loading recorded harp backing…');
+        try {
+          const { prepareS9Backing } = await import('../../s9-page-host/src/recorded-backing');
+          preview = await prepareS9Backing(audio.ctx, s5, part, config.songForm, index.sourceHash);
+          roundBacking = preview.events.length ? 'recorded' : 'bells-only';
+        } catch (e) {
+          console.warn('Recorded backing unavailable; using procedural backing:', e);
+          roundBacking = 'procedural-fallback';
+        }
+        if (starting !== attempt) return;
+        showError('');
+      }
+    }
     const absent = mode === 'play' ? checkRoster() : missingPhones();
     if (!absent) return;
-    beginRound(request, config, s5, part, absent, audition ? settings : { ...backingSettings }, preview);
+    recordedMode = roundBacking;
+    beginRound(request, config, s5, part, absent, audition || recordedBacking ? settings : { ...backingSettings }, preview);
   } catch (e) {
     if (starting === attempt) showError(`Could not start the round: ${String(e)}`);
   } finally {
@@ -953,7 +983,9 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
   s.onFinish = (r) => finish(r, config, part.arrangement ?? 'by-range');
   const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
   const hostNote = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
-  $('host-note').textContent = audition
+  $('host-note').textContent = recordedBacking && recordedMode
+    ? [recordedLabel(recordedMode), hostNote].filter(Boolean).join(' · ')
+    : audition
     ? [playedBackingLabel(config.firstRing, settings, preview), hostNote].filter(Boolean).join(' · ')
     : hostNote;
   session = s;
@@ -1097,7 +1129,15 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
     chartDurationSec: team ? round(team.chart.duration, 3) : null,
     soundMode,
     backing: backing
-      ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.preview?.events.length ?? backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3), ...(audition ? { audition: backing.preview ? 'candidate' : 'baseline' } : {}) }
+      ? { ...backing.settings,
+        style: recordedMode === 'recorded' ? 'recorded-harp' : recordedMode === 'bells-only' || recordedMode === 'off' ? null : backing.style?.id ?? null,
+        chords: backing.timeline?.source ?? null,
+        events: backing.preview?.events.length ?? backing.events.length,
+        countInClicks: backing.clicks.length,
+        leadInSec: round(backing.leadIn, 3),
+        ...(audition ? { audition: backing.preview ? 'candidate' : 'baseline' } : {}),
+        ...(recordedBacking ? { mode: recordedMode } : {}),
+      }
       : null,
     sfx: { ...sfxSettings, cues: director?.counts() ?? null },
     players: playerRows,
@@ -1115,7 +1155,8 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = config.title;
-  const resultBacking = audition && backing
+  const resultBacking = recordedBacking && recordedMode ? ` · ${recordedLabel(recordedMode)}`
+    : audition && backing
     ? ` · ${playedBackingLabel(config.firstRing, backing.settings, backing.preview)}`
     : '';
   $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}${resultBacking}`;

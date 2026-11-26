@@ -14,6 +14,19 @@ precedence = "closest"
 SPDX-FileCopyrightText = "2026 David Cuccia and Go Go HarmoniYo contributors"
 SPDX-License-Identifier = "MIT"
 
+# Fixed S9 backing score and original VSCO-2 CE recordings.
+[[annotations]]
+path = "spikes/s9-page-host/backing/catalog.json"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 Go Go HarmoniYo contributors (AI-assisted; dedicated to the public domain)"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "spikes/s9-page-host/backing/samples/**"
+precedence = "override"
+SPDX-FileCopyrightText = "Sam Gossner, Simon Dalzell, and Elan Hickler / Soundemote; CC0 1.0 Universal"
+SPDX-License-Identifier = "CC0-1.0"
+
 # Original media (screenshots/captures of the project's own UI): CC BY 4.0.
 [[annotations]]
 path = [

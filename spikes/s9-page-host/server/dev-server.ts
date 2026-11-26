@@ -8,7 +8,7 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { networkInterfaces } from 'node:os';
-import { dirname, extname, join, normalize, sep } from 'node:path';
+import { basename, dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { WebSocketServer, type WebSocket } from 'ws';
@@ -30,6 +30,9 @@ const { values: args } = parseArgs({
 });
 
 const port = Number(args.port);
+if (['web-backing-local', 'web-reviewed-worker'].includes(basename(resolve(args.web))) && (args.host !== '127.0.0.1' || args.tunnel)) {
+  throw new Error('The S9 backing rehearsal requires --host 127.0.0.1 and no tunnel.');
+}
 const log = (...a: unknown[]): void => {
   if (!args.quiet) console.log(...a);
 };

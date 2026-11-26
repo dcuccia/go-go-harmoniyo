@@ -19,16 +19,25 @@ const repo = join(root, '..', '..');
 const i2 = join(repo, 'spikes', 'i2-web-phones');
 const s1web = join(repo, 'spikes', 's1-phone-bell', 'src', 'web');
 const brand = join(repo, 'docs', 'design', 'brand');
-const out = join(root, 'dist', 'web');
-
-const { values: args } = parseArgs({ options: { signal: { type: 'string' } } });
+const { values: args } = parseArgs({ options: {
+  signal: { type: 'string' },
+  'reviewed-backing': { type: 'boolean' },
+  'test-reviewed-backing': { type: 'boolean' },
+} });
+const testBacking = args['test-reviewed-backing'];
+if (testBacking && args['reviewed-backing']) throw new Error('Select one S9 backing build mode.');
+const out = join(root, 'dist', testBacking ? 'web-backing-local' : args['reviewed-backing'] ? 'web-reviewed-worker' : 'web');
 const signal = (args.signal ?? process.env.S9_SIGNAL_ORIGIN ?? '').replace(/\/+$/, '');
 if (signal && !/^https?:\/\/[^/]+$/.test(signal)) throw new Error(`--signal must be an origin like https://example.workers.dev, got ${signal}`);
+const backing = testBacking || args['reviewed-backing'];
+if (backing && signal) throw new Error('S9 recorded backing is only for the same-origin browser build.');
 
 for (const need of [join(i2, 'node_modules', 'three'), join(i2, 'public', 'charts'), join(i2, 'public', 'brand')]) {
   if (!existsSync(need)) throw new Error(`missing ${need}: run "npm ci && npm run charts && npm run brand" in spikes/i2-web-phones`);
 }
 
+const backingBuild = backing ? await import('./reviewed-backing.mjs') : undefined;
+const stageBacking = backingBuild?.prepareBacking(repo, join(i2, 'public', 'charts'), testBacking ? 'test' : 'release');
 rmSync(out, { recursive: true, force: true });
 const define = { __S9_SIGNAL_ORIGIN__: JSON.stringify(signal) };
 
@@ -38,6 +47,7 @@ await vite({
   root: i2,
   base: './',
   configFile: false,
+  ...(backing ? { mode: 's9-reviewed-backing' } : {}),
   logLevel: 'warn',
   define,
   publicDir: join(i2, 'public'),
@@ -93,5 +103,7 @@ mkdirSync(join(legal, 'LICENSES'), { recursive: true });
 copyFileSync(join(repo, 'LICENSE'), join(legal, 'LICENSE.txt'));
 for (const f of ['ATTRIBUTION.md', 'THIRD_PARTY_NOTICES.md']) copyFileSync(join(repo, f), join(legal, f));
 for (const f of readdirSync(join(repo, 'LICENSES')).filter((f) => !f.startsWith('LGPL'))) copyFileSync(join(repo, 'LICENSES', f), join(legal, 'LICENSES', f));
-writeFileSync(join(out, 's9-build.json'), JSON.stringify({ signal, builtAt: new Date().toISOString() }, null, 2));
+if (stageBacking) stageBacking(out);
+const backingStamp = backingBuild?.catalogDigest;
+writeFileSync(join(out, 's9-build.json'), JSON.stringify({ signal, builtAt: new Date().toISOString(), backing: backingStamp }, null, 2));
 console.log(`S9 web build → ${out}${signal ? ` (signal ${signal})` : ' (signal: same origin)'}`);

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertBackingRelease, catalogDigest } from '../scripts/reviewed-backing.mjs';
 import { test } from 'node:test';
 import { demoDeployExpiry, deploymentTarget, smoke, verifyCloudflareTarget } from '../scripts/deploy.mjs';
 import { ONGOING_DEMO } from '../worker/turn-demo.mjs';
@@ -54,9 +55,21 @@ test('only an explicit ongoing mode or bounded UTC expiry opts deployment into d
   }
 });
 
+test('recorded backing requires an accepted decision and review for the exact asset bytes', () => {
+  const adr = `# 0015 — Reviewed, fixed backing arrangements for public S9\n\n- Status: Accepted\n\n${catalogDigest}`;
+  const review = { status: 'approved', reviewer: 'Fixture reviewer', date: '2026-11-25', notes: catalogDigest };
+  const score = { id: 's9-reviewed-harp-backing', review, ai: { reviewer: review.reviewer, reviewDate: review.date } };
+  const harp = { id: 's9-vsco2-harp', review: { status: 'approved' } };
+  assert.doesNotThrow(() => assertBackingRelease(adr, [score, harp]));
+  assert.throws(() => assertBackingRelease(adr.replace('Accepted', 'Proposed'), [score, harp]), /accepted ADR/);
+  assert.throws(() => assertBackingRelease(adr, [{ ...score, candidate: true }, harp]), /recorded owner review/);
+  assert.throws(() => assertBackingRelease(adr, [{ ...score, review: { ...review, notes: 'different digest' } }, harp]), /recorded owner review/);
+  assert.throws(() => assertBackingRelease(adr, [score, { ...harp, credit: false }]), /approved sample/);
+});
+
 test('live smoke requires the current build, both entry points, signalling and STUN-only ICE', async () => {
   const builtAt = '2026-11-23T00:00:00.000Z';
-  const check = (pathToBreak = '', wrongResponse = () => new Response('not found', { status: 404 }), demoExpiresAt = 0) =>
+  const check = (pathToBreak = '', wrongResponse = () => new Response('not found', { status: 404 }), demoExpiresAt = 0, backing) =>
     smoke(origin, builtAt, async (url, options) => {
       assert.equal(url.origin, origin);
       assert.equal(options.redirect, 'error');
@@ -65,7 +78,14 @@ test('live smoke requires the current build, both entry points, signalling and S
       switch (url.pathname) {
         case '/': return new Response('<title>S9 · Go Go HarmoniYo</title>');
         case '/c/': return new Response('<script src="./controller.js"></script>');
-        case '/s9-build.json': return Response.json({ builtAt, signal: '' });
+        case '/s9-build.json': return Response.json({ builtAt, signal: '', backing });
+        case '/backing/short/carol-of-the-bells.json':
+          assert.ok(backing);
+          return Response.json({ sourceHash: 'fixture', events: [[0, 0, 1, 38, 'harp', 0.4]] });
+        case '/backing/samples/KSHarp_D4_mf.wav':
+          assert.ok(backing);
+          assert.equal(options.method, 'HEAD');
+          return new Response(null, { headers: { 'content-type': 'audio/wav' } });
         case '/ice': return Response.json({ turn: false, iceServers: [{ urls: ['stun:stun.cloudflare.com:3478'] }] });
         case '/turn-demo':
           assert.equal(options.method, 'GET', 'the deploy smoke must not open a room or mint');
@@ -76,7 +96,7 @@ test('live smoke requires the current build, both entry points, signalling and S
         case '/signal/S9SMOKE': return new Response('expected a WebSocket', { status: 426 });
         default: assert.fail(`Unexpected URL: ${url}`);
       }
-    }, demoExpiresAt);
+    }, demoExpiresAt, backing);
   await check();
   await assert.rejects(check('/c/'), /expected HTTP 200/);
   await assert.rejects(check('/signal/S9SMOKE'), /expected HTTP 426/);
@@ -92,4 +112,7 @@ test('live smoke requires the current build, both entry points, signalling and S
   await assert.rejects(check('/turn-demo', enabled, ONGOING_DEMO), /did not match/);
   await assert.rejects(check('/turn-demo', enabled), /did not match/);
   await assert.rejects(check('/turn-demo', enabled, expiry + 1000), /did not match/);
+  await check('', undefined, 0, catalogDigest);
+  await assert.rejects(check('/backing/short/carol-of-the-bells.json', undefined, 0, catalogDigest), /expected HTTP 200/);
+  await assert.rejects(check('/s9-build.json', () => Response.json({ builtAt, signal: '' }), 0, catalogDigest), /do not match/);
 });

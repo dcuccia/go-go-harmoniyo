@@ -12,8 +12,13 @@ const request = async (path: string): Promise<Response> => {
 const decoded = new Map<number, Promise<AudioBuffer>>();
 
 export async function preparePreview(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, form: PreviewForm, sourceHash: string): Promise<TrackPreview> {
-  const { events: input, sourceHash: hash } = await (await request(`${chart.song.id}/${form}`)).json();
+  const { events, sourceHash: hash } = await (await request(`${chart.song.id}/${form}`)).json();
   if (hash !== sourceHash || chart.form?.id !== form) throw new Error('Backing preview and the selected chart form do not match.');
+  return prepareRecordedBacking(ctx, chart, part, events, (note) => request(`sample/${note}`));
+}
+
+export async function prepareRecordedBacking(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, input: unknown,
+                                             sample: (note: string) => Promise<Response>): Promise<TrackPreview> {
   const authored = scoreEvents(input, chart);
   const events = protectBells(authored, chart, part);
 
@@ -22,7 +27,7 @@ export async function preparePreview(ctx: BaseAudioContext, chart: S5Chart, part
   await Promise.all([...harp].map(async ([midi, note]) => {
     let active = decoded.get(midi);
     if (!active) {
-      active = request(`sample/${note}`).then((res) => res.arrayBuffer()).then((bytes) => ctx.decodeAudioData(bytes))
+      active = sample(note).then((res) => res.arrayBuffer()).then((bytes) => ctx.decodeAudioData(bytes))
         .catch((e: unknown) => {
           decoded.delete(midi);
           throw new Error(`Cannot load the recorded harp sample ${note}: ${String(e)}`);

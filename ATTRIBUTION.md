@@ -31,6 +31,8 @@ repository "MIT" in a way that hides them.
 
 ## Credits
 
+- Fixed S9 harp backing arrangements by Go Go HarmoniYo contributors (AI-assisted, CC0). License: CC0 1.0 Universal (public domain dedication).
+- VSCO-2 CE harp: recorded by Sam Gossner & Simon Dalzell; sample cutting by Elan Hickler/Soundemote (CC0 1.0). License: CC0 1.0 Universal (public domain dedication).
 - Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - Joy to the World, tune ANTIOCH as arranged by Lowell Mason (1839), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
 - Silent Night by Franz Xaver Gruber (1818), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0). License: CC0 1.0 Universal (public domain dedication).
@@ -70,6 +72,8 @@ repository "MIT" in a way that hides them.
 
 | Asset | Origin | License | Files | Review |
 |---|---|---|---|---|
+| [Fixed backing arrangements for the S9 browser host](#s9-reviewed-harp-backing) | ai-generated | CC0-1.0 | 1 | pending |
+| [Versilian Studios Chamber Orchestra 2 Community Edition harp recordings](#s9-vsco2-harp) | third-party | CC0-1.0 | 11 | pending |
 | [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 15 | approved (legacy) |
 | [Pitch-class palette swatch sheet with colour-vision simulations (visual identity doc)](#pitch-class-palette-sheet) | original | CC-BY-4.0 | 1 | pending |
 | [Jingle Bells (lead sheet, ABC)](#s5-jingle-bells-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
@@ -127,6 +131,46 @@ repository "MIT" in a way that hides them.
 | [Brand options: the selected G vamps (lockup G2 and Yo Y1), preview boards](#brand-option-g-vamps-selected) | derived | CC-BY-4.0 | 32 | approved |
 | [Go Go HarmoniYo brand identity: logo lockups, Yo mark, app icons, social card and asset sheet](#brand-identity) | derived | CC-BY-4.0 | 24 | approved |
 | [Go Go HarmoniYo: favicon (Yo Y8) and default Yo states (idle Y3, ring Y4, cheer Y2/Y5)](#brand-yo-defaults) | derived | CC-BY-4.0 | 7 | approved |
+
+### s9-reviewed-harp-backing
+
+**Fixed backing arrangements for the S9 browser host**
+
+- Files: `spikes/s9-page-host/backing/catalog.json` (1 file(s))
+- Origin: ai-generated
+- Authors: Go Go HarmoniYo contributors (Claude Fable 5.2 through GitHub Copilot)
+- Copyright: 2026 Go Go HarmoniYo contributors (AI-assisted; dedicated to the public domain)
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Modifications: None to the final private audition score; SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d. The build copies its event lists unchanged into per-form files.
+- AI provenance: GitHub Copilot app (Claude Fable 5.2); model Claude Fable 5.2 (claude-fable-5.2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-08-27); prompt: spikes/s9-page-host/backing/provenance/prompts.md; resemblance review: pending, pending
+- Review: pending. Owner resemblance review for the exact digest remains to be recorded. Not authorized for release yet.
+- Notes: Per-song sources, chart and score hashes, phrase plans, and deterministic generation in spikes/s9-page-host/backing/provenance/. Uses the already registered S5 editions; the separate two-song pilot score files are not included.
+
+### s9-vsco2-harp
+
+**Versilian Studios Chamber Orchestra 2 Community Edition harp recordings**
+
+- Files: `spikes/s9-page-host/backing/samples/*` (11 file(s))
+- Origin: third-party
+- Authors: Sam Gossner; Simon Dalzell; Elan Hickler / Soundemote (sample cutting)
+- Copyright: Sam Gossner, Simon Dalzell, and Elan Hickler / Soundemote; CC0 1.0 Universal
+- License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
+- Source: <https://github.com/sgossner/VSCO-2-CE> (440300901dfe9275fd84e0b7763af1f8443ae62e), retrieved 2026-11-26
+- License evidence: CC0 1.0 Universal in LICENSE at the pinned revision; original README and license included.
+  - `spikes/s9-page-host/backing/samples/KSHarp_D2_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_D2_mf.wav> sha256 `b9cbdc08e43fc0b28ac70246df991cb390f5cbd7f31519b3cc7f70d283b70566`
+  - `spikes/s9-page-host/backing/samples/KSHarp_F2_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_F2_mf.wav> sha256 `d5c0fb42c176af334fd6f6d1b97858556619c51e177efb5b0c6c23bc19ce6dad`
+  - `spikes/s9-page-host/backing/samples/KSHarp_A2_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_A2_mf.wav> sha256 `1df9f4d138ca3931fcb458bcdf01304cadf2e5f4eef67bbc17b0e42c0e60fce6`
+  - `spikes/s9-page-host/backing/samples/KSHarp_C3_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_C3_mf.wav> sha256 `e5d232771704e140959819de8cf2a3e0ba49d021ca77354c42664ce4fce6d9f3`
+  - `spikes/s9-page-host/backing/samples/KSHarp_E3_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_E3_mf.wav> sha256 `aafa9d41ec0f77da8f2891055af8b3f9557e0ba1f1df93d53ae6e1fda07afae5`
+  - `spikes/s9-page-host/backing/samples/KSHarp_G3_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_G3_mf.wav> sha256 `62600eb1b37bc2829ca65351f7ca7e506c9ae472abd5bea0765a8b8fa7df2772`
+  - `spikes/s9-page-host/backing/samples/KSHarp_B3_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_B3_mf.wav> sha256 `f6f71be8c640822ef48a448b245585659acdfcc7ed5774e10f37be2fc02fcab4`
+  - `spikes/s9-page-host/backing/samples/KSHarp_D4_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_D4_mf.wav> sha256 `ebfde8aab4411019e37e3426f4dd88d6a52a38c2d0261d7f10ec63d8ff584dc7`
+  - `spikes/s9-page-host/backing/samples/KSHarp_F4_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_F4_mf.wav> sha256 `db27ebbb37334c10e06f2ae63f4d9ff555e4d11704fcc6f0bcf503863867e577`
+  - `spikes/s9-page-host/backing/samples/README.md` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/README.md> sha256 `8fbf399338661e6c76585ad9e75eb10324f823935168e0567553293a83f200a0`
+  - `spikes/s9-page-host/backing/samples/LICENSE.txt` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE> sha256 `36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673`
+- Modifications: Original WAVs and notices are byte-for-byte upstream. Trimming, transposition and gain occur only during playback.
+- Reuse limits: Only the pinned nine harp WAVs are copied to the public S9 web asset path.
+- Review: pending. Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending.
 
 ### project-ui-captures
 
@@ -938,6 +982,7 @@ repository "MIT" in a way that hides them.
 
 ## Open items
 
+- s9-reviewed-harp-backing: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-joy-to-the-world-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-silent-night-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -947,6 +992,8 @@ repository "MIT" in a way that hides them.
 - s6-candidate-lead-sheets: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s6-amt-accompaniments: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s6-blind-listening-previews: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
+- s9-reviewed-harp-backing: review pending (Owner resemblance review for the exact digest remains to be recorded. Not authorized for release yet.)
+- s9-vsco2-harp: review pending (Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending.)
 - pitch-class-palette-sheet: review pending (Rendered by tools/design/palette-check.mjs --sheet (headless Chrome) from docs/design/pitch-class-palette.json: coloured circles with note names, system UI font, no third-party content. Owner to confirm CC BY 4.0 like the UI captures (#12).)
 - s5-jingle-bells-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-joy-to-the-world-abc: review pending (Proofread against a public-domain edition (S5 report).)

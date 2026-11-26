@@ -14,7 +14,6 @@ const demoBindings = ['S9_TURN_DEMO', 'S9_TURN_DEMO_UNTIL'];
 const trialBindings = ['S9_TURN_TRIAL', 'S9_TURN_OWNER_SECRET'];
 const api = 'https://api.cloudflare.com/client/v4';
 const stamp = join(root, 'dist', 's9-preflight.json');
-const buildInfo = join(root, 'dist', 'web', 's9-build.json');
 const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 
 export function deploymentTarget({ CLOUDFLARE_ACCOUNT_ID: account, S9_SIGNAL_ORIGIN: origin } = {}) {
@@ -67,7 +66,7 @@ export async function verifyCloudflareTarget({ account, subdomain }, token, requ
   }
 }
 
-export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0) {
+export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0, backing) {
   const get = async (path, status = 200, method = 'GET') => {
     const response = await request(new URL(path, origin), {
       method, redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(10_000),
@@ -87,7 +86,16 @@ export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0)
   if (!tv.includes('<title>S9 · Go Go HarmoniYo</title>') || !controller.includes('src="./controller.js"')) {
     throw new Error('Expected the S9 TV page at / and the phone controller at /c/.');
   }
-  if (build.builtAt !== builtAt || build.signal !== '') throw new Error('Hosted assets do not match this S9 build.');
+  if (build.builtAt !== builtAt || build.signal !== '' || build.backing !== backing) throw new Error('Hosted assets do not match this S9 build.');
+  if (backing) {
+    const [score, sample] = await Promise.all([
+      get('/backing/short/carol-of-the-bells.json').then((r) => r.json()),
+      get('/backing/samples/KSHarp_D4_mf.wav', 200, 'HEAD'),
+    ]);
+    if (!score.sourceHash || !score.events?.length || !sample.headers.get('content-type')?.startsWith('audio/')) {
+      throw new Error('Recorded S9 backing assets are missing from the served build.');
+    }
+  }
   if (signal !== 'expected a WebSocket') throw new Error('The signalling route did not return the expected WebSocket upgrade response.');
   if (trial.error !== 'relay-unavailable') throw new Error('The protected TURN trial must be disabled on the primary deployment.');
   const expectedExpiry = demoExpiresAt && demoExpiresAt !== ONGOING_DEMO ? demoExpiresAt : null;
@@ -101,11 +109,13 @@ export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0)
 }
 
 async function main() {
-  const { values: { deploy, 'demo-until': demoDate } } = parseArgs({
-    options: { deploy: { type: 'boolean' }, 'demo-until': { type: 'string' } },
+  const { values: { deploy, 'demo-until': demoDate, 'reviewed-backing': reviewedBacking } } = parseArgs({
+    options: { deploy: { type: 'boolean' }, 'demo-until': { type: 'string' }, 'reviewed-backing': { type: 'boolean' } },
   });
   if (!deploy && demoDate !== undefined) throw new Error('--demo-until is only for an explicit --deploy.');
   const demoExpiresAt = demoDeployExpiry(demoDate);
+  const assetDir = reviewedBacking ? join(root, 'dist', 'web-reviewed-worker') : undefined;
+  const buildInfo = join(assetDir ?? join(root, 'dist', 'web'), 's9-build.json');
   if (!process.env.npm_execpath) throw new Error('Run npm run deploy:worker from spikes/s9-page-host.');
   const target = deploy ? deploymentTarget(process.env) : null;
   const token = deploy ? process.env.CLOUDFLARE_API_TOKEN?.trim() : '';
@@ -135,7 +145,8 @@ async function main() {
     try {
       const file = join(dir, '.env');
       writeFileSync(file, '');
-      npm(['run', 'wrangler', '--', 'deploy', '--config', 'wrangler.toml', '--name', worker, '--env-file', file, ...args], extraEnv);
+      npm(['run', 'wrangler', '--', 'deploy', '--config', 'wrangler.toml', '--name', worker, '--env-file', file,
+        ...(assetDir ? ['--assets', assetDir] : []), ...args], extraEnv);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -146,9 +157,10 @@ async function main() {
     for (const prefix of ['.', '../i2-web-phones', '../s1-phone-bell']) npm(['ci', '--no-audit', '--no-fund', '--prefix', prefix]);
     npm(['run', 'charts', '--prefix', '../i2-web-phones']);
     npm(['run', 'brand', '--prefix', '../i2-web-phones']);
-    npm(['run', 'build']);
+    npm(['run', 'build', ...(reviewedBacking ? ['--', '--reviewed-backing'] : [])]);
     runWrangler(['--dry-run']);
-    writeFileSync(stamp, JSON.stringify({ revision, clean, builtAt: readJson(buildInfo).builtAt }));
+    const { builtAt, backing } = readJson(buildInfo);
+    writeFileSync(stamp, JSON.stringify({ revision, clean, builtAt, backing }));
     console.log(`S9 dry run passed for ${revision}; no Cloudflare deployment.${clean ? '' : ' Run again from a clean checkout before deploying.'}`);
     return;
   }
@@ -157,7 +169,8 @@ async function main() {
   if (!existsSync(stamp) || !existsSync(buildInfo)) throw new Error('Run npm run deploy:worker from this clean checkout before deploying.');
   const prepared = readJson(stamp);
   const built = readJson(buildInfo);
-  if (!prepared.clean || prepared.revision !== revision || prepared.builtAt !== built.builtAt || built.signal !== '') {
+  if (!prepared.clean || prepared.revision !== revision || prepared.builtAt !== built.builtAt || built.signal !== '' ||
+      prepared.backing !== built.backing || !!built.backing !== !!reviewedBacking) {
     throw new Error('Run npm run deploy:worker from this clean checkout before deploying.');
   }
   await verifyCloudflareTarget(target, token, fetch, !!demoExpiresAt);
@@ -186,7 +199,7 @@ async function main() {
     // Allow time for the new assets to propagate without deploying again.
     for (let attempt = 1; ; attempt++) {
       try {
-        await smoke(target.origin, built.builtAt, fetch, demoExpiresAt);
+        await smoke(target.origin, built.builtAt, fetch, demoExpiresAt, built.backing);
         const demoStatus = demoExpiresAt === ONGOING_DEMO ? 'enabled (ongoing)' : demoDate ? `enabled until ${demoDate}` : 'off';
         console.log(`S9 live smoke passed: TV, controller, STUN-only /ice, signalling, demo ${demoStatus}.`);
         break;

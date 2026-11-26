@@ -97,6 +97,27 @@ targets that Worker.
 The phone shows the TV room and connection progress above its controls, including when it is
 trying a relay. It shows a playable note only after the TV assigns a part.
 
+### Fixed recorded backing for the public browser
+
+The **reviewed_backing** deployment input opts the public Worker build into recorded harp for
+Standard Short and Full. It requires accepted ADR-0015 and the owner's asset-register review for
+the exact audition score digest. The Worker uses a separate asset directory for that deployment,
+not the default S9/native build directory. Leaving the deployment input off builds the procedural
+version. Node builds are unchanged.
+
+For a loopback rehearsal only (from `spikes/s9-page-host`, with charts and brand already built):
+
+```powershell
+npm run build -- --test-reviewed-backing
+npm run dev -- --web dist\web-backing-local --host 127.0.0.1
+```
+
+The rehearsal output is separate from the Worker's asset root. The TV fetches the selected
+song/form at Play, then loads only the recordings needed for that part and caches decoded samples
+for the page session. First Ring stays procedural. Missing, invalid, or undecodable recorded
+assets use procedural backing and are labeled accordingly. A part fully occupied by bells
+remains bells-only, with its usual count-in. No controller or scoring data changes.
+
 ## App shells (`app/`)
 
 ```powershell
