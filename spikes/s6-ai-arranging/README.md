@@ -34,6 +34,7 @@ CC0 AI provenance and a pending human review ([ADR-0008](../../docs/decisions/00
 | `node scripts/smoke.ts [--mock]` | Health, status, models, 2 chats, a `smoke-file` job → `results/smoke.json` |
 | `node scripts/exp-chords.ts [--mock]` | Experiment 2a: chords for the 3 Mutopia carols → `results/chords-<tag>.{md,json}`, `results/runs/chords-<tag>.jsonl` |
 | `node scripts/exp-descant.ts [--mock]` | Experiment 2b: descant (prompts v1 + v2) and intro/ending for Deck the Halls and The Holly and the Ivy → `results/descant-<tag>.*` |
+| `node scripts/compare-phrases.ts --output <new directory outside repo> [--live] [--long-effort high\|none]` | #110 phrase-plan comparison and private audition. Offline baseline by default; `--live` opts into eight bounded chats against the existing LAN model. No AMT or game runtime. |
 | `node scripts/build-candidates.ts [--from-results] [--tag local]` | Assemble the selected outputs into `candidates/*.abc`, then build `charts/*.json` (S5 format 0.2.0) |
 | `node scripts/amt-run.ts --local --python <py> --model-dir <snapshot>` | AMT accompaniment per song → `results/amt/<song>/` (`--node` once infra registers the workload; `--mock` offline) |
 | `node scripts/amt-analyze.ts` | AMT output metrics (notes, instruments, chord fit, clashes) → `results/amt/analysis.md` |
@@ -42,6 +43,23 @@ CC0 AI provenance and a pending human review ([ADR-0008](../../docs/decisions/00
 
 `<tag>` is `node` (the AI node), `local` (a `/v1` on 127.0.0.1) or `mock`. Mock outputs go to the
 gitignored `results/mock/`.
+
+### Private phrase-plan audition (#110)
+
+From `spikes/s6-ai-arranging`, run `node scripts/compare-phrases.ts --output <new-directory>`
+with a new directory under an existing parent outside the checkout (for example the session
+artifact directory or OS temp directory). Add `--live` only on the authorized LAN with the
+existing `CUCCIA_AI_*` configuration. The short arm uses one no-thinking draft; the longer
+arm includes that draft, adds a second draft, then revises both using deterministic feedback.
+It requests `high` for the extra calls by default; `--long-effort none` holds reasoning off
+throughout to test more calls without the reasoning overhead. The local baseline and the
+24 kHz mono WAV renderer use only Node and existing S5 sources; no dependencies to install.
+
+Open `listen.html` locally with the WAVs beside it. Read neither `summary.json` nor
+`private-key.json` until after listening. A valid exploratory alternative may be included
+even if it did not clear the shortlist gate. `private-runs.jsonl` keeps source fingerprints,
+settings, prompt/answer and validation evidence locally. Do not copy the logs, key or
+clips into the repo or deploy them. See the [S6 follow-up results](../../docs/spikes/S6-report.md#follow-up-longer-phrase-planning-110).
 
 ### Local stand-in (used for the 2026-10-24 results)
 

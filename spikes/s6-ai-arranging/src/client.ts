@@ -49,6 +49,8 @@ export interface ChatResult {
   content: string;
   model: string;
   finishReason: string | null;
+  /** Presence only: private reasoning text is not retained. */
+  reasoningReturned?: boolean;
   usage: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number } | null;
   /** Wall time of the successful attempt (ms). */
   latencyMs: number;
@@ -227,11 +229,15 @@ export class AiNodeClient {
   async chat(req: ChatRequest): Promise<ChatResult> {
     const body = { model: 'qwen3:8b', reasoning_effort: 'none', ...req };
     const { res, latencyMs, totalMs, attempts, retries } = await this.request('POST', '/v1/chat/completions', { json: body });
-    const r = (await res.json()) as { model?: string; choices?: { message?: { content?: string }; finish_reason?: string }[]; usage?: ChatResult['usage'] };
+    const r = (await res.json()) as { model?: string; choices?: { message?: {
+      content?: string; reasoning?: string; reasoning_content?: string; thinking?: string;
+    }; finish_reason?: string }[]; usage?: ChatResult['usage'] };
+    const message = r.choices?.[0]?.message;
     return {
-      content: r.choices?.[0]?.message?.content ?? '',
+      content: message?.content ?? '',
       model: r.model ?? body.model,
       finishReason: r.choices?.[0]?.finish_reason ?? null,
+      reasoningReturned: Boolean(message?.reasoning || message?.reasoning_content || message?.thinking),
       usage: r.usage ?? null,
       latencyMs,
       totalMs,
