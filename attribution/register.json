@@ -37,14 +37,14 @@
         "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot",
         "termsDate": "2026-08-27",
         "prompt": "spikes/s9-page-host/backing/provenance/prompts.md",
-        "reviewer": "pending",
-        "reviewDate": "pending"
+        "reviewer": "@dcuccia",
+        "reviewDate": "2026-11-25"
       },
-      "candidate": true,
-      "credit": false,
       "review": {
-        "status": "pending",
-        "notes": "Owner resemblance review for the exact digest remains to be recorded. Not authorized for release yet."
+        "status": "approved",
+        "reviewer": "@dcuccia",
+        "date": "2026-11-25",
+        "notes": "The owner completed the human resemblance review of all 24 arrangements (Short and Full) in catalog SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d and reported no concerns. Release is scoped to the public S9 browser host under ADR-0015."
       },
       "notes": "Per-song sources, chart and score hashes, phrase plans, and deterministic generation in spikes/s9-page-host/backing/provenance/. Uses the already registered S5 editions; the separate two-song pilot score files are not included."
     },
@@ -129,10 +129,9 @@
       },
       "modifications": "Original WAVs and notices are byte-for-byte upstream. The S9 browser build derives mono PCM WAVs and their Brotli representations, without editing originals. See spikes/s9-page-host/backing/provenance/README.md and the generated legal/vsco2-ce/mono-derivation.json for the recipe, limiting events, lengths, and hashes.",
       "reuseLimits": "Only the nine samples derived from these pinned files may be served by the reviewed S9 browser build.",
-      "credit": false,
       "review": {
-        "status": "pending",
-        "notes": "Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending."
+        "status": "approved",
+        "notes": "Source and license check: the pinned VSCO-2 CE LICENSE declares CC0 1.0 Universal, the original README confirms recording and sample-cutting credits, and the local originals match the recorded upstream SHA-256 pins. The S9 build records the hashes of both derived representations. This approval records provenance and byte verification, not a separate owner listening review."
       }
     },
     {

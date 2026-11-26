@@ -72,8 +72,8 @@ repository "MIT" in a way that hides them.
 
 | Asset | Origin | License | Files | Review |
 |---|---|---|---|---|
-| [Fixed backing arrangements for the S9 browser host](#s9-reviewed-harp-backing) | ai-generated | CC0-1.0 | 1 | pending |
-| [Versilian Studios Chamber Orchestra 2 Community Edition harp recordings](#s9-vsco2-harp) | third-party | CC0-1.0 | 11 | pending |
+| [Fixed backing arrangements for the S9 browser host](#s9-reviewed-harp-backing) | ai-generated | CC0-1.0 | 1 | approved |
+| [Versilian Studios Chamber Orchestra 2 Community Edition harp recordings](#s9-vsco2-harp) | third-party | CC0-1.0 | 11 | approved |
 | [Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)](#project-ui-captures) | original | CC-BY-4.0 | 15 | approved (legacy) |
 | [Pitch-class palette swatch sheet with colour-vision simulations (visual identity doc)](#pitch-class-palette-sheet) | original | CC-BY-4.0 | 1 | pending |
 | [Jingle Bells (lead sheet, ABC)](#s5-jingle-bells-abc) | ai-generated | CC0-1.0 | 1 | pending (legacy) |
@@ -142,8 +142,8 @@ repository "MIT" in a way that hides them.
 - Copyright: 2026 Go Go HarmoniYo contributors (AI-assisted; dedicated to the public domain)
 - License: [CC0 1.0 Universal (public domain dedication)](https://creativecommons.org/publicdomain/zero/1.0/) (`CC0-1.0`)
 - Modifications: None to the final private audition score; SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d. The build copies its event lists unchanged into per-form files.
-- AI provenance: GitHub Copilot app (Claude Fable 5.2); model Claude Fable 5.2 (claude-fable-5.2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-08-27); prompt: spikes/s9-page-host/backing/provenance/prompts.md; resemblance review: pending, pending
-- Review: pending. Owner resemblance review for the exact digest remains to be recorded. Not authorized for release yet.
+- AI provenance: GitHub Copilot app (Claude Fable 5.2); model Claude Fable 5.2 (claude-fable-5.2); terms <https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot> (2026-08-27); prompt: spikes/s9-page-host/backing/provenance/prompts.md; resemblance review: @dcuccia, 2026-11-25
+- Review: approved by @dcuccia on 2026-11-25. The owner completed the human resemblance review of all 24 arrangements (Short and Full) in catalog SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d and reported no concerns. Release is scoped to the public S9 browser host under ADR-0015.
 - Notes: Per-song sources, chart and score hashes, phrase plans, and deterministic generation in spikes/s9-page-host/backing/provenance/. Uses the already registered S5 editions; the separate two-song pilot score files are not included.
 
 ### s9-vsco2-harp
@@ -170,7 +170,7 @@ repository "MIT" in a way that hides them.
   - `spikes/s9-page-host/backing/samples/LICENSE.txt` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE> sha256 `36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673`
 - Modifications: Original WAVs and notices are byte-for-byte upstream. The S9 browser build derives mono PCM WAVs and their Brotli representations, without editing originals. See spikes/s9-page-host/backing/provenance/README.md and the generated legal/vsco2-ce/mono-derivation.json for the recipe, limiting events, lengths, and hashes.
 - Reuse limits: Only the nine samples derived from these pinned files may be served by the reviewed S9 browser build.
-- Review: pending. Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending.
+- Review: approved. Source and license check: the pinned VSCO-2 CE LICENSE declares CC0 1.0 Universal, the original README confirms recording and sample-cutting credits, and the local originals match the recorded upstream SHA-256 pins. The S9 build records the hashes of both derived representations. This approval records provenance and byte verification, not a separate owner listening review.
 
 ### project-ui-captures
 
@@ -982,7 +982,6 @@ repository "MIT" in a way that hides them.
 
 ## Open items
 
-- s9-reviewed-harp-backing: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s5-jingle-bells-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-joy-to-the-world-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
 - s5-silent-night-abc: legacy AI provenance gaps: model, version, termsDate, prompt, reviewer, reviewDate
@@ -992,8 +991,6 @@ repository "MIT" in a way that hides them.
 - s6-candidate-lead-sheets: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s6-amt-accompaniments: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
 - s6-blind-listening-previews: candidate awaiting the human resemblance review (required before promotion; ADR-0011)
-- s9-reviewed-harp-backing: review pending (Owner resemblance review for the exact digest remains to be recorded. Not authorized for release yet.)
-- s9-vsco2-harp: review pending (Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending.)
 - pitch-class-palette-sheet: review pending (Rendered by tools/design/palette-check.mjs --sheet (headless Chrome) from docs/design/pitch-class-palette.json: coloured circles with note names, system UI font, no third-party content. Owner to confirm CC BY 4.0 like the UI captures (#12).)
 - s5-jingle-bells-abc: review pending (Proofread against a public-domain edition (S5 report).)
 - s5-joy-to-the-world-abc: review pending (Proofread against a public-domain edition (S5 report).)

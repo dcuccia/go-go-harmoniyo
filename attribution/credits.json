@@ -12,6 +12,16 @@
       "title": "Music",
       "entries": [
         {
+          "id": "s9-reviewed-harp-backing",
+          "title": "Fixed backing arrangements for the S9 browser host",
+          "credit": "Fixed S9 harp backing arrangements by Go Go HarmoniYo contributors (AI-assisted, CC0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          }
+        },
+        {
           "id": "s5-jingle-bells-abc",
           "title": "Jingle Bells (lead sheet, ABC)",
           "credit": "Jingle Bells by James Lord Pierpont (1857), public domain. Lead sheet encoded for Go Go HarmoniYo (CC0).",
@@ -272,6 +282,22 @@
             "url": "https://www.mutopiaproject.org/legal.html#publicdomain"
           },
           "source": "https://www.mutopiaproject.org/cgibin/piece-info.cgi?id=1233"
+        }
+      ]
+    },
+    {
+      "title": "Sound",
+      "entries": [
+        {
+          "id": "s9-vsco2-harp",
+          "title": "Versilian Studios Chamber Orchestra 2 Community Edition harp recordings",
+          "credit": "VSCO-2 CE harp: recorded by Sam Gossner & Simon Dalzell; sample cutting by Elan Hickler/Soundemote (CC0 1.0).",
+          "license": {
+            "id": "CC0-1.0",
+            "name": "CC0 1.0 Universal (public domain dedication)",
+            "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+          },
+          "source": "https://github.com/sgossner/VSCO-2-CE"
         }
       ]
     }
