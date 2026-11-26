@@ -101,14 +101,16 @@ try {
         bands.push({ top, bottom, widths: bounds.map((box) => Math.round(box.right - box.left)) });
         assert.deepEqual(bounds.map((box) => box.id), pitches.slice(0, n).map((pitch) => pitch.id), 'low-to-high order');
         assert.ok(top >= 0 && bottom - top >= (viewport.height <= 500 ? 72 : 200), 'taller strip is on screen');
-        const bottomGap = viewport.height - bottom;
-        const expectedGap = Math.max(16, (safe.bottom ?? 0) + 8);
-        assert.ok(Math.abs(bottomGap - expectedGap) < 1, `${device} ${viewport.width}×${viewport.height}: band ${top}..${bottom} should end ${expectedGap}px above the bottom`);
+        const safeCenter = (viewport.height + (safe.top ?? 0) - (safe.bottom ?? 0)) / 2;
+        assert.ok(Math.abs((top + bottom) / 2 - safeCenter) < 1, `${device}: pitch band is centered in the safe viewport`);
         assert.ok(left >= (safe.left ?? 0) && right <= viewport.width - (safe.right ?? 0), 'clear of both screen edges');
-        for (const selector of ['#tap-toggle', '#calibrate', '#bell']) {
+        const bell = await page.locator('#bell').boundingBox();
+        assert.ok(bell.y >= 0 && bell.y + bell.height < top, 'separate ring surface is reachable above the band');
+        for (const selector of ['#tap-toggle', '#calibrate']) {
           const box = await page.locator(selector).boundingBox();
-          assert.ok(box.y >= 0 && box.y + box.height < top, `${selector} is reachable outside the selection strip`);
+          assert.ok(box.y > bottom && box.y + box.height <= viewport.height - (safe.bottom ?? 0), `${selector} is reachable below the selection strip`);
         }
+        assert.equal(await page.locator('#zones .zone').first().evaluate(el => Number.parseFloat(getComputedStyle(el, '::before').borderTopLeftRadius) > 0), true, 'painted targets have rounded corners');
         for (const [i, box] of bounds.entries()) {
           assert.equal(box.top, top);
           assert.equal(box.bottom, bottom);
