@@ -172,7 +172,9 @@ async function check() {
   game.on('pageerror', (e) => errors.push(`game: ${e}`));
   const tvT0 = Date.now();
   const params = demo ? '' : `room=${initialRoom}${ice}&`;
-  await game.goto(`${base}/?${params}song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000`);
+  // Keep software rendering from swamping the headless runner's audio and WebRTC clocks.
+  const quality = !shots && !argv.includes('--headed') ? '&bloom=0&particles=0&dpr=1' : '';
+  await game.goto(`${base}/?${params}song=${song}&diff=${diff}&ringers=1&form=short&waitPhones=1&start=play&startDelay=3000${quality}`);
   if (trial) {
     await game.getByRole('button', { name: 'Relay trial…' }).click();
     await game.getByLabel('Relay trial owner key').fill(owner);
@@ -409,6 +411,7 @@ async function check() {
   const routeOk = host.phones[0]?.route === (relay || fallback ? 'relay' : 'direct');
   const ok = hit / p.notes >= 0.8 && errors.length === 0 && routeOk;
   if (!routeOk) console.log(`unexpected route at song completion: ${JSON.stringify(host.phones)}`);
+  if (!ok) return false;
 
   assert.equal(await focus('#btn-again'), 1, 'Results focuses Play again');
   assert.equal(await game.textContent('#btn-again'), 'Play again');
@@ -430,7 +433,18 @@ async function check() {
   assert.deepEqual(await game.evaluate(() => ({ room: window.__i2.link.info.joinUrl, seat: window.__i2.seats[0] })), { room: joinUrl, seat: phoneId });
   assert.equal(await phone.locator('#main').isVisible(), true, 'Back keeps the joined controller open');
   await centre();
-  await game.waitForFunction(() => window.__i2.session && document.title !== 'I2_DONE');
+  const started = () => window.__i2.session && document.title !== 'I2_DONE';
+  await game.waitForFunction(() => window.__i2.session || document.querySelector('#reconnect-round').open);
+  if (await game.locator('#reconnect-round').isVisible()) {
+    // The local TURN fixture may briefly lose the controller after the song. Wait for the same
+    // seat to reconnect, then commit again; rejoining alone must not start a round.
+    assert.equal(await focus('#wait-reconnect'), 1);
+    await game.waitForFunction(() => document.querySelector('#wait-reconnect').textContent === 'Play');
+    assert.equal(await game.evaluate(() => window.__i2.session), null);
+    assert.deepEqual(await game.evaluate(() => ({ room: window.__i2.link.info.joinUrl, seat: window.__i2.seats[0] })), { room: joinUrl, seat: phoneId });
+    await centre();
+  }
+  await game.waitForFunction(started);
   await back();
   assert.equal(await focus('#end-round .primary'), 1, 'live Back confirms and defaults to Keep playing');
   await centre();
@@ -442,7 +456,8 @@ async function check() {
   assert.equal(await game.evaluate(() => window.__exitCalls), 0, 'Back from results never exits');
   await back();
   assert.equal(await game.evaluate(() => window.__exitCalls), 1, 'Back exits only at the top-level lobby');
-  return ok;
+  assert.deepEqual(errors, []);
+  return true;
 }
 let ok;
 try {
