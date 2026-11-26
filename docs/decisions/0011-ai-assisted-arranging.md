@@ -38,7 +38,9 @@ Key S6 findings:
 
 ## Decision
 
-1. **Arranging stays algorithmic for the alpha.** S5's realizer and inference plus I2's
+1. **Arranging stays algorithmic for the alpha.** [ADR-0015](0015-reviewed-s9-backing.md)
+   allows one reviewed, fixed set of backing arrangements in public S9 only.
+   S5's realizer and inference plus I2's
    procedural backing remain the source of harmony and accompaniment. qwen3:8b is not used for
    arranging.
 2. **Generated music enters only as a candidate.** Every output passes the S5 ABC parser and the
