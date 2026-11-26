@@ -23,4 +23,6 @@ arrangement you know? If so, note it. The AI clips need this human check before 
 promoted (ADR-0008, ADR-0011).
 
 Regenerate the set: `node scripts/render-previews.ts --ogg-python <python with soundfile>`
-(from `spikes/s6-ai-arranging`).
+(from `spikes/s6-ai-arranging`). The renderer uses the checked-out synth version, so new renders
+need not sound like the historical clips. The current I2 synth uses felt-like keys in place of
+the old warm pad for upper AMT notes. Use the checked-in clips to revisit the original listening test.

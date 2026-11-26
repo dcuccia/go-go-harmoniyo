@@ -1,6 +1,6 @@
 // Blind-listening preview renderer (runs in a real browser: Node has no Web Audio). Driven by
-// scripts/render-previews.mjs, which passes the jobs in window.__jobs and collects WAVs from
-// window.__out. Uses the S4 bell synth and the I2 procedural backing synth unchanged.
+// scripts/render-previews.ts, which passes the jobs in window.__jobs and collects WAVs from
+// window.__out. Uses the current S4 bell synth and I2 procedural backing synth.
 import { renderBell } from '../../s4-web-host/src/audio/bell';
 import type { BackingEvent } from '../../i2-web-phones/src/backing/patterns';
 import { BackingSynth } from '../../i2-web-phones/src/backing/synth';
@@ -56,7 +56,7 @@ async function render(job: Job): Promise<{ name: string; seconds: number; wav: s
       const vel = Math.min(1, 0.35 + n.vel / 160);
       const e: BackingEvent = n.midi < 52
         ? { time: n.time, inst: 'bass', vel, dur: Math.max(0.12, n.dur), midi: n.midi }
-        : { time: n.time, inst: 'pad', vel, dur: Math.max(0.12, n.dur), midis: [n.midi], tone: 'warm' };
+        : { time: n.time, inst: 'pad', vel, dur: Math.max(0.12, n.dur), midis: [n.midi], tone: 'felt' };
       synth.play(e, LEAD + n.time);
       backingEvents++;
     }

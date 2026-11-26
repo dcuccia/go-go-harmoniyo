@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Go Go HarmoniYo" />
@@ -25,37 +25,41 @@
       <p id="secure" class="warn"></p>
     </section>
     <section id="main" hidden>
-      <header id="brand-bar"><span id="brand-yo"><img class="idle" src="/brand/yo/yo-idle.svg" alt="" /><img class="ring" src="/brand/yo/yo-ring.svg" alt="" /></span><span>Go Go HarmoniYo</span></header>
-      <section id="connection" role="status" aria-atomic="true" data-stage="joining">
-        <strong id="connection-title">Finding the TV…</strong>
-        <small id="connection-target"></small>
-        <p id="connection-detail" hidden></p>
-      </section>
-      <div id="banner" hidden></div>
-      <section id="waiting" hidden aria-live="polite">
-        <h2>You're in! 🎉</h2>
-        <p>A song is playing. You'll get a part when the <b>next song</b> starts.</p>
-        <p id="waiting-song" class="small"></p>
-      </section>
-      <section id="lobby" hidden aria-label="Pick your part">
-        <h2>Pick your part</h2>
-        <p id="lobby-next" class="small" hidden>You're in for the next song: pick a part, or you'll get the first one the TV is playing.</p>
-        <p id="lobby-song" class="small"></p>
-        <div id="parts" role="list"></div>
-        <div class="row">
-          <button id="ready" aria-pressed="false">I'm ready</button>
-          <button id="sit-out" hidden>Sit out</button>
-        </div>
-      </section>
-      <div id="ringer" hidden></div>
+      <div id="controller-summary">
+        <header id="brand-bar"><span id="brand-yo"><img class="idle" src="/brand/yo/yo-idle.svg" alt="" /><img class="ring" src="/brand/yo/yo-ring.svg" alt="" /></span><span>Go Go HarmoniYo</span></header>
+        <section id="connection" role="status" aria-atomic="true" data-stage="joining">
+          <strong id="connection-title">Finding the TV…</strong>
+          <small id="connection-target"></small>
+          <p id="connection-detail" hidden></p>
+        </section>
+        <div id="banner" hidden></div>
+        <section id="waiting" hidden aria-live="polite">
+          <h2>You're in! 🎉</h2>
+          <p>A song is playing. You'll get a part when the <b>next song</b> starts.</p>
+          <p id="waiting-song" class="small"></p>
+        </section>
+        <section id="lobby" hidden aria-label="Pick your part">
+          <h2>Pick your part</h2>
+          <p id="lobby-next" class="small" hidden>You're in for the next song: pick a part, or you'll get the first one the TV is playing.</p>
+          <p id="lobby-song" class="small"></p>
+          <div id="parts" role="list"></div>
+          <div class="row">
+            <button id="ready" aria-pressed="false">I'm ready</button>
+            <button id="sit-out" hidden>Sit out</button>
+          </div>
+        </section>
+        <div id="ringer" hidden></div>
+      </div>
       <div id="bell" hidden><span id="bell-label"></span><small id="bell-id"></small></div>
       <div id="zones" hidden></div>
-      <div class="row">
-        <button id="calibrate">Calibrate (ring 6×)</button>
-        <button id="tap-toggle">Touch: off</button>
+      <div id="controller-tools">
+        <div class="row">
+          <button id="calibrate">Calibrate (ring 6×)</button>
+          <button id="tap-toggle">Touch: off</button>
+        </div>
+        <p id="status" class="small"></p>
+        <p id="debug" class="small mono"></p>
       </div>
-      <p id="status" class="small"></p>
-      <p id="debug" class="small mono"></p>
     </section>
     <script type="module" src="/dist/controller.js"></script>
   </body>

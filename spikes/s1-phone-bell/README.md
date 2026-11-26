@@ -84,6 +84,13 @@ Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw t
 phone shows the one-line lockup on its start screen and Yo during play: Y3 (idle hum), swapping
 to Y4 (ding!) for a moment on every ring.
 
+**Game pitch selection (Node and S9).** Parts with multiple pitches use a low row of full-height
+targets, ordered low to high. Adding pitches divides the row horizontally without moving its top
+or bottom. Touch anywhere in a column to select that pitch, then swing to ring, or tap the separate
+bell with **Touch: on**. The white border shows the selected pitch, gold marks the next cue, and
+a dashed inset marks accidentals. On short screens the row is shorter to keep the separate ring
+surface and controls usable. The controller respects viewport safe-area insets.
+
 **Fast passages.** During a song the phone adapts the ring detector to its own upcoming notes
 (from `cues`): in 8th/16th-note passages the refractory period follows the note spacing, smaller
 "flick" strokes count and both halves of a back-and-forth shake ring. The status line shows
@@ -117,6 +124,10 @@ npx tsx tools/sim-yarg-phones.ts --churn --extra   # with `npm run yarg -- --no-
 
 CI (`.github/workflows/s1-phone-bell.yml`) runs typecheck, tests, the simulator (posted to the
 job summary) and the simulated-phone end-to-end test.
+With both S1 and I2 dependencies installed, run `node scripts/controller-pitch-check.mjs` from
+`spikes/i2-web-phones` to check the shared controller with emulated mobile viewports in Chrome
+(`--webkit` uses Playwright WebKit if installed). This checks real coordinate taps; it does not
+test a physical grip, the operating system gesture area, or motion sensors.
 
 ## Dependencies
 

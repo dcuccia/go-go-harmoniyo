@@ -1,6 +1,7 @@
 // S5 chart `harmony` block (format 0.2) → a timed chord/beat timeline, plus count-in clicks.
 // Pure logic: no DOM or audio. Times are song seconds (0 = first note of the chart), the same
 // timeline the judge and the highways use.
+import { scoreCorrections } from './score-corrections';
 
 /** Chord symbol as written by the S5 pipeline (pitch classes, 0 = C). */
 export interface S5Chord {
@@ -32,10 +33,11 @@ export interface S5Harmony {
 }
 /** The parts of an S5 chart the backing reads (structurally compatible with team-chart's S5Chart). */
 export interface HarmonyChart {
+  song?: { id?: string };
   timing: { tempos: { time: number; bpm: number }[]; timeSignatures: { numerator: number; denominator: number }[]; durationSec: number };
   harmony?: S5Harmony;
   /** Format 0.3+: song form; each section's energy (0..1) shapes the groove. */
-  form?: { sections: { energy?: number; label?: string; time?: number; durSec?: number }[] };
+  form?: { sections: { energy?: number; label?: string; time?: number; durSec?: number; kind?: string; transpose?: number }[] };
 }
 
 export interface Chord {
@@ -71,11 +73,11 @@ export interface Timeline {
 }
 
 /** Null when the chart has no harmony block (pre-0.2 charts): no backing, the song still plays. */
-export function backingTimeline(c: HarmonyChart): Timeline | null {
+export function backingTimeline(c: HarmonyChart, options: { scoreCorrections?: boolean } = {}): Timeline | null {
   const h = c.harmony;
   if (!h || !h.chords?.length || !h.beats?.length) return null;
   const end = Math.max(c.timing.durationSec, ...h.chords.map((x) => x.time + (x.durSec ?? 0)));
-  const chords: Chord[] = h.chords.map((x, i) => ({
+  const original: Chord[] = h.chords.map((x, i) => ({
     time: x.time,
     end: x.durSec !== undefined ? x.time + x.durSec : (h.chords[i + 1]?.time ?? end),
     symbol: x.symbol,
@@ -83,6 +85,8 @@ export function backingTimeline(c: HarmonyChart): Timeline | null {
     bass: x.bass ?? x.root,
     tones: x.tones,
   }));
+  const corrected = options.scoreCorrections !== false ? scoreCorrections(c, h, original) : undefined;
+  const chords = corrected?.chords ?? original;
   const perBar = new Map<number, number>();
   for (const b of h.beats) perBar.set(b.bar, Math.max(perBar.get(b.bar) ?? 0, b.beat + 1));
   const beats: Beat[] = h.beats.map((b, i) => {
@@ -96,7 +100,7 @@ export function backingTimeline(c: HarmonyChart): Timeline | null {
       beatsPerBar: perBar.get(b.bar) ?? 4,
       div: b.div ?? 2,
       strong: b.strong ?? b.beat === 0,
-      chord: b.chord === null || b.chord === undefined ? null : (chords[b.chord] ?? null),
+      chord: corrected ? corrected.forBeat(b) : b.chord == null ? null : original[b.chord] ?? null,
       energy: Math.max(0, Math.min(1, (b.section !== undefined ? c.form?.sections[b.section]?.energy : undefined) ?? 1)),
     };
   });
@@ -115,7 +119,7 @@ export interface Click {
  * the first tempo and time signature.
  */
 export function countIn(c: HarmonyChart, minClicks = 3): Click[] {
-  const tl = backingTimeline(c);
+  const tl = backingTimeline(c, { scoreCorrections: false });
   let t0 = 0;
   let pos0 = 0;
   let dur: number;

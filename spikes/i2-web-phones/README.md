@@ -94,7 +94,7 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
      with fewer** to let the TV take that part.
    Bells beyond 4 per part are rung by the TV automatically.
    **Audio → Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
-   on the TV — sleigh bells, light drums, bass and an organ/pad, styled per song (see below).
+   on the TV — felt-like keys, plucked strings, bass and sparse percussion (see below).
    **Count-in** plays woodblock clicks on the beat before the first note (a pickup comes in on
    its beat). **Sound effects** (on by default, volume 50 %): sparkles for team streaks, a whoosh
    when the multiplier goes up, a fanfare for a perfect phrase, a soft "boop" for a miss and
@@ -241,28 +241,67 @@ the World** (march). *Autoplay demo* plays the bells and the backing together wi
 
 | Style | Songs | What plays |
 |---|---|---|
-| Sleigh ride | Jingle Bells, Deck the Halls | sleigh bells on every eighth (shake on 2 and 4), kick on 1/3, brushy snare on 2/4 (+ ghost notes in alternate phrases), walking bass (through the third in alternate phrases), drawbar organ, celesta broken chords in alternate phrases; snare fills |
-| March | Joy to the World, Good King Wenceslas | kick on strong beats, soft snare, off-beat hi-hat, sleigh bells on the beat, root–fifth bass on every beat (octave leaps in alternate phrases), organ; tom fills |
-| Waltz | We Wish You a Merry Christmas, The Holly and the Ivy | "oom-pah-pah": bass + soft kick on 1 (alternating root/fifth in alternate phrases), organ stabs, strings pad, brushes and sleigh bells on 2 and 3, celesta in alternate phrases; brush-swell fills |
-| Gentle | Silent Night, It Came Upon the Midnight Clear | no drums: soft brushes, a sleigh shimmer per bar, bass on the downbeat, warm slow pad, celesta broken chords; sleigh-bell roll + glockenspiel "fills" |
+| Sleigh ride | Jingle Bells, Deck the Halls | Felt-like keys, soft offbeat shakes and a restrained bass pulse. |
+| March | Joy to the World, Good King Wenceslas | Felt-like keys and warm bass, with a soft downbeat tap in fuller sections. |
+| Waltz | We Wish You a Merry Christmas, The Holly and the Ivy | Nylon-like chords and short weak-beat answers that leave fresh chord attacks clear. |
+| Gentle | Silent Night, It Came Upon the Midnight Clear | Felt-like keys and downbeat bass, without a continuous percussion part. |
 
-Every style reads the song as **4-bar phrases** (`src/backing/phrases.ts`): a fill on the last
-beat of each phrase (two beats for the march's toms) with a soft crash (or sleigh shake) on the
-next downbeat, a sleigh-bell roll and glockenspiel glissando up into every other phrase, a strings
-"lift" under the last phrase (organ/warm styles), a fill into the final bar, and a **ritardando
-ending**: the final chord is held (fermata) while glockenspiel and sleigh bells step down it with
-gaps growing ×1.25, closing on a low glock "ding". The bells' last note is on the final downbeat,
-so the song's tempo is untouched and judging is unchanged; the tag rings on into the results
-screen.
+The host marks **4-bar phrases** with a quiet brush instead of pitched fills that anticipate
+the next chord. The **ritardando ending** steps down the final chord with soft plucks, leaving
+the song's own tempo and judging untouched.
 
 Code layout (modular so song-form/key changes in the timeline flow through): `timeline.ts`
-(chart → chords + beats), `styles.ts` (presets), `phrases.ts` (phrase structure),
-`patterns.ts` (groove layers: drums, bass, harmony), `flourishes.ts` (fills, glissandos, ending),
-`synth.ts` (one method per voice: kick, snare, brush, hat, tom, crash, sleigh, bass, organ / warm
-/ strings pad, celesta, glockenspiel, woodblock), `track.ts` (one play-through). Practice speed:
-the game hands the backing the already-stretched chart (`src/speed.ts`), so phrases, fills and the
-ending slow down with it; `BackingTrack`'s `speed` option is only for callers holding the written
-chart.
+(chart → chords + beats), `score-corrections.ts` (reviewed host-only fixes),
+`styles.ts` (presets), `patterns.ts` (groove), `synth.ts` (Web Audio voices), and `track.ts`
+(one play-through). Practice speed uses the already-stretched chart (`src/speed.ts`); the
+backing, count-in and ending follow it. See [the score audit and matched auditions](#score-audit-and-audition).
+
+#### Score audit and audition
+
+The overlay affects only the backing, not the underlying chart harmony, assigned notes, TV guides,
+or cue times. The numbers below are 1-based source measures and beats; Holly's one-beat pickup
+is not measure 1. This was a targeted audit, not a catalog-wide reharmonization.
+
+| Source passage | Shipped chart → backing | Evidence in the source |
+|---|---|---|
+| Wenceslas 1.4 / 5.4 | F♯m → E/G♯ | B–E–B above G♯. The inferred half-bar F♯m was correct at beat 3 but carried through this change. |
+| Wenceslas 2.2 / 6.2 | A → D | A–F♯–D above D; beat 1 stays on A, beat 3 still moves to E. |
+| Wenceslas 3.2 / 7.2 | D → A/C♯ | E–E–A above C♯, between the D chords on beats 1 and 3. |
+| Wenceslas 3.4 / 7.4 | D → E7/B (no root doubled or added) | G♯–D–B above B before the A cadence; the score omits E. |
+| Holly 4.3 / 12.3 | C7 → C7/E | Soprano C then B♭, alto E, tenor G and bass E. The C7 after F/C at 7.3 / 15.3 really has C in the bass and stays unchanged. |
+
+Wenceslas uses the [registered public-domain Mutopia #905 edition](../../ATTRIBUTION.md#mutopia-good-king-wenceslas),
+James Kilfiger's typesetting of C. L. Hutchins, *Carols Old and Carols New* (1916), #415:
+see the upper and lower voice lines in its [LilyPond source](../s5-chart-pipeline/sources/mutopia/GoodKingWenceslas.ly).
+Holly uses the repository's [reviewed CC0 SATB ABC](../s5-chart-pipeline/songs/the-holly-and-the-ivy.abc),
+not the melody-only Mutopia edition or an experimental S6 arrangement. The fixes follow repeated
+verses and the optional transposition; the generated modulation bars are not changed.
+
+For level and timing checks, see [the offline render](results/backing-render.md). Run
+`npm run audio-check -- --audition-dir=<outside-worktree-directory>` from this directory to generate
+two sets of matched clips (Short form, 6.1 s Wenceslas / 8.9 s Holly). `harmony-before` and
+`harmony-after` use the same new synth and same bell stem, with only the backing score overlay
+switched. Compare `harmony-after`, `legacy-timbre` (voices from `0c0cb51`), and `sample-bank` with
+identical corrected bass/key events. All are matched to −30 dBFS backing RMS before adding the same
+bell stem. This isolates those two factors; it is not a recording of the complete game mix.
+
+| Excerpt | Pitched events, before → after | Offline render: legacy / new / short samples | Mixed peak, all variants |
+|---|---:|---:|---:|
+| Wenceslas | 13 → 22 | 411 / 128 / 76 ms | 0.842–0.861 |
+| Holly | 27 → 27 | 803 / 242 / 115 ms | 0.738–0.809 |
+
+Wenceslas adds the missing beat-level attacks at the new changes; Holly changes the bass
+pitch without adding attacks. On the fixed harmony, the new synth and samples had nearly
+identical 2 kHz high-pass RMS (within 0.1 dB). That is one spectral check, not a listening verdict.
+The sample experiment used six original 1.6 s mono voices at 24 kHz with pitch shifting: about
+461 kB as PCM16 WAV or 922 kB decoded float data, with 32 ms to synthesize the bank in this run.
+The bank rendered the excerpts faster but retained more audio in memory. We kept live synthesis:
+no recorded instruments,
+new media or dependencies, no audio downloads, and only a shared 57.6 kB noise buffer at 48 kHz
+when percussion plays, plus three periodic-wave tables on demand. The production I2 host JS
+shrunk from 620.79 kB to 613.45 kB (gzip 169.03 → 166.92 kB); the S9 host JS from 671.08 kB to
+663.74 kB (gzip 187.57 → 185.45 kB). Render measurements are from headless Chrome on Windows,
+not real TV speakers, Safari or a human listening panel.
 
 ### Performance sound effects
 
@@ -288,8 +327,8 @@ Web Audio; the events go into S4's `Session` scheduler, so they are timed on the
 clock with the same song timeline as the bells, highways and judging (no drift; tempo changes
 followed beat by beat). Bass and inner bells of the chosen part — whether a phone or the TV
 rings them — are kept out of the backing: the backing bass rests while a bass bell sounds, and
-the pad leaves out pitch classes an inner bell is holding. The groove sits about 12–14 dB
-under the bells at the default volume (`npm run audio-check`). Backing settings are read when a
+the keys leave out pitch classes an inner bell is holding. The groove sits below the bells at
+the default volume in the measured excerpts (`npm run audio-check`). Backing settings are read when a
 song starts (change them in the lobby, not mid-song). Charts without `harmony` play as
 before, with no backing (the count-in then uses the first tempo and meter).
 
@@ -305,8 +344,7 @@ before, with no backing (the count-in then uses the first tempo and meter).
 | `npm run e2e:seating` | Seating chart end-to-end: real S1 host, two S1 phone pages in mobile emulation (Alice, Bob) and one S1 simulated phone (Cara, `--claim`/`--ready`): phone claim, swap, Ready, TV picker by keyboard, drag, 🔁/🎲, late join, disconnect → TV → reconnect reclaims, Play without everyone Ready, and the regression for the collapsing dropdown (the picker survives device broadcasts). Also checks First Ring selection, return to Standard, and a complete Deck the Halls autoplay. Writes `results/seating-e2e.json`; `-- --shots` captures `i2-seating-lobby.png` and `i2-phone-part-picker.png`. |
 | `npm run e2e:dropin` | Drop-in + practice speed end-to-end (port 18600): the lobby speed control (5 % steps, kept across a reload), Alice plays at 50 % (HUD badge, phone label, stretched song, results line), Bob joins mid-song from a phone page (*You're in!*, TV corner QR + *+1 waiting*, seats unchanged), results (*Joining: Bob*, he can pick a part), **Again** seats him in the TV's part, the corner QR hides in the lobby and with `?joinQr=0`. Writes `results/dropin-e2e.json`; `-- --shots` captures `i2-ingame-join-qr.png`, `i2-results-join-qr.png` and `i2-phone-waiting.png`. |
 | `npm run e2e:takeover` | Reconnect/takeover end-to-end (port 18800), the regression for the 2026-10-25 joining thrash (two tabs of one phone kicking each other off): a second tab of a joined phone shows *connected in another tab — Use this tab* without connecting; **Use this tab** takes over exactly once and stays stable (the TV never sees the phone offline, seats unchanged, device broadcasts at heartbeat level); the TV's QR scanned again mid-song leaves the playing tab connected and ringing; two pages that can't see each other (separate profiles, same deviceId) end after one host `replaced`; and the same with Web Locks removed (iOS Safari < 15.4: localStorage heartbeat). Counts hellos/replacements in the host's event log. Writes `results/takeover-e2e.json`. |
-| `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample, silence after stop. Writes `results/backing-render.md`. |
-| `npm run audio-check` | Renders the backing for four carols (one per style) with `OfflineAudioContext` in headless Chrome: no clipping, level under the bells, count-in/downbeat onsets on their scheduled sample (also at practice speed 0.75), the ritardando ending on time and decaying to silence, silence after stop; and each performance SFX alone: no clipping, on its scheduled sample, 6–30 dB under one bell, ducked ≥ 6 dB under a ringing bell. Writes `results/backing-render.md`. |
+| `npm run audio-check` | Offline Chrome render: peaks, bell balance, count-in/downbeat onsets, 0.75× speed, closing tag, stop/replay and SFX. Writes `results/backing-render.md`; `-- --audition-dir=<outside-worktree-directory>` writes the optional loudness-matched A/B WAVs and sample-bank metrics. |
 | `node scripts/controller-check.mjs` | Drives S1's real phone page (mobile emulation, touch mode) through a song. |
 | `node scripts/webkit-controller-check.mjs` | WebKit smoke test (#27): S1's phone page in Playwright **WebKit** with an iPhone profile (`--device="iPhone 15"`) over HTTPS with the self-signed certificate, TV page in Chrome. Tap to start (stubbed `DeviceMotionEvent.requestPermission`), Web Audio unlock, joining and *Pick your part*, zones and the next-zone glow, and synthetic `devicemotion` rings (calibration, lobby practice, then the song's notes) reaching the host. Needs `npm run build` and, once, `npx playwright-core install webkit` (Linux: `--with-deps`; use `playwright-core`, already a dev dependency, so the browser matches its version). Writes `results/webkit-controller-check.{json,md}`, including what emulation can't show. An early signal, not a substitute for a real iPhone. |
 | `npm run charts` | Regenerate `public/charts/` (full form) and `public/charts/short/` from S5: every arrangement and tier, 1–4 ringers; skipped when nothing changed (`-- --force`). `-- --key-change` adds the step up in the last verse (off by default; it can move more notes to the TV guide because phone pitch sets stay fixed). Use `-- --profile handbell --ringers 3,4,5` for the S5 defaults. URL: `?form=short`, `?parts=chord-split`, `?diff=super-easy`. |
@@ -405,8 +443,8 @@ candlelight `#f3b01d` and the page is the stage `#0b0d17`; the note highways kee
 
 Code: MIT (repo). No third-party assets: charts are generated from S5's CC0/public-domain
 sources (licence per song in each chart's `song.license`); bell sound is S4's additive synth
-on the TV and S1's synth on the phones. The backing track (sleigh bells, drums, bass, organ/pad/strings,
-celesta, glockenspiel, count-in) and the performance SFX (sparkles, whoosh, boop, fanfare, applause)
+on the TV and S1's synth on the phones. The backing track (felt-like keys, plucked strings,
+bass, percussion, count-in) and the performance SFX (sparkles, whoosh, boop, fanfare, applause)
 are synthesised live with Web Audio from code in `src/backing/` and `src/sfx/` — no samples or
 audio files, so there is no media to register. The brand files (lobby lockup, Yo states, favicon,
 app icons) are copied at build time from [`docs/design/brand/`](../../docs/design/brand/README.md)

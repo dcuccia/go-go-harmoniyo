@@ -26,6 +26,7 @@ interface Row {
   firstDownbeatOnsetErrMs: number;
   silentBeforeStart: boolean;
   silentAfterStop: boolean;
+  replayMatches: boolean;
   /** Ending: ritardando tag + fermata, rendered from 2 s before the final downbeat. */
   ending: { peak: number; tagNotes: number; lastDingOnsetErrMs: number; tailRmsDb: number; seconds: number };
   /** Practice speed 0.75: first groove downbeat onset vs its stretched time. */
@@ -145,23 +146,29 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
   const bellsRms = rms([bells], songFrom, songTo);
 
   // 5) stop(): the bus fades to silence (Esc mid-song).
-  const sctx = new OfflineAudioContext(1, SR * 2, SR);
+  const sctx = new OfflineAudioContext(1, SR * 4, SR);
   const sTrack = new BackingTrack({ ctx: sctx, connect: (n) => (n.connect(sctx.destination), () => n.disconnect()) }, c, bellNotes, { enabled: true, volume: 0.5, countIn: false });
   for (const e of sTrack.scheduled()) if (e.time < 2) e.play(Math.max(0, e.time));
   const stopped = sctx.suspend(0.5).then(() => {
     sTrack.stop();
+    for (const e of sTrack.scheduled()) if (e.time < 2) e.play(2 + e.time);
     return sctx.resume();
   });
   const sbuf = await sctx.startRendering();
   await stopped;
-  const tail = rms([sbuf.getChannelData(0)], Math.floor(0.75 * SR), 2 * SR);
+  const stopAudio = sbuf.getChannelData(0);
+  const tail = rms([stopAudio], Math.floor(0.75 * SR), 2 * SR);
+  let maxReplayDelta = 0;
+  for (let i = 0; i < Math.floor(0.45 * SR); i++) {
+    maxReplayDelta = Math.max(maxReplayDelta, Math.abs(stopAudio[i] - stopAudio[i + 2 * SR]));
+  }
 
   // 6) Ending: the ritardando tag and fermata, from 2 s before the final downbeat.
   const tl = track.timeline!;
   const finalBar = tl.beats[tl.beats.length - 1].bar;
   const down = tl.beats.find((b) => b.bar === finalBar && b.beat === 0)!.time;
-  const glocks = track.events.filter((e) => e.inst === 'glock' && e.time > down);
-  const lastDing = glocks[glocks.length - 1]?.time ?? down;
+  const tag = track.events.filter((e) => e.inst === 'tag' && e.time > down);
+  const lastDing = tag.at(-1)?.time ?? down;
   const from = down - 2;
   const endSec = lastDing - from + 4;
   const ectx = new OfflineAudioContext(1, Math.ceil(SR * endSec), SR);
@@ -171,7 +178,7 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
   const ding = lastDing - from;
   const ending = {
     peak: Math.round(peakIn(ebuf, 0, endSec) * 1000) / 1000,
-    tagNotes: glocks.length,
+    tagNotes: tag.length,
     lastDingOnsetErrMs: NaN,
     tailRmsDb: db(rms([ebuf], Math.floor((endSec - 0.5) * SR), Math.floor(endSec * SR))),
     seconds: Math.round(endSec * 10) / 10,
@@ -181,7 +188,7 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
   const dctx = new OfflineAudioContext(1, Math.ceil(SR * (ding + 1)), SR);
   const dTrack = new BackingTrack({ ctx: dctx, connect: (n) => (n.connect(dctx.destination), () => n.disconnect()) }, c, bellNotes, { enabled: true, volume: 0.5, countIn: false });
   const dSched = dTrack.scheduled(); // count-in off: index i is events[i]
-  dTrack.events.forEach((e, i) => e.inst === 'glock' && e.time === lastDing && dSched[i].play(ding));
+  dTrack.events.forEach((e, i) => e.inst === 'tag' && e.time === lastDing && dSched[i].play(ding));
   const dbuf = (await dctx.startRendering()).getChannelData(0);
   ending.lastDingOnsetErrMs = errMs(onset(dbuf, ding, 0.05, ONSET), ding);
 
@@ -211,6 +218,7 @@ async function renderOne(id: string, seconds: number): Promise<Row> {
     firstDownbeatOnsetErrMs,
     silentBeforeStart: silentBeforeCountIn && silentBeforeGroove,
     silentAfterStop: tail < 1e-4,
+    replayMatches: maxReplayDelta < 1e-5,
     ending,
     slowDownbeatOnsetErrMs,
   };
