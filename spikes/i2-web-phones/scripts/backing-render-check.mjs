@@ -6,16 +6,18 @@
 // alone: no clipping, on its scheduled sample, under one bell, and ducked when a bell rings.
 //   npm run audio-check [-- --channel=msedge] [--songs=jingle-bells,silent-night]
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
-import { createServer } from 'vite';
+import { createServer, transformWithEsbuild } from 'vite';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const opt = (k, d) => argv.find((a) => a.startsWith(`--${k}=`))?.split('=')[1] ?? d;
 const channel = opt('channel', 'chrome');
 const songs = opt('songs', '');
+const auditionDir = opt('audition-dir', '');
 
 const server = await createServer({ root, logLevel: 'error', server: { port: 5199, strictPort: false } });
 await server.listen();
@@ -26,9 +28,24 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
+  if (auditionDir) {
+    const source = execFileSync('git', ['show', '0c0cb51:spikes/i2-web-phones/src/backing/synth.ts'], { cwd: root, encoding: 'utf8' });
+    const { code } = await transformWithEsbuild(source, 'legacy-synth.ts', { format: 'esm' });
+    await page.route(/\/audition-baseline\.js(?:\?import)?$/, (route) => route.fulfill({ contentType: 'text/javascript', body: code }));
+  }
   await page.goto(`${url}test/render-check.html${songs ? `?songs=${songs}` : ''}`);
   await page.waitForFunction(() => document.title === 'RENDER_DONE', null, { timeout: 120000, polling: 250 });
   out = await page.evaluate(() => window.__render);
+  if (auditionDir) {
+    const audition = await page.evaluate(async () => (await import('/test/audition.ts')).audition());
+    mkdirSync(auditionDir, { recursive: true });
+    for (const row of audition.rows) {
+      writeFileSync(join(auditionDir, `${row.id}-${row.mode}.wav`), Buffer.from(row.wav, 'base64'));
+      delete row.wav;
+    }
+    writeFileSync(join(auditionDir, 'metrics.json'), JSON.stringify(audition, null, 2) + '\n');
+    console.log(JSON.stringify(audition, null, 2));
+  }
   if (errors.length) out.pageErrors = errors;
 } finally {
   await browser.close();
@@ -48,9 +65,10 @@ for (const r of out.rows) {
   if (r.clicks < 3 || r.clickOnsetErrMs.some((e) => !(Math.abs(e) <= 0.5))) fails.push(`${tag}: count-in clicks off grid ${JSON.stringify(r.clickOnsetErrMs)}`);
   if (!(Math.abs(r.firstDownbeatOnsetErrMs) <= 0.5)) fails.push(`${tag}: first downbeat onset ${r.firstDownbeatOnsetErrMs} ms`);
   if (!r.silentAfterStop) fails.push(`${tag}: still sounding after stop()`);
+  if (!r.replayMatches) fails.push(`${tag}: replay differs before the stop point at the same song position`);
   if (!r.silentBeforeStart) fails.push(`${tag}: sound before the first scheduled event`);
   if (!(r.ending.peak < 1)) fails.push(`${tag}: ending clips (peak ${r.ending.peak})`);
-  if (r.ending.tagNotes < 5) fails.push(`${tag}: ritardando tag has ${r.ending.tagNotes} glock notes`);
+  if (r.ending.tagNotes < 5) fails.push(`${tag}: ritardando tag has ${r.ending.tagNotes} plucked notes`);
   if (!(Math.abs(r.ending.lastDingOnsetErrMs) <= 0.5)) fails.push(`${tag}: closing ding onset ${r.ending.lastDingOnsetErrMs} ms`);
   if (!(r.ending.tailRmsDb < -70)) fails.push(`${tag}: ending still sounding 4 s after the closing ding (${r.ending.tailRmsDb} dBFS)`);
   if (!(Math.abs(r.slowDownbeatOnsetErrMs) <= 0.5)) fails.push(`${tag}: first downbeat at practice speed 0.75: ${r.slowDownbeatOnsetErrMs} ms`);
@@ -68,13 +86,13 @@ if (!sfx.silentBefore) fails.push('SFX: sound before the scheduled cue');
 if (out.pageErrors) fails.push(...out.pageErrors);
 
 const md = [
-  `| Song | Style | Events (20 s) | Count-in clicks | Lead-in (s) | Peak | Backing RMS | Bells RMS | Backing vs bells | Click onset error (ms) | First downbeat (ms) | Silent before / after stop | Render (ms) |`,
-  `|---|---|---|---|---|---|---|---|---|---|---|---|---|`,
-  ...out.rows.map((r) => `| ${r.song} | ${r.style} | ${r.events} | ${r.clicks} | ${r.leadInSec} | ${r.peak} | ${r.backingRmsDb} dBFS | ${r.bellsRmsDb} dBFS | ${r.backingVsBellsDb} dB | ${r.clickOnsetErrMs.join(', ')} | ${r.firstDownbeatOnsetErrMs} | ${r.silentBeforeStart ? 'yes' : 'no'} / ${r.silentAfterStop ? 'yes' : 'no'} | ${r.renderMs} |`),
+  `| Song | Style | Full-song events | Count-in clicks | Lead-in (s) | Peak | Backing RMS | Bells RMS | Backing vs bells | Click onset error (ms) | First downbeat (ms) | Silent before / after stop | Replay match | Render (ms) |`,
+  `|---|---|---|---|---|---|---|---|---|---|---|---|---|---|`,
+  ...out.rows.map((r) => `| ${r.song} | ${r.style} | ${r.events} | ${r.clicks} | ${r.leadInSec} | ${r.peak} | ${r.backingRmsDb} dBFS | ${r.bellsRmsDb} dBFS | ${r.backingVsBellsDb} dB | ${r.clickOnsetErrMs.join(', ')} | ${r.firstDownbeatOnsetErrMs} | ${r.silentBeforeStart ? 'yes' : 'no'} / ${r.silentAfterStop ? 'yes' : 'no'} | ${r.replayMatches ? 'yes' : 'no'} | ${r.renderMs} |`),
   '',
   '**Ending** (ritardando tag + fermata, from 2 s before the final downbeat) and **practice speed** 0.75:',
   '',
-  '| Song | Ending peak | Tag glock notes | Closing ding onset (ms) | Level 4 s after the ding | First downbeat at 0.75× (ms) |',
+  '| Song | Ending peak | Plucked tag notes | Closing note onset (ms) | Level 4 s after the note | First downbeat at 0.75× (ms) |',
   '|---|---|---|---|---|---|',
   ...out.rows.map((r) => `| ${r.song} | ${r.ending.peak} | ${r.ending.tagNotes} | ${r.ending.lastDingOnsetErrMs} | ${r.ending.tailRmsDb} dBFS | ${r.slowDownbeatOnsetErrMs} |`),
   '',

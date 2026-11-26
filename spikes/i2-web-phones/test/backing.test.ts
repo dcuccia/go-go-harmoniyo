@@ -57,7 +57,7 @@ describe('chord timeline', () => {
     expect(tl.beats[8].dur).toBe(1);
     const ev = generateBacking(tl, { style: 'sleigh-ride' });
     // Off-beat sleigh jingles sit halfway between beats, before and after the change.
-    const sleighTimes = of(ev, 'sleigh').map((e) => e.time);
+    const sleighTimes = of(ev, 'shake').map((e) => e.time);
     expect(sleighTimes).toContain(0.25);
     expect(sleighTimes).toContain(4.5);
     expect(sleighTimes).not.toContain(4.25);
@@ -99,34 +99,31 @@ describe('pattern generation', () => {
     expect(a.every((e) => e.vel > 0 && e.vel <= 1 && e.time >= 0 && e.time <= tl.end + 1.5)).toBe(true);
   });
 
-  it('sleigh-ride: jingles on every eighth, kick on 1 and 3, snare + shake on 2 and 4, walking bass', () => {
+  it('sleigh-ride: sparse offbeat shakes, steady bass and felt keys', () => {
     const ev = generateBacking(backingTimeline(chart({ style: 'sleigh-ride' }))!);
-    expect(of(ev, 'kick').map((e) => e.time).slice(0, 4)).toEqual([0, 1, 2, 3]);
-    expect(of(ev, 'snare').map((e) => e.time).slice(0, 2)).toEqual([0.5, 1.5]);
-    expect(of(ev, 'shake').map((e) => e.time).slice(0, 2)).toEqual([0.5, 1.5]);
-    expect(of(ev, 'sleigh').filter((e) => e.time < 2).map((e) => e.time)).toEqual([0, 0.25, 0.75, 1, 1.25, 1.75]);
-    const bass = of(ev, 'bass');
-    // Bar 1 (C → F next): C, G, then E as a chromatic approach into F.
-    expect(bass.filter((e) => e.time < 2).map((e) => e.midi)).toEqual([48, 43, 40]);
-    expect(bass.every((e) => e.midi! >= 40 && e.midi! <= 52)).toBe(true);
-    // Last bar: one ringing downbeat, then only the ending tag (glockenspiel + sleigh bells).
-    expect(ev.filter((e) => e.time > 6 && !['pad', 'glock', 'sleigh', 'shake'].includes(e.inst))).toEqual([]);
-    expect(of(ev, 'pad').filter((e) => e.tone === 'organ').map((e) => e.midis!.length)).toEqual([3, 3, 4, 3]);
+    expect(of(ev, 'shake').filter((e) => e.time < 2).map((e) => e.time)).toEqual([0.25, 1.25]);
+    expect(of(ev, 'bass').filter((e) => e.time < 2).map((e) => [e.time, e.midi])).toEqual([[0, 48], [1, 48]]);
+    expect(of(ev, 'pad').filter((e) => e.tone === 'felt').map((e) => e.midis!.length)).toEqual([3, 3, 4, 3]);
   });
 
-  it('gentle: no kick or snare, warm pad, bass on downbeats', () => {
+  it('gentle: downbeat bass and felt keys without a continuous percussion part', () => {
     const ev = generateBacking(backingTimeline(chart({ style: 'gentle', beatsPerBar: 2, div: 3, beatSec: 1 }))!);
-    expect(of(ev, 'kick').length + of(ev, 'snare').length).toBe(0);
-    // Warm pad; strings join it in the last phrase (here the whole 4-bar song).
-    expect(of(ev, 'pad').every((e) => e.tone === 'warm' || e.tone === 'strings')).toBe(true);
-    expect(of(ev, 'pad').filter((e) => e.tone === 'warm').length).toBe(4);
+    expect(ev.filter((e) => ['tap', 'brush', 'shake'].includes(e.inst))).toEqual([]);
+    expect(of(ev, 'pad').map((e) => e.tone)).toEqual(['felt', 'felt', 'felt', 'felt']);
     expect(of(ev, 'bass').map((e) => e.time)).toEqual([0, 2, 4, 6]);
   });
 
-  it('waltz: oom-pah-pah (bass on 1, organ stabs on 2 and 3)', () => {
+  it('waltz: nylon answers on weak beats, but not on an existing chord attack', () => {
     const ev = generateBacking(backingTimeline(chart({ style: 'waltz', beatsPerBar: 3 }))!);
     expect(of(ev, 'bass').map((e) => e.time)).toEqual([0, 1.5, 3, 4.5]);
     expect(of(ev, 'stab').filter((e) => e.time < 1.5).map((e) => e.time)).toEqual([0.5, 1]);
+    const changed = chart({ style: 'waltz', beatsPerBar: 3 });
+    changed.harmony!.chords[0].durSec = 0.5;
+    changed.harmony!.chords.splice(1, 0, { ...C(0.5, 1, 'Dm/F', 2, [2, 5, 9]), bass: 5 });
+    for (const b of changed.harmony!.beats.slice(1)) b.chord!++;
+    const onChange = generateBacking(backingTimeline(changed)!).filter((e) => e.time === 0.5);
+    expect(onChange.map((e) => e.inst)).toEqual(['pad', 'bass']);
+    expect(of(onChange, 'bass')[0].midi).toBe(41);
   });
 
   it('defaults a style from the meter when the chart has none', () => {
@@ -155,12 +152,13 @@ describe('pattern generation', () => {
     const bass = of(ev, 'bass');
     expect(bass.length).toBeGreaterThan(0);
     expect(bass.every((e) => e.time >= 4)).toBe(true);
-    const pads = of(ev, 'pad').filter((e) => e.tone === 'organ');
+    const pads = of(ev, 'pad').filter((e) => e.tone === 'felt');
     expect(pads[0].midis!.map((m) => m % 12)).toEqual(expect.not.arrayContaining([4]));
     expect(pads[0].midis!.length).toBe(2);
     expect(pads[3].midis!.map((m) => m % 12)).toContain(4);
-    // Drums and sleigh bells are unaffected.
-    expect(of(ev, 'kick').length).toBe(of(generateBacking(tl), 'kick').length);
+    expect(of(ev, 'tap').map((e) => e.time)).toEqual(of(generateBacking(tl), 'tap').map((e) => e.time));
+    const occupied = exclusionsFrom([60, 62, 64, 65, 67, 69, 71].map((midi) => ({ midi, role: 'inner', time: 0, dur: 20 })));
+    expect(generateBacking(tl, { exclusions: occupied }).filter((e) => ['pad', 'stab', 'tag'].includes(e.inst))).toEqual([]);
   });
 
   it('voices pads in the pad register with small moves', () => {
@@ -190,62 +188,25 @@ describe('phrases, fills, variations and the ending', () => {
     expect(phrases(backingTimeline(chart({ beatsPerBar: 3, pickup: 1, bars: 8 }))!)[0]).toMatchObject({ firstBar: 2, start: 0.5 });
   });
 
-  it('sleigh-ride: a snare fill with a crescendo on the last beat of each phrase, then a soft crash', () => {
-    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
-    const fill = of(ev, 'snare').filter((e) => e.time >= barT(4, 3) && e.time < barT(5));
-    expect(fill.map((e) => e.time)).toEqual([barT(4, 3), barT(4, 3) + 0.25]);
-    expect(fill[1].vel).toBeGreaterThan(fill[0].vel);
-    // The groove rests under the fill: no sleigh jingles on that beat in phrase 1 (snare fill, no glock).
-    expect(of(ev, 'sleigh').filter((e) => e.time >= barT(4, 3) && e.time < barT(5))).toEqual([]);
-    expect(of(ev, 'crash').map((e) => e.time)).toEqual([barT(5), barT(9), barT(13), barT(16)]); // + the final downbeat
-    // Odd phrases (2nd, 4th) end with a sleigh roll + glockenspiel glissando up into the next chord.
-    const gliss = of(ev, 'glock').filter((e) => e.time > barT(8, 3) && e.time < barT(9));
-    expect(gliss.length).toBe(5);
-    expect(gliss.map((e) => e.midi!)).toEqual([...gliss.map((e) => e.midi!)].sort((a, b) => a - b));
-  });
-
-  it('march: hi-hat on the off-beats and a tom fill down the toms over the last two beats', () => {
+  it('march: a pulse on each downbeat and a quiet unpitched brush at phrase boundaries', () => {
     const ev = generateBacking(backingTimeline(long('march'))!);
-    expect(of(ev, 'hat').filter((e) => e.time < 2).map((e) => e.time)).toEqual([0.25, 0.75, 1.25, 1.75]);
-    const toms = of(ev, 'tom').filter((e) => e.time < barT(5));
-    expect(toms.length).toBe(8);
-    expect(toms[0].time).toBe(barT(4, 2));
-    expect(toms[0].midi!).toBeGreaterThan(toms[7].midi!);
+    expect(of(ev, 'tap').map((e) => e.time)).toEqual(Array.from({ length: 15 }, (_, i) => barT(i + 1)));
+    expect(of(ev, 'brush').map((e) => e.time)).toEqual([barT(4, 3), barT(8, 3), barT(12, 3)]);
+    expect(of(ev, 'tag').every((e) => e.time > barT(16))).toBe(true);
   });
 
-  it('varies the bass in odd phrases: the walking bass walks through the third', () => {
-    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
-    const beat1 = (bar: number) => of(ev, 'bass').find((e) => e.time === barT(bar, 1));
-    expect(beat1(1)).toBeUndefined(); // phrase 1: root – fifth – approach
-    expect(beat1(5)?.midi! % 12).toBe(4); // phrase 2, C chord: E
-    const waltz = generateBacking(backingTimeline(chart({ style: 'waltz', beatsPerBar: 3, bars: 8 }))!);
-    expect(of(waltz, 'bass').every((e) => (e.time * 2) % 3 === 0)).toBe(true); // still "oom" on 1
-  });
-
-  it('celesta broken chords only in odd phrases for sleigh-ride, throughout for gentle', () => {
-    const ev = generateBacking(backingTimeline(long('sleigh-ride'))!);
-    const cel = of(ev, 'celesta');
-    expect(cel.length).toBeGreaterThan(0);
-    expect(cel.every((e) => (e.time >= 8 && e.time < 16) || (e.time >= 24 && e.time < 32))).toBe(true);
-    const gentle = of(generateBacking(backingTimeline(long('gentle'))!), 'celesta');
-    expect(gentle.some((e) => e.time < 8)).toBe(true);
-  });
-
-  it('ends with a ritardando tag: glock steps down the final chord with growing gaps, over a held fermata', () => {
+  it('ends with a descending plucked tag on the final chord and growing gaps', () => {
     const tl = backingTimeline(long('sleigh-ride'))!;
     const ev = generateBacking(tl);
     const down = barT(16);
-    const tag = of(ev, 'glock').filter((e) => e.time > down);
+    const tag = of(ev, 'tag');
     expect(tag.length).toBe(6);
     const gaps = tag.slice(1).map((e, i) => e.time - tag[i].time);
     for (let i = 1; i < gaps.length; i++) expect(gaps[i] / gaps[i - 1]).toBeCloseTo(RIT_RATIO, 1);
     expect(tag.slice(0, 5).map((e) => e.midi!)).toEqual([...tag.slice(0, 5).map((e) => e.midi!)].sort((a, b) => b - a));
-    // Fermata: the last pad and bass are held well past the final downbeat.
-    const lastPad = of(ev, 'pad').filter((e) => e.tone === 'organ').at(-1)!;
-    expect(lastPad.time + lastPad.dur!).toBeGreaterThan(down + FERMATA * 2);
+    const lastPad = of(ev, 'pad').at(-1)!;
+    expect(lastPad.time + lastPad.dur!).toBeCloseTo(down + FERMATA * 2, 3);
     expect(of(ev, 'bass').at(-1)!.dur!).toBeGreaterThan(2);
-    // A drum fill leads into the final bar.
-    expect(of(ev, 'snare').filter((e) => e.time >= barT(15, 3) && e.time < down).length).toBe(2);
   });
 
   it('practice speed scales event times and lengths', () => {
@@ -300,14 +261,15 @@ describe('song form (chart 0.3)', () => {
     return { ...c, form: { sections: [{ energy: 0.45, label: 'Intro', time: 0, durSec: 4 }, { energy: 0.8, label: 'Verse 1', time: 4, durSec: 8 }, { energy: 1, label: 'Verse 2', time: 12, durSec: 4 }] } };
   }
 
-  it('the groove builds with the sections: no kick or snare in the intro, softer percussion in lighter sections', () => {
+  it('the groove builds with the sections: no march pulse in the intro, softer shakes in lighter sections', () => {
     const tl = backingTimeline(formChart())!;
     expect(tl.beats.map((b) => b.energy).slice(0, 9)).toEqual([0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.45, 0.8]);
     const ev = generateBacking(tl, { seed: 'x' });
-    expect([...of(ev, 'kick'), ...of(ev, 'snare')].every((e) => e.time >= 4)).toBe(true);
-    expect(of(ev, 'sleigh').some((e) => e.time < 4)).toBe(true);
+    expect(of(ev, 'tap').every((e) => e.time >= 4)).toBe(true);
+    const shakes = of(generateBacking(tl, { seed: 'x', style: 'sleigh-ride' }), 'shake');
+    expect(shakes.some((e) => e.time < 4)).toBe(true);
     const mean = (xs: BackingEvent[]): number => xs.reduce((s, e) => s + e.vel, 0) / xs.length;
-    expect(mean(of(ev, 'sleigh').filter((e) => e.time < 4))).toBeLessThan(mean(of(ev, 'sleigh').filter((e) => e.time >= 12)));
+    expect(mean(shakes.filter((e) => e.time < 4))).toBeLessThan(mean(shakes.filter((e) => e.time >= 12)));
     // Without a form every beat is at full energy (pre-0.3 charts sound as before).
     const plain = chart({ style: 'march' });
     expect(backingTimeline(plain)!.beats.every((b) => b.energy === 1)).toBe(true);
