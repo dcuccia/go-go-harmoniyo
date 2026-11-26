@@ -20,7 +20,7 @@ export async function preloadS9Harp(ctx: BaseAudioContext): Promise<void> {
   if (failed) throw failed.reason;
 }
 
-export async function prepareS9Backing(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, form: PreviewForm, sourceHash: string) {
+export async function prepareS9Backing(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, form: PreviewForm, sourceHash: string, scoreReady: () => void) {
   const key = `${form}/${chart.song.id}.json`;
   let pending = scores.get(key);
   if (!pending) {
@@ -33,6 +33,7 @@ export async function prepareS9Backing(ctx: BaseAudioContext, chart: S5Chart, pa
   const { events, sourceHash: hash } = await pending;
   try {
     if (hash !== sourceHash || chart.form?.id !== form) throw new Error('Recorded backing does not match the selected chart form');
+    scoreReady();
     return await prepareRecordedBacking(ctx, chart, part, events, sample, __S9_HARP_BANK__.version);
   } catch (error) {
     scores.delete(key);

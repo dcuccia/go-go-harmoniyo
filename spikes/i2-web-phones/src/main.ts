@@ -28,6 +28,7 @@ import { beatAt } from './backing/phrases';
 import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
 import { SfxSynth } from './sfx/synth';
 import { controls, difficultyLabels, RoundNavigation } from './round-flow';
+import { RoundStartStatus } from './round-start-status';
 import { version as APP_VERSION } from '../package.json';
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -58,6 +59,9 @@ let backing: BackingTrack | null = null;
 const audition = import.meta.env.MODE === 'backing-preview' && params.get('backingPreview') === '1' && location.protocol === 'http:' &&
   location.hostname === '127.0.0.1' && window.top === window;
 const recordedBacking = import.meta.env.MODE === 's9-reviewed-backing';
+const roundStartStatus = recordedBacking ? new RoundStartStatus($('title-box'), () => {
+  if (pendingRecorded) playStandard(pendingRecorded.request);
+}) : undefined;
 type RecordedMode = 'recorded' | 'bells-only' | 'procedural-fallback' | 'standard' | 'off' | 'first-ring';
 let recordedMode: RecordedMode | undefined;
 let harpPreload: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
@@ -150,7 +154,10 @@ statsEl.classList.toggle('hidden', !flag('stats', false));
 const sessionHud: SessionHud = {
   reset: (c, m) => hud.reset({ ...c, lanes: [] }, m),
   judgement: () => {},
-  update: (...a) => hud.update(...a),
+  update: (...a) => {
+    hud.update(...a);
+    if (a[2] >= 0) roundStartStatus?.endLeadIn();
+  },
 };
 
 // ── phones (S1 host) ────────────────────────────────────────────────────────
@@ -876,6 +883,10 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   if (!index || playing || starting) return;
   const { mode, opener } = request;
   const config = request.selection ?? { ...selection(), ringerCount: ringersAuto && !firstRing ? automaticCount() : ringerCount };
+  const panel = navigation.panel;
+  const anchor = panel?.id === 'round-options' ? $('btn-auto').closest<HTMLElement>('.buttons') ?? $('btn-auto')
+    : panel?.id === 'difficulty-picker' ? $('difficulty-error')
+    : $(session ? 'res-msg' : 'lobby-msg');
   const showError = (msg: string) => {
     $(navigation.panel?.id === 'difficulty-picker' ? 'difficulty-error' : session ? 'res-msg' : 'lobby-msg').textContent = msg;
   };
@@ -900,6 +911,8 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   const attempt = starting = Symbol();
   ++previewRevision;
   showError('');
+  roundStartStatus?.show(anchor, 'Getting the round ready', 'Preparing the chart and audio.');
+  if (recordedBacking) renderRecordedOptions();
   const candidate = audition && auditionChoice === 'candidate' && !config.firstRing;
   const settings = { ...backingSettings };
   try {
@@ -924,18 +937,23 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
       else if (request.standardBacking) roundBacking = 'standard';
       else {
         pendingRecorded = { request: { ...request, selection: config }, acceptedMissing };
+        const showHarp = (detail: string): void => {
+          if (starting === attempt) roundStartStatus?.show(anchor, 'Loading harp backing', detail, true);
+        };
+        showHarp('Getting the backing score for this round.');
         renderRecordedOptions();
-        showError('Loading recorded harp backing…');
         try {
           const { prepareS9Backing } = await import('../../s9-page-host/src/recorded-backing');
-          preview = await prepareS9Backing(audio.ctx, s5, part, config.songForm, index.sourceHash);
+          if (starting !== attempt) return;
+          preview = await prepareS9Backing(audio.ctx, s5, part, config.songForm, index.sourceHash,
+            () => showHarp('Preparing the harp sounds for this round.'));
           roundBacking = preview.events.length ? 'recorded' : 'bells-only';
         } catch (e) {
+          if (starting !== attempt) return;
           console.warn('Recorded backing unavailable; using procedural backing:', e);
           roundBacking = 'procedural-fallback';
         }
         if (starting !== attempt) return;
-        showError('');
       }
     }
     const absent = mode === 'play' ? checkRoster() : missingPhones();
@@ -948,6 +966,7 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
     if (starting === attempt) {
       starting = undefined;
       pendingRecorded = undefined;
+      roundStartStatus?.clear();
       if (recordedBacking) renderRecordedOptions();
     }
   }
@@ -1026,6 +1045,7 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
   resetTiming();
   sendParts(); // publish the committed seats and phase before the count-in and phone cues
   s.start();
+  roundStartStatus?.begin(backing.clicks.length > 0, recordedMode === 'procedural-fallback');
   sendCues(s);
   teamHud.position();
   $('speed-badge').textContent = speed < 1 ? `🐢 ${speedNote(speed)}` : '';
@@ -1220,6 +1240,8 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
 function toReady(focus = $('btn-play')): void {
   starting = undefined;
   pendingRecorded = undefined;
+  roundStartStatus?.clear();
+  roundStartStatus?.endLeadIn();
   reconnectRequest = undefined;
   navigation.dismissAll();
   session?.stop();
@@ -1246,37 +1268,34 @@ function renderRecordedOptions(): void {
   const again = document.getElementById('again-standard-backing');
   const status = document.getElementById('harp-preload');
   const autoplay = document.getElementById('auto-standard-backing');
-  const difficulty = document.getElementById('difficulty-standard-backing');
   const enabled = backingSettings.enabled && backingSettings.volume > 0;
-  if (control) control.hidden = !index || !enabled || firstRing;
-  if (again) again.hidden = !committed || !enabled || committed.firstRing;
-  if (autoplay) autoplay.hidden = !index || !enabled || firstRing;
-  if (difficulty) difficulty.hidden = !pendingRecorded || navigation.panel?.id !== 'difficulty-picker';
-  const label = !enabled || firstRing ? '' : ({
+  if (control) control.hidden = !index || !enabled || firstRing || !!pendingRecorded;
+  if (again) again.hidden = !committed || !enabled || committed.firstRing || !!pendingRecorded;
+  if (autoplay) autoplay.hidden = !index || !enabled || firstRing || !!pendingRecorded;
+  const label = !enabled || firstRing || starting ? '' : ({
     idle: '', loading: 'Loading recorded harp…', ready: 'Recorded harp ready',
     failed: 'Recorded harp did not finish loading. Play will retry, or use standard backing.',
   })[harpPreload];
   if (status && status.textContent !== label) status.textContent = label;
+}
+function playStandard(request: RoundRequest): void {
+  const round = pendingRecorded;
+  if (starting && !round) return;
+  const next = round?.request ?? request;
+  if (next.standardBacking) return;
+  cancelStart();
+  void start({ ...next, standardBacking: true }, round?.acceptedMissing);
 }
 if (import.meta.env.MODE === 's9-reviewed-backing') {
   $('open-difficulty').insertAdjacentHTML('afterend', '<button id="play-standard-backing" hidden>Play with standard backing</button>');
   $('lobby-msg').insertAdjacentHTML('afterend', '<p id="harp-preload" class="dim" role="status"></p>');
   $('res-choose-song').insertAdjacentHTML('afterend', '<button id="again-standard-backing" hidden>Play with standard backing</button>');
   $('btn-auto').insertAdjacentHTML('afterend', '<button id="auto-standard-backing" hidden>Autoplay with standard backing</button>');
-  $('confirm-difficulty').insertAdjacentHTML('afterend', '<button id="difficulty-standard-backing" hidden>Play with standard backing</button>');
-  const playStandard = (request: RoundRequest): void => {
-    const round = pendingRecorded;
-    cancelStart();
-    void start({ ...(round?.request ?? request), opener: request.opener, standardBacking: true }, round?.acceptedMissing);
-  };
   $('play-standard-backing').onclick = () => playStandard({ mode: 'play', opener: $('play-standard-backing') });
   $('again-standard-backing').onclick = () => {
     if (committed) playStandard({ mode: committed.mode, selection: committed, opener: $('again-standard-backing') });
   };
   $('auto-standard-backing').onclick = () => playStandard({ mode: 'autoplay', opener: $('auto-standard-backing') });
-  $('difficulty-standard-backing').onclick = () => {
-    if (pendingRecorded) playStandard(pendingRecorded.request);
-  };
 }
 const replay = (opener: HTMLElement, rotate = false): void => {
   if (committed) void start({ mode: committed.mode, selection: committed, opener, rotate });
@@ -1309,8 +1328,10 @@ function openPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void
 
 function cancelStart(): boolean {
   if (!starting) return false;
+  if (document.activeElement?.closest('.round-start-status')) pendingRecorded?.request.opener.focus();
   starting = undefined;
   pendingRecorded = undefined;
+  roundStartStatus?.clear();
   if (recordedBacking) renderRecordedOptions();
   if (!session) void rebuild();
   return true;
@@ -1437,6 +1458,7 @@ function goBack(): boolean {
   if (view.pickerOpen) view.closePicker();
   else if (navigation.panel) closePanel();
   else if (playing) openPanel('end-round', document.body);
+  else if (recordedBacking && cancelStart()) return true;
   else if (session) toReady();
   else if (cancelStart()) return true;
   else return false;
@@ -1455,11 +1477,14 @@ window.addEventListener('keydown', (e) => {
   }
   const panel = navigation.panel;
   if (e.key.startsWith('Arrow') || (panel && e.key === 'Tab')) {
+    const lobbyStatus = recordedBacking ? $('lobby').querySelector('.round-start-status') : null;
     const rows = panel?.id === 'seating-options'
       ? [controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]]
       : panel || playing ? []
         : session ? [controls($('results').querySelector('.result-actions')!), ...controls($('results')).filter((el) => !el.closest('.result-actions')).map((el) => [el])]
-          : [controls($('lobby').querySelector('.quick-setup')!).filter((el) => el.id === 'choose-song'), controls($('lobby').querySelector('.ready-actions')!), controls($('lobby').querySelector('.lobby-actions')!)];
+          : [controls($('lobby').querySelector('.quick-setup')!).filter((el) => el.id === 'choose-song'), controls($('lobby').querySelector('.ready-actions')!),
+            ...(lobbyStatus ? [controls(lobbyStatus)] : []),
+            controls($('lobby').querySelector('.lobby-actions')!)];
     if (navigation.key(e, target, rows, view.pickerOpen)) return;
   }
   if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
