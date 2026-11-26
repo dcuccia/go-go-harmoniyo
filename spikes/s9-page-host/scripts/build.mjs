@@ -37,7 +37,7 @@ for (const need of [join(i2, 'node_modules', 'three'), join(i2, 'public', 'chart
 }
 
 const backingBuild = backing ? await import('./reviewed-backing.mjs') : undefined;
-const stageBacking = backingBuild?.prepareBacking(repo, join(i2, 'public', 'charts'), testBacking ? 'test' : 'release');
+const preparedBacking = backingBuild?.prepareBacking(repo, join(i2, 'public', 'charts'), testBacking ? 'test' : 'release');
 rmSync(out, { recursive: true, force: true });
 const define = { __S9_SIGNAL_ORIGIN__: JSON.stringify(signal) };
 
@@ -49,7 +49,10 @@ await vite({
   configFile: false,
   ...(backing ? { mode: 's9-reviewed-backing' } : {}),
   logLevel: 'warn',
-  define,
+  define: {
+    ...define,
+    ...(preparedBacking ? { __S9_HARP_BANK__: JSON.stringify({ version: preparedBacking.sampleVersion, notes: preparedBacking.notes }) } : {}),
+  },
   publicDir: join(i2, 'public'),
   resolve: { dedupe: ['three'] },
   build: { outDir: out, emptyOutDir: false, target: 'es2022', chunkSizeWarningLimit: 2000 },
@@ -103,7 +106,9 @@ mkdirSync(join(legal, 'LICENSES'), { recursive: true });
 copyFileSync(join(repo, 'LICENSE'), join(legal, 'LICENSE.txt'));
 for (const f of ['ATTRIBUTION.md', 'THIRD_PARTY_NOTICES.md']) copyFileSync(join(repo, f), join(legal, f));
 for (const f of readdirSync(join(repo, 'LICENSES')).filter((f) => !f.startsWith('LGPL'))) copyFileSync(join(repo, 'LICENSES', f), join(legal, 'LICENSES', f));
-if (stageBacking) stageBacking(out);
+preparedBacking?.stage(out);
 const backingStamp = backingBuild?.catalogDigest;
-writeFileSync(join(out, 's9-build.json'), JSON.stringify({ signal, builtAt: new Date().toISOString(), backing: backingStamp }, null, 2));
+writeFileSync(join(out, 's9-build.json'), JSON.stringify({
+  signal, builtAt: new Date().toISOString(), backing: backingStamp, harpBank: preparedBacking?.sampleVersion,
+}, null, 2));
 console.log(`S9 web build → ${out}${signal ? ` (signal ${signal})` : ' (signal: same origin)'}`);

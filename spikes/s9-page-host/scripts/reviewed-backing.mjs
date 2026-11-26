@@ -3,6 +3,8 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { harpSample } from '../../i2-web-phones/src/backing/preview-samples.ts';
 import { scoreEvents } from '../../i2-web-phones/src/backing/preview-score.ts';
+import { SPEED_MIN } from '../../i2-web-phones/src/speed.ts';
+import { deriveHarp } from './harp-derivation.mjs';
 
 export const catalogDigest = '78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d';
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -64,8 +66,14 @@ export function prepareBacking(repo, charts, mode) {
       const events = songs[id][form];
       for (const e of scoreEvents(events, chart)) {
         if (e.voice !== 'harp') throw new Error(`${id}/${form}: expected recorded harp`);
-        const [, note, hash] = harpSample(e.midi);
-        samples.set(`KSHarp_${note}_mf.wav`, hash);
+        const [root, note, hash, onset] = harpSample(e.midi);
+        const name = `KSHarp_${note}_mf.wav`;
+        const pitchRate = 2 ** ((e.midi - root) / 12);
+        // Source time consumed = scheduled play time times the rate, not divided by it.
+        const required = Math.max(0, onset - 0.002) + e.dur / SPEED_MIN * pitchRate;
+        if (required > (samples.get(name)?.required ?? 0)) {
+          samples.set(name, { note, hash, required, limitingEvent: { id, form, midi: e.midi, dur: e.dur, pitchRate } });
+        }
       }
       scores.set(`${form}/${id}.json`, JSON.stringify({ sourceHash: index.sourceHash, events }));
     }
@@ -76,16 +84,35 @@ export function prepareBacking(repo, charts, mode) {
   for (const name of [...samples.keys(), ...originals]) {
     const path = `${backingDir}/samples/${name}`;
     const pin = files.get(path);
-    if (!pin || (samples.has(name) && samples.get(name) !== pin) ||
+    if (!pin || (samples.has(name) && samples.get(name).hash !== pin) ||
         sha256(readFileSync(join(repo, path))) !== pin) throw new Error(`S9 backing ${name}: upstream pin mismatch`);
   }
-  return (out) => {
+  const derived = [...samples.keys()].sort().map((name) => {
+    const source = samples.get(name);
+    const { hash, required, ...details } = source;
+    const { wave, br, ...evidence } = deriveHarp(readFileSync(join(base, 'samples', name)), required);
+    return { name, wave, br, report: { ...details, originalSha256: hash, ...evidence,
+      identityBytes: wave.length, brotliBytes: br.length, identitySha256: sha256(wave), brotliSha256: sha256(br) } };
+  });
+  const sampleVersion = sha256(JSON.stringify(derived.map(({ report }) => [report.identitySha256, report.brotliSha256]))).slice(0, 24);
+  function stage(out) {
     for (const form of forms) mkdirSync(join(out, 'backing', form), { recursive: true });
     for (const [name, data] of scores) writeFileSync(join(out, 'backing', name), data);
-    for (const [dir, names] of [['backing/samples', [...samples.keys()]], ['legal/vsco2-ce', originals]]) {
-      mkdirSync(join(out, dir), { recursive: true });
-      for (const name of names) copyFileSync(join(base, 'samples', name), join(out, dir, name));
+    const sampleDir = join(out, 'backing', 'sample-files', sampleVersion);
+    mkdirSync(sampleDir, { recursive: true });
+    for (const { name, wave, br } of derived) {
+      writeFileSync(join(sampleDir, name), wave);
+      writeFileSync(join(sampleDir, `${name}.br`), br);
     }
-    console.log(`S9 backing: ${scores.size} fixed chart forms, ${samples.size} pinned WAVs (${mode})`);
-  };
+    const legal = join(out, 'legal', 'vsco2-ce');
+    mkdirSync(legal, { recursive: true });
+    for (const name of originals) copyFileSync(join(base, 'samples', name), join(legal, name));
+    writeFileSync(join(legal, 'mono-derivation.json'), JSON.stringify({
+      sampleVersion, minimumPracticeSpeed: SPEED_MIN, brotliVersion: process.versions.brotli,
+      recipe: '44.1 kHz mono PCM16, mean of stereo channels; 20 ms interpolation margin, then 25 ms fade only if trimmed; Brotli quality 9.',
+      samples: Object.fromEntries(derived.map(({ name, report }) => [name, report])),
+    }, null, 2));
+    console.log(`S9 backing: ${scores.size} fixed chart forms, ${samples.size} derived WAVs (${mode})`);
+  }
+  return { stage, sampleVersion, notes: derived.map(({ report }) => report.note) };
 }

@@ -88,9 +88,10 @@ export async function smoke(origin, builtAt, request = fetch, demoExpiresAt = 0,
   }
   if (build.builtAt !== builtAt || build.signal !== '' || build.backing !== backing) throw new Error('Hosted assets do not match this S9 build.');
   if (backing) {
+    if (!/^[a-f0-9]{24}$/.test(build.harpBank ?? '')) throw new Error('Hosted S9 build has no versioned harp bank.');
     const [score, sample] = await Promise.all([
       get('/backing/short/carol-of-the-bells.json').then((r) => r.json()),
-      get('/backing/samples/KSHarp_D4_mf.wav', 200, 'HEAD'),
+      get(`/backing/audio/${build.harpBank}/KSHarp_D4_mf.wav`, 200, 'HEAD'),
     ]);
     if (!score.sourceHash || !score.events?.length || !sample.headers.get('content-type')?.startsWith('audio/')) {
       throw new Error('Recorded S9 backing assets are missing from the served build.');

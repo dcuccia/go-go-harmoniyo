@@ -109,14 +109,23 @@ For a loopback rehearsal only (from `spikes/s9-page-host`, with charts and brand
 
 ```powershell
 npm run build -- --test-reviewed-backing
-npm run dev -- --web dist\web-backing-local --host 127.0.0.1
+npm run wrangler -- dev --local --ip 127.0.0.1 --port 18961 --assets dist\web-backing-local
 ```
 
-The rehearsal output is separate from the Worker's asset root. The TV fetches the selected
-song/form at Play, then loads only the recordings needed for that part and caches decoded samples
-for the page session. First Ring stays procedural. Missing, invalid, or undecodable recorded
-assets use procedural backing and are labeled accordingly. A part fully occupied by bells
-remains bells-only, with its usual count-in. No controller or scoring data changes.
+Open `http://127.0.0.1:18961/` on this PC. The rehearsal output is separate from the Worker's
+default asset root. The same browser build can also be served with
+`npm run dev -- --web dist\web-backing-local --host 127.0.0.1`. Both use the host in the browser;
+Node's dev server substitutes for the Worker and cannot validate Cloudflare's public edge cache.
+Loopback is for one computer (use keyboard or Autoplay, or a controller tab on that PC).
+
+After the room URL is ready, the TV preloads the versioned mono harp bank and keeps the decoded
+buffers for the page session. The phone does not load it. Play can wait for a selected song's
+score and samples; **Play with standard backing** skips that wait for one round. A failed load or
+decode falls back to procedural backing with a visible label and retries on the next Play. A
+round never switches backing mid-song. First Ring stays procedural, and parts already filled by
+bells receive no extra notes. The browser negotiates precompressed Brotli or identity WAVs using
+ordinary HTTP; the `immutable` response applies only to the content-versioned WAV URLs and is
+not evidence of public edge caching.
 
 ## App shells (`app/`)
 

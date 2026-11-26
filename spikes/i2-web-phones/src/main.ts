@@ -58,12 +58,14 @@ let backing: BackingTrack | null = null;
 const audition = import.meta.env.MODE === 'backing-preview' && params.get('backingPreview') === '1' && location.protocol === 'http:' &&
   location.hostname === '127.0.0.1' && window.top === window;
 const recordedBacking = import.meta.env.MODE === 's9-reviewed-backing';
-type RecordedMode = 'recorded' | 'bells-only' | 'procedural-fallback' | 'off' | 'first-ring';
+type RecordedMode = 'recorded' | 'bells-only' | 'procedural-fallback' | 'standard' | 'off' | 'first-ring';
 let recordedMode: RecordedMode | undefined;
+let harpPreload: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
 const recordedLabel = (mode: RecordedMode): string => ({
   recorded: 'Recorded harp backing',
   'bells-only': 'Recorded backing: bells fill this part',
   'procedural-fallback': 'Recorded backing unavailable · procedural backing',
+  standard: 'Standard procedural backing',
   off: 'Backing off',
   'first-ring': 'First Ring: procedural backing',
 })[mode];
@@ -222,9 +224,11 @@ interface RoundRequest {
   opener: HTMLElement;
   selection?: RoundSelection;
   rotate?: boolean;
+  standardBacking?: boolean;
 }
 let committed: (RoundSelection & { mode: Mode }) | null = null;
 let starting: symbol | undefined;
+let pendingRecorded: { request: RoundRequest; acceptedMissing: readonly string[] } | undefined;
 let reconnectRequest: RoundRequest | undefined;
 let waitingForReconnect = false;
 const navigation = new RoundNavigation();
@@ -578,6 +582,26 @@ function renderStatus(): void {
   }
   $('lan-help').hidden = !url || !/self-signed/i.test(link.info.tlsMode ?? '') || url === link.info.transport?.tunnelUrl;
   $('join-url').textContent = url || (hostOk ? (link.info.transport?.mode === 'page' ? 'Waiting for the signalling service…' : 'Getting the join code ready…') : 'Waiting for the phone host…');
+  if (import.meta.env.MODE === 's9-reviewed-backing' && url && index && !playing) {
+    if (!firstRing && backingSettings.enabled && backingSettings.volume > 0 && harpPreload === 'idle') {
+      harpPreload = 'loading';
+      setTimeout(() => {
+        if (playing || firstRing || !backingSettings.enabled || backingSettings.volume <= 0) {
+          harpPreload = 'idle';
+          return;
+        }
+        void import('../../s9-page-host/src/recorded-backing').then((m) => m.preloadS9Harp(audio.ctx)).then(
+          () => { harpPreload = 'ready'; renderRecordedOptions(); },
+          (e: unknown) => {
+            harpPreload = 'failed';
+            console.warn('Recorded harp preload incomplete; will retry when selected:', e);
+            renderRecordedOptions();
+          },
+        );
+      }, 350);
+    }
+    renderRecordedOptions();
+  }
 }
 
 /** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
@@ -897,7 +921,10 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
     if (import.meta.env.MODE === 's9-reviewed-backing') {
       if (!settings.enabled || settings.volume <= 0) roundBacking = 'off';
       else if (config.firstRing) roundBacking = 'first-ring';
+      else if (request.standardBacking) roundBacking = 'standard';
       else {
+        pendingRecorded = { request: { ...request, selection: config }, acceptedMissing };
+        renderRecordedOptions();
         showError('Loading recorded harp backing…');
         try {
           const { prepareS9Backing } = await import('../../s9-page-host/src/recorded-backing');
@@ -918,7 +945,11 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   } catch (e) {
     if (starting === attempt) showError(`Could not start the round: ${String(e)}`);
   } finally {
-    if (starting === attempt) starting = undefined;
+    if (starting === attempt) {
+      starting = undefined;
+      pendingRecorded = undefined;
+      if (recordedBacking) renderRecordedOptions();
+    }
   }
 }
 
@@ -1179,6 +1210,7 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
       .join('');
   $('res-json').textContent = JSON.stringify(result, null, 2);
   $('results').classList.remove('hidden');
+  if (recordedBacking) renderRecordedOptions();
   $('btn-again').focus();
   sendParts(); // phones can pick parts for the next round
   renderNext();
@@ -1187,6 +1219,7 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
 
 function toReady(focus = $('btn-play')): void {
   starting = undefined;
+  pendingRecorded = undefined;
   reconnectRequest = undefined;
   navigation.dismissAll();
   session?.stop();
@@ -1208,6 +1241,43 @@ function toReady(focus = $('btn-play')): void {
 
 $('btn-play').onclick = () => void start({ mode: 'play', opener: $('btn-play') });
 $('btn-auto').onclick = () => void start({ mode: 'autoplay', opener: $('btn-auto') });
+function renderRecordedOptions(): void {
+  const control = document.getElementById('play-standard-backing');
+  const again = document.getElementById('again-standard-backing');
+  const status = document.getElementById('harp-preload');
+  const autoplay = document.getElementById('auto-standard-backing');
+  const difficulty = document.getElementById('difficulty-standard-backing');
+  const enabled = backingSettings.enabled && backingSettings.volume > 0;
+  if (control) control.hidden = !index || !enabled || firstRing;
+  if (again) again.hidden = !committed || !enabled || committed.firstRing;
+  if (autoplay) autoplay.hidden = !index || !enabled || firstRing;
+  if (difficulty) difficulty.hidden = !pendingRecorded || navigation.panel?.id !== 'difficulty-picker';
+  const label = !enabled || firstRing ? '' : ({
+    idle: '', loading: 'Loading recorded harp…', ready: 'Recorded harp ready',
+    failed: 'Recorded harp did not finish loading. Play will retry, or use standard backing.',
+  })[harpPreload];
+  if (status && status.textContent !== label) status.textContent = label;
+}
+if (import.meta.env.MODE === 's9-reviewed-backing') {
+  $('open-difficulty').insertAdjacentHTML('afterend', '<button id="play-standard-backing" hidden>Play with standard backing</button>');
+  $('lobby-msg').insertAdjacentHTML('afterend', '<p id="harp-preload" class="dim" role="status"></p>');
+  $('res-choose-song').insertAdjacentHTML('afterend', '<button id="again-standard-backing" hidden>Play with standard backing</button>');
+  $('btn-auto').insertAdjacentHTML('afterend', '<button id="auto-standard-backing" hidden>Autoplay with standard backing</button>');
+  $('confirm-difficulty').insertAdjacentHTML('afterend', '<button id="difficulty-standard-backing" hidden>Play with standard backing</button>');
+  const playStandard = (request: RoundRequest): void => {
+    const round = pendingRecorded;
+    cancelStart();
+    void start({ ...(round?.request ?? request), opener: request.opener, standardBacking: true }, round?.acceptedMissing);
+  };
+  $('play-standard-backing').onclick = () => playStandard({ mode: 'play', opener: $('play-standard-backing') });
+  $('again-standard-backing').onclick = () => {
+    if (committed) playStandard({ mode: committed.mode, selection: committed, opener: $('again-standard-backing') });
+  };
+  $('auto-standard-backing').onclick = () => playStandard({ mode: 'autoplay', opener: $('auto-standard-backing') });
+  $('difficulty-standard-backing').onclick = () => {
+    if (pendingRecorded) playStandard(pendingRecorded.request);
+  };
+}
 const replay = (opener: HTMLElement, rotate = false): void => {
   if (committed) void start({ mode: committed.mode, selection: committed, opener, rotate });
 };
@@ -1240,6 +1310,8 @@ function openPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void
 function cancelStart(): boolean {
   if (!starting) return false;
   starting = undefined;
+  pendingRecorded = undefined;
+  if (recordedBacking) renderRecordedOptions();
   if (!session) void rebuild();
   return true;
 }

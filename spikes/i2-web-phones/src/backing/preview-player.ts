@@ -9,7 +9,36 @@ const request = async (path: string): Promise<Response> => {
   return res;
 };
 
-const decoded = new Map<number, Promise<AudioBuffer>>();
+const decoded = new WeakMap<BaseAudioContext, Map<string, Promise<AudioBuffer>>>();
+
+export function loadHarp(ctx: BaseAudioContext, note: string, sample: (note: string) => Promise<Response>, bank: string): Promise<AudioBuffer> {
+  const cache = decoded.get(ctx) ?? new Map<string, Promise<AudioBuffer>>();
+  decoded.set(ctx, cache);
+  const key = `${bank}/${note}`;
+  let active = cache.get(key);
+  if (!active) {
+    const decode = async (): Promise<AudioBuffer> => {
+      const bytes = await (await sample(note)).arrayBuffer();
+      if (bank === 'node-preview') return ctx.decodeAudioData(bytes);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      try {
+        return await Promise.race([
+          ctx.decodeAudioData(bytes),
+          new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error('Audio decode timed out')), 3000); }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+    active = decode()
+      .catch((e: unknown) => {
+        cache.delete(key);
+        throw new Error(`Cannot load the recorded harp sample ${note}: ${String(e)}`);
+      });
+    cache.set(key, active);
+  }
+  return active;
+}
 
 export async function preparePreview(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, form: PreviewForm, sourceHash: string): Promise<TrackPreview> {
   const { events, sourceHash: hash } = await (await request(`${chart.song.id}/${form}`)).json();
@@ -18,23 +47,14 @@ export async function preparePreview(ctx: BaseAudioContext, chart: S5Chart, part
 }
 
 export async function prepareRecordedBacking(ctx: BaseAudioContext, chart: S5Chart, part: S5Part, input: unknown,
-                                             sample: (note: string) => Promise<Response>): Promise<TrackPreview> {
+                                             sample: (note: string) => Promise<Response>, bank = 'node-preview'): Promise<TrackPreview> {
   const authored = scoreEvents(input, chart);
   const events = protectBells(authored, chart, part);
 
   const samples = new Map<number, AudioBuffer>();
   const harp = new Set(events.filter((e) => e.voice === 'harp').map((e) => harpSample(e.midi)));
   await Promise.all([...harp].map(async ([midi, note]) => {
-    let active = decoded.get(midi);
-    if (!active) {
-      active = sample(note).then((res) => res.arrayBuffer()).then((bytes) => ctx.decodeAudioData(bytes))
-        .catch((e: unknown) => {
-          decoded.delete(midi);
-          throw new Error(`Cannot load the recorded harp sample ${note}: ${String(e)}`);
-        });
-      decoded.set(midi, active);
-    }
-    samples.set(midi, await active);
+    samples.set(midi, await loadHarp(ctx, note, sample, bank));
   }));
   return {
     events,

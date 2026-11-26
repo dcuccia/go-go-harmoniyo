@@ -127,8 +127,8 @@
           }
         ]
       },
-      "modifications": "Original WAVs and notices are byte-for-byte upstream. Trimming, transposition and gain occur only during playback.",
-      "reuseLimits": "Only the pinned nine harp WAVs are copied to the public S9 web asset path.",
+      "modifications": "Original WAVs and notices are byte-for-byte upstream. The S9 browser build derives mono PCM WAVs and their Brotli representations, without editing originals. See spikes/s9-page-host/backing/provenance/README.md and the generated legal/vsco2-ce/mono-derivation.json for the recipe, limiting events, lengths, and hashes.",
+      "reuseLimits": "Only the nine samples derived from these pinned files may be served by the reviewed S9 browser build.",
       "credit": false,
       "review": {
         "status": "pending",

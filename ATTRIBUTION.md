@@ -168,8 +168,8 @@ repository "MIT" in a way that hides them.
   - `spikes/s9-page-host/backing/samples/KSHarp_F4_mf.wav` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_F4_mf.wav> sha256 `db27ebbb37334c10e06f2ae63f4d9ff555e4d11704fcc6f0bcf503863867e577`
   - `spikes/s9-page-host/backing/samples/README.md` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/README.md> sha256 `8fbf399338661e6c76585ad9e75eb10324f823935168e0567553293a83f200a0`
   - `spikes/s9-page-host/backing/samples/LICENSE.txt` ← <https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE> sha256 `36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673`
-- Modifications: Original WAVs and notices are byte-for-byte upstream. Trimming, transposition and gain occur only during playback.
-- Reuse limits: Only the pinned nine harp WAVs are copied to the public S9 web asset path.
+- Modifications: Original WAVs and notices are byte-for-byte upstream. The S9 browser build derives mono PCM WAVs and their Brotli representations, without editing originals. See spikes/s9-page-host/backing/provenance/README.md and the generated legal/vsco2-ce/mono-derivation.json for the recipe, limiting events, lengths, and hashes.
+- Reuse limits: Only the nine samples derived from these pinned files may be served by the reviewed S9 browser build.
 - Review: pending. Upstream CC0, exact WAV SHA-256 pins, and README credit verified locally; release sign-off pending.
 
 ### project-ui-captures

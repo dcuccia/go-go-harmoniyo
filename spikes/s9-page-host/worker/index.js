@@ -9,6 +9,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { onJoin, onLeave, onMessage, parseJoin } from '../signal/relay.mjs';
 import { handleTrial, mintTurn, TrialState, TRIAL_PROTOCOL, TRIAL_ROOM, trialEnabled, trialStub, trialTicket } from './turn-trial.mjs';
 import { DemoState, demoRoomKey, demoTicket, DEMO_PROTOCOL, handleDemo } from './turn-demo.mjs';
+import { serveHarpAsset } from './harp-assets.mjs';
 
 const STUN = [{ urls: ['stun:stun.cloudflare.com:3478'] }];
 
@@ -16,6 +17,11 @@ export default {
   /** @param {Request} req @param {any} env */
   async fetch(req, env) {
     const url = new URL(req.url);
+    if (url.pathname.startsWith('/backing/')) {
+      const audio = await serveHarpAsset(req, url.pathname, (file) =>
+        env.ASSETS.fetch(new Request(new URL(file, url), { method: req.method, headers: { 'accept-encoding': 'identity' } })));
+      if (audio) return audio;
+    }
     if (url.pathname.startsWith('/signal/')) {
       const j = parseJoin(url);
       if (typeof j === 'string') return new Response(j, { status: 400 });
