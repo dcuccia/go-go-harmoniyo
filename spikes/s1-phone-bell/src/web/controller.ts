@@ -102,10 +102,12 @@ void tabGuard.otherActive().then((other) => {
 
 // ── UI ──────────────────────────────────────────────────────────────────────
 function renderConnection(): void {
-  const isS9 = $('main').dataset.s9Connection !== undefined;
+  const main = $('main');
+  const isS9 = main.dataset.s9Connection !== undefined;
   const hasPart = (isS9 ? hasGameBell : hasBellAssignment) && !(ringer?.slot === -1 || (lobby && lobby.you < 0));
   $('bell').hidden = !hasPart;
-  $('zones').hidden = !hasPart;
+  $('zones').hidden = !hasPart || myBells.length < 2;
+  main.classList.toggle('game-pitches', hasPart && myBells.length > 1 && ringer !== null && lobby?.phase !== 'lobby');
   const next = lobby?.phase === 'play' && lobby.next && lobby.you < 0;
   const notice: ConnectionNotice = client.connected
     ? { title: hasPart ? 'Connected to the TV' : next ? 'Connected — waiting for the next song' : 'Connected — waiting for your part' }
@@ -309,7 +311,7 @@ function buildZones(): void {
   z.innerHTML = '';
   document.body.classList.toggle('multi', myBells.length > 1);
   // One column per bell, like the YARG highway lanes (low → high, left → right); else 2×2.
-  z.style.gridTemplateColumns = ringer || myBells.length > 4 ? `repeat(${myBells.length}, 1fr)` : '';
+  z.style.gridTemplateColumns = ringer || myBells.length > 4 ? `repeat(${myBells.length}, minmax(0, 1fr))` : '';
   if (myBells.length < 2) return;
   myBells.forEach((b, i) => {
     const el = document.createElement('div');

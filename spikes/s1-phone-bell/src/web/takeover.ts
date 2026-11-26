@@ -14,7 +14,8 @@ export interface TakeoverScreen {
 
 const CSS = `
 #takeover{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1em;
-  padding:2em 1.2em;background:rgba(17,17,17,.97);text-align:center}
+  padding:calc(2em + var(--pad-top, 0px)) calc(1.2em + var(--pad-right, 0px))
+    calc(2em + var(--pad-bottom, 0px)) calc(1.2em + var(--pad-left, 0px));background:rgba(17,17,17,.97);text-align:center}
 #takeover h2{margin:0;font-size:1.4em}
 #takeover p{margin:0;max-width:24em}
 `;

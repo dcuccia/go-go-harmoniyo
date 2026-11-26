@@ -55,22 +55,29 @@ select {
 
 /* controller */
 body.controller {
+  --pad-top: env(safe-area-inset-top, 0px);
+  --pad-right: env(safe-area-inset-right, 0px);
+  --pad-bottom: env(safe-area-inset-bottom, 0px);
+  --pad-left: env(safe-area-inset-left, 0px);
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   touch-action: none;
   text-align: center;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 #start-screen {
-  padding: 2em 1em;
+  padding: calc(2em + var(--pad-top)) calc(1em + var(--pad-right))
+    calc(2em + var(--pad-bottom)) calc(1em + var(--pad-left));
   display: flex;
   flex-direction: column;
   gap: 1em;
   align-items: center;
 }
 #main {
-  padding: 1em;
+  padding: calc(1em + var(--pad-top)) calc(1em + var(--pad-right))
+    calc(1em + var(--pad-bottom)) calc(1em + var(--pad-left));
 }
 #connection {
   display: grid;
@@ -143,7 +150,7 @@ body.controller {
   }
 }
 
-/* multi-bell: 2×2 thumb zones in the lower half; the circle shows the selected bell */
+/* Standalone S1 uses a 2×2 grid; assigned game parts use one row (see below). */
 body.multi #bell {
   width: min(32vw, 22vh);
   height: min(32vw, 22vh);
@@ -189,6 +196,104 @@ body.multi #bell {
 @keyframes pulse {
   to {
     box-shadow: 0 0 0 2px #fff, 0 0 8px 2px var(--zone);
+  }
+}
+
+/* Game pitch targets share a viewport-height band; pitch count only changes their width. */
+#main.game-pitches {
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
+  padding-bottom: max(16px, calc(var(--pad-bottom) + 8px));
+}
+.game-pitches #controller-summary {
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  overflow-wrap: anywhere;
+}
+.game-pitches #bell {
+  margin: 4px auto 10px;
+  width: min(28vw, 16vh, 104px);
+  height: min(28vw, 16vh, 104px);
+  font-size: min(12vw, 8vh, 48px);
+  touch-action: none;
+}
+.game-pitches #status, .game-pitches #debug {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.game-pitches #zones {
+  grid-row: 4;
+  width: 100%;
+  margin: 0 auto;
+  gap: 0;
+  height: clamp(112px, 42vh, 360px);
+  height: clamp(112px, 42dvh, 360px);
+}
+.game-pitches .zone {
+  position: relative;
+  height: auto;
+  min-width: 0;
+  border: 2px solid var(--stage);
+  border-radius: 0;
+  font-size: clamp(1rem, 6vw, 2rem);
+}
+.game-pitches .zone small {
+  font-size: max(0.5em, 0.75rem);
+}
+.game-pitches .zone.selected {
+  border-color: #fff;
+}
+.game-pitches .zone.acc {
+  outline: 2px dashed #f4f4ff;
+  outline-offset: -9px;
+}
+.game-pitches .zone.next {
+  box-shadow: none;
+  animation: none;
+}
+.game-pitches .zone.next::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 3px solid var(--gold);
+  pointer-events: none;
+}
+@media (max-height: 500px) {
+  #main.game-pitches {
+    padding-top: calc(6px + var(--pad-top));
+  }
+  .game-pitches #brand-bar {
+    margin: 0 0 4px;
+  }
+  .game-pitches #brand-yo {
+    width: 22px;
+    height: 22px;
+  }
+  .game-pitches #connection, .game-pitches #banner {
+    padding: 4px 8px;
+    margin-bottom: 4px;
+  }
+  .game-pitches #zones {
+    height: clamp(72px, 30vh, 150px);
+    height: clamp(72px, 30dvh, 150px);
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #main.game-pitches {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .game-pitches #controller-summary {
+    max-height: 100%;
+  }
+  .game-pitches #zones {
+    grid-area: 2 / 1 / 3 / -1;
   }
 }
 
