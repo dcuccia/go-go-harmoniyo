@@ -68,6 +68,8 @@ jobs:
         working-directory: spikes/s5-chart-pipeline
         run: npm test
       # Headless Chrome (preinstalled on ubuntu-latest). --ignore-scripts skips the pre-script's second build.
+      - name: Shared controller pitch targets (emulated touchscreen)
+        run: node scripts/controller-pitch-check.mjs
       - name: Seating e2e (real S1 host, 2 emulated phone pages + 1 simulated phone)
         run: npm run e2e:seating --ignore-scripts
       - name: Drop-in + practice speed e2e (join mid-song → seated next round; corner QR; speed control)
