@@ -24,7 +24,7 @@ export interface BackingSettings {
 export const DEFAULT_BACKING: BackingSettings = { enabled: true, volume: 0.5, countIn: true };
 export const MIN_LEAD_IN = 3;
 const CLICK_LEVEL = 0.55;
-const REVERB = 0.18;
+const REVERB = 0.10;
 
 export interface TrackOptions {
   /**
@@ -55,7 +55,7 @@ export class BackingTrack {
 
   constructor(
     private readonly mixer: Mixer,
-    chart: HarmonyChart & { song?: { id?: string } },
+    chart: HarmonyChart,
     bellNotes: BellNote[],
     readonly settings: BackingSettings,
     opts: TrackOptions = {},
