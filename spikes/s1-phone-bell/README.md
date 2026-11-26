@@ -84,9 +84,10 @@ Phone URL parameters: `?api=generic`, `?rtc=1`, `?record=1` (always stream raw t
 phone shows the one-line lockup on its start screen and Yo during play: Y3 (idle hum), swapping
 to Y4 (ding!) for a moment on every ring.
 
-**Game pitch selection (Node and S9).** Parts with multiple pitches use a low row of full-height
-targets, ordered low to high. Adding pitches divides the row horizontally without moving its top
-or bottom. Touch anywhere in a column to select that pitch, then swing to ring, or tap the separate
+**Game pitch selection (Node and S9).** Parts with multiple pitches use a tall row centered in
+the usable screen, ordered low to high. Adding pitches divides the row horizontally without moving
+its top or bottom. Rounded cards sit inside gapless touch columns. Touch anywhere in a column to
+select that pitch, then swing to ring, or tap the separate
 bell with **Touch: on**. The white border shows the selected pitch, gold marks the next cue, and
 a dashed inset marks accidentals. On short screens the row is shorter to keep the separate ring
 surface and controls usable. The controller respects viewport safe-area insets.
