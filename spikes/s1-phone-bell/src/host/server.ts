@@ -97,13 +97,22 @@ const { values: args } = parseArgs({
     charts: { type: 'string' },
     /** Serve a static game build (e.g. spikes/i2-web-phones/dist) at /game/ and open it instead of the dashboard. */
     game: { type: 'string' },
+    'backing-preview': { type: 'string' },
   },
 });
 const GAME_DIR = args.game ? resolve(args.game) : null;
 let MODE: ReturnType<typeof transportMode>;
 let RTC_POLICY: ReturnType<typeof rtcPolicy>;
 let LAN_QR_AFTER_MS: number;
+let backingPreview: ReturnType<typeof import('./backing-preview.ts')['loadBackingPreview']> | undefined;
 try {
+  if (args['backing-preview'] !== undefined) {
+    if (APP_DIR || !args['backing-preview'] || !GAME_DIR || args.tunnel || args['public-url'] !== undefined ||
+        args['no-https'] || args.cloudflared !== undefined || args.hostname !== undefined || args.yarg) {
+      throw new Error('--backing-preview requires the local Node game with the ordinary LAN HTTPS phone join; no tunnel or public options');
+    }
+    args['lan-only'] = true;
+  }
   MODE = transportMode(args);
   RTC_POLICY = rtcPolicy(args.rtc);
   LAN_QR_AFTER_MS = lanQrAfterMs(args['lan-qr-after']);
@@ -827,10 +836,23 @@ function listenOrExit(server: http.Server | https.Server, port: number, host: st
 }
 
 async function main(): Promise<void> {
+  if (args['backing-preview'] && GAME_DIR) {
+    const { loadBackingPreview } = await import('./backing-preview.ts');
+    try {
+      backingPreview = loadBackingPreview(join(ROOT, '..', '..'), GAME_DIR, args['backing-preview'], HTTP_PORT);
+    } catch (e) {
+      throw new Error(`Backing preview unavailable: ${(e as Error).message}`);
+    }
+  }
   await weriftLoaded;
   await buildWeb();
   await assertPortFree(HTTP_PORT);
-  const local = http.createServer((req, res) => serveHttp(req, res));
+  const local = http.createServer((req, res) => {
+    // Keep malformed requests in the shared HTTP error handler.
+    if (backingPreview && req.url?.startsWith('/api/backing-preview') &&
+        backingPreview(req, res, req.url)) return;
+    serveHttp(req, res);
+  });
   attach(local);
   // Loopback only (dashboard + cloudflared) unless --no-https, where it is the phones' listener too.
   listenOrExit(local, HTTP_PORT, args['no-https'] ? '0.0.0.0' : '127.0.0.1');
@@ -890,7 +912,7 @@ async function main(): Promise<void> {
   else await startTunnel();
   console.log(`  Dashboard: ${dashboardUrl}\n`);
   if (GAME_DIR) {
-    const gameUrl = `http://127.0.0.1:${HTTP_PORT}/game/`;
+    const gameUrl = `http://127.0.0.1:${HTTP_PORT}/game/${backingPreview ? '?backingPreview=1' : ''}`;
     console.log(`  Game (TV): ${gameUrl}   (serving ${GAME_DIR})\n`);
     openBrowser(gameUrl);
   } else openBrowser(dashboardUrl);

@@ -19,7 +19,7 @@ import { SeatingView, type PlayerView } from './seating-view';
 import type { PartCard as PartCardMsg } from '../../s1-phone-bell/src/core/hgp.ts';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
 import { isAccidental } from '../../shared/pitch-palette';
-import { BackingTrack, DEFAULT_BACKING, type BackingSettings } from './backing/track';
+import { BackingTrack, DEFAULT_BACKING, type BackingSettings, type TrackPreview } from './backing/track';
 import { backingTimeline } from './backing/timeline';
 import { describe as describeBacking } from './backing/patterns';
 import { clampSpeed, DEFAULT_SPEED, parseSpeedPercent, scaleChart, speedNote, speedPercent } from './speed';
@@ -55,6 +55,35 @@ if (params.has('backingVol')) backingSettings.volume = Math.max(0, Math.min(1, n
 if (params.has('countin')) backingSettings.countIn = flag('countin', true);
 const saveBacking = (): void => localStorage.setItem(BACKING_KEY, JSON.stringify(backingSettings));
 let backing: BackingTrack | null = null;
+const audition = import.meta.env.MODE === 'backing-preview' && params.get('backingPreview') === '1' && location.protocol === 'http:' &&
+  location.hostname === '127.0.0.1' && window.top === window;
+let auditionChoice = 'candidate';
+let auditionSelects: NodeListOf<HTMLSelectElement> | undefined;
+const auditionLabel = (first: boolean, enabled: boolean, candidate: boolean): string =>
+  first ? (enabled ? 'First Ring: baseline' : 'First Ring: baseline (backing off)')
+    : !enabled ? 'Backing off' : candidate ? 'Candidate backing' : 'Baseline backing';
+const playedBackingLabel = (first: boolean, settings: BackingSettings, preview?: TrackPreview): string =>
+  preview?.events.length === 0 ? 'Candidate backing: bells fill this part' :
+    auditionLabel(first, settings.enabled && settings.volume > 0, !!preview);
+if (import.meta.env.MODE === 'backing-preview' && audition) {
+  const options = '<option value="candidate">Candidate</option><option value="baseline">Baseline</option>';
+  $('lobby-msg').insertAdjacentHTML('afterend', `<div id="backing-preview-controls">
+    <label>Local audition <select id="sel-backing-preview" data-backing-preview-select aria-describedby="backing-preview-info">${options}</select></label>
+    <span id="backing-preview-info" role="status"></span></div>`);
+  $('res-body').insertAdjacentHTML('afterend', `<label>Backing for next round <select data-backing-preview-select>${options}</select></label>`);
+  auditionSelects = document.querySelectorAll<HTMLSelectElement>('[data-backing-preview-select]');
+  for (const select of auditionSelects) {
+    select.onchange = () => { auditionChoice = select.value; renderAudition(); };
+  }
+}
+function renderAudition(): void {
+  if (!auditionSelects) return;
+  for (const select of auditionSelects) {
+    select.disabled = firstRing;
+    select.value = firstRing ? 'baseline' : auditionChoice;
+  }
+  $('backing-preview-info').textContent = auditionLabel(firstRing, backingSettings.enabled && backingSettings.volume > 0, auditionChoice === 'candidate');
+}
 
 // ── practice speed (lobby; remembered for this browser session, ?speed=50..100) ──
 const SPEED_KEY = 'i2.speed';
@@ -119,6 +148,7 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
+  sourceHash: string;
   songs: Song[];
 }
 interface IndexedPart { difficulty: Difficulty; arrangement?: Arrangement; ringerCount: number; strikes: number; maxBellsPerRinger: number }
@@ -473,7 +503,9 @@ function renderLobby(): void {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
-  $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
+  $('backing-info').textContent = audition && auditionChoice === 'candidate' && !firstRing
+    ? 'Backing: local audition candidate' : s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
+  renderAudition();
   renderStatus();
 }
 
@@ -653,12 +685,14 @@ $<HTMLSelectElement>('sel-sound').onchange = (e) => {
 $<HTMLInputElement>('chk-backing').onchange = (e) => {
   backingSettings.enabled = (e.target as HTMLInputElement).checked;
   saveBacking();
+  renderAudition();
   renderLobby();
 };
 $<HTMLInputElement>('rng-backing').oninput = (e) => {
   backingSettings.volume = Number((e.target as HTMLInputElement).value) / 100;
   saveBacking();
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
+  renderAudition();
 };
 $<HTMLInputElement>('chk-countin').onchange = (e) => {
   backingSettings.countIn = (e.target as HTMLInputElement).checked;
@@ -831,6 +865,8 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   const attempt = starting = Symbol();
   ++previewRevision;
   showError('');
+  const candidate = audition && auditionChoice === 'candidate' && !config.firstRing;
+  const settings = { ...backingSettings };
   try {
     // Resume in the Play gesture, not after fetching a chart (mobile user activation).
     const [, s5] = await Promise.all([audio.resume(), songChart(config.songId, variantOf(config), config.speed)]);
@@ -840,9 +876,15 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
       showError(unavailable(config));
       return;
     }
+    let preview: TrackPreview | undefined;
+    if (import.meta.env.MODE === 'backing-preview' && candidate && settings.enabled && settings.volume > 0) {
+      const { preparePreview } = await import('./backing/preview-player');
+      preview = await preparePreview(audio.ctx, s5, part, config.songForm, index.sourceHash);
+      if (starting !== attempt) return;
+    }
     const absent = mode === 'play' ? checkRoster() : missingPhones();
     if (!absent) return;
-    beginRound(request, config, s5, part, absent);
+    beginRound(request, config, s5, part, absent, audition ? settings : { ...backingSettings }, preview);
   } catch (e) {
     if (starting === attempt) showError(`Could not start the round: ${String(e)}`);
   } finally {
@@ -850,7 +892,8 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   }
 }
 
-function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, part: S5Part, absent: readonly string[]): void {
+function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, part: S5Part, absent: readonly string[],
+                    settings: BackingSettings, preview?: TrackPreview): void {
   const { mode } = request;
   session?.stop();
   backing?.stop();
@@ -871,7 +914,7 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
 
   const hostRingSound = soundMode !== 'device';
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
-  backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
+  backing = new BackingTrack(audio, s5, partBellNotes(s5, part), settings, { preview });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
   players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
   // Performance SFX: streaks, multiplier, misses, perfect phrases (phrases from the backing's
@@ -909,7 +952,10 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
   };
   s.onFinish = (r) => finish(r, config, part.arrangement ?? 'by-range');
   const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
-  $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
+  const hostNote = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
+  $('host-note').textContent = audition
+    ? [playedBackingLabel(config.firstRing, settings, preview), hostNote].filter(Boolean).join(' · ')
+    : hostNote;
   session = s;
   playing = true;
   document.title = pageTitle;
@@ -1051,7 +1097,7 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
     chartDurationSec: team ? round(team.chart.duration, 3) : null,
     soundMode,
     backing: backing
-      ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
+      ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.preview?.events.length ?? backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3), ...(audition ? { audition: backing.preview ? 'candidate' : 'baseline' } : {}) }
       : null,
     sfx: { ...sfxSettings, cues: director?.counts() ?? null },
     players: playerRows,
@@ -1069,7 +1115,10 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = config.title;
-  $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}`;
+  const resultBacking = audition && backing
+    ? ` · ${playedBackingLabel(config.firstRing, backing.settings, backing.preview)}`
+    : '';
+  $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}${resultBacking}`;
   $('res-msg').textContent = '';
   const yo = $<HTMLImageElement>('res-yo');
   const bigCheer = r.accuracy >= BIG_CHEER_ACCURACY;

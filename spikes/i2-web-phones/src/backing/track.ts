@@ -3,6 +3,7 @@
 // no drift between backing, bells, highways and judging).
 import { exclusionsFrom, generateBacking, resolveStyle, scaleEvents, type BackingEvent, type BellNote, type StylePreset } from './patterns';
 import { phrases, type Phrase } from './phrases';
+import type { PreviewEvent } from './preview-score';
 import { BackingSynth } from './synth';
 import { backingTimeline, countIn, type Click, type HarmonyChart, type Timeline } from './timeline';
 
@@ -33,6 +34,12 @@ export interface TrackOptions {
    * count-in are stretched the same way. Leave it at 1 if the chart passed in is already scaled.
    */
   speed?: number;
+  preview?: TrackPreview;
+}
+
+export interface TrackPreview {
+  events: PreviewEvent[];
+  playHarp(event: PreviewEvent, when: number, output: AudioNode): void;
 }
 
 export interface ScheduledEvent {
@@ -50,6 +57,7 @@ export class BackingTrack {
   /** 4-bar phrases in song seconds (after speed scaling): fills here, perfect-phrase SFX in main.ts. */
   readonly phrases: Phrase[];
   readonly speed: number;
+  readonly preview: TrackPreview | undefined;
   private synth: BackingSynth | null = null;
   private disconnect: (() => void) | null = null;
 
@@ -64,8 +72,12 @@ export class BackingTrack {
     this.speed = speed;
     this.timeline = backingTimeline(chart);
     this.style = this.timeline ? resolveStyle(this.timeline) : null;
+    this.preview = opts.preview && (speed === 1 ? opts.preview : {
+      ...opts.preview,
+      events: opts.preview.events.map((e) => ({ ...e, time: e.time / speed, dur: e.dur / speed })),
+    });
     // Bell notes are on the written timeline: generate there, then scale.
-    this.events = this.timeline && settings.enabled && settings.volume > 0
+    this.events = !this.preview && this.timeline && settings.enabled && settings.volume > 0
       ? scaleEvents(generateBacking(this.timeline, { exclusions: exclusionsFrom(bellNotes), seed: chart.song?.id }), speed)
       : [];
     this.phrases = this.timeline ? phrases(this.timeline).map((p) => ({ ...p, start: p.start / speed, end: p.end / speed })) : [];
@@ -76,11 +88,17 @@ export class BackingTrack {
 
   /** Session extraEvents (song time → play at an exact context time). */
   scheduled(): ScheduledEvent[] {
-    if (!this.events.length && !this.clicks.length) return [];
+    const preview = this.settings.enabled && this.settings.volume > 0 ? this.preview : undefined;
+    if (!this.events.length && !this.clicks.length && !preview?.events.length) return [];
     const synth = this.ensureSynth();
     return [
       ...this.clicks.map((c) => ({ time: c.time, play: (w: number) => synth.click(w, c.accent) })),
       ...this.events.map((e) => ({ time: e.time, play: (w: number) => synth.play(e, w) })),
+      ...(preview?.events.map((e) => ({
+        time: e.time,
+        play: (w: number) => e.voice === 'harp' ? preview.playHarp(e, w, synth.output)
+          : synth.play({ ...e, inst: e.voice, midis: [e.midi] }, w),
+      })) ?? []),
     ];
   }
 

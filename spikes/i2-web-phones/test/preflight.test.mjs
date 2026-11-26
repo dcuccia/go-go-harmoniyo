@@ -45,6 +45,15 @@ describe('parseStartArgs', () => {
     }
     expect(parseStartArgs(['--no-tunnel']).lanOnly).toBe(true);
   });
+  it('forces LAN-only for the private Node audition and rejects public or stale-build switches', () => {
+    const preview = ['--backing-preview', join(tmpdir(), '.backing-preview')];
+    expect(argProblems(preview, {})).toEqual([]);
+    expect(parseStartArgs(preview)).toMatchObject({ lanOnly: true, mode: 'lan' });
+    for (const flags of [['--tunnel'], ['--no-https'], ['--public-url=https://example.com'], ['--hostname=example.com'], ['--no-build']]) {
+      expect(argProblems([...preview, ...flags], {})[0].title).toContain('--backing-preview');
+    }
+    expect(argProblems(['--backing-preview', 'relative'], {})[0].title).toContain('absolute');
+  });
   it('keeps the default TV port away from 8080 and the test scripts\' ports (#53)', () => {
     const { httpPort } = parseStartArgs([]);
     expect(httpPort).not.toBe(8080);
