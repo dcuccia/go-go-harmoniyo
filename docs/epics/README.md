@@ -208,9 +208,10 @@ difficulties.
     parallels, variety, playability) catch every bad output and are reusable for human edits.
   - Generated material only enters as a register `candidate` (CC0, provenance, review pending);
     originals are never replaced.
-  - Open: harmony for melody-only songs (The Holly and the Ivy) needs a harmonized source, not an
-    LLM; a better rule-based descant (passing tones, contrary motion) is the cheap next step;
-    would a larger or music-specific model change the answer?
+  - Holly now uses the approved [SATB source](../../ATTRIBUTION.md#s5-the-holly-and-the-ivy-abc).
+    [S6 #110](../spikes/S6-report.md#follow-up-longer-phrase-planning-110) tests extra model
+    time on an upper-bell phrase plan with that harmony locked, against a stronger
+    deterministic reference. Whether a listener prefers a candidate is still open.
   - Owner blind listening (2026-10-25): only *Deck the Halls* B sounded "decent". B was the
     qwen3:8b candidate, whose AI parts were only the intro and ending (the rest procedural), so
     the value came from song form, not AI harmony. No *Holly and the Ivy* clip (AMT, LLM or

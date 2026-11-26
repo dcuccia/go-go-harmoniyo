@@ -1,5 +1,9 @@
 # S6 — AI-assisted arranging: report
 
+> 2026-11-25: [#110 follow-up](#follow-up-longer-phrase-planning-110) tests longer
+> phrase planning on the two current carol sources. This remains an offline experiment;
+> neither host uses S6-generated arrangements.
+
 - Spike: [S6 brief](README.md#s6--ai-assisted-arranging) · code: [`spikes/s6-ai-arranging/`](../../spikes/s6-ai-arranging/README.md)
 - Date: 2026-10-24 · one session, unattended (owner away) · decisions in
   [ADR-0011](../decisions/0011-ai-assisted-arranging.md) (Accepted 2026-10-25)
@@ -351,3 +355,93 @@ resemblance review; the owner has not done that review (see owner actions).
   an optional "AI backing" toggle. It's the only generative option left.
 - A better rule-based descant (passing tones, contrary motion, phrase shapes) is probably the
   cheapest real improvement, together with SATB sources for harmony.
+
+## Follow-up: longer phrase planning (#110)
+
+**Result (2026-11-25):** The existing node exposes thinking, but with the pilot's token
+budget four of six high-effort calls never returned a finished plan. One Holly alternate
+beat the deterministic baseline by one point on this experiment's heuristic; nothing cleared
+the gate for Deck. A separate four-call control with thinking off was much faster and
+produced valid plans, but none improved on the baseline. This is enough for a private audition,
+not evidence of better musicality or grounds for shipping AI arrangements.
+
+### What worked
+
+- Both arms use the same fixed two-bar intro, four body phrases, and one-bar tonic coda.
+  The body is the full 16-bar Deck lead sheet at 116 BPM or the 16-bar Holly verse and refrain
+  with its original pickup and shortened final measure at 100 BPM. Deck uses the
+  [existing CC0 lead sheet](../../ATTRIBUTION.md#s5-deck-the-halls-abc) with S5 voicing;
+  Holly uses the [approved CC0 SATB setting](../../ATTRIBUTION.md#s5-the-holly-and-the-ivy-abc),
+  with soprano verified against public-domain Mutopia #644 and all four voices and chord symbols
+  carried through unchanged. The Deck register still labels the older source encoding's review
+  pending. The new layer never rewrites those scores.
+- Each model response can select only a rhythm pattern and contour for each of six sections;
+  it cannot supply pitches, rewrite harmony or insert bars. The instrument, clip duration,
+  tempo, mix and renderer are common within each comparison. The deterministic baseline starts
+  from a song-specific phrase recipe (shape, breath, contrasting bridge/refrain and tonic close),
+  then searches its 24 one-edit neighbors using exactly the same renderer, score and gates.
+- In the longer run the single short draft (seed 1101) is the incumbent. A second draft (1102)
+  gets the same brief; one revision each (1103 and 1104) sees numerical feedback or the
+  failure reason from its own draft. This compares *total budget*, not the independent effect
+  of thinking or revision. The no-thinking control keeps the brief and seeds; matching seeds
+  do not guarantee identical node output (the Holly short drafts differed).
+
+### Quality, validity and latency
+
+The pilot ran on a Windows machine with Node 22.18 against agent 0.1.0 on the existing LAN
+node. `/v1/models` listed only `qwen3:8b`; the backend artifact digest was not exposed.
+A paired sanity probe answered `391` with four completion tokens at `none`, whereas `high`
+returned a separate reasoning field and exhausted a 160-token cap twice. The arrangement
+runs used the same temperature (0.4) and top-p (0.9), with 192 completion tokens at `none`
+or 1,536 at `high`, a 90-second request timeout, and no retries. The first sanity call took
+45.5 s; later `none` probes took about 1.5 s. Early health checks also reported busy or
+timed out while authenticated status showed normal mode, available with no lease or active
+jobs. The client uses that authenticated scheduler status for preflight when available.
+
+| Song / run | Deterministic baseline (local compute / score) | One draft (time / score) | Four-call pool (time / valid / best score) | Clears baseline gate? |
+|---|---:|---:|---:|---|
+| Deck, high | 0.60 s / −27 | 0.72 s / −27 | 39.10 s / 1 of 4 / −27 | No; all three extra calls truncated |
+| Holly, high | 0.43 s / −27 | 0.80 s / −32 | 29.31 s / 3 of 4 / −26 | Yes; the second revision, after its draft truncated |
+| Deck, none | same score | 0.76 s / −27 | 1.62 s / 4 of 4 / −27 | No |
+| Holly, none | same score | 2.20 s / −30 | 3.36 s / 4 of 4 / −30 | No |
+
+Pool times sum request wall time and exclude preflight, baseline generation, validation and
+WAV rendering. Across the two high pools, only 2 of 6 extra calls completed a valid answer;
+they used 780 and 1,072 completion tokens, vs 1,536 on each truncated call. A truncated
+draft is rejected, and its revision starts over using the error rather than partial output.
+
+Validation checks the ABC round trip (exact melody onset, pitch and duration, chord timeline,
+meter, tempo and bar grid), full-duration chord fit of the added line, verticals against the
+tune, bounded range/leaps, coverage by section, and the final tonic. The fixed accompaniment
+stays untouched outside that round trip. The score is `3 × density contrasts − missed slots
+− leaps over a major third − 4 × parallel perfects − 2 × four-ringer violations`.
+Duplicate rendered lines are not separate options. A shortlist entry must improve the
+baseline score strictly and not increase violations, maximum bells per ringer or parallels.
+
+Holly's one-point improvement is **one fewer wide leap** (3 vs 4); its largest leap grew
+from five to seven semitones. It keeps three body density contrasts, zero parallels and
+full chord fit (28/28 vs 26/26). It still has 16 four-ringer violations and up to six bells
+per player, like its baseline. Deck's short arm ties the baseline with 14 vs 15 violations
+but seven vs five wide leaps. The S5 assignment probe uses **all strikes before repair**;
+these are comparative estimates, not playable charts and not a substitute for listening
+or a real ringer playtest. Two excerpts and a single seed schedule cannot establish a
+general improvement.
+
+### Private audition, licensing and next gate
+
+The primary local set contains two Deck clips and three Holly clips, with neutral labels
+and a separate private key. Within each song all clips are the same length (40.56 s Deck;
+35.45 s Holly), at −21 dBFS RMS with identical synthetic bell timbre and a −1 dBFS peak
+ceiling. Open `listen.html` before reading the key. Score phrasing, harmonic motion and
+whether the added line sounds playable; ties and “none” are valid. No human listening or
+resemblance review has happened for this set.
+
+The [rerun instructions](../../spikes/s6-ai-arranging/README.md#private-phrase-plan-audition-110)
+write only to a new directory outside the repo. No generated scores, prompts/replies from
+the run, audio, or credentials are checked in or deployed. The Apache-2.0
+[Qwen3-8B terms](https://huggingface.co/Qwen/Qwen3-8B/blob/main/LICENSE) and local provenance logs
+identify the tool, agent version, model/tag, source hashes and settings. There are no new
+dependencies, no node/service changes, and no AMT rerun. Keep the procedural default;
+only extend to another carol if the owner prefers an alternative to the baseline. Any
+promotion also needs explicit owner approval, resemblance review and attribution under
+ADR-0011.

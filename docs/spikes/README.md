@@ -166,6 +166,11 @@ manifest (owner publishes). Render procedural vs LLM vs AMT previews for a blind
 **Report must answer:** what worked; quality (validity, consonance, listening); latency;
 licensing; infra follow-ups and owner actions.
 
+**Follow-up [#110](https://github.com/dcuccia/go-go-harmoniyo/issues/110):**
+[longer phrase-planning results](S6-report.md#follow-up-longer-phrase-planning-110)
+compare a short draft and a bounded revision loop with a deterministic arrangement on the
+same Deck and now-SATB Holly excerpts. Owner listening remains separate from the experiment.
+
 ---
 
 ## S7 — Other .NET hosts (optional; numbered S6 until 2026-10-24)
