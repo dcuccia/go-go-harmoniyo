@@ -48,14 +48,15 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    tap **Tap to start**, allow motion, then **ring 6 times** to calibrate (the banner counts down).
    The status at the top shows whether the phone is connected and waiting for a part before it
    shows a playable bell.
-4. The TV lobby shows who has joined and assigns available parts automatically. **Round options →
+4. **Ready to play** shows who has joined and assigns available parts automatically. **Round options →
    Edit seating → Player details** shows each phone's route: **direct** (same Wi-Fi, fastest),
    **via tunnel** (through the internet; fine to play) or **Wi-Fi** (no tunnel). Ring a phone:
    its detail row flashes and its lane lights on the TV.
    Each phone shows its part, song and its bells as coloured zones in the same order
    and colours as its highway on the TV.
-5. Choose a **Song** (a fresh lobby defaults to **Jingle Bells**), then **Play**. To change how
-   the group plays, open **Round options** for **Difficulty**. **Super easy** gives each ringer
+5. Choose a **Song** (the first visit defaults to **Jingle Bells**; later visits remember your choice).
+   Set **Difficulty** next to **Play**. Changing the song or level does not start the round.
+   **Super easy** gives each ringer
    up to two bells with sparse cues. **Easy** gives up to two (lower left, higher right), **Medium** up
    to four, and **Hard** up to four with quicker changes and offbeat pickups. The TV plays the rest of
    the tune softly. Round options also has **Parts**, **Length**
@@ -71,7 +72,8 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
    - For a group of 1–4 first-timers, pick **Jingle Bells** or **Deck the Halls**, then
      **Round options → Round style → First Ring**. Each player gets one bell for a short round;
      the TV plays the rest of the melody. **Standard** restores your previous Difficulty, Parts
-     and Length, as does choosing a song that does not offer First Ring. At rehearsal, try both
+     and Length. Choosing a difficulty instead of First Ring explains the switch to Standard.
+     Before opening a song that does not offer First Ring, the TV asks whether to switch. At rehearsal, try both
      songs on the TV to check the guide is audible and sparse parts are fun to play. If either
      does not work for your group, use **Standard → Super easy → Short**.
    - **On the TV:** drag a chip onto a part (onto a taken part = swap; drag a part's chip back to
@@ -87,8 +89,9 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
      earlier rounds (random before the first round).
    - Seats stick across songs and difficulties. If the number of ringers changes, players keep
      a part with the same name (or position). A phone that joins late takes the first part the
-     TV is playing; if a phone drops out the TV plays its part until it reconnects and takes it
-     back.
+     TV is playing. A phone dropping out mid-song does not move anyone's part. Before the
+     next count-in, either reconnect to restore the missing player's seat or confirm **Continue
+     with fewer** to let the TV take that part.
    Bells beyond 4 per part are rung by the TV automatically.
    **Audio → Backing track** (on by default, volume 50 %) adds a festive groove from the song's chords
    on the TV — felt-like keys, plucked strings, bass and sparse percussion (see below).
@@ -110,10 +113,13 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
 6. **▶ Play** (or Enter). Touch a zone to pick a bell (the next one glows), swing to ring.
    The phone makes the bell sound; the TV plays only the parts nobody holds, plus the backing.
    Change **Audio → Bell sound** to "Phones + TV" or "TV only" if a phone is silent (iPhone silent switch).
-7. Results show the team score and a row per ringer (hits, misses, timing). **Again**,
-   **🔁 Rotate + Again** (everyone moves one part) or **Lobby**. Phones can pick parts on the
-   results screen too; changes apply to the next round. **Back / Esc** returns to **Play** from
-   the song or results, or closes the current lobby panel and returns focus to its launcher.
+7. Results show the completed song and difficulty, team score and a row per ringer. **Play again**
+   uses the completed round's settings. **Change difficulty** keeps the song and waits for **Play on
+   [level]**. **Choose another song** opens the song list and returns to **Ready to play** after a
+   choice. The room and joined phones stay connected. Phones can pick parts on the results screen
+   too, and **Rotate + Again** intentionally moves seats. **Back / Esc** closes the current panel
+   and restores focus, returns from Results to **Ready to play**, or asks to confirm ending a live
+   round (the song is not paused).
 8. **Joining mid-game:** during a song and on the results screen a small QR code and the join
    address stay in the top-left corner of the TV. Someone who scans it while a song plays sees
    **You're in!** on their phone (a part comes when the next song starts) and the TV shows
@@ -127,7 +133,7 @@ be on the **same Wi-Fi** as the PC. The first run downloads npm packages (~1 min
 **With 2+ phones, please try:** take the part the TV is playing from a phone; swap two phones
 from a phone (*Swap with …?*) and by dragging on the TV; open a part's chooser on the TV and keep
 it open while someone presses Ready (it must stay open); 🔁 Rotate + Again after a round; turn
-one phone's screen off for a few seconds (the TV takes its part) and back on (it gets it back);
+one phone's screen off for a few seconds (its seat stays put), then reconnect before the next round;
 a first round at **60 % practice speed**; and have someone scan the **corner QR during a song**
 (their phone says *You're in!*, the TV *+1 waiting*; press **Again** and they play the TV's part).
 

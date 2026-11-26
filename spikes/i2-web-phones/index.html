@@ -45,7 +45,8 @@
           <img id="qr" alt="QR code for the phone join URL" hidden />
           <div id="join-url">waiting for host…</div>
         </section>
-        <section class="quick-setup" aria-label="Set up a round">
+        <section class="quick-setup" aria-labelledby="ready-title">
+          <h2 id="ready-title">Ready to play</h2>
           <button id="choose-song" class="song-choice" aria-haspopup="dialog" disabled>
             <span>Choose song</span>
             <strong id="chosen-song">Loading songs…</strong>
@@ -55,7 +56,13 @@
             <ul id="joined-players"></ul>
           </div>
           <p id="parts-summary">Phones get parts when they join. The TV plays open parts.</p>
-          <button id="btn-play" class="primary" aria-describedby="lobby-msg">Play</button>
+          <div class="ready-actions">
+            <button id="btn-play" class="primary" aria-describedby="lobby-msg">Play</button>
+            <button id="open-difficulty" class="song-choice" aria-haspopup="dialog" disabled>
+              <span>Difficulty</span>
+              <strong id="chosen-difficulty">Easy</strong>
+            </button>
+          </div>
           <p id="lobby-msg" class="error" role="status"></p>
           <div class="lobby-actions">
             <button id="open-round" data-panel="round-options" aria-haspopup="dialog">Round options</button>
@@ -64,12 +71,6 @@
           </div>
         </section>
       </div>
-
-      <dialog id="song-picker" class="lobby-panel" aria-labelledby="song-picker-title">
-        <h2 id="song-picker-title">Choose a song</h2>
-        <div id="song-options"></div>
-        <button data-back>Back</button>
-      </dialog>
 
       <dialog id="join-help" class="lobby-panel" aria-labelledby="join-help-title">
         <h2 id="join-help-title">Join help</h2>
@@ -104,14 +105,6 @@
                 <option value="2">2</option>
                 <option value="3">3</option>
                 <option value="4">4</option>
-              </select>
-            </label>
-            <label>Difficulty
-              <select id="sel-diff">
-                <option value="super-easy">Super easy</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
               </select>
             </label>
             <label title="Balanced: everyone plays one musical role (bass, harmony or a slice of the tune) with similar effort. Chord split: up to three players share each chord, one note each. By range: bells cut by pitch range (older charts).">Parts
@@ -203,23 +196,81 @@
     </div>
 
     <div id="results" class="overlay hidden">
-      <div class="panel wide">
+      <div class="panel wide" aria-labelledby="res-title">
         <div class="res-head">
-          <h2 id="res-title">Results</h2>
+          <div><h2 id="res-title">Results</h2><p id="res-difficulty"></p></div>
           <img id="res-yo" alt="" />
         </div>
         <div id="res-body"></div>
+        <div class="buttons result-actions">
+          <button id="btn-again" class="primary">Play again</button>
+          <button id="res-change-difficulty" aria-haspopup="dialog">Change difficulty</button>
+          <button id="res-choose-song" aria-haspopup="dialog">Choose another song</button>
+        </div>
+        <p id="res-msg" class="error" role="status"></p>
         <table id="res-players"></table>
         <p id="res-next" class="dim"></p>
         <details><summary>Measurements (JSON)</summary><pre id="res-json"></pre></details>
         <div class="buttons">
-          <button id="btn-again" class="primary">Again</button>
           <button id="btn-rotate-again" title="Everyone moves one part to the right, then play again">🔁 Rotate + Again</button>
-          <button id="btn-lobby">Lobby</button>
+          <button id="btn-lobby">Back</button>
           <button id="btn-copy">Copy JSON</button>
         </div>
       </div>
     </div>
+
+    <dialog id="song-picker" class="lobby-panel round-prompt" aria-labelledby="song-picker-title">
+      <h2 id="song-picker-title">Choose a song</h2>
+      <div id="song-options"></div>
+      <button data-back>Back</button>
+    </dialog>
+
+    <dialog id="difficulty-picker" class="lobby-panel round-prompt" aria-labelledby="difficulty-title">
+      <h2 id="difficulty-title">Change difficulty</h2>
+      <p id="difficulty-song"></p>
+      <label for="sel-diff">Difficulty</label>
+      <select id="sel-diff" aria-describedby="difficulty-preview">
+        <option value="super-easy">Super easy</option>
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <p id="difficulty-preview" role="status"></p>
+      <p id="difficulty-error" class="error" role="status"></p>
+      <div class="buttons">
+        <button id="confirm-difficulty" class="primary"></button>
+        <button data-back>Back</button>
+      </div>
+    </dialog>
+
+    <dialog id="first-ring-switch" class="lobby-panel round-prompt" aria-labelledby="first-ring-switch-title">
+      <h2 id="first-ring-switch-title">Switch to Standard?</h2>
+      <p id="first-ring-switch-msg"></p>
+      <div class="buttons">
+        <button data-back class="primary">Keep First Ring</button>
+        <button id="confirm-standard">Switch to Standard</button>
+      </div>
+    </dialog>
+
+    <dialog id="reconnect-round" class="lobby-panel round-prompt" aria-labelledby="reconnect-title">
+      <h2 id="reconnect-title">Reconnect before playing?</h2>
+      <p id="reconnect-msg" role="status"></p>
+      <img id="reconnect-qr" alt="Scan to reconnect to this room" hidden />
+      <div class="buttons">
+        <button id="wait-reconnect" class="primary">Wait for reconnect</button>
+        <button id="continue-fewer">Continue with fewer</button>
+        <button data-back>Back</button>
+      </div>
+    </dialog>
+
+    <dialog id="end-round" class="lobby-panel round-prompt" aria-labelledby="end-round-title">
+      <h2 id="end-round-title">End this round?</h2>
+      <p>The song is still playing. Ending it takes everyone back to Ready to play without a score.</p>
+      <div class="buttons">
+        <button data-back class="primary">Keep playing</button>
+        <button id="confirm-end">End round</button>
+      </div>
+    </dialog>
 
     <!-- Always-visible join QR during the song and on the results screen (drop-in joining). -->
     <aside id="corner-join" class="hidden" aria-label="Join with your phone">

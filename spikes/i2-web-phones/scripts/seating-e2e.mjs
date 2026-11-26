@@ -40,7 +40,7 @@ const host = await new Promise((resolve, reject) => {
 });
 
 function sim(name, extra = []) {
-  const p = spawn(process.execPath, [tsx, 'tools/sim-phones.ts', '--game', '--url', `ws://127.0.0.1:${port}/hgp`, '--names', name, '--seconds', '300', ...extra], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
+  const p = spawn(process.execPath, ['--import', 'tsx', 'tools/sim-phones.ts', '--game', '--url', `ws://127.0.0.1:${port}/hgp`, '--names', name, '--seconds', '300', ...extra], { cwd: s1, stdio: ['ignore', 'pipe', 'pipe'] });
   p.stdout.on('data', (d) => process.stdout.write(`    [sim] ${d}`));
   p.stderr.on('data', (d) => process.stdout.write(`    [sim!] ${d}`));
   return p;
@@ -291,6 +291,7 @@ try {
   );
   const aliceId = await idOf('Alice');
   const alicePart = (await seats()).indexOf(aliceId);
+  await alice.page.goto('about:blank');
   await alice.page.close();
   await game.waitForFunction((i) => window.__i2.seats[i] === 'tv', alicePart, { timeout: 8000 }).catch(() => {});
   const page2 = await alice.ctx.newPage();
@@ -316,8 +317,10 @@ try {
     () => check('phones hide "Pick your part" during the song', false),
   );
   await game.keyboard.press('Escape');
-  check('Escape from a song restores Play focus', await focused('#btn-play'));
-  await game.keyboard.press('Escape');
+  check('Escape during a song defaults to Keep playing', await focused('#end-round .primary'));
+  await game.keyboard.press('ArrowDown');
+  await game.keyboard.press('Enter');
+  check('End round restores Play focus', await focused('#btn-play'));
   await bob.page.waitForSelector('#lobby:not([hidden])', { timeout: 8000 }).then(
     () => check('back in the lobby the phones show it again', true),
     () => check('back in the lobby the phones show it again', false),
@@ -326,15 +329,23 @@ try {
   check('Ready resets when a song starts', pressedAfter === 'false');
 
   // 15. First Ring is opt-in, leaves Standard settings intact, and plays through to results.
-  const chooseSong = async (title) => {
-    await game.locator('#choose-song').click();
+  const chooseSong = async (title, opener = '#choose-song') => {
+    await game.locator(opener).click();
     await game.locator('#song-options button').filter({ hasText: `${title} ·` }).click();
   };
   const openRound = () => game.locator('#open-round').click();
   const roundStyle = game.locator('#sel-round-style');
   await openRound();
   check('First Ring is under Round options and starts off', await roundStyle.inputValue() === 'standard' && await roundStyle.isEnabled());
+  await game.keyboard.press('Escape');
+  await game.locator('#open-difficulty').click();
   await game.selectOption('#sel-diff', 'hard');
+  check('difficulty remains staged while browsing', (await game.textContent('#chosen-difficulty')) === 'Easy'
+    && await game.evaluate(() => window.__i2.session === null));
+  await game.locator('#confirm-difficulty').click();
+  check('choosing a level does not start the round', (await game.textContent('#chosen-difficulty')) === 'Hard'
+    && await focused('#open-difficulty') && await game.evaluate(() => window.__i2.session === null));
+  await openRound();
   await game.selectOption('#sel-parts', 'by-range');
   await game.selectOption('#sel-form', 'short');
   await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers');
@@ -344,23 +355,29 @@ try {
   check('remote reaches Round style from Edit seating', await focused('#sel-round-style'));
   await game.keyboard.press('ArrowRight');
   await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · First Ring · 3 ringers');
-  check('First Ring locks the three Standard controls and explains the guide',
-    (await Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).isDisabled()))).every(Boolean)
+  check('First Ring locks Parts and Length and explains the guide',
+    (await Promise.all(['#sel-parts', '#sel-form'].map((s) => game.locator(s).isDisabled()))).every(Boolean)
     && /one bell per ringer.*rest of the tune/.test(await game.textContent('#round-style-info')));
   await game.waitForFunction(() => window.__i2.cards.every((c) => c.bells.length === 1) && window.__i2.link.phones.every((p) => p.bells?.length === 1));
   check('each of the three seated phones receives exactly one bell', true);
   await game.keyboard.press('ArrowLeft');
   await game.waitForFunction(() => window.__i2.team?.chart.title === 'Jingle Bells · hard · 3 ringers' && window.__i2.cards.some((c) => c.bells.length > 1));
-  const standardSettings = () => Promise.all(['#sel-diff', '#sel-parts', '#sel-form'].map((s) => game.locator(s).inputValue()));
-  check('Standard restores Hard, By range, and Short after switching off', (await standardSettings()).join() === 'hard,by-range,short');
+  const standardSettings = async () => [await game.textContent('#chosen-difficulty'), ...await Promise.all(['#sel-parts', '#sel-form'].map((s) => game.locator(s).inputValue()))];
+  check('Standard restores Hard, By range, and Short after switching off', (await standardSettings()).join() === 'Hard,by-range,short');
   await roundStyle.selectOption('first-ring');
   await game.keyboard.press('Escape');
   await chooseSong('Silent Night');
+  check('unsupported song explains the switch before applying it', /First Ring is not available for Silent Night/.test(await game.textContent('#first-ring-switch-msg'))
+    && await focused('#first-ring-switch .primary') && await game.textContent('#chosen-song') === 'Jingle Bells');
+  await game.keyboard.press('Escape');
+  check('cancel keeps First Ring and restores focus to the song', await focused('#song-options button:has-text("Silent Night")')
+    && await game.textContent('#chosen-difficulty') === 'First Ring');
+  await game.keyboard.press('Enter');
+  await game.locator('#confirm-standard').click();
   await game.waitForFunction(() => window.__i2.team?.chart.title === 'Silent Night · hard · 3 ringers');
-  check('unsupported song explains the return to Standard', /First Ring is not available for Silent Night.*Standard settings restored/.test(await game.textContent('#lobby-msg')));
   await openRound();
   check('unsupported song cannot select First Ring and keeps Standard settings',
-    await roundStyle.isDisabled() && await roundStyle.inputValue() === 'standard' && (await standardSettings()).join() === 'hard,by-range,short');
+    await roundStyle.isDisabled() && await roundStyle.inputValue() === 'standard' && (await standardSettings()).join() === 'Hard,by-range,short');
   await game.keyboard.press('Escape');
   await chooseSong('Jingle Bells');
   await openRound();
@@ -385,6 +402,39 @@ try {
     result.song === 'deck-the-halls' && result.preset === 'first-ring' && result.form === 'short' && result.mode === 'autoplay'
     && result.counts.perfect === firstRingRun.strikes && Math.abs(result.chartDurationSec - 33.103) < 0.01,
     `${result.counts.perfect}/${firstRingRun.strikes} perfect, ${result.chartDurationSec} s`);
+  const joinUrl = await game.evaluate(() => window.__i2.link.info.joinUrl);
+  await game.locator('#res-change-difficulty').click();
+  check('Results shows First Ring and explains the Standard switch before playing',
+    /First Ring/.test(await game.textContent('#res-difficulty')) && /switches to Standard/.test(await game.textContent('#difficulty-preview')));
+  await game.keyboard.press('Escape');
+  check('Back from Difficulty restores Results focus and preserves the completed round', await focused('#res-change-difficulty')
+    && await game.evaluate(() => window.__i2Result.preset === 'first-ring'));
+  await game.keyboard.press('Enter');
+  await game.selectOption('#sel-diff', 'medium');
+  check('changing the selection leaves the completed result untouched until explicit Play',
+    await game.textContent('#confirm-difficulty') === 'Play on Medium'
+    && /First Ring/.test(await game.textContent('#res-difficulty'))
+    && await game.evaluate(() => window.__i2Result.preset === 'first-ring'));
+  const seatsBefore = await game.evaluate(() => [...window.__i2.seats]);
+  await game.locator('#confirm-difficulty').click();
+  await game.waitForFunction(() => window.__i2.team?.chart.title === 'Deck the Halls · medium · 3 ringers' && document.title !== 'I2_DONE');
+  await game.waitForFunction(() => window.__i2.link.phones.filter((p) => p.online).every((p) => {
+    const part = window.__i2.cards[window.__i2.seats.indexOf(p.id)];
+    return part && JSON.stringify(p.bells?.map((b) => [b.id, b.color])) === JSON.stringify(part.bells.map((b) => [b.id, b.color]));
+  }));
+  check('Play on Medium commits the same song, updates phone bells and keeps the same room and seats',
+    await game.evaluate(({ seats, url }) => JSON.stringify(window.__i2.seats) === JSON.stringify(seats) && window.__i2.link.info.joinUrl === url, { seats: seatsBefore, url: joinUrl }));
+  await game.waitForSelector('#results:not(.hidden)', { timeout: 50000 });
+  check('the next Result records Medium in Standard, without relabelling the earlier First Ring round',
+    await game.evaluate(() => window.__i2Result.song === 'deck-the-halls' && window.__i2Result.difficulty === 'medium' && !window.__i2Result.preset));
+  await chooseSong('Jingle Bells', '#res-choose-song');
+  check('choosing another song returns to Ready in the same room without autoplay', await focused('#btn-play')
+    && await game.evaluate((url) => window.__i2.session === null && window.__i2.link.info.joinUrl === url && window.__i2.link.phones.filter((p) => p.online).length === 3, joinUrl));
+  await chooseSong('Deck the Halls');
+  // Use the ordinary URL so an explicit ?song override doesn't take precedence over the remembered choice.
+  await game.goto(`http://127.0.0.1:${port}/game/`);
+  await game.waitForFunction(() => document.querySelector('#chosen-song')?.textContent === 'Deck the Halls');
+  check('the last deliberate song choice is remembered on the next visit', await focused('#btn-play'));
 
   check('no page errors', errors.length === 0, errors.join(' | '));
   ok = checks.every((c) => c.ok);

@@ -29,7 +29,7 @@ export function installTvInput(): void {
     if ((e.key === 'Enter' && !e.code) || e.keyCode === 23) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (t?.matches('button, a[href], [role="button"], input[type="checkbox"]')) t.click();
+      if (t?.matches('button, a[href], summary, [role="button"], input[type="checkbox"]')) t.click();
       else if (t instanceof HTMLSelectElement && e.isTrusted && navigator.userActivation?.isActive) t.showPicker?.();
       else (t ?? document.body).dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true }));
       return;
