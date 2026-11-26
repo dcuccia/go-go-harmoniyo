@@ -167,9 +167,46 @@ try {
   const round2 = await game.evaluate(() => ({ phones: window.__i2.team.ringers.length, speed: window.__i2.speed }));
   check('round 2 has both phones and keeps the speed', round2.phones === 2 && round2.speed === 0.5, JSON.stringify(round2));
 
-  // 6. Esc → lobby: corner QR hidden again; back to full speed for the next player.
+  // 6. Losing a phone cannot mutate the live chart or move a seat. Back confirms ending first.
+  const bobId = await game.evaluate(() => window.__i2.seats[1]);
+  // Navigate out before closing: Chromium can keep an abruptly closed target's socket alive.
+  await bob.page.goto('about:blank');
+  await bob.page.close();
+  const bobOffline = () => game.waitForFunction((id) => !window.__i2.link.phones.find((p) => p.id === id)?.online, bobId);
+  await bobOffline();
+  await waitSeats(['Alice', 'Bob'], 'a phone dropping during play does not change the live seats');
   await game.keyboard.press('Escape');
+  check('live Back focuses Keep playing', await game.locator('#end-round .primary:focus').count() === 1);
+  await game.keyboard.press('Enter');
+  check('Keep playing returns to the live round', await game.locator('#end-round').isHidden() && await game.locator('#hud').isVisible());
+  await game.keyboard.press('Escape');
+  await game.locator('#confirm-end').click();
   await waitCheck(game.waitForFunction(() => document.querySelector('#corner-join').classList.contains('hidden'), null, { timeout: 5000 }), 'corner QR hides in the lobby');
+
+  await game.locator('#btn-play').click();
+  check('Play gates the count-in and names the missing phone', await game.locator('#reconnect-round').isVisible()
+    && /Bob is offline/.test(await game.textContent('#reconnect-msg')) && await game.evaluate(() => window.__i2.session === null));
+  await game.locator('#wait-reconnect').click();
+  const rejoined = await bob.ctx.newPage();
+  await rejoined.goto(`http://127.0.0.1:${port}/`);
+  await rejoined.tap('#start');
+  await game.waitForFunction(() => document.querySelector('#wait-reconnect').textContent === 'Play');
+  check('reconnecting does not start automatically', await game.evaluate(() => window.__i2.session === null));
+  await game.locator('#wait-reconnect').click();
+  await waitSeats(['Alice', 'Bob'], 'reconnecting into the same room preserves seats');
+  await game.waitForFunction(() => Boolean(window.__i2.session));
+
+  await rejoined.goto('about:blank');
+  await rejoined.close();
+  await bobOffline();
+  await game.keyboard.press('Escape');
+  await game.locator('#confirm-end').click();
+  await game.locator('#btn-play').click();
+  await game.locator('#continue-fewer').click();
+  await waitSeats(['Alice', 'tv'], 'Continue with fewer keeps Alice in place and leaves Bob’s part to the TV');
+  await game.waitForFunction(() => Boolean(window.__i2.session));
+  await game.keyboard.press('Escape');
+  await game.locator('#confirm-end').click();
   await game.click('#open-round');
   await game.focus('#rng-speed');
   await game.keyboard.press('End');

@@ -62,16 +62,24 @@ html, body { background: var(--stage); }
 #joined-players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; list-style: none; margin: 0; padding: 0; max-height: 5.2em; overflow: auto; font-size: clamp(16px, 2.2vh, 24px); overflow-wrap: anywhere; }
 #joined-players b { font-size: clamp(18px, 2.9vh, 32px); }
 #parts-summary { font-size: clamp(16px, 2.2vh, 24px); margin: 12px 0 18px; }
+.ready-actions { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; }
+.ready-actions .song-choice strong { font-size: clamp(18px, 3.2vh, 34px); }
 #btn-play { width: 100%; font-size: clamp(24px, 3.5vh, 38px); padding: 0.4em 1em; }
-#lobby-msg { font-size: clamp(14px, 2.2vh, 24px); }
-#lobby-msg:empty { display: none; }
+#lobby-msg, #res-msg, #difficulty-error { font-size: clamp(14px, 2.2vh, 24px); }
+:is(#lobby-msg, #res-msg, #difficulty-error):empty { display: none; }
 .lobby-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
 .lobby-actions button { font-size: clamp(14px, 2.2vh, 24px); }
-#lobby :is(button, select, input, a, [role='button']):focus-visible, #results button:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+:is(#lobby, #results, .round-prompt) :is(button, select, input, a, summary, [role='button']):focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
 .lobby-panel { width: min(840px, 90vw); max-height: 84vh; overflow: auto; padding: 24px; border: 1px solid #6a6ab0; border-radius: 16px; background: #141432; color: #fff; }
 .lobby-panel::backdrop { background: rgba(5, 4, 13, 0.58); }
 .lobby-panel h2 { margin-top: 0; }
 .lobby-panel [data-back], #edit-seating { margin-block: 8px; }
+.round-prompt { font-size: clamp(17px, 2.4vh, 26px); }
+.round-prompt :is(button, select), .result-actions button { font-size: inherit; }
+.round-prompt label { margin-right: 0.4em; }
+#reconnect-qr { width: min(230px, 44vw, 35vh); background: #fff; padding: 8px; border-radius: 10px; }
+#res-difficulty { color: var(--gold); font-weight: 700; margin: 0 0 0.5em; }
+.result-actions { margin: 0.8em 0; font-size: clamp(16px, 2.4vh, 26px); }
 #song-options { display: grid; gap: 8px; padding: 8px; }
 #song-options button { text-align: left; font-size: clamp(18px, 2.3vh, 25px); }
 #song-options [aria-pressed='true'] { color: var(--gold); }

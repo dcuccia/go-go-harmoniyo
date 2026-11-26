@@ -12,7 +12,7 @@ import type { Sensitivity } from '../../s1-phone-bell/src/core/ring-detector.ts'
 import { HgpInputSource } from './hgp-input';
 import { defaultHgpUrl, HgpLink, type LobbyParts, type PhoneInfo } from './hgp-link';
 import { MultiHighway } from './multi-highway';
-import { ARRANGEMENTS, buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Arrangement, type Difficulty, type S5Chart, type TeamChart } from './team-chart';
+import { ARRANGEMENTS, buildTeamChart, findPart, isChartFormat, partBellNotes, shortestIoiMs, type Arrangement, type Difficulty, type S5Chart, type S5Part, type TeamChart } from './team-chart';
 import { partCards, type PartCard } from './parts';
 import { KEYBOARD, Seating, seededRng, TV } from './seating';
 import { SeatingView, type PlayerView } from './seating-view';
@@ -27,11 +27,13 @@ import { JoinQueue, waitingLabel } from './join-queue';
 import { beatAt } from './backing/phrases';
 import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
 import { SfxSynth } from './sfx/synth';
+import { controls, difficultyLabels, RoundNavigation } from './round-flow';
 import { version as APP_VERSION } from '../package.json';
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
 const flag = (k: string, d: boolean): boolean => (params.has(k) ? params.get(k) !== '0' : d);
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
+const pageTitle = document.title;
 /** Brand files (docs/design/brand, copied by scripts/brand-assets.mjs). */
 const BRAND = `${import.meta.env.BASE_URL}brand/`;
 /** Results cheer: Y5 (cheer with hands) from this team accuracy, Y2 (joy) below it. Both celebrate. */
@@ -117,12 +119,23 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
-  songs: { id: string; title: string; composer?: string; license?: string; durationSec: number; parts: { difficulty: Difficulty; ringerCount: number; strikes: number; maxBellsPerRinger: number }[]; forms?: Partial<Record<SongForm, { durationSec: number }>>; firstRing?: { durationSec: number; ringerCounts: number[] } }[];
+  songs: Song[];
 }
+interface IndexedPart { difficulty: Difficulty; arrangement?: Arrangement; ringerCount: number; strikes: number; maxBellsPerRinger: number }
+interface Song {
+  id: string;
+  title: string;
+  durationSec: number;
+  parts: IndexedPart[];
+  forms?: Partial<Record<SongForm, { durationSec: number; parts: IndexedPart[] }>>;
+  firstRing?: { durationSec: number; ringerCounts: number[] };
+}
+const SONG_KEY = 'i2.song';
 let index: SongIndex | null = null;
 const chartCache = new Map<string, S5Chart>();
-let songId = params.get('song') ?? 'jingle-bells';
-let difficulty = (params.get('diff') ?? 'easy') as Difficulty;
+let songId = params.get('song') ?? localStorage.getItem(SONG_KEY) ?? 'jingle-bells';
+const requestedDifficulty = params.get('diff') ?? 'easy';
+let difficulty = Object.hasOwn(difficultyLabels, requestedDifficulty) ? requestedDifficulty as Difficulty : 'easy';
 /** Song length: full (intro, verses that develop, coda; charts/<id>.json) or short (once; charts/short/<id>.json). */
 type SongForm = 'full' | 'short';
 type ChartVariant = SongForm | 'first-ring';
@@ -130,7 +143,6 @@ let songForm: SongForm = params.get('form') === 'short' ? 'short' : 'full';
 /** How parts are split: balanced roles (default), chord split, or by range (S5 0.2). */
 let arrangement: Arrangement = (ARRANGEMENTS as readonly string[]).includes(params.get('parts') ?? '') ? (params.get('parts') as Arrangement) : 'balanced';
 let firstRing = false;
-let roundStyleNotice = '';
 const chartVariant = (): ChartVariant => firstRing ? 'first-ring' : songForm;
 const chartKey = (id: string, variant: ChartVariant): string => `${variant}:${id}`;
 const scaledChartKey = (id: string, variant: ChartVariant, rate: number): string => `${chartKey(id, variant)}@${rate}`;
@@ -155,7 +167,27 @@ let team: TeamChart | null = null;
 let session: Session | null = null;
 /** A song is running (the session object stays around on the results screen). */
 let playing = false;
-let lastMode: Mode = 'play';
+interface RoundSelection {
+  songId: string;
+  title: string;
+  firstRing: boolean;
+  difficulty: Difficulty;
+  songForm: SongForm;
+  arrangement: Arrangement;
+  ringerCount: number;
+  speed: number;
+}
+interface RoundRequest {
+  mode: Mode;
+  opener: HTMLElement;
+  selection?: RoundSelection;
+  rotate?: boolean;
+}
+let committed: (RoundSelection & { mode: Mode }) | null = null;
+let starting: symbol | undefined;
+let reconnectRequest: RoundRequest | undefined;
+let waitingForReconnect = false;
+const navigation = new RoundNavigation();
 const sentAssign = new Map<string, string>();
 let sentParts = '';
 /** Seats when the current/last round started (results rows → players). */
@@ -164,10 +196,16 @@ let roundSeats: string[] = [];
 const joinQueue = new JoinQueue();
 
 const onlinePhones = (): PhoneInfo[] => link.phones.filter((p) => p.online && p.kind !== 'dashboard');
+const onlineIds = (): string[] => onlinePhones().map((p) => p.id);
 const phoneName = (id: string): string => link.phones.find((p) => p.id === id)?.name ?? id;
 const isPhone = (s: string): boolean => s !== TV && s !== KEYBOARD;
 const slotName = (s: string, i: number): string => (s === TV ? `${cards[i]?.name ?? `Ringer ${i + 1}`} (TV)` : s === KEYBOARD ? 'Keyboard' : phoneName(s));
 const slotKind = (s: string): string => (s === TV ? 'host plays' : s === KEYBOARD ? 'keyboard A S D F' : 'phone');
+const selection = (): RoundSelection => ({ songId, title: chosenSong()?.title ?? songId, firstRing, difficulty, songForm, arrangement, ringerCount, speed });
+const variantOf = (s: RoundSelection): ChartVariant => s.firstRing ? 'first-ring' : s.songForm;
+const tierOf = (s: RoundSelection): Difficulty => s.firstRing ? 'super-easy' : s.difficulty;
+const arrangementOf = (s: RoundSelection): Arrangement => s.firstRing ? 'balanced' : s.arrangement;
+const levelOf = (s: RoundSelection): string => s.firstRing ? 'First Ring' : difficultyLabels[s.difficulty];
 
 async function loadChart(id: string, variant: ChartVariant): Promise<S5Chart> {
   const key = chartKey(id, variant);
@@ -197,79 +235,82 @@ async function songChart(id: string, variant: ChartVariant, rate: number): Promi
 /** Current song at the current speed, once loaded. */
 const currentChart = (): S5Chart | undefined => scaledCache.get(scaledChartKey(songId, chartVariant(), speed));
 /** Song label for the phones: title, tier and (when slowed down) the practice speed. */
-const songLabel = (): string => `${chosenSong()?.title ?? songId} (${firstRing ? 'First Ring' : `${difficulty.replace('-', ' ')}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''}`})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
+const songLabel = (): string => `${chosenSong()?.title ?? songId} (${firstRing ? 'First Ring' : `${difficultyLabels[difficulty]}${arrangement !== 'balanced' ? `, ${arrangement.replace('-', ' ')}` : ''}`})${speed < 1 ? ` · ${speedNote(speed)}` : ''}`;
 
 /**
  * Notice phones that joined or left since the last lobby update: a leaver's part falls back to the
- * TV (their home is kept, so a reconnect reclaims it). With the automatic ringer count, the count
- * follows the phones the host has seen this session (1–4), so a dropped phone's part stays.
+ * TV (their home is kept, so a reconnect reclaims it). A round participant's seat stays reserved
+ * until they reconnect or the host explicitly continues without them.
  */
-function syncPhones(): string[] {
-  const online = new Set(onlinePhones().map((p) => p.id));
+function syncPhones(): void {
+  const online = new Set(onlineIds());
   for (const id of [...knownPhones]) {
     if (!online.has(id)) {
       knownPhones.delete(id);
-      seating.leave(id);
+      if (!roundSeats.includes(id)) seating.leave(id);
+      sentAssign.delete(id);
     }
   }
-  const joiners = [...online].filter((id) => !knownPhones.has(id));
-  joiners.forEach((id) => knownPhones.add(id));
-  if (ringersAuto) ringerCount = Math.max(1, Math.min(4, link.phones.length || ringerCount || 3));
-  return joiners;
+  online.forEach((id) => knownPhones.add(id));
 }
 
-async function rebuild(forPlayMode: Mode = 'play') {
-  if (!index) return;
-  const joiners = syncPhones();
-  const song = chosenSong();
-  if (firstRing && !song?.firstRing?.ringerCounts.includes(ringerCount)) {
-    firstRing = false;
-    roundStyleNotice = `First Ring is not available for ${song?.title ?? 'this song'} with ${ringerCount} ringers. Standard settings restored.`;
+let previewRevision = 0;
+const automaticCount = (): number => Math.max(1, Math.min(4, link.phones.filter((p) => p.kind !== 'dashboard').length || ringerCount || 3));
+const currentPart = (s5: S5Chart, s: RoundSelection): S5Part | undefined => findPart(s5, tierOf(s), s.ringerCount, arrangementOf(s));
+const unavailable = (s: RoundSelection): string => `${levelOf(s)} is not available for ${s.title} with ${s.ringerCount} ${s.ringerCount === 1 ? 'ringer' : 'ringers'}.`;
+
+async function rebuild(): Promise<void> {
+  if (!index || session || starting) return;
+  const revision = ++previewRevision;
+  syncPhones();
+  if (ringersAuto) {
+    const count = automaticCount();
+    // A roster change must not silently switch a selected First Ring preset.
+    if (!firstRing || chosenSong()?.firstRing?.ringerCounts.includes(count)) ringerCount = count;
   }
-  renderRoundStyle();
-  const [id, variant, rate, count, tier, parts] = [songId, chartVariant(), speed, ringerCount, roundDifficulty(), roundArrangement()] as const;
-  const isCurrent = () => id === songId && variant === chartVariant() && rate === speed && count === ringerCount && tier === roundDifficulty() && parts === roundArrangement();
-  let s5: S5Chart;
+  const config = selection();
+  renderLobby();
   try {
-    s5 = await songChart(id, variant, rate);
-  } catch (e) {
-    if (isCurrent()) {
-      joiners.forEach((phone) => knownPhones.delete(phone));
-      $('lobby-msg').textContent = String(e);
+    const s5 = await songChart(config.songId, variantOf(config), config.speed);
+    if (revision !== previewRevision || session || starting) return;
+    const part = currentPart(s5, config);
+    $('lobby-msg').textContent = part ? '' : unavailable(config);
+    if (part) {
+      prepareTeam(s5, part, config, 'play');
+      sendAssignments();
+      sendParts();
     }
-    return;
+  } catch (e) {
+    if (revision === previewRevision && !session && !starting) $('lobby-msg').textContent = String(e);
   }
-  if (!isCurrent()) return;
-  const part = findPart(s5, tier, count, parts);
-  if (!part) {
-    joiners.forEach((id) => knownPhones.delete(id)); // seat them once there is an arrangement
-    $('lobby-msg').textContent = `No ${firstRing ? 'First Ring' : tier} part for ${count} ringers in ${s5.song.title}.`;
-    return;
-  }
-  $('lobby-msg').textContent = roundStyleNotice;
+}
+
+function prepareTeam(s5: S5Chart, part: S5Part, config: RoundSelection, mode: Mode, absent: readonly string[] = [], rotate = false): TeamChart {
   const transpose = num('octave', 1) ? 12 : 0;
   cards = partCards(s5, part, buildTeamChart(s5, part, { transpose }));
   seating.setParts(cards.map((c) => c.name));
   // Phones that joined during the last round get their part first, in join order (drop-in).
   joinQueue.seat(seating);
   // Seat newcomers, reconnecting phones and anyone waiting for a part (not those who sat out).
-  seating.fill(onlinePhones().map((p) => p.id));
+  seating.fill(onlineIds());
+  // Release offline seats after filling, so a waiting phone cannot silently inherit a missing
+  // player's part when the host agreed only to have the TV cover it.
+  absent.forEach((id) => seating.leave(id));
+  if (rotate) seating.rotate();
   const seats = seating.seats;
-  const active = seats.map((s) => forPlayMode === 'autoplay' || s !== TV);
+  const active = seats.map((s) => mode === 'autoplay' || s !== TV);
   if (!active.some(Boolean)) active.fill(true); // lobby preview with no players: show every highway
-  const title = firstRing ? `${s5.song.title} · First Ring · ${count} ringer${count === 1 ? '' : 's'}` : undefined;
+  const title = config.firstRing ? `${s5.song.title} · First Ring · ${config.ringerCount} ringer${config.ringerCount === 1 ? '' : 's'}` : undefined;
   team = buildTeamChart(s5, part, { active, transpose, title });
-  mh.setSpeed(speed);
+  mh.setSpeed(config.speed);
   mh.setTeam(team);
   teamHud.setup(
     team,
     team.ringers.map((r) => slotName(seats[r.index], r.index)),
     team.ringers.map((r) => slotKind(seats[r.index])),
   );
-  sendAssignments();
-  sendParts();
   renderLobby();
-  return { s5, part, team };
+  return team;
 }
 
 /** After any seat change: rebuild in the lobby; on the results screen it applies when the next round starts. */
@@ -392,7 +433,7 @@ function renderRoundStyle(): void {
   const style = $<HTMLSelectElement>('sel-round-style');
   style.disabled = !song?.firstRing?.ringerCounts.includes(ringerCount);
   setValue(style, firstRing ? 'first-ring' : 'standard');
-  for (const id of ['sel-diff', 'sel-parts', 'sel-form']) $<HTMLSelectElement>(id).disabled = firstRing;
+  for (const id of ['sel-parts', 'sel-form']) $<HTMLSelectElement>(id).disabled = firstRing;
   const info = firstRing
     ? 'Short · one bell per ringer · the TV plays the rest of the tune. Standard settings are saved.'
     : !song?.firstRing
@@ -407,8 +448,9 @@ function renderRoundStyle(): void {
 function renderLobby(): void {
   $('chosen-song').textContent = chosenSong()?.title ?? 'Loading songs…';
   $<HTMLButtonElement>('choose-song').disabled = !index;
+  $<HTMLButtonElement>('open-difficulty').disabled = !index;
+  $('chosen-difficulty').textContent = levelOf(selection());
   renderRoundStyle();
-  setValue($<HTMLSelectElement>('sel-diff'), difficulty);
   setValue($<HTMLSelectElement>('sel-ringers'), ringersAuto ? 'auto' : String(ringerCount));
   setValue($<HTMLSelectElement>('sel-parts'), arrangement);
   setValue($<HTMLSelectElement>('sel-form'), songForm);
@@ -514,7 +556,8 @@ function transportLabel(): string {
 
 /** Results screen: who plays what next round (claims, swaps and 🔁 apply on Again). */
 function renderNext(): void {
-  const who = (s: string): string => (s === TV ? '🤖 TV' : s === KEYBOARD ? '⌨ Keyboard' : phoneName(s));
+  const online = new Set(onlineIds());
+  const who = (s: string): string => (s === TV ? '🤖 TV' : s === KEYBOARD ? '⌨ Keyboard' : `${phoneName(s)}${online.has(s) ? '' : ' (disconnected)'}`);
   const joining = joinQueue.waiting.length ? ` · Joining: ${joinQueue.waiting.map(phoneName).join(', ')} (first part the TV plays)` : '';
   $('res-next').textContent = cards.length ? `Next round: ${cards.map((c, i) => `${c.name} — ${who(seating.seats[i] ?? TV)}`).join(' · ')}${joining}` : '';
 }
@@ -578,11 +621,6 @@ $<HTMLSelectElement>('sel-round-style').onchange = (e) => {
   const select = e.target as HTMLSelectElement;
   if (select.disabled) return;
   firstRing = select.value === 'first-ring';
-  roundStyleNotice = '';
-  void rebuild();
-};
-$<HTMLSelectElement>('sel-diff').onchange = (e) => {
-  difficulty = (e.target as HTMLSelectElement).value as Difficulty;
   void rebuild();
 };
 $<HTMLSelectElement>('sel-parts').onchange = (e) => {
@@ -594,10 +632,19 @@ $<HTMLSelectElement>('sel-form').onchange = (e) => {
   void rebuild();
 };
 $<HTMLSelectElement>('sel-ringers').onchange = (e) => {
-  const value = (e.target as HTMLSelectElement).value;
-  ringersAuto = value === 'auto';
-  if (!ringersAuto) ringerCount = Number(value);
-  void rebuild();
+  const select = e.target as HTMLSelectElement;
+  const auto = select.value === 'auto';
+  const count = auto ? automaticCount() : Number(select.value);
+  const apply = () => {
+    ringersAuto = auto;
+    ringerCount = count;
+    select.value = auto ? 'auto' : String(count);
+    void rebuild();
+  };
+  if (firstRing && !chosenSong()?.firstRing?.ringerCounts.includes(count)) {
+    select.value = ringersAuto ? 'auto' : String(ringerCount);
+    confirmStandard(select, unavailable({ ...selection(), ringerCount: count }), apply);
+  } else apply();
 };
 $<HTMLSelectElement>('sel-sound').onchange = (e) => {
   soundMode = (e.target as HTMLSelectElement).value as SoundMode;
@@ -660,13 +707,19 @@ link.onDevices = () => {
       sendParts();
       renderLobby();
     }
-  } else if (!playing) sendParts(); // results screen: Ready flags to the phones
+  } else if (!playing) {
+    sendParts(); // results screen: Ready flags to the phones
+    renderNext();
+  }
+  if (reconnectRequest && navigation.panel?.id === 'reconnect-round') renderReconnect();
   updateJoinQueue();
   maybeAutostart();
 };
 // A phone picked a part ("Pick your part"); a taken part is swapped (v0: no consent prompt).
 link.onClaim = (deviceId, part) => {
   if (playing || !onlinePhones().some((p) => p.id === deviceId)) return;
+  const occupant = seating.seats[part];
+  if (occupant && !onlineIds().includes(occupant) && roundSeats.includes(occupant) && isPhone(occupant)) return;
   seating.assign(part, deviceId);
   if (joinQueue.remove(deviceId)) renderCornerJoin(); // results screen: a waiting phone chose for itself
   seatingChanged();
@@ -674,6 +727,7 @@ link.onClaim = (deviceId, part) => {
 link.onInfo = () => {
   renderLobby();
   renderCornerJoin();
+  if (reconnectRequest && navigation.panel?.id === 'reconnect-round') renderReconnect();
 };
 link.onState = (s) => {
   if (s === 'open') {
@@ -717,29 +771,98 @@ function missGrace(): number {
 }
 let players: PlayerStats[] = [];
 let hgpInput: HgpInputSource | null = null;
-/** Practice speed of the current/last round (for its results). */
-let roundSpeed = 1;
+const missingPhones = (): string[] => {
+  const online = new Set(onlineIds());
+  return seating.players.filter((id) => isPhone(id) && !online.has(id));
+};
+const hasPlayer = (): boolean => {
+  const online = onlineIds();
+  return seating.players.some((id) => id === KEYBOARD || online.includes(id)) ||
+    (seating.seats.includes(TV) && online.some((id) => !seating.isBenched(id)));
+};
 
-async function start(mode: Mode): Promise<void> {
-  await audio.resume();
-  session?.stop();
-  session = null;
-  backing?.stop();
-  backing = null;
-  sfx?.hush();
-  director = null;
-  playing = false;
-  const prepared = await rebuild(mode);
-  if (!prepared) return;
-  const { s5, part, team: t } = prepared;
-  roundSeats = [...seating.seats];
-  if (mode === 'play' && !t.ringers.some((r) => roundSeats[r.index] !== TV)) {
-    $('lobby-msg').textContent = 'Join with a phone, or use Round options for Keyboard or Autoplay demo.';
-    return;
+function renderReconnect(): void {
+  const absent = missingPhones();
+  const message = absent.length
+    ? `${absent.map(phoneName).join(', ')} ${absent.length === 1 ? 'is' : 'are'} offline. Reconnect in this room to keep the same seats.${hasPlayer() ? ' Or continue and let the TV ring the missing parts.' : ''}`
+    : 'Everyone is back. Play when you’re ready.';
+  if ($('reconnect-msg').textContent !== message) $('reconnect-msg').textContent = message;
+  const wait = $('wait-reconnect');
+  const label = !absent.length ? 'Play' : waitingForReconnect ? 'Waiting for reconnect…' : 'Wait for reconnect';
+  if (wait.textContent !== label) wait.textContent = label;
+  const fewer = $<HTMLButtonElement>('continue-fewer');
+  if (fewer === document.activeElement && (!absent.length || !hasPlayer())) wait.focus();
+  fewer.hidden = !absent.length;
+  fewer.disabled = !hasPlayer();
+  const qr = $<HTMLImageElement>('reconnect-qr');
+  const url = link.info.joinUrl;
+  qr.hidden = !url || !absent.length;
+  if (url && qr.dataset.url !== url) {
+    qr.dataset.url = url;
+    qr.src = link.qrSrc(url);
   }
-  lastMode = mode;
-  while (lobbyPanels.length) closeLobbyPanel();
+}
+
+async function start(request: RoundRequest, acceptedMissing: readonly string[] = []): Promise<void> {
+  if (!index || playing || starting) return;
+  const { mode, opener } = request;
+  const config = request.selection ?? { ...selection(), ringerCount: ringersAuto && !firstRing ? automaticCount() : ringerCount };
+  const showError = (msg: string) => {
+    $(navigation.panel?.id === 'difficulty-picker' ? 'difficulty-error' : session ? 'res-msg' : 'lobby-msg').textContent = msg;
+  };
+  const checkRoster = (): string[] | undefined => {
+    syncPhones();
+    const absent = missingPhones();
+    if (absent.some((id) => !acceptedMissing.includes(id))) {
+      waitingForReconnect = false;
+      reconnectRequest = { ...request, selection: config };
+      renderReconnect();
+      navigation.open($('reconnect-round'), opener, $('wait-reconnect'));
+      return;
+    }
+    if (!hasPlayer()) {
+      showError('Join with a phone, or use Round options for Keyboard or Autoplay demo.');
+      return;
+    }
+    return absent;
+  };
+  if (mode === 'play' && !checkRoster()) return;
+
+  const attempt = starting = Symbol();
+  ++previewRevision;
+  showError('');
+  try {
+    // Resume in the Play gesture, not after fetching a chart (mobile user activation).
+    const [, s5] = await Promise.all([audio.resume(), songChart(config.songId, variantOf(config), config.speed)]);
+    if (starting !== attempt) return;
+    const part = currentPart(s5, config);
+    if (!part) {
+      showError(unavailable(config));
+      return;
+    }
+    const absent = mode === 'play' ? checkRoster() : missingPhones();
+    if (!absent) return;
+    beginRound(request, config, s5, part, absent);
+  } catch (e) {
+    if (starting === attempt) showError(`Could not start the round: ${String(e)}`);
+  } finally {
+    if (starting === attempt) starting = undefined;
+  }
+}
+
+function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, part: S5Part, absent: readonly string[]): void {
+  const { mode } = request;
+  session?.stop();
+  backing?.stop();
+  sfx?.hush();
+  ({ songId, firstRing, difficulty, songForm, arrangement, ringerCount, speed } = config);
+  const t = prepareTeam(s5, part, config, mode, absent, request.rotate);
+  roundSeats = [...seating.seats];
+  committed = { ...config, mode };
+  reconnectRequest = undefined;
+  navigation.dismissAll();
   (document.activeElement as HTMLElement | null)?.blur();
+  sendAssignments();
   const lanes = laneMap();
   hgpInput = new HgpInputSource(link, (dev, bell) => lanes.get(`${dev}|${bell}`));
   const sources: InputSource[] = [hgpInput];
@@ -784,17 +907,17 @@ async function start(mode: Mode): Promise<void> {
     if (e) timing.rings.push({ p: ri, perf: round(e.hostTimeMs, 1), offMs: isJudgement(r) ? round(r.offset * 1000, 1) : null, latMs: round(e.receivedAtMs - e.hostTimeMs, 1) });
     teamHud.stats(ri, p);
   };
-  s.onFinish = (r) => finish(r);
+  s.onFinish = (r) => finish(r, config, part.arrangement ?? 'by-range');
   const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
   $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
   session = s;
   playing = true;
-  roundSpeed = speed;
-  joinQueue.startRound(onlinePhones().map((p) => p.id));
+  document.title = pageTitle;
+  joinQueue.startRound(onlineIds());
   resetTiming();
+  sendParts(); // publish the committed seats and phase before the count-in and phone cues
   s.start();
   sendCues(s);
-  sendParts(); // phase "play": phones hide the part picker
   teamHud.position();
   $('speed-badge').textContent = speed < 1 ? `🐢 ${speedNote(speed)}` : '';
   $('speed-badge').classList.toggle('hidden', speed >= 1);
@@ -890,8 +1013,9 @@ function summarize(xs: number[]): { n: number; mean: number; p50: number; p95abs
   return { n, mean: round(xs.reduce((a, b) => a + b, 0) / n, 1), p50: round(sorted[Math.floor(n / 2)], 1), p95abs: round(abs[Math.min(n - 1, Math.floor(n * 0.95))], 1) };
 }
 
-function finish(r: SessionResult): void {
+function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arrangement): void {
   playing = false;
+  navigation.dismissAll(); // A live confirmation can still be open when the song ends.
   clearCues();
   if (r.mode === 'play' && director && sfx) sfx.play(director.finish(r.accuracy, performance.now()), audio.ctx.currentTime + 0.3);
   if (r.mode === 'play' && team) {
@@ -916,14 +1040,14 @@ function finish(r: SessionResult): void {
   const input = hgpInput ? { ...hgpInput.stats, latencyMs: summarize(hgpInput.stats.latencyMs) } : null;
   const result = {
     ...r,
-    song: songId,
-    ...(firstRing ? { preset: 'first-ring' } : {}),
-    difficulty: roundDifficulty(),
-    form: firstRing ? 'short' : songForm,
-    arrangement: roundArrangement(),
-    ringers: ringerCount,
+    song: config.songId,
+    ...(config.firstRing ? { preset: 'first-ring' } : {}),
+    difficulty: tierOf(config),
+    form: config.firstRing ? 'short' : config.songForm,
+    arrangement: playedArrangement,
+    ringers: config.ringerCount,
     /** Practice speed (1 = written tempo); song times in this result are at this speed. */
-    speed: roundSpeed,
+    speed: config.speed,
     chartDurationSec: team ? round(team.chart.duration, 3) : null,
     soundMode,
     backing: backing
@@ -944,12 +1068,14 @@ function finish(r: SessionResult): void {
   (window as unknown as { __i2Result: unknown }).__i2Result = result;
   document.title = 'I2_DONE';
   const c = r.counts;
-  $('res-title').textContent = r.title;
+  $('res-title').textContent = config.title;
+  $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}`;
+  $('res-msg').textContent = '';
   const yo = $<HTMLImageElement>('res-yo');
   const bigCheer = r.accuracy >= BIG_CHEER_ACCURACY;
   yo.src = `${BRAND}${bigCheer ? 'yo-cheer-hands' : 'yo-cheer'}.svg`;
   yo.dataset.state = bigCheer ? 'cheer-hands' : 'cheer';
-  const speedLine = roundSpeed < 1 ? `<br><span class="res-speed">🐢 Practice speed ${speedPercent(roundSpeed)}%</span>` : '';
+  const speedLine = config.speed < 1 ? `<br><span class="res-speed">🐢 Practice speed ${speedPercent(config.speed)}%</span>` : '';
   $('res-body').innerHTML =
     r.mode === 'autoplay'
       ? `Autoplay demo finished.${speedLine}`
@@ -969,7 +1095,10 @@ function finish(r: SessionResult): void {
   renderCornerJoin();
 }
 
-function toLobby(): void {
+function toReady(focus = $('btn-play')): void {
+  starting = undefined;
+  reconnectRequest = undefined;
+  navigation.dismissAll();
   session?.stop();
   session = null;
   playing = false;
@@ -980,19 +1109,20 @@ function toLobby(): void {
   hud.show(false);
   $('results').classList.add('hidden');
   $('lobby').classList.remove('hidden');
-  $('btn-play').focus();
+  document.title = pageTitle;
+  focus.focus();
   renderCornerJoin();
   lastPhoneKey = '';
   void rebuild();
 }
 
-$('btn-play').onclick = () => void start('play');
-$('btn-auto').onclick = () => void start('autoplay');
-$('btn-again').onclick = () => void start(lastMode);
-$('btn-rotate-again').onclick = () => {
-  seating.rotate();
-  void start(lastMode);
+$('btn-play').onclick = () => void start({ mode: 'play', opener: $('btn-play') });
+$('btn-auto').onclick = () => void start({ mode: 'autoplay', opener: $('btn-auto') });
+const replay = (opener: HTMLElement, rotate = false): void => {
+  if (committed) void start({ mode: committed.mode, selection: committed, opener, rotate });
 };
+$('btn-again').onclick = () => replay($('btn-again'));
+$('btn-rotate-again').onclick = () => replay($('btn-rotate-again'), true);
 $('btn-shuffle').onclick = () => {
   seating.shuffle(rng, benchPhones());
   seatingChanged();
@@ -1009,42 +1139,51 @@ $('btn-balance').onclick = () => {
   );
   seatingChanged();
 };
-$('btn-lobby').onclick = toLobby;
+$('btn-lobby').onclick = () => toReady();
 $('btn-copy').onclick = () => void navigator.clipboard.writeText($('res-json').textContent ?? '');
 
-const lobbyPanels: { dialog: HTMLDialogElement; opener: HTMLElement }[] = [];
-const activePanel = () => lobbyPanels.at(-1)?.dialog;
-const controls = (root: ParentNode) => [...root.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled), input:not(:disabled), a[href], [role="button"]')];
-
-function openLobbyPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void {
-  const dialog = $<HTMLDialogElement>(id);
-  if (dialog.open) return;
-  dialog.showModal();
-  lobbyPanels.push({ dialog, opener });
-  (initial ?? controls(dialog)[0])?.focus();
+function openPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void {
+  cancelStart();
+  navigation.open($<HTMLDialogElement>(id), opener, initial);
 }
 
-function closeLobbyPanel(): void {
-  const layer = lobbyPanels.pop();
-  if (!layer) return;
-  layer.dialog.close();
-  layer.opener.focus();
+function cancelStart(): boolean {
+  if (!starting) return false;
+  starting = undefined;
+  if (!session) void rebuild();
+  return true;
+}
+
+function closePanel(): boolean {
+  cancelStart();
+  if (navigation.panel?.id === 'reconnect-round') reconnectRequest = undefined;
+  return navigation.close();
+}
+
+function confirmStandard(opener: HTMLElement, reason: string, apply: () => void): void {
+  $('first-ring-switch-msg').textContent = `${reason} Switch to Standard to make this change.`;
+  $('confirm-standard').onclick = () => {
+    closePanel();
+    firstRing = false;
+    apply();
+  };
+  openPanel('first-ring-switch', opener);
 }
 
 $('lobby').querySelectorAll<HTMLButtonElement>('[data-panel]').forEach((button) => {
-  button.onclick = () => openLobbyPanel(button.dataset.panel!, button,
+  button.onclick = () => openPanel(button.dataset.panel!, button,
     button.id === 'edit-seating' ? view.cardEls[0] : undefined);
 });
-$('lobby').querySelectorAll<HTMLButtonElement>('[data-back]').forEach((button) => {
-  button.onclick = closeLobbyPanel;
+document.querySelectorAll<HTMLButtonElement>('[data-back]').forEach((button) => {
+  button.onclick = () => goBack();
 });
-$('lobby').querySelectorAll('dialog').forEach((dialog) => {
+document.querySelectorAll('dialog').forEach((dialog) => {
   dialog.addEventListener('cancel', (e) => {
     e.preventDefault();
     goBack();
   });
 });
-$('choose-song').onclick = () => {
+function openSongPicker(opener: HTMLElement): void {
   if (!index) return;
   const options = $('song-options');
   const buttons = index.songs.map((song) => {
@@ -1052,22 +1191,92 @@ $('choose-song').onclick = () => {
     button.textContent = `${song.title} · ${Math.round(songDuration(song) / speed)} s`;
     button.setAttribute('aria-pressed', String(song.id === songId));
     button.onclick = () => {
-      roundStyleNotice = '';
-      songId = song.id;
-      $('chosen-song').textContent = song.title;
-      closeLobbyPanel();
-      void rebuild();
+      const choose = () => {
+        songId = song.id;
+        localStorage.setItem(SONG_KEY, songId);
+        toReady(session ? $('btn-play') : $('choose-song'));
+      };
+      if (firstRing && !song.firstRing?.ringerCounts.includes(ringerCount)) {
+        confirmStandard(button, unavailable({ ...selection(), title: song.title }), choose);
+      } else choose();
     };
     return button;
   });
   options.replaceChildren(...buttons);
-  openLobbyPanel('song-picker', $('choose-song'), buttons.find((button) => button.getAttribute('aria-pressed') === 'true'));
+  openPanel('song-picker', opener, buttons.find((button) => button.getAttribute('aria-pressed') === 'true'));
+}
+$('choose-song').onclick = () => openSongPicker($('choose-song'));
+$('res-choose-song').onclick = () => openSongPicker($('res-choose-song'));
+
+function openDifficulty(opener: HTMLElement, replayConfig?: typeof committed): void {
+  const base = replayConfig ?? selection();
+  const song = index?.songs.find((s) => s.id === base.songId);
+  const select = $<HTMLSelectElement>('sel-diff');
+  const confirm = $<HTMLButtonElement>('confirm-difficulty');
+  const parts = (song?.forms?.[base.songForm]?.parts ?? song?.parts ?? []).filter((p) => p.ringerCount === base.ringerCount);
+  const available = (tier: Difficulty): IndexedPart | undefined => {
+    const options = parts.filter((p) => p.difficulty === tier);
+    return options.find((p) => p.arrangement === base.arrangement) ?? options.find((p) => p.arrangement === 'balanced') ?? options[0];
+  };
+  for (const option of select.options) option.disabled = !available(option.value as Difficulty);
+  select.value = available(base.difficulty) ? base.difficulty : [...select.options].find((o) => !o.disabled)?.value ?? '';
+  const update = () => {
+    cancelStart();
+    $('difficulty-error').textContent = '';
+    const tier = select.value as Difficulty;
+    const part = available(tier);
+    $('difficulty-preview').textContent = part
+      ? `${base.firstRing ? 'First Ring is a separate round style. Choosing a difficulty switches to Standard. ' : ''}Up to ${part.maxBellsPerRinger} ${part.maxBellsPerRinger === 1 ? 'bell' : 'bells'} per ringer · ${part.strikes} strikes across the team.`
+      : 'No Standard difficulties available for this setup.';
+    confirm.textContent = part ? `${replayConfig ? 'Play on' : 'Choose'} ${difficultyLabels[tier]}` : 'Unavailable';
+    confirm.disabled = !part;
+  };
+  $('difficulty-song').textContent = `${base.title} · current: ${levelOf(base)}`;
+  select.onchange = update;
+  confirm.onclick = () => {
+    const tier = select.value as Difficulty;
+    if (!available(tier)) return;
+    const config = { ...base, firstRing: false, difficulty: tier };
+    if (replayConfig) void start({ mode: replayConfig.mode, selection: config, opener: confirm });
+    else {
+      firstRing = false;
+      difficulty = tier;
+      closePanel();
+      void rebuild();
+    }
+  };
+  update();
+  openPanel('difficulty-picker', opener, select);
+}
+$('open-difficulty').onclick = () => openDifficulty($('open-difficulty'));
+$('res-change-difficulty').onclick = () => openDifficulty($('res-change-difficulty'), committed);
+
+$('wait-reconnect').onclick = () => {
+  const request = reconnectRequest;
+  if (!request) return;
+  if (missingPhones().length) {
+    waitingForReconnect = true;
+    renderReconnect();
+    return;
+  }
+  closePanel();
+  void start(request);
 };
+$('continue-fewer').onclick = () => {
+  const request = reconnectRequest;
+  if (!request) return;
+  const accepted = missingPhones();
+  closePanel();
+  void start(request, accepted);
+};
+$('confirm-end').onclick = () => toReady();
 
 function goBack(): boolean {
   if (view.pickerOpen) view.closePicker();
-  else if (activePanel()) closeLobbyPanel();
-  else if (session) toLobby();
+  else if (navigation.panel) closePanel();
+  else if (playing) openPanel('end-round', document.body);
+  else if (session) toReady();
+  else if (cancelStart()) return true;
   else return false;
   return true;
 }
@@ -1076,69 +1285,26 @@ window.addEventListener('i2-back', (e) => {
   if (goBack()) e.preventDefault();
 });
 
-function navigateRows(rows: HTMLElement[][], target: HTMLElement, key: string): void {
-  const nonempty = rows.filter((row) => row.length);
-  const r = nonempty.findIndex((row) => row.includes(target));
-  if (r < 0) {
-    nonempty[0]?.[0].focus();
-    return;
-  }
-  const row = nonempty[r];
-  const c = row.indexOf(target);
-  if (key === 'ArrowLeft' || key === 'ArrowRight') {
-    row[c + (key === 'ArrowLeft' ? -1 : 1)]?.focus();
-  } else {
-    const next = nonempty[r + (key === 'ArrowUp' ? -1 : 1)];
-    next?.[Math.min(c, next.length - 1)]?.focus();
-  }
-}
-
 window.addEventListener('keydown', (e) => {
   const target = document.activeElement as HTMLElement;
   if (e.key === 'Escape') {
     if (goBack()) e.preventDefault();
     return;
   }
-  const panel = activePanel();
-  const results = $('results');
-  if (e.key.startsWith('Arrow') && (!session || !playing)) {
-    if (view.pickerOpen) return; // The seating picker owns its own arrows.
-    const horizontal = e.key === 'ArrowLeft' || e.key === 'ArrowRight';
-    if (horizontal && target instanceof HTMLInputElement && target.type === 'range') return;
-    if (horizontal && target instanceof HTMLSelectElement) {
-      const next = target.selectedIndex + (e.key === 'ArrowLeft' ? -1 : 1);
-      if (target.options[next]) {
-        target.selectedIndex = next;
-        target.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    } else if (session) {
-      const buttons = [...results.querySelectorAll('button')];
-      const i = buttons.findIndex((button) => button === target);
-      const step = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 1;
-      buttons[i < 0 ? 0 : (i + step + buttons.length) % buttons.length].focus();
-    } else if (panel?.id === 'seating-options') {
-      navigateRows([controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]], target, e.key);
-    } else if (panel) {
-      navigateRows(controls(panel).map((control) => [control]), target, e.key);
-    } else {
-      const song = $<HTMLButtonElement>('choose-song');
-      navigateRows([song.disabled ? [] : [song], [$('btn-play')], controls($('lobby').querySelector('.lobby-actions')!)], target, e.key);
-    }
-    e.preventDefault();
-    return;
-  }
-  if (panel && e.key === 'Tab' && !view.pickerOpen) {
-    const list = controls(panel);
-    if (target === (e.shiftKey ? list[0] : list.at(-1))) {
-      (e.shiftKey ? list.at(-1) : list[0])?.focus();
-      e.preventDefault();
-    }
+  const panel = navigation.panel;
+  if (e.key.startsWith('Arrow') || (panel && e.key === 'Tab')) {
+    const rows = panel?.id === 'seating-options'
+      ? [controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]]
+      : panel || playing ? []
+        : session ? [controls($('results').querySelector('.result-actions')!), ...controls($('results')).filter((el) => !el.closest('.result-actions')).map((el) => [el])]
+          : [controls($('lobby').querySelector('.quick-setup')!).filter((el) => el.id === 'choose-song'), controls($('lobby').querySelector('.ready-actions')!), controls($('lobby').querySelector('.lobby-actions')!)];
+    if (navigation.key(e, target, rows, view.pickerOpen)) return;
   }
   if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
   else if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
     offsets.visualMs += (e.code === 'ArrowRight' ? 5 : -5) * (e.shiftKey ? 4 : 1);
     saveOffsets();
-  } else if (e.key === 'Enter' && !panel && !session && target === document.body) void start('play');
+  } else if (e.key === 'Enter' && !panel && !session && target === document.body) $('btn-play').click();
 });
 $('btn-play').focus();
 window.addEventListener('resize', () => {
@@ -1172,7 +1338,7 @@ function maybeAutostart(): void {
   const waited = performance.now() - autostartReadySince;
   if (mode === 'play' && ((!tight && waited < 20_000) || (!audioSettled && waited < 10_000))) return;
   autostarted = true;
-  void rebuild().then(() => window.setTimeout(() => void start(mode), num('startDelay', 1500)));
+  void rebuild().then(() => window.setTimeout(() => void start({ mode, opener: $('btn-play') }), num('startDelay', 1500)));
 }
 
 // ── render loop ─────────────────────────────────────────────────────────────
@@ -1184,7 +1350,7 @@ function loop(ts: number): void {
   if (session) {
     session.missGraceMs = missGrace();
     session.frame(ts);
-    sampleTiming(session, ts);
+    if (playing) sampleTiming(session, ts);
   } else {
     audio.clock.update(); // keep the audio↔performance mapping settled before a round starts
     const dt = Math.min(0.1, (ts - lastIdle) / 1000);
@@ -1219,7 +1385,7 @@ fetch('charts/index.json')
   })
   .then(async (ix) => {
     index = ix;
-    if (!ix.songs.some((s) => s.id === songId)) songId = ix.songs[0].id;
+    if (!ix.songs.some((s) => s.id === songId)) songId = ix.songs.find((s) => s.id === 'jingle-bells')?.id ?? ix.songs[0].id;
     if (!ringerCount) ringerCount = 3;
     await rebuild();
     maybeAutostart();
