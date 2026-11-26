@@ -1,0 +1,785 @@
+{
+ "schema": "private.backing-catalog.provenance/1",
+ "generated": "2026-11-26T03:17:57.593Z",
+ "status": "Provenance for the fixed S9 catalog. The original candidate status is superseded by the asset register; consult the register for review status.",
+ "author": {
+  "tool": "GitHub Copilot app (agent session 5e6790ba-037f-49f0-9e65-f19c2e9deeed)",
+  "model": "Claude Fable 5.2",
+  "modelId": "claude-fable-5.2",
+  "terms": {
+   "note": "Used through the owner's GitHub Copilot subscription. Reference observed by the coordinating session, not by this one; recorded as an observation, not as a legal clearance.",
+   "url": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot",
+   "retrieved": "2026-11-25",
+   "versionEffective": "2026-08-27"
+  },
+  "revision": "pass 2: one independent score review applied (see prompts.md, message 8)",
+  "promptLog": {
+   "path": "spikes/s9-page-host/backing/provenance/prompts.md",
+   "sha256": "490d93b630de332136fe1aca1b6aa83b657d6168622a010dcaebddf17d8c9362"
+  }
+ },
+ "method": "Deterministic: node build.mjs (engine.mjs + specs.mjs). No sampling, no network, no other model.",
+ "repo": {
+  "head": "97643ec5c0aca3374dca2b3c72b5317e3d63035c",
+  "chartsSourceHash": "41a520222a4b425dceffb65e403fe860d132a494"
+ },
+ "generator": {
+  "engine.mjs": "b25ea9b4db8f849c3e936bceceb773575e7e702a59968e87f48abf6e1e0c3f86",
+  "specs.mjs": "b3ae04fe90f973480feeb555d94b962a2fcb92c7f8cacfcd7518ff53077d0b41",
+  "build.mjs": "3f288528692ddaed306407feeb73fb3a372acbe5d36bf37d2997ed2967095f8e"
+ },
+ "manifest": {
+  "path": "spikes/s9-page-host/backing/catalog.json",
+  "sha256": "78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d",
+  "schema": "backing-preview-v1"
+ },
+ "timbre": {
+  "voice": "harp",
+  "samples": "VSCO-2 CE harp, CC0, pinned by commit and SHA-256",
+  "provenance": "spikes/s9-page-host/backing/provenance/samples.json",
+  "provenanceSha256": "bec82b16faff58467c30bd797741de312c12e7a3f41961dbb1e074c1e6028636",
+  "note": "Recorded acoustic samples; the runtime picks the nearest pinned original."
+ },
+ "pilots": {
+  "note": "The exact pilot note streams (Shchedryk bars 29-44, Holly bars 1-17) remain audition-only for the balanced/easy/1-ringer part and are not in this manifest."
+ },
+ "songs": {
+  "jingle-bells": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/jingle-bells.abc",
+    "sha256": "56ff7da48ea4bf6ecab20e6b50a90c8e4e4cc39c5a31b5943faee18f42020edf"
+   },
+   "charts": {
+    "short": "3018040c2674560391ffcf929605231f77d415691aab2e9efd35704bfde73d26",
+    "full": "6e9cb9a2eac62bc5273471e4e5ee53f403001df1e9f4b128d03ba6cb1ed891fa"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Verse over a still bass that starts to walk at each line end; the chorus changes to a root-and-fifth bass with a broken chord, then thirds for its second half.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 walk/after/mp",
+     "9-12 bar/line/mp",
+     "13-16 walk/line/mf",
+     "17-20 pulse/roll/mf",
+     "21-24 walk/roll/mf",
+     "25-28 pulse/pair/f",
+     "29-32 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "3a432cc63972b72e22bc9469085b38cdb52e91ae3659097458cc31e7793d8463"
+   },
+   "events": {
+    "short": 104,
+    "full": 219,
+    "sha256": "1d0b12e46dfdeb9f97b6d5daeb840693b9f3f782d5bed43fd7be693123cc6e04"
+   }
+  },
+  "joy-to-the-world": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/joy-to-the-world.abc",
+    "sha256": "2247ef6035bc3d65169cc43f5db7902f647c1ea99c55a01bfa761029141aa803"
+   },
+   "charts": {
+    "short": "2abab21af5655b17ac94d0b36bd0299b3c048cc5143edb1bdc119a52c79ec913",
+    "full": "c929cab1847a2fd7720b45b2c5cac2857c9c71c95dd7227672eab2574e18b174"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Firm from the first descending scale; a tonic drone under \"let every heart\" and \"and heaven and nature sing\" (where the chart stays on D), released into a walking bass for the last line.",
+    "phrases": [
+     "1-4 bar/line/mf",
+     "5-7 walk/pair/mf",
+     "8-11 pedal/roll/mp",
+     "12-15 pedal/after/mp",
+     "16-19 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "54d35f57bdfa91957585c17f4a706574fce45d99b6b6e4eb711e48951a2a2521"
+   },
+   "events": {
+    "short": 60,
+    "full": 311,
+    "sha256": "58f3f818df78722fef238f65d308f13b7af676a665ac36978f68bcbad2dab073"
+   }
+  },
+  "silent-night": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/silent-night.abc",
+    "sha256": "f8c298b880a359f304ec9d25233d634d4af65d69d4e36b769741738261f8068e"
+   },
+   "charts": {
+    "short": "55a230cd46a360867f41b62a220b0dca35b35354fe43d70ae2ff961e6a5942ed",
+    "full": "9eb6d51e8c99d111dd54ae4ce6557319fa4c90ea7f198380b126b643a3659d13"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "A tonic drone with a rocking figure from the start, one sustained line for the middle, thirds over a moving bass for \"sleep in heavenly peace\".",
+    "phrases": [
+     "1-4 pedal/roll/pp",
+     "5-8 chord/line/p",
+     "9-12 walk/pair/mp"
+    ],
+    "handWrittenBars": [],
+    "sha256": "b9c5fb7086a03a77ce97298d756b598fa8291919b322e28966ca55601cf4fc84"
+   },
+   "events": {
+    "short": 48,
+    "full": 247,
+    "sha256": "b58b929dd75cde8a84819b695b5348e90681c6414706be5c8c825aef15c949d3"
+   }
+  },
+  "deck-the-halls": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/deck-the-halls.abc",
+    "sha256": "58be0073a221fe354633d5de7e505760774737a51826150e9acbc4f1dc0febe6"
+   },
+   "charts": {
+    "short": "52bbf5e3e507a2ce1c829f93a69ac8d32e003ead2e2409463b7478645809d4b3",
+    "full": "891d5a39a61373702b27304b14970f03523df4d5fa586feb85e20f6958873344"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "A A B A: first A light, second A with a moving line, B (the turn to the dominant) with a walking bass, last A full.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 chord/line/mp",
+     "9-12 walk/pair/mf",
+     "13-16 chord/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "10bdeee7c0637ab633b73d72f89679f5c4a58799768db50a5e0d79580b41bac7"
+   },
+   "events": {
+    "short": 90,
+    "full": 390,
+    "sha256": "058500c15bb7c95d758afc3a296c5943245e97c98b2b9e6ba3da4a0bf2443891"
+   }
+  },
+  "we-wish-you-a-merry-christmas": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/we-wish-you-a-merry-christmas.abc",
+    "sha256": "d5e11cbe34739d5e290b5b5c31abd45d71fa8c7e379a08bbb08206a24e78bb5f"
+   },
+   "charts": {
+    "short": "7f6b60f875334e76f152cd5a6834aa8dc3f76936a344d4228a3cd9a51b37a4c4",
+    "full": "11ef19d2450b76d3d4b7b445a50a2a0797216710343939f116a7a76e433bd2ff"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Quick waltz: after-beat line, a walking bass into the first close, held thirds for \"Good tidings\", walking bass and thirds to end.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 walk/line/mf",
+     "9-12 chord/pair/mp",
+     "13-16 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "7c68b8654b6efce1500e585d90f7410f373fe0a045465ec4b2c11e135c470155"
+   },
+   "events": {
+    "short": 53,
+    "full": 318,
+    "sha256": "00fc5aef37f6e517673b96ec0a443f93732208cc1b0e5a8bc2cbdf1cfaa9a485"
+   }
+  },
+  "god-rest-ye-merry-gentlemen": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/god-rest-ye-merry-gentlemen.abc",
+    "sha256": "884948d58fcd8b87d0feb43ba59fd305e803be1107017f6fbfde5b949405b418"
+   },
+   "charts": {
+    "short": "0345689767dae9e4672d579f51f3e47163a5f8636b8855e7017d123967ef2952",
+    "full": "0bba210d369b5dca54ff462a144b38927b5622d5b57f61adcf4d0c38454a7514"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Minor-mode verse over a spare bass, a walking bass for the middle lines, thirds and the strongest bass for the refrain.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 chord/line/mp",
+     "9-12 walk/line/mf",
+     "13-15 chord/pair/mf",
+     "16-19 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "b791ef8b780b6034caeb3652f538e84649d1c5484d556275c7dd853ce66e3ea4"
+   },
+   "events": {
+    "short": 75,
+    "full": 319,
+    "sha256": "e5670781dab848e09f14e55d7444fcad94bc825d57a651f58a0a7cb17183238d"
+   }
+  },
+  "we-three-kings": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/we-three-kings.abc",
+    "sha256": "d9e99331be9884889dfa1b34027bcc9e41fcd89d375192e7a0d44d3444b1a6ae"
+   },
+   "charts": {
+    "short": "9cd39f5faee615da92fe94808b7f5207cd72101dfa749bed4c70c16de670d66f",
+    "full": "df7bb5704a85fff31df646b4abb6de5ea882ecae613928b40ca842b5198aa653"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Minor verse kept low and thin, growing by line; the major refrain changes to a tonic drone with a broken chord and ends over a walking bass in thirds.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 chord/line/mp",
+     "9-12 walk/line/mp",
+     "13-16 chord/pair/mf",
+     "17-20 pedal/roll/mp",
+     "21-24 chord/roll/mp",
+     "25-28 pedal/pair/mf",
+     "29-32 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "5bdf8119de2b7cf474f70ef0280f586168e2be46036a712d3a16f4b7e7b5e37f"
+   },
+   "events": {
+    "short": 127,
+    "full": 388,
+    "sha256": "727dfd02ca89ee83da1606e60fa5744bdf69a8511fe7348716b0ae256d2ef2e7"
+   }
+  },
+  "angels-we-have-heard-on-high": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/angels-we-have-heard-on-high.abc",
+    "sha256": "d75772213df29e8db7be581d386072a27c8d95861ad38c6a6746558d80688889"
+   },
+   "charts": {
+    "short": "bae093554dda594d9ed17f9167a36cf0445fc943066919f8e542f395eb29e078",
+    "full": "5daeaa8ac180040ede699ad21a0c43762c848cc759a16dbbf12e6e581cfb1d4a"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Verse twice (thin, then a moving bass), then sustained thirds under the Gloria runs so the bells carry the motion; the second Gloria is the fullest and walks into the close.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 chord/line/mp",
+     "9-12 chord/pair/mf",
+     "13-14 walk/line/mf",
+     "15-18 chord/pair/mf",
+     "19-21 walk/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "9726fecdd15f15b1609e7b1cfb1aee4f0d6ecd31d43a3773be47ae57dede1bdb"
+   },
+   "events": {
+    "short": 101,
+    "full": 324,
+    "sha256": "0627f7bcefc1f423af7b38e738eebf55df18098be38fb73582b027f6d6823888"
+   }
+  },
+  "o-christmas-tree": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/o-christmas-tree.abc",
+    "sha256": "0f8e4d6876fe01e2e40ab38f6509b7faf0127432998fe1d88eae16600521b1ae"
+   },
+   "charts": {
+    "short": "50309b439f33297d2315274ef035466e37e55a4bfe7c3aeedeac1e3c23fc3da3",
+    "full": "a30630558c66ea2566b8fa2669682286cd7277be2f9b2a82f2a07bc2cd31ce82"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "A B A in twelve bars: light A, a broken chord through the middle, thirds for the return.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 chord/roll/mp",
+     "9-12 chord/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "2278ee087a203ac4fc8dab7904f92300501f96bada851faeecfd33aabbad850e"
+   },
+   "events": {
+    "short": 44,
+    "full": 278,
+    "sha256": "7f5382d8d747f9684780d8b40d92bfad95dc3754b3f95982e3a99f139992bbcb"
+   }
+  },
+  "jolly-old-st-nicholas": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/jolly-old-st-nicholas.abc",
+    "sha256": "8a4371b324afe4ccd69989ffbe979d809132aaa1b4e2322004f6490069943262"
+   },
+   "charts": {
+    "short": "2fa832a4ffcd7b054a3b6cf628fa1c0ae80e14aebb8f284fb59cacd80f67aa17",
+    "full": "471beb1376d247b8c3037f244ffbbec88c4339a726ea241d69cea8eb5389488b"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Light and short-breathed: after-beat line, a moving line, a broken chord for the third line, thirds over a walking bass to finish.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 chord/line/mp",
+     "9-12 bar/roll/mp",
+     "13-16 walk/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "58e5ab146346cfca9f4dcbc08a7f890357c4749d28cb35662614d9122783f0e2"
+   },
+   "events": {
+    "short": 44,
+    "full": 276,
+    "sha256": "a1325b9fdc153607cc99b252a95c2c2f929e42f1e295fb42a8e1949e2da88a31"
+   }
+  },
+  "ding-dong-merrily-on-high": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/ding-dong-merrily-on-high.abc",
+    "sha256": "728ac50c26e4e9b0bd7e1cc83c81e1a64c6c7a6fdcbb5f2d794b7bf294cb1705"
+   },
+   "charts": {
+    "short": "a4a92901ae330380f80cb23a2855687027924efdc68e46a521875fdd89d7707b",
+    "full": "b9b8ac3f7c2b693e41c81451ffcf632ee8db15a1c695fd4c235dcd311abcff03"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Two light verse lines, then held thirds over a walking bass under the long Gloria sequence, and a firm close.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 chord/line/mp",
+     "9-14 walk/pair/mf",
+     "15-16 chord/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "874477a82b74632069eb1ce4c06dc07f358b9a00899fea7e5e164e3a27bbee7a"
+   },
+   "events": {
+    "short": 66,
+    "full": 341,
+    "sha256": "0b0444ecae1688d7a6d53449fe4eda06974945f14dd6fd56406b90a20be1ec64"
+   }
+  },
+  "auld-lang-syne": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/auld-lang-syne.abc",
+    "sha256": "e96f9c77b2b278eb1a90f01cccb06ef43da389cb74ae59c0bba1bb5e3a31a69c"
+   },
+   "charts": {
+    "short": "d59850fcc17503e0227eefe26e3e2af498e005ba8e5e87c5430ddb6c029c3406",
+    "full": "64f779a921c57a1c83aaa560ad9979d345933805322e1bbb6bec6a8b2aec7355"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Verse held back (after-beat line, then one sustained line); the chorus opens with a broken chord and closes with a walking bass and thirds.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 chord/line/mp",
+     "9-12 chord/roll/mp",
+     "13-16 walk/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "76a60790c6e634f5e83fb479291b96f7dacd3d41257e4f69ec764f8a4452047d"
+   },
+   "events": {
+    "short": 55,
+    "full": 193,
+    "sha256": "a5ad7987e82bc3737d7c9a1613a8176d3f16c4be4b265303419fdf26cd0d3069"
+   }
+  },
+  "it-came-upon-the-midnight-clear": {
+   "title": "It Came Upon the Midnight Clear (tune CAROL)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/carol.mid",
+    "sha256": "0e1f08dd5e6840949cfa700c026643d6d748402d1b83336a9a723e94db1e8104"
+   },
+   "charts": {
+    "short": "09179c133542b829f053d86d02c7e7cdb96a2e2c9a42f8cd0163fdc7efaa0da2",
+    "full": "8ba973c7731dd472661d1b1034255d930817408b8ca681f80d9736c6feeb3ae9"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Lilting 6/8: after-beat line, sustained line, a rolling figure for the contrasting third line, thirds for the return.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 bar/line/mp",
+     "9-12 chord/roll/mp",
+     "13-16 chord/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "908a0dfa8290d15936bacb7e8670b66a7d6655fea9bad0bf6a2169502d9801d2"
+   },
+   "events": {
+    "short": 50,
+    "full": 225,
+    "sha256": "f8a6b0cc6d94d16b06edc31972f6d4dad388d296182e0805c31a92ef4f3d48bb"
+   }
+  },
+  "good-king-wenceslas": {
+   "title": "Good King Wenceslas",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/GoodKingWenceslas.mid",
+    "sha256": "f854da74a0790af27192f9b0002348649852dbcfcaa26e490e789517b2dde97a"
+   },
+   "charts": {
+    "short": "3d432e9d6baffaaafd7518b8fe351ccf789da65a1c7af9e40734f1f88152faf5",
+    "full": "7770463a3550083818119d77b2a7d688297f182661c06e5b7751af491ae4b432"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "The hymn's own bass, thinned to the strong beats at first and given in full as the verse rises; thirds from the third line.",
+    "phrases": [
+     "1-4 bar/after/mp b",
+     "5-8 chord/line/mp",
+     "9-12 chord/pair/mf",
+     "13-17 chord/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "eb500220db885b7fbdba6070442e13319f78c3b1819ae0ebf03f21e9aff8c548"
+   },
+   "events": {
+    "short": 91,
+    "full": 379,
+    "sha256": "f86fc79593ee990186983ec6e9915e579577ae6a9cff2d931417ba72366b322e"
+   }
+  },
+  "the-holly-and-the-ivy": {
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/the-holly-and-the-ivy.abc",
+    "sha256": "d26005daf1bd612eae7c83faddadc2207014ce80c761bff49a3c983096126629"
+   },
+   "charts": {
+    "short": "35fae18d709781c5b483bc95ca68c64d6bac2865e585f9ae385e1ecc2f4496c0",
+    "full": "74dc5f5189961de5de5eadcfb1cb2f9dda366a0179329c2c88099d4f382353b5"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "The pilot's plan inside the chart harmony: bass and one line, then a walking bass with thirds; the refrain opens on a tonic drone with a rolling line (the drone gives way wherever the chart leaves F) and closes with the fullest writing.",
+    "phrases": [
+     "1-4 chord/line/mp",
+     "5-8 chord/pair/mp",
+     "9-12 pedal/roll/p",
+     "13-16 chord/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "6e409193f604bb7d63471d69066cde251484bb2ab47b143fbd792a47a57e326f"
+   },
+   "events": {
+    "short": 85,
+    "full": 434,
+    "sha256": "f3b22e1e0e47ab362010561f81cade5065edeed9f47ca7e00a418c4f98f2837a"
+   }
+  },
+  "o-come-all-ye-faithful": {
+   "title": "O Come, All Ye Faithful (tune ADESTE FIDELES)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/adeste_fideles.mid",
+    "sha256": "d6fe90acc41b3da16a932e636c75219d4accae3bf89105741581825b7a889976"
+   },
+   "charts": {
+    "short": "c219131ae16b7ce07273f9e467348e7511335bd0f13d11318db05b15f9f189ac",
+    "full": "ce020a165c19a9c66e5328c694a1858234282776aa89a0267679b3847c057efc"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Hymn bass; the three \"O come, let us adore him\" build from an after-beat line to thirds.",
+    "phrases": [
+     "1-4 bar/line/mp",
+     "5-8 chord/line/mp",
+     "9-12 bar/after/p b",
+     "13-16 chord/line/mp",
+     "17-20 chord/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "5e83b65596c6905c6a600486bd02a233f43c5253578c53a29252d1a391f50b45"
+   },
+   "events": {
+    "short": 94,
+    "full": 320,
+    "sha256": "0b58602995ff313c013562f77bb82f434bc9f32295e03a32ae725825168a5840"
+   }
+  },
+  "hark-the-herald-angels-sing": {
+   "title": "Hark! The Herald Angels Sing (tune MENDELSSOHN)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/mendelssohn.mid",
+    "sha256": "0e8cbffa0a338e1df93110256d8968b2fd807355151c5130733aa15b1365cc61"
+   },
+   "charts": {
+    "short": "7ae6cc08d6a847c1cd88c2093c88c000a6c82812ee510804db588800e1cd7348",
+    "full": "e94d9f2c0015ba2b18878e097733d3f67acdba9397ecf507c2e887e89b9359f5"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Hymn bass throughout; the two \"Joyful, all ye nations\" sequences are pulled back to an after-beat line so the last eight bars can open out.",
+    "phrases": [
+     "1-4 bar/line/mp",
+     "5-8 chord/line/mp",
+     "9-12 bar/after/p b",
+     "13-16 chord/pair/mf",
+     "17-20 chord/pair/f"
+    ],
+    "handWrittenBars": [],
+    "sha256": "b1eae25ecb3b968126b40d78bf1b73f70fd663275faba34c4bb020f6332fd18e"
+   },
+   "events": {
+    "short": 85,
+    "full": 281,
+    "sha256": "42ede4ddee9c731b983475d1cc84dc0d7202f7efafed1f42a7a923ff4e623351"
+   }
+  },
+  "the-first-noel": {
+   "title": "The First Noel",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/first_noel.mid",
+    "sha256": "5529d7e725981d92b5649b820c431e77a08fb71f0db94249d994e67a28546dea"
+   },
+   "charts": {
+    "short": "38fed8337475d90d4acf4dd293d02004f3f32c9b82d6b01250f04bbfaa5ccf62",
+    "full": "0a2fc727213bcc1bad53ab4c992273e0eb7b1443bfa3e752b517e95dfbfd31eb"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Three eight-bar lines: the first thin, the second with a moving bass and thirds, the refrain on a tonic drone with a broken chord before a full close.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 bar/line/mp",
+     "9-12 chord/line/mp",
+     "13-16 chord/pair/mp",
+     "17-20 pedal/roll/mp",
+     "21-24 chord/pair/mf"
+    ],
+    "handWrittenBars": [
+     "8",
+     "21"
+    ],
+    "sha256": "d43176754f5b7a5b4904ce775fddeafbd1852f8efcd4d76ad206091949882f44"
+   },
+   "events": {
+    "short": 106,
+    "full": 329,
+    "sha256": "852a61d2de94bcd8eb158e96e45dcadf569d466e03e1ab4ab57cdaa184776b63"
+   }
+  },
+  "o-little-town-of-bethlehem": {
+   "title": "O Little Town of Bethlehem (tune ST. LOUIS)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/st_louis.mid",
+    "sha256": "fdd5a9362ae05bf3b8e667de5ca3c1e73b6832e0da9600b86315ff637589183b"
+   },
+   "charts": {
+    "short": "d187d6bc44a57f229fce5234702a547343f35a8c205cb65508c4a84d5a05dcfd",
+    "full": "2be0c5238617bd1d24f09f0e737b23e7e263ba797f85d05d4beee7bb74ffc3c3"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Quiet hymn: after-beat line, sustained line, a slow broken chord for the third line, thirds to close.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 bar/line/mp",
+     "9-12 bar/roll/p",
+     "13-16 chord/pair/mp"
+    ],
+    "handWrittenBars": [],
+    "sha256": "43eae78ce5662d040140128d8c6014cde031823e6bc64e9abc9c6f9c2ee4d233"
+   },
+   "events": {
+    "short": 58,
+    "full": 196,
+    "sha256": "56f1cdddc742de2464574b66a2b39c4d72a948b2c0f59de7af6e84560102c7a5"
+   }
+  },
+  "what-child-is-this": {
+   "title": "What Child Is This (tune GREENSLEEVES)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/greensleeves.mid",
+    "sha256": "04a6e03dd6128aa291aa75e4df757bbba40567ef885eca18d14d51d9365cb8e8"
+   },
+   "charts": {
+    "short": "53b93bb7943d3a8b100cb3c10ff7dd81c909c0207a8c5f2f4be5bf68e7f35c51",
+    "full": "5caef46abffffedcbce64456c83217cb2403efdd95a5be4677c3d67aa6ecad02"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Minor 6/8 verse over a spare bass and one line; the refrain lifts with a rolling figure and closes in thirds.",
+    "phrases": [
+     "1-4 bar/after/p b",
+     "5-8 chord/line/mp",
+     "9-12 chord/roll/mf",
+     "13-16 chord/pair/mf"
+    ],
+    "handWrittenBars": [],
+    "sha256": "7a2795a3fd4dbbd1c210d71737fc59787cef88493cb28c73f890d9acd1bfaeb3"
+   },
+   "events": {
+    "short": 54,
+    "full": 244,
+    "sha256": "c57197f948303c3ad020f82084295ae626476bbc8a12ac514368f20e6b2a01f4"
+   }
+  },
+  "away-in-a-manger": {
+   "title": "Away in a Manger (tune MUELLER)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/mueller.mid",
+    "sha256": "d3a6632c836fa9190191ae300a249fb61916fb47679af565d72fb551f77ee228"
+   },
+   "charts": {
+    "short": "98a1a1987f561ae7b4b09eaa4e051d8a2695cbdecf7675d76fe52e5929c50c5a",
+    "full": "cb414dfbf859d50eba561dcc95f91cd44c79a969a2290f893c047ebaf4c7a251"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Lullaby: almost nothing at first, a tonic drone with a rocking figure for the third line, and thirds only for the last line.",
+    "phrases": [
+     "1-4 bar/after/pp b",
+     "5-8 bar/line/p",
+     "9-12 pedal/roll/p",
+     "13-16 chord/pair/mp"
+    ],
+    "handWrittenBars": [],
+    "sha256": "62d1c8fa94970cc4448486f1ccecbb9f0fc2a2a7153331d6141c39ca9b4a6d7d"
+   },
+   "events": {
+    "short": 63,
+    "full": 336,
+    "sha256": "b025cd752706a3544fa67b85bfd91e47861b205909ece4cf11aa91c803d9f22c"
+   }
+  },
+  "o-come-o-come-emmanuel": {
+   "title": "O Come, O Come, Emmanuel (tune VENI EMMANUEL)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/veniemma.mid",
+    "sha256": "935dfdd5d7fa90b8d78a52990dc6bbe16c818d0be20e710e58ab471a08093224"
+   },
+   "charts": {
+    "short": "9d9f7f433e01b2cfbd7c4a25580df173593f8decd65ef7ef0e601b0fabda9b4d",
+    "full": "1937218d888395caa041145c9559e331fdf1a874d2df28bbb1c3e391508903dd"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Chant-like: the source bass moves every eighth, so the backing keeps only its strong beats and one slow line; thirds arrive with \"Rejoice\".",
+    "phrases": [
+     "1-2 bar/line/p",
+     "3-4 bar/line/mp",
+     "5-6 bar/after/mp",
+     "7-9 bar/pair/mf"
+    ],
+    "handWrittenBars": [
+     "9"
+    ],
+    "sha256": "d506f51a190ea2051e6c43051530959ace092af508d4de4014c07bc51874692a"
+   },
+   "events": {
+    "short": 39,
+    "full": 209,
+    "sha256": "0608fd773aa5d0db6ba29de6da52799986d170298e03c190452105e8200c6f2b"
+   }
+  },
+  "in-the-bleak-midwinter": {
+   "title": "In the Bleak Midwinter (tune CRANHAM)",
+   "license": "LicenseRef-Mutopia-PublicDomain",
+   "sourceKind": "mutopia",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/../sources/mutopia/cranham.mid",
+    "sha256": "8bdd6cb58b8bef36cfa18ae2046128ae3faddf9ed2be1341d3fa09ee9aa745e1"
+   },
+   "charts": {
+    "short": "645c71d9f89b5ad1697536ab4a741bef89c5ec0f4cd07016a32dc3df05c778fa",
+    "full": "a8b0c1f13745c8a207824cf816a1179d0d3479a0ac13d3bc9a35c0cc6df69a08"
+   },
+   "harmonyBasis": "the source score's own voices (public-domain/CC edition in the repo)",
+   "plan": {
+    "idea": "Very spare and quiet: strong-beat bass, one line, a drone with a slow broken chord for the third line, a plain close.",
+    "phrases": [
+     "1-4 bar/after/pp b",
+     "5-8 bar/line/p",
+     "9-12 pedal/roll/p",
+     "13-16 chord/line/mp"
+    ],
+    "handWrittenBars": [],
+    "sha256": "caa59111cbbbe159fe0dbe28dea5004ad4386c82ef4c00a1d67ca62469e6e243"
+   },
+   "events": {
+    "short": 62,
+    "full": 151,
+    "sha256": "b89c98cbc46dfa335c0e25c146c3e259cc825eca3b893e86ad78d6f77a583902"
+   }
+  },
+  "carol-of-the-bells": {
+   "title": "Carol of the Bells (Shchedryk)",
+   "license": "CC0-1.0",
+   "sourceKind": "self-encoded",
+   "source": {
+    "path": "spikes/s5-chart-pipeline/songs/carol-of-the-bells.abc",
+    "sha256": "c4d0c93bc453e108dd7dbd31aec7f3d47f7ca9dec35cfd600978c6533a85a086"
+   },
+   "charts": {
+    "short": "9063889cbe8c2bdb0b17dd6d5a3884a850e8fd84ae702b4d90d40aed9f4e446e",
+    "full": "d579f4dc6c475195ae767482c57f3ff13f2b866b1f6820ba0a6e95d089f3a722"
+   },
+   "harmonyBasis": "lead-sheet chord symbols and the chart's realized bells",
+   "plan": {
+    "idea": "Follows the chart's own form: silent under the opening ostinato, after-beat pedal texture when the bass enters, thirds at the two melodic peaks (bars 17-20, 33-36), a bare bass under each first rising scale, and a partial echo of the ostinato in the last bar (its passing A is removed wherever a bell rings Bb).",
+    "phrases": [
+     "1-4 rest/none/p",
+     "5-8 bar/after/p",
+     "9-12 chord/after/mp",
+     "13-16 chord/line/mp",
+     "17-20 chord/pair/mf",
+     "21-22 bar/none/p",
+     "23-24 chord/line/mp",
+     "25-28 chord/line/mp",
+     "29-32 chord/after/mp",
+     "33-36 chord/pair/mf",
+     "37-38 bar/none/p",
+     "39-40 chord/line/mf",
+     "41-44 chord/pair/mf"
+    ],
+    "handWrittenBars": [
+     "44"
+    ],
+    "sha256": "7941f7573f8b411de36e239b94edb11a3db8a96d5419898afa3217f2aceb055d"
+   },
+   "events": {
+    "short": 122,
+    "full": 262,
+    "sha256": "af03e91d3a2271bbcab7dcc1adb0b1c5da0115b56b861aeac50643a0215651a9"
+   }
+  }
+ }
+}

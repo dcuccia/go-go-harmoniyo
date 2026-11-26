@@ -1,0 +1,3 @@
+/spikes/s9-page-host/backing/catalog.json -text
+/spikes/s9-page-host/backing/samples/* -text
+/spikes/s9-page-host/backing/provenance/* text eol=lf

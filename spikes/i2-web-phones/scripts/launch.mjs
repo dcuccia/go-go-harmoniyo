@@ -65,11 +65,15 @@ export async function main(argv, packaged = null) {
   const opts = parseStartArgs(argv);
   if (opts.help) {
     console.log(say(USAGE).replace(/\n  --no-build[^\n]*/, ''));
+    if (!packaged) console.log("  --backing-preview <absolute path>  Local TV audition with the worktree's .backing-preview folder (implies --lan-only)");
     return 0;
   }
 
   console.log(`\nGo Go HarmoniYo — preflight checks (${packaged ? 'portable package, ' : ''}Node.js ${process.versions.node})`);
   const argErrors = argProblems(argv);
+  if (packaged && opts.backingPreview !== undefined) argErrors.push({
+    level: 'error', title: '--backing-preview is only available from a local Node worktree',
+  });
   if (argErrors.length) {
     console.error(fmt(argErrors) + '\n');
     return 1;
@@ -106,7 +110,8 @@ export async function main(argv, packaged = null) {
   }
   if (willBuild) {
     console.log('\nBuilding the game…');
-    if (!npm(['run', 'build'], root)) {
+    const buildArgs = opts.backingPreview ? ['--', '--mode', 'backing-preview', '--outDir', 'dist-backing-preview'] : [];
+    if (!npm(['run', 'build', ...buildArgs], root)) {
       console.error(`\n  ✗ The build failed (see above). Try: pwsh tools/setup/setup-web.ps1 -Force   (or delete node_modules folders and retry)\n`);
       return 1;
     }
@@ -142,7 +147,7 @@ function startHost(opts, pre, warnings, packaged, say) {
       env: { ...pre.env, ...packaged.env },
       stdio: ['inherit', 'pipe', 'inherit'],
     })
-    : spawn(process.execPath, [tsx, 'src/host/server.ts', '--game', join(root, 'dist'), ...hostArgs], {
+    : spawn(process.execPath, [tsx, 'src/host/server.ts', '--game', join(root, opts.backingPreview ? 'dist-backing-preview' : 'dist'), ...hostArgs], {
       cwd: s1,
       env: pre.env,
       stdio: ['inherit', 'pipe', 'inherit'],
@@ -164,7 +169,8 @@ function startHost(opts, pre, warnings, packaged, say) {
       `    Phones: ${phones}    (or scan the QR code on the TV)\n` +
       (/\.trycloudflare\.com/.test(phones)
         ? '    Phones join through the cloud tunnel, then switch to a direct Wi-Fi link when they can (the TV shows which).\n'
-        : say('    Phones need the same Wi-Fi as this PC. If they can\'t connect: install cloudflared, or npm start -- --tunnel\n')) +
+        : opts.backingPreview ? '    Private audition: phones must join this Wi-Fi; the TV preview is loopback-only.\n'
+          : say('    Phones need the same Wi-Fi as this PC. If they can\'t connect: install cloudflared, or npm start -- --tunnel\n')) +
       (warnings ? `    Preflight: ${warnings} warning(s) above.\n` : '') +
       `    Stop:   Ctrl+C${packaged ? ' (or close this window)' : ''}\n  ${line}\n\n`);
   };

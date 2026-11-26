@@ -6,7 +6,7 @@ import { execFile } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import net from 'node:net';
 import { homedir, networkInterfaces } from 'node:os';
-import { basename, delimiter, dirname, join } from 'node:path';
+import { basename, delimiter, dirname, isAbsolute, join } from 'node:path';
 import { parseArgs } from 'node:util';
 
 export const MIN_NODE = 22;
@@ -26,12 +26,12 @@ const OWN_FLAGS = new Set(['--check', '--no-build', '--help', '-h']);
 
 /** The S1 host's options (spikes/s1-phone-bell/src/host/server.ts parseArgs; a test keeps them in sync). */
 export const HOST_OPTIONS = Object.fromEntries([
-  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'cloudflared', 'rtc', 'lan-qr-after', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game'].map((k) => [k, { type: 'string' }]),
+  ...['port', 'http-port', 'ip', 'cert', 'key', 'hostname', 'public-url', 'cloudflared', 'rtc', 'lan-qr-after', 'yarg-port', 'yarg-phones', 'yarg-ringers', 'song', 'difficulty', 'charts', 'game', 'backing-preview'].map((k) => [k, { type: 'string' }]),
   ...['tunnel', 'lan-only', 'no-tunnel', 'no-open', 'no-https', 'yarg'].map((k) => [k, { type: 'boolean' }]),
 ]);
 
 /** npm keeps `npm start --tunnel` (no `--`) for itself as npm_config_tunnel; map those back to our flags. */
-const NPM_SWALLOWED = { tunnel: '--tunnel', lan_only: '--lan-only', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url', cloudflared: '--cloudflared', rtc: '--rtc', lan_qr_after: '--lan-qr-after' };
+const NPM_SWALLOWED = { tunnel: '--tunnel', lan_only: '--lan-only', ip: '--ip', port: '--port', http_port: '--http-port', check: '--check', build: '--no-build', open: '--no-open', https: '--no-https', public_url: '--public-url', cloudflared: '--cloudflared', rtc: '--rtc', lan_qr_after: '--lan-qr-after', backing_preview: '--backing-preview' };
 
 /**
  * Options the S1 host would reject (it exits with a stack trace, after the install and build), or
@@ -58,6 +58,11 @@ export function argProblems(argv, env = process.env) {
   if (argv.includes('--tunnel') && (argv.includes('--lan-only') || argv.includes('--no-tunnel'))) {
     out.push({ level: 'error', title: '--tunnel and --lan-only/--no-tunnel contradict each other', fix: ['Pick one, or neither: by default the tunnel is used when it can be, and the Wi-Fi address when it can\'t'] });
   }
+  const preview = flagValue(argv, 'backing-preview');
+  if (preview !== undefined && (!isAbsolute(preview) || ['--tunnel', '--no-https', '--game', '--yarg', '--public-url', '--hostname', '--cloudflared', '--check', '--no-build']
+      .some((flag) => argv.some((a) => a === flag || a.startsWith(`${flag}=`))))) {
+    out.push({ level: 'error', title: '--backing-preview requires an absolute sidecar path, a fresh Node build, and LAN HTTPS phone join (no tunnel or public options)' });
+  }
   const rtc = flagValue(argv, 'rtc');
   if (rtc !== undefined && !/^(auto|on|off)$/i.test(rtc)) out.push({ level: 'error', title: `--rtc must be auto, on or off (got "${rtc}")` });
   const lanQr = flagValue(argv, 'lan-qr-after');
@@ -78,6 +83,8 @@ export function flagValue(args, name) {
 /** Split start.mjs's own flags from the S1 host's and read the options preflight needs. */
 export function parseStartArgs(argv) {
   const hostArgs = argv.filter((a) => !OWN_FLAGS.has(a));
+  const backingPreview = flagValue(hostArgs, 'backing-preview');
+  if (backingPreview && !hostArgs.includes('--lan-only')) hostArgs.push('--lan-only');
   const port = (name, def) => {
     const v = flagValue(hostArgs, name);
     if (v === undefined) return def;
@@ -89,6 +96,7 @@ export function parseStartArgs(argv) {
     noBuild: argv.includes('--no-build'),
     help: argv.includes('--help') || argv.includes('-h'),
     hostArgs,
+    backingPreview,
     ip: flagValue(hostArgs, 'ip'),
     httpPort: port('http-port', DEFAULT_HTTP_PORT),
     httpPortGiven: flagValue(hostArgs, 'http-port') !== undefined,

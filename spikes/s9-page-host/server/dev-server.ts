@@ -8,11 +8,14 @@
 import { createReadStream, existsSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import { networkInterfaces } from 'node:os';
-import { dirname, extname, join, normalize, sep } from 'node:path';
+import { basename, dirname, extname, join, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { Readable } from 'node:stream';
+import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { onJoin, onLeave, onMessage, parseJoin } from '../signal/relay.mjs';
+import { serveHarpAsset } from '../worker/harp-assets.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const WEB = join(here, '..', 'dist', 'web');
@@ -30,6 +33,10 @@ const { values: args } = parseArgs({
 });
 
 const port = Number(args.port);
+args.web = resolve(args.web!);
+if (['web-backing-local', 'web-reviewed-worker'].includes(basename(resolve(args.web))) && (args.host !== '127.0.0.1' || args.tunnel)) {
+  throw new Error('The S9 backing rehearsal requires --host 127.0.0.1 and no tunnel.');
+}
 const log = (...a: unknown[]): void => {
   if (!args.quiet) console.log(...a);
 };
@@ -107,6 +114,28 @@ const server = createServer((req, res) => {
   }
   if (path.startsWith('/signal/')) {
     res.writeHead(426, { 'content-type': 'text/plain' }).end('expected a WebSocket');
+    return;
+  }
+  if (path.startsWith('/backing/audio/') || path.startsWith('/backing/sample-files/')) {
+    const encoding = req.headers['accept-encoding'];
+    const request = new Request(new URL(path, 'http://localhost'), {
+      method: req.method, headers: encoding ? { 'accept-encoding': encoding } : {},
+    });
+    void serveHarpAsset(request, path, (file: string) => {
+      const local = join(args.web!, file);
+      const stat = statSync(local, { throwIfNoEntry: false });
+      if (!stat?.isFile()) return new Response(null, { status: 404 });
+      const body = req.method === 'HEAD' ? null : Readable.toWeb(createReadStream(local));
+      return new Response(body as ReadableStream | null, { headers: { 'content-length': String(stat.size) } });
+    }).then((response: Response | null) => {
+      if (!response) { res.writeHead(404).end(); return; }
+      res.writeHead(response.status, Object.fromEntries(response.headers));
+      if (response.body) Readable.fromWeb(response.body as NodeReadableStream).pipe(res);
+      else res.end();
+    }).catch((error: unknown) => {
+      console.error('S9 sample delivery failed:', error);
+      res.writeHead(500).end();
+    });
     return;
   }
   serveStatic(req, res);

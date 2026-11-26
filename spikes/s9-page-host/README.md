@@ -97,6 +97,38 @@ targets that Worker.
 The phone shows the TV room and connection progress above its controls, including when it is
 trying a relay. It shows a playable note only after the TV assigns a part.
 
+### Fixed recorded backing for the public browser
+
+The **reviewed_backing** deployment input opts the public Worker build into recorded harp for
+Standard Short and Full. It requires accepted ADR-0015 and the owner's asset-register review for
+the exact audition score digest. The Worker uses a separate asset directory for that deployment,
+not the default S9/native build directory. Leaving the deployment input off builds the procedural
+version. Node builds are unchanged.
+
+For a loopback rehearsal only (from `spikes/s9-page-host`, with charts and brand already built):
+
+```powershell
+npm run build -- --test-reviewed-backing
+npm run wrangler -- dev --local --ip 127.0.0.1 --port 18961 --assets dist\web-backing-local
+```
+
+Open `http://127.0.0.1:18961/` on this PC. The rehearsal output is separate from the Worker's
+default asset root. The same browser build can also be served with
+`npm run dev -- --web dist\web-backing-local --host 127.0.0.1`. Both use the host in the browser;
+Node's dev server substitutes for the Worker and cannot validate Cloudflare's public edge cache.
+Loopback is for one computer (use keyboard or Autoplay, or a controller tab on that PC).
+
+After the room URL is ready, the TV preloads the versioned mono harp bank and keeps the decoded
+buffers for the page session. The phone does not load it. Play can wait for a selected song's
+chart, audio setup, backing score and samples. The TV displays **Getting the round ready**,
+then **Loading harp backing** if needed, followed by the count-in. Choose **Play with standard
+backing** to skip the harp wait for one round, or **Back** to cancel. A failed load or decode
+falls back to procedural backing with a visible label and retries on the next Play. A
+round never switches backing mid-song. First Ring stays procedural, and parts already filled by
+bells receive no extra notes. The browser negotiates precompressed Brotli or identity WAVs using
+ordinary HTTP; the `immutable` response applies only to the content-versioned WAV URLs and is
+not evidence of public edge caching.
+
 ## App shells (`app/`)
 
 ```powershell

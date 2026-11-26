@@ -256,6 +256,43 @@ Code layout (modular so song-form/key changes in the timeline flow through): `ti
 (one play-through). Practice speed uses the already-stretched chart (`src/speed.ts`); the
 backing, count-in and ending follow it. See [the score audit and matched auditions](#score-audit-and-audition).
 
+#### Private catalog audition (local Node only)
+
+With the private sidecar already installed in this worktree, launch from the repository root in
+PowerShell:
+
+```powershell
+npm start -- --backing-preview (Join-Path $PWD.Path '.backing-preview')
+```
+
+Open the printed TV address (`http://127.0.0.1:18900/game/?backingPreview=1` by default).
+The lobby's **Local audition** picker selects **Candidate** or **Baseline**. To compare the same
+round, change **Backing for next round** on the results screen and select **Play again**.
+Both use the existing Backing volume, Count-in and Practice speed. First Ring always uses
+baseline. Phones scan the regular QR and join the same Wi-Fi over HTTPS; the phone page does
+not receive candidate notes or samples. The audition does not support tunnels or the portable
+package. The launcher builds the audition UI in its own ignored directory; without the opt-in
+flag, `npm start` uses the ordinary build.
+
+The ignored worktree-root `.backing-preview` holds `manifest.json` and `samples\`. Never copy it
+to `public`, `dist`, a package, or another hosted directory. Per [ADR-0011](../../docs/decisions/0011-ai-assisted-arranging.md),
+resemblance review is still required before promotion. The manifest uses `schema:
+"backing-preview-v1"`, the exact built `charts/index.json` `sourceHash`, and a `songs` map
+covering every catalog ID with `short` and `full` arrays. Each entry is
+`[beatIndex, offsetBeats, lengthBeats, midi, voice, velocity]`: zero-based index into that
+form's `harmony.beats`, fractional offset in `[0,1)`, length in `(0,16]`, final MIDI pitch
+(including any written transposition), `harp`/`bass`/`pad`, and velocity in `(0,1]`.
+The end is interpolated on the beat grid, whose final boundary is the chart's duration.
+The host validates the catalog and sample hashes before launch; the TV filters doubles and
+nearby clashes against the selected part's player and guide notes, without changing their cues.
+If the bells occupy the entire part, the TV labels it as such and plays no candidate notes
+instead of substituting the baseline.
+
+Recorded harp input: VSCO-2 CE, Sam Gossner and Simon Dalzell (Elan Hickler/Soundemote sample
+cutting), [CC0 at the pinned revision](https://github.com/sgossner/VSCO-2-CE/blob/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE).
+The exact `KSHarp_*_mf.wav` inputs under `Strings/Harp` and SHA-256 pins are listed in
+[`preview-samples.ts`](src/backing/preview-samples.ts). Keep the WAVs and private provenance local.
+
 #### Score audit and audition
 
 The overlay affects only the backing, not the underlying chart harmony, assigned notes, TV guides,

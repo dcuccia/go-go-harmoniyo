@@ -11,10 +11,129 @@
       "ttf", "otf", "woff", "woff2",
       "mp4", "webm", "mov"
     ],
-    "include": ["spikes/*/charts/*.json", "**/song.ini", "**/*.glsl", "**/*.wgsl", "**/*.frag", "**/*.vert"],
+    "include": ["spikes/*/charts/*.json", "spikes/s9-page-host/backing/catalog.json", "**/song.ini", "**/*.glsl", "**/*.wgsl", "**/*.frag", "**/*.vert"],
     "exclude": ["**/node_modules/**", "LICENSES/**"]
   },
   "assets": [
+    {
+      "id": "s9-reviewed-harp-backing",
+      "title": "Fixed backing arrangements for the S9 browser host",
+      "kind": "music-score",
+      "origin": "ai-generated",
+      "paths": [
+        "spikes/s9-page-host/backing/catalog.json"
+      ],
+      "authors": [
+        "Go Go HarmoniYo contributors (Claude Fable 5.2 through GitHub Copilot)"
+      ],
+      "copyright": "2026 Go Go HarmoniYo contributors (AI-assisted; dedicated to the public domain)",
+      "license": "CC0-1.0",
+      "attribution": "Fixed S9 harp backing arrangements by Go Go HarmoniYo contributors (AI-assisted, CC0).",
+      "modifications": "None to the final private audition score; SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d. The build copies its event lists unchanged into per-form files.",
+      "ai": {
+        "tool": "GitHub Copilot app (Claude Fable 5.2)",
+        "model": "Claude Fable 5.2",
+        "version": "claude-fable-5.2",
+        "termsUrl": "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features#github-copilot",
+        "termsDate": "2026-08-27",
+        "prompt": "spikes/s9-page-host/backing/provenance/prompts.md",
+        "reviewer": "@dcuccia",
+        "reviewDate": "2026-11-25"
+      },
+      "review": {
+        "status": "approved",
+        "reviewer": "@dcuccia",
+        "date": "2026-11-25",
+        "notes": "The owner completed the human resemblance review of all 24 arrangements (Short and Full) in catalog SHA-256 78be33e61d3613ea8532acb6670570e37c75be08beab540faa89924fddcf1c4d and reported no concerns. Release is scoped to the public S9 browser host under ADR-0015."
+      },
+      "notes": "Per-song sources, chart and score hashes, phrase plans, and deterministic generation in spikes/s9-page-host/backing/provenance/. Uses the already registered S5 editions; the separate two-song pilot score files are not included."
+    },
+    {
+      "id": "s9-vsco2-harp",
+      "title": "Versilian Studios Chamber Orchestra 2 Community Edition harp recordings",
+      "kind": "audio",
+      "origin": "third-party",
+      "paths": [
+        "spikes/s9-page-host/backing/samples/*"
+      ],
+      "authors": [
+        "Sam Gossner",
+        "Simon Dalzell",
+        "Elan Hickler / Soundemote (sample cutting)"
+      ],
+      "copyright": "Sam Gossner, Simon Dalzell, and Elan Hickler / Soundemote; CC0 1.0 Universal",
+      "license": "CC0-1.0",
+      "attribution": "VSCO-2 CE harp: recorded by Sam Gossner & Simon Dalzell; sample cutting by Elan Hickler/Soundemote (CC0 1.0).",
+      "source": {
+        "url": "https://github.com/sgossner/VSCO-2-CE",
+        "id": "440300901dfe9275fd84e0b7763af1f8443ae62e",
+        "retrieved": "2026-11-26",
+        "licenseEvidence": "CC0 1.0 Universal in LICENSE at the pinned revision; original README and license included.",
+        "files": [
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_D2_mf.wav",
+            "sha256": "b9cbdc08e43fc0b28ac70246df991cb390f5cbd7f31519b3cc7f70d283b70566",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_D2_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_F2_mf.wav",
+            "sha256": "d5c0fb42c176af334fd6f6d1b97858556619c51e177efb5b0c6c23bc19ce6dad",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_F2_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_A2_mf.wav",
+            "sha256": "1df9f4d138ca3931fcb458bcdf01304cadf2e5f4eef67bbc17b0e42c0e60fce6",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_A2_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_C3_mf.wav",
+            "sha256": "e5d232771704e140959819de8cf2a3e0ba49d021ca77354c42664ce4fce6d9f3",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_C3_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_E3_mf.wav",
+            "sha256": "aafa9d41ec0f77da8f2891055af8b3f9557e0ba1f1df93d53ae6e1fda07afae5",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_E3_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_G3_mf.wav",
+            "sha256": "62600eb1b37bc2829ca65351f7ca7e506c9ae472abd5bea0765a8b8fa7df2772",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_G3_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_B3_mf.wav",
+            "sha256": "f6f71be8c640822ef48a448b245585659acdfcc7ed5774e10f37be2fc02fcab4",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_B3_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_D4_mf.wav",
+            "sha256": "ebfde8aab4411019e37e3426f4dd88d6a52a38c2d0261d7f10ec63d8ff584dc7",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_D4_mf.wav"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/KSHarp_F4_mf.wav",
+            "sha256": "db27ebbb37334c10e06f2ae63f4d9ff555e4d11704fcc6f0bcf503863867e577",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/Strings/Harp/KSHarp_F4_mf.wav"
+          },
+          {
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/README.md",
+            "sha256": "8fbf399338661e6c76585ad9e75eb10324f823935168e0567553293a83f200a0",
+            "path": "spikes/s9-page-host/backing/samples/README.md"
+          },
+          {
+            "path": "spikes/s9-page-host/backing/samples/LICENSE.txt",
+            "sha256": "36ffd9dc085d529a7e60e1276d73ae5a030b020313e6c5408593a6ae2af39673",
+            "url": "https://raw.githubusercontent.com/sgossner/VSCO-2-CE/440300901dfe9275fd84e0b7763af1f8443ae62e/LICENSE"
+          }
+        ]
+      },
+      "modifications": "Original WAVs and notices are byte-for-byte upstream. The S9 browser build derives mono PCM WAVs and their Brotli representations, without editing originals. See spikes/s9-page-host/backing/provenance/README.md and the generated legal/vsco2-ce/mono-derivation.json for the recipe, limiting events, lengths, and hashes.",
+      "reuseLimits": "Only the nine samples derived from these pinned files may be served by the reviewed S9 browser build.",
+      "review": {
+        "status": "approved",
+        "notes": "Source and license check: the pinned VSCO-2 CE LICENSE declares CC0 1.0 Universal, the original README confirms recording and sample-cutting credits, and the local originals match the recorded upstream SHA-256 pins. The S9 build records the hashes of both derived representations. This approval records provenance and byte verification, not a separate owner listening review."
+      }
+    },
     {
       "id": "project-ui-captures",
       "title": "Screenshots and captures of the project's own UI (S1, S4, I1, I2 reports)",

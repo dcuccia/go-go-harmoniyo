@@ -19,7 +19,7 @@ import { SeatingView, type PlayerView } from './seating-view';
 import type { PartCard as PartCardMsg } from '../../s1-phone-bell/src/core/hgp.ts';
 import { accuracyOf, newStats, TeamHud, type PlayerStats } from './team-hud';
 import { isAccidental } from '../../shared/pitch-palette';
-import { BackingTrack, DEFAULT_BACKING, type BackingSettings } from './backing/track';
+import { BackingTrack, DEFAULT_BACKING, type BackingSettings, type TrackPreview } from './backing/track';
 import { backingTimeline } from './backing/timeline';
 import { describe as describeBacking } from './backing/patterns';
 import { clampSpeed, DEFAULT_SPEED, parseSpeedPercent, scaleChart, speedNote, speedPercent } from './speed';
@@ -28,6 +28,7 @@ import { beatAt } from './backing/phrases';
 import { DEFAULT_SFX, PerformanceDirector, type SfxSettings } from './sfx/director';
 import { SfxSynth } from './sfx/synth';
 import { controls, difficultyLabels, RoundNavigation } from './round-flow';
+import { RoundStartStatus } from './round-start-status';
 import { version as APP_VERSION } from '../package.json';
 const params = new URLSearchParams(location.search);
 const num = (k: string, d: number): number => (params.has(k) ? Number(params.get(k)) : d);
@@ -55,6 +56,50 @@ if (params.has('backingVol')) backingSettings.volume = Math.max(0, Math.min(1, n
 if (params.has('countin')) backingSettings.countIn = flag('countin', true);
 const saveBacking = (): void => localStorage.setItem(BACKING_KEY, JSON.stringify(backingSettings));
 let backing: BackingTrack | null = null;
+const audition = import.meta.env.MODE === 'backing-preview' && params.get('backingPreview') === '1' && location.protocol === 'http:' &&
+  location.hostname === '127.0.0.1' && window.top === window;
+const recordedBacking = import.meta.env.MODE === 's9-reviewed-backing';
+const roundStartStatus = recordedBacking ? new RoundStartStatus($('title-box'), () => {
+  if (pendingRecorded) playStandard(pendingRecorded.request);
+}) : undefined;
+type RecordedMode = 'recorded' | 'bells-only' | 'procedural-fallback' | 'standard' | 'off' | 'first-ring';
+let recordedMode: RecordedMode | undefined;
+let harpPreload: 'idle' | 'loading' | 'ready' | 'failed' = 'idle';
+const recordedLabel = (mode: RecordedMode): string => ({
+  recorded: 'Recorded harp backing',
+  'bells-only': 'Recorded backing: bells fill this part',
+  'procedural-fallback': 'Recorded backing unavailable · procedural backing',
+  standard: 'Standard procedural backing',
+  off: 'Backing off',
+  'first-ring': 'First Ring: procedural backing',
+})[mode];
+let auditionChoice = 'candidate';
+let auditionSelects: NodeListOf<HTMLSelectElement> | undefined;
+const auditionLabel = (first: boolean, enabled: boolean, candidate: boolean): string =>
+  first ? (enabled ? 'First Ring: baseline' : 'First Ring: baseline (backing off)')
+    : !enabled ? 'Backing off' : candidate ? 'Candidate backing' : 'Baseline backing';
+const playedBackingLabel = (first: boolean, settings: BackingSettings, preview?: TrackPreview): string =>
+  preview?.events.length === 0 ? 'Candidate backing: bells fill this part' :
+    auditionLabel(first, settings.enabled && settings.volume > 0, !!preview);
+if (import.meta.env.MODE === 'backing-preview' && audition) {
+  const options = '<option value="candidate">Candidate</option><option value="baseline">Baseline</option>';
+  $('lobby-msg').insertAdjacentHTML('afterend', `<div id="backing-preview-controls">
+    <label>Local audition <select id="sel-backing-preview" data-backing-preview-select aria-describedby="backing-preview-info">${options}</select></label>
+    <span id="backing-preview-info" role="status"></span></div>`);
+  $('res-body').insertAdjacentHTML('afterend', `<label>Backing for next round <select data-backing-preview-select>${options}</select></label>`);
+  auditionSelects = document.querySelectorAll<HTMLSelectElement>('[data-backing-preview-select]');
+  for (const select of auditionSelects) {
+    select.onchange = () => { auditionChoice = select.value; renderAudition(); };
+  }
+}
+function renderAudition(): void {
+  if (!auditionSelects) return;
+  for (const select of auditionSelects) {
+    select.disabled = firstRing;
+    select.value = firstRing ? 'baseline' : auditionChoice;
+  }
+  $('backing-preview-info').textContent = auditionLabel(firstRing, backingSettings.enabled && backingSettings.volume > 0, auditionChoice === 'candidate');
+}
 
 // ── practice speed (lobby; remembered for this browser session, ?speed=50..100) ──
 const SPEED_KEY = 'i2.speed';
@@ -109,7 +154,10 @@ statsEl.classList.toggle('hidden', !flag('stats', false));
 const sessionHud: SessionHud = {
   reset: (c, m) => hud.reset({ ...c, lanes: [] }, m),
   judgement: () => {},
-  update: (...a) => hud.update(...a),
+  update: (...a) => {
+    hud.update(...a);
+    if (a[2] >= 0) roundStartStatus?.endLeadIn();
+  },
 };
 
 // ── phones (S1 host) ────────────────────────────────────────────────────────
@@ -119,6 +167,7 @@ link.connect();
 // ── lobby state ─────────────────────────────────────────────────────────────
 interface SongIndex {
   profile: string;
+  sourceHash: string;
   songs: Song[];
 }
 interface IndexedPart { difficulty: Difficulty; arrangement?: Arrangement; ringerCount: number; strikes: number; maxBellsPerRinger: number }
@@ -182,9 +231,11 @@ interface RoundRequest {
   opener: HTMLElement;
   selection?: RoundSelection;
   rotate?: boolean;
+  standardBacking?: boolean;
 }
 let committed: (RoundSelection & { mode: Mode }) | null = null;
 let starting: symbol | undefined;
+let pendingRecorded: { request: RoundRequest; acceptedMissing: readonly string[] } | undefined;
 let reconnectRequest: RoundRequest | undefined;
 let waitingForReconnect = false;
 const navigation = new RoundNavigation();
@@ -473,7 +524,10 @@ function renderLobby(): void {
     const onPhones = cards.reduce((a, c) => a + c.bells.length, 0);
     $('part-info').textContent = `${part.notes.length} notes · ${onPhones} bells on phones${cards.some((c) => c.autoBells.length) ? ' · some bells exceed 4 per phone and are rung by the TV' : ''}${part.guide?.length ? ' · the TV plays the rest of the tune softly' : ''}${s5?.form && s5.form.sections.length > 1 ? ` · ${s5.form.sections.map((x) => x.label ?? x.kind).join(' → ')}` : ''} · chart profile ${index?.profile}`;
   }
-  $('backing-info').textContent = s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
+  $('backing-info').textContent = recordedBacking && !firstRing ? 'Backing: recorded harp'
+    : audition && auditionChoice === 'candidate' && !firstRing
+    ? 'Backing: local audition candidate' : s5 ? `Backing: ${describeBacking(backingTimeline(s5))}` : '';
+  renderAudition();
   renderStatus();
 }
 
@@ -535,6 +589,26 @@ function renderStatus(): void {
   }
   $('lan-help').hidden = !url || !/self-signed/i.test(link.info.tlsMode ?? '') || url === link.info.transport?.tunnelUrl;
   $('join-url').textContent = url || (hostOk ? (link.info.transport?.mode === 'page' ? 'Waiting for the signalling service…' : 'Getting the join code ready…') : 'Waiting for the phone host…');
+  if (import.meta.env.MODE === 's9-reviewed-backing' && url && index && !playing) {
+    if (!firstRing && backingSettings.enabled && backingSettings.volume > 0 && harpPreload === 'idle') {
+      harpPreload = 'loading';
+      setTimeout(() => {
+        if (playing || firstRing || !backingSettings.enabled || backingSettings.volume <= 0) {
+          harpPreload = 'idle';
+          return;
+        }
+        void import('../../s9-page-host/src/recorded-backing').then((m) => m.preloadS9Harp(audio.ctx)).then(
+          () => { harpPreload = 'ready'; renderRecordedOptions(); },
+          (e: unknown) => {
+            harpPreload = 'failed';
+            console.warn('Recorded harp preload incomplete; will retry when selected:', e);
+            renderRecordedOptions();
+          },
+        );
+      }, 350);
+    }
+    renderRecordedOptions();
+  }
 }
 
 /** A phone's game path (ADR-0012): direct Wi-Fi link, cloud tunnel, or the Wi-Fi WebSocket. */
@@ -653,12 +727,14 @@ $<HTMLSelectElement>('sel-sound').onchange = (e) => {
 $<HTMLInputElement>('chk-backing').onchange = (e) => {
   backingSettings.enabled = (e.target as HTMLInputElement).checked;
   saveBacking();
+  renderAudition();
   renderLobby();
 };
 $<HTMLInputElement>('rng-backing').oninput = (e) => {
   backingSettings.volume = Number((e.target as HTMLInputElement).value) / 100;
   saveBacking();
   $('backing-vol').textContent = `${Math.round(backingSettings.volume * 100)}%`;
+  renderAudition();
 };
 $<HTMLInputElement>('chk-countin').onchange = (e) => {
   backingSettings.countIn = (e.target as HTMLInputElement).checked;
@@ -807,6 +883,10 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   if (!index || playing || starting) return;
   const { mode, opener } = request;
   const config = request.selection ?? { ...selection(), ringerCount: ringersAuto && !firstRing ? automaticCount() : ringerCount };
+  const panel = navigation.panel;
+  const anchor = panel?.id === 'round-options' ? $('btn-auto').closest<HTMLElement>('.buttons') ?? $('btn-auto')
+    : panel?.id === 'difficulty-picker' ? $('difficulty-error')
+    : $(session ? 'res-msg' : 'lobby-msg');
   const showError = (msg: string) => {
     $(navigation.panel?.id === 'difficulty-picker' ? 'difficulty-error' : session ? 'res-msg' : 'lobby-msg').textContent = msg;
   };
@@ -831,6 +911,10 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
   const attempt = starting = Symbol();
   ++previewRevision;
   showError('');
+  roundStartStatus?.show(anchor, 'Getting the round ready', 'Preparing the chart and audio.');
+  if (recordedBacking) renderRecordedOptions();
+  const candidate = audition && auditionChoice === 'candidate' && !config.firstRing;
+  const settings = { ...backingSettings };
   try {
     // Resume in the Play gesture, not after fetching a chart (mobile user activation).
     const [, s5] = await Promise.all([audio.resume(), songChart(config.songId, variantOf(config), config.speed)]);
@@ -840,17 +924,56 @@ async function start(request: RoundRequest, acceptedMissing: readonly string[] =
       showError(unavailable(config));
       return;
     }
+    let preview: TrackPreview | undefined;
+    let roundBacking: RecordedMode | undefined;
+    if (import.meta.env.MODE === 'backing-preview' && candidate && settings.enabled && settings.volume > 0) {
+      const { preparePreview } = await import('./backing/preview-player');
+      preview = await preparePreview(audio.ctx, s5, part, config.songForm, index.sourceHash);
+      if (starting !== attempt) return;
+    }
+    if (import.meta.env.MODE === 's9-reviewed-backing') {
+      if (!settings.enabled || settings.volume <= 0) roundBacking = 'off';
+      else if (config.firstRing) roundBacking = 'first-ring';
+      else if (request.standardBacking) roundBacking = 'standard';
+      else {
+        pendingRecorded = { request: { ...request, selection: config }, acceptedMissing };
+        const showHarp = (detail: string): void => {
+          if (starting === attempt) roundStartStatus?.show(anchor, 'Loading harp backing', detail, true);
+        };
+        showHarp('Getting the backing score for this round.');
+        renderRecordedOptions();
+        try {
+          const { prepareS9Backing } = await import('../../s9-page-host/src/recorded-backing');
+          if (starting !== attempt) return;
+          preview = await prepareS9Backing(audio.ctx, s5, part, config.songForm, index.sourceHash,
+            () => showHarp('Preparing the harp sounds for this round.'));
+          roundBacking = preview.events.length ? 'recorded' : 'bells-only';
+        } catch (e) {
+          if (starting !== attempt) return;
+          console.warn('Recorded backing unavailable; using procedural backing:', e);
+          roundBacking = 'procedural-fallback';
+        }
+        if (starting !== attempt) return;
+      }
+    }
     const absent = mode === 'play' ? checkRoster() : missingPhones();
     if (!absent) return;
-    beginRound(request, config, s5, part, absent);
+    recordedMode = roundBacking;
+    beginRound(request, config, s5, part, absent, audition || recordedBacking ? settings : { ...backingSettings }, preview);
   } catch (e) {
     if (starting === attempt) showError(`Could not start the round: ${String(e)}`);
   } finally {
-    if (starting === attempt) starting = undefined;
+    if (starting === attempt) {
+      starting = undefined;
+      pendingRecorded = undefined;
+      roundStartStatus?.clear();
+      if (recordedBacking) renderRecordedOptions();
+    }
   }
 }
 
-function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, part: S5Part, absent: readonly string[]): void {
+function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, part: S5Part, absent: readonly string[],
+                    settings: BackingSettings, preview?: TrackPreview): void {
   const { mode } = request;
   session?.stop();
   backing?.stop();
@@ -871,7 +994,7 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
 
   const hostRingSound = soundMode !== 'device';
   // Groove + pad from the chart's chords; bass/inner bells of this part are left out of it.
-  backing = new BackingTrack(audio, s5, partBellNotes(s5, part), { ...backingSettings });
+  backing = new BackingTrack(audio, s5, partBellNotes(s5, part), settings, { preview });
   const s = new Session(mode, t.chart, audio, mh, sessionHud, sources, offsets, { hostRingSound, extraEvents: backing.scheduled(), leadIn: backing.leadIn, missGraceMs: missGrace() });
   players = t.ringers.map((r) => newStats(slotName(roundSeats[r.index], r.index), r.noteIds.length));
   // Performance SFX: streaks, multiplier, misses, perfect phrases (phrases from the backing's
@@ -909,7 +1032,12 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
   };
   s.onFinish = (r) => finish(r, config, part.arrangement ?? 'by-range');
   const hostParts = t.autoRingers.map((i) => cards[i]?.name ?? `ringer ${i + 1}`).concat(t.ringers.filter((r) => r.autoBells.length).map((r) => r.autoBells.join(' ')));
-  $('host-note').textContent = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
+  const hostNote = hostParts.length ? `Host rings: ${hostParts.join(' · ')}` : '';
+  $('host-note').textContent = recordedBacking && recordedMode
+    ? [recordedLabel(recordedMode), hostNote].filter(Boolean).join(' · ')
+    : audition
+    ? [playedBackingLabel(config.firstRing, settings, preview), hostNote].filter(Boolean).join(' · ')
+    : hostNote;
   session = s;
   playing = true;
   document.title = pageTitle;
@@ -917,6 +1045,7 @@ function beginRound(request: RoundRequest, config: RoundSelection, s5: S5Chart, 
   resetTiming();
   sendParts(); // publish the committed seats and phase before the count-in and phone cues
   s.start();
+  roundStartStatus?.begin(backing.clicks.length > 0, recordedMode === 'procedural-fallback');
   sendCues(s);
   teamHud.position();
   $('speed-badge').textContent = speed < 1 ? `🐢 ${speedNote(speed)}` : '';
@@ -1051,7 +1180,15 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
     chartDurationSec: team ? round(team.chart.duration, 3) : null,
     soundMode,
     backing: backing
-      ? { ...backing.settings, style: backing.style?.id ?? null, chords: backing.timeline?.source ?? null, events: backing.events.length, countInClicks: backing.clicks.length, leadInSec: round(backing.leadIn, 3) }
+      ? { ...backing.settings,
+        style: recordedMode === 'recorded' ? 'recorded-harp' : recordedMode === 'bells-only' || recordedMode === 'off' ? null : backing.style?.id ?? null,
+        chords: backing.timeline?.source ?? null,
+        events: backing.preview?.events.length ?? backing.events.length,
+        countInClicks: backing.clicks.length,
+        leadInSec: round(backing.leadIn, 3),
+        ...(audition ? { audition: backing.preview ? 'candidate' : 'baseline' } : {}),
+        ...(recordedBacking ? { mode: recordedMode } : {}),
+      }
       : null,
     sfx: { ...sfxSettings, cues: director?.counts() ?? null },
     players: playerRows,
@@ -1069,7 +1206,11 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
   document.title = 'I2_DONE';
   const c = r.counts;
   $('res-title').textContent = config.title;
-  $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}`;
+  const resultBacking = recordedBacking && recordedMode ? ` · ${recordedLabel(recordedMode)}`
+    : audition && backing
+    ? ` · ${playedBackingLabel(config.firstRing, backing.settings, backing.preview)}`
+    : '';
+  $('res-difficulty').textContent = `${levelOf(config)} · ${config.firstRing || config.songForm === 'short' ? 'Short' : 'Full'} · ${config.ringerCount} ${config.ringerCount === 1 ? 'ringer' : 'ringers'}${resultBacking}`;
   $('res-msg').textContent = '';
   const yo = $<HTMLImageElement>('res-yo');
   const bigCheer = r.accuracy >= BIG_CHEER_ACCURACY;
@@ -1089,6 +1230,7 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
       .join('');
   $('res-json').textContent = JSON.stringify(result, null, 2);
   $('results').classList.remove('hidden');
+  if (recordedBacking) renderRecordedOptions();
   $('btn-again').focus();
   sendParts(); // phones can pick parts for the next round
   renderNext();
@@ -1097,6 +1239,9 @@ function finish(r: SessionResult, config: RoundSelection, playedArrangement: Arr
 
 function toReady(focus = $('btn-play')): void {
   starting = undefined;
+  pendingRecorded = undefined;
+  roundStartStatus?.clear();
+  roundStartStatus?.endLeadIn();
   reconnectRequest = undefined;
   navigation.dismissAll();
   session?.stop();
@@ -1118,6 +1263,40 @@ function toReady(focus = $('btn-play')): void {
 
 $('btn-play').onclick = () => void start({ mode: 'play', opener: $('btn-play') });
 $('btn-auto').onclick = () => void start({ mode: 'autoplay', opener: $('btn-auto') });
+function renderRecordedOptions(): void {
+  const control = document.getElementById('play-standard-backing');
+  const again = document.getElementById('again-standard-backing');
+  const status = document.getElementById('harp-preload');
+  const autoplay = document.getElementById('auto-standard-backing');
+  const enabled = backingSettings.enabled && backingSettings.volume > 0;
+  if (control) control.hidden = !index || !enabled || firstRing || !!pendingRecorded;
+  if (again) again.hidden = !committed || !enabled || committed.firstRing || !!pendingRecorded;
+  if (autoplay) autoplay.hidden = !index || !enabled || firstRing || !!pendingRecorded;
+  const label = !enabled || firstRing || starting ? '' : ({
+    idle: '', loading: 'Loading recorded harp…', ready: 'Recorded harp ready',
+    failed: 'Recorded harp did not finish loading. Play will retry, or use standard backing.',
+  })[harpPreload];
+  if (status && status.textContent !== label) status.textContent = label;
+}
+function playStandard(request: RoundRequest): void {
+  const round = pendingRecorded;
+  if (starting && !round) return;
+  const next = round?.request ?? request;
+  if (next.standardBacking) return;
+  cancelStart();
+  void start({ ...next, standardBacking: true }, round?.acceptedMissing);
+}
+if (import.meta.env.MODE === 's9-reviewed-backing') {
+  $('open-difficulty').insertAdjacentHTML('afterend', '<button id="play-standard-backing" hidden>Play with standard backing</button>');
+  $('lobby-msg').insertAdjacentHTML('afterend', '<p id="harp-preload" class="dim" role="status"></p>');
+  $('res-choose-song').insertAdjacentHTML('afterend', '<button id="again-standard-backing" hidden>Play with standard backing</button>');
+  $('btn-auto').insertAdjacentHTML('afterend', '<button id="auto-standard-backing" hidden>Autoplay with standard backing</button>');
+  $('play-standard-backing').onclick = () => playStandard({ mode: 'play', opener: $('play-standard-backing') });
+  $('again-standard-backing').onclick = () => {
+    if (committed) playStandard({ mode: committed.mode, selection: committed, opener: $('again-standard-backing') });
+  };
+  $('auto-standard-backing').onclick = () => playStandard({ mode: 'autoplay', opener: $('auto-standard-backing') });
+}
 const replay = (opener: HTMLElement, rotate = false): void => {
   if (committed) void start({ mode: committed.mode, selection: committed, opener, rotate });
 };
@@ -1149,7 +1328,11 @@ function openPanel(id: string, opener: HTMLElement, initial?: HTMLElement): void
 
 function cancelStart(): boolean {
   if (!starting) return false;
+  if (document.activeElement?.closest('.round-start-status')) pendingRecorded?.request.opener.focus();
   starting = undefined;
+  pendingRecorded = undefined;
+  roundStartStatus?.clear();
+  if (recordedBacking) renderRecordedOptions();
   if (!session) void rebuild();
   return true;
 }
@@ -1275,6 +1458,7 @@ function goBack(): boolean {
   if (view.pickerOpen) view.closePicker();
   else if (navigation.panel) closePanel();
   else if (playing) openPanel('end-round', document.body);
+  else if (recordedBacking && cancelStart()) return true;
   else if (session) toReady();
   else if (cancelStart()) return true;
   else return false;
@@ -1293,11 +1477,14 @@ window.addEventListener('keydown', (e) => {
   }
   const panel = navigation.panel;
   if (e.key.startsWith('Arrow') || (panel && e.key === 'Tab')) {
+    const lobbyStatus = recordedBacking ? $('lobby').querySelector('.round-start-status') : null;
     const rows = panel?.id === 'seating-options'
       ? [controls($('seat-tools')), view.cardEls, [$('open-players'), panel.querySelector<HTMLButtonElement>('[data-back]')!]]
       : panel || playing ? []
         : session ? [controls($('results').querySelector('.result-actions')!), ...controls($('results')).filter((el) => !el.closest('.result-actions')).map((el) => [el])]
-          : [controls($('lobby').querySelector('.quick-setup')!).filter((el) => el.id === 'choose-song'), controls($('lobby').querySelector('.ready-actions')!), controls($('lobby').querySelector('.lobby-actions')!)];
+          : [controls($('lobby').querySelector('.quick-setup')!).filter((el) => el.id === 'choose-song'), controls($('lobby').querySelector('.ready-actions')!),
+            ...(lobbyStatus ? [controls(lobbyStatus)] : []),
+            controls($('lobby').querySelector('.lobby-actions')!)];
     if (navigation.key(e, target, rows, view.pickerOpen)) return;
   }
   if (e.code === 'Backquote') statsEl.classList.toggle('hidden');
